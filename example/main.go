@@ -17,11 +17,11 @@ limitations under the License.
 package main
 
 import (
-	"k8s.io/apiserver-builder/pkg/cmd/server"
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/cmd/server"
 	_ "k8s.io/client-go/plugin/pkg/client/auth" // Enable cloud provider auth
 
-	"k8s.io/apiserver-builder/example/pkg/apis"
-	"k8s.io/apiserver-builder/example/pkg/openapi"
+	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis"
+	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/openapi"
 )
 
 func main() {

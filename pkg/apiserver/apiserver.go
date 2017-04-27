@@ -25,7 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/version"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 
-	"k8s.io/apiserver-builder/pkg/builders"
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
 	"k8s.io/client-go/pkg/api"
 )
 

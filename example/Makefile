@@ -12,11 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# NOTE: Project must live under GOPATH/src/k8s.io/apiserver-builder for the code to compile
-REPO=k8s.io/apiserver-builder/example
+# NOTE: Project must live under $GOPATH/src/github.com/kubernetes-incubator/apiserver-builder/example for the code to compile
+REPO=github.com/kubernetes-incubator/apiserver-builder/example
+BOILER_PLATE="boilerplate.go.txt"
+UNVERSIONED="miskatonic/,innsmouth/"
+VERSIONED="miskatonic/v1beta1,innsmouth/v1"
+
 
 SRC=$(REPO)/pkg/apis/...
-APIBUILDER_DIR="."
+REGISTER_GEN="../cmd/apiregister-gen/main.go"
+DIR=pkg
 
 GENERIC_API="k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/api/resource/,k8s.io/apimachinery/pkg/version/,k8s.io/apimachinery/pkg/runtime/,k8s.io/apimachinery/pkg//util/intstr/"
 OUT=$(GOPATH)/src
@@ -27,12 +32,43 @@ INTERNAL_CLIENT=internalclientset
 LISTERS_PKG="$(CLIENT_PKG)/listers_generated"
 INFORMERS_PKG="$(CLIENT_PKG)/informers_generated"
 
-UNVERSIONED="miskatonic/,innsmouth/"
-VERSIONED="miskatonic/v1beta1,innsmouth/v1"
-
-DIR=example/pkg
-
 all: build
+
+# Download all of the code generators
+# TODO: Package and distribute these in a release tar
+deps:
+	go get k8s.io/kubernetes/cmd/libs/go2idl/client-gen
+	go get k8s.io/kubernetes/cmd/libs/go2idl/conversion-gen
+	go get k8s.io/kubernetes/cmd/libs/go2idl/deepcopy-gen
+	go get k8s.io/kubernetes/cmd/libs/go2idl/openapi-gen
+	go get k8s.io/kubernetes/cmd/libs/go2idl/lister-gen
+	go get k8s.io/kubernetes/cmd/libs/go2idl/informer-gen
+	go get github.com/kubernetes-incubator/apiserver-builder/register-gen
+	go get github.com/kubernetes-incubator/reference-docs/gen-apidocs
+
+# Build the main
+build: generate
+	go build main.go
+
+# Run code generators
+# TODO: Make this use the downloaded bin for apiregister-gen
+generate: cleangenerated
+	go run $(REGISTER_GEN) -i $(REPO)/pkg/apis/...
+	conversion-gen -i "$(SRC)"  --extra-peer-dirs="k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/conversion,k8s.io/apimachinery/pkg/runtime" -o $(OUT)   -O zz_generated.conversion --go-header-file $(BOILER_PLATE)
+	deepcopy-gen -i "$(SRC)" -o $(OUT) -O zz_generated.deepcopy --go-header-file $(BOILER_PLATE)
+	openapi-gen  -i "$(SRC),$(GENERIC_API)" --output-package "$(REPO)/pkg/openapi" --go-header-file $(BOILER_PLATE)
+	client-gen --input-base "$(REPO)/pkg/apis/" --input $(VERSIONED) --clientset-path=$(CLIENT_PATH)  --clientset-name=$(CLIENT) -o $(OUT) --go-header-file $(BOILER_PLATE)
+	client-gen --input-base "$(REPO)/pkg/apis/" --input $(UNVERSIONED) --clientset-path=$(CLIENT_PATH) --clientset-name=$(INTERNAL_CLIENT)  -o $(OUT) --go-header-file $(BOILER_PLATE)
+	lister-gen -i $(SRC) --output-package=$(LISTERS_PKG) -o $(OUT) --go-header-file $(BOILER_PLATE)
+	informer-gen -i $(SRC) -o $(OUT) --go-header-file $(BOILER_PLATE) --internal-clientset-package="$(CLIENT_PATH)/$(INTERNAL_CLIENT)" --versioned-clientset-package="$(CLIENT_PATH)/$(CLIENT)" --listers-package=$(LISTERS_PKG) --output-package=$(INFORMERS_PKG)
+
+# Run integration tests
+test: build
+	go test pkg/apis/miskatonic/v1beta1/university_types_test.go
+	go test pkg/apis/innsmouth/v1/deepone_types_test.go
+	bash -c "find $(DIR)/apis/ -name apiserver.local.config | xargs rm -rf"
+
+# Clean up functions
 
 clean: cleanbin cleangenerated cleandocs
 
@@ -48,19 +84,6 @@ cleangenerated:
 	rm -rf $(DIR)/client/clientset_generated/
 	rm -rf $(DIR)/client/informers_generated/
 
-generate: cleangenerated
-	go run $(APIBUILDER_DIR)/cmd/apiregister-gen/main.go -i $(REPO)/pkg/apis/...
-	conversion-gen -i "$(SRC)"  --extra-peer-dirs="k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/conversion,k8s.io/apimachinery/pkg/runtime" -o $(OUT)   -O zz_generated.conversion --go-header-file boilerplate.go.txt
-	deepcopy-gen -i "$(SRC)" -o $(OUT) -O zz_generated.deepcopy --go-header-file boilerplate.go.txt
-	openapi-gen  -i "$(SRC),$(GENERIC_API)" --output-package "$(REPO)/pkg/openapi" --go-header-file boilerplate.go.txt
-	client-gen --input-base "$(REPO)/pkg/apis/" --input $(VERSIONED) --clientset-path=$(CLIENT_PATH)  --clientset-name=$(CLIENT) -o $(OUT) --go-header-file boilerplate.go.txt
-	client-gen --input-base "$(REPO)/pkg/apis/" --input $(UNVERSIONED) --clientset-path=$(CLIENT_PATH) --clientset-name=$(INTERNAL_CLIENT)  -o $(OUT) --go-header-file boilerplate.go.txt
-	lister-gen -i $(SRC) --output-package=$(LISTERS_PKG) -o $(OUT) --go-header-file boilerplate.go.txt
-	informer-gen -i $(SRC) -o $(OUT) --go-header-file boilerplate.go.txt --internal-clientset-package="$(CLIENT_PATH)/$(INTERNAL_CLIENT)" --versioned-clientset-package="$(CLIENT_PATH)/$(CLIENT)" --listers-package=$(LISTERS_PKG) --output-package=$(INFORMERS_PKG)
-
-build: cleanbin generate
-	go build example/main.go
-
 cleandocs:
 	rm -rf $(shell pwd)/docs/build
 	rm -rf $(shell pwd)/docs/includes
@@ -75,18 +98,3 @@ docs: cleandocs build
 
 run: build
 	./main -v 10 --authentication-kubeconfig ~/.kube/auth_config --authorization-kubeconfig ~/.kube/auth_config --client-ca-file /var/run/kubernetes/apiserver.crt  --requestheader-client-ca-file /var/run/kubernetes/apiserver.crt --requestheader-username-headers=X-Remote-User --requestheader-group-headers=X-Remote-Group --requestheader-extra-headers-prefix=X-Remote-Extra- --etcd-servers=http://localhost:2379 --secure-port=9443 --tls-ca-file  /var/run/kubernetes/apiserver.crt --print-bearer-token
-
-test:
-	go test example/pkg/apis/miskatonic/v1beta1/university_types_test.go
-	go test example/pkg/apis/innsmouth/v1/deepone_types_test.go
-	bash -c "find $(DIR)/apis/ -name apiserver.local.config | xargs rm -rf"
-
-# Download the generators
-deps:
-	go get k8s.io/kubernetes/cmd/libs/go2idl/client-gen
-	go get k8s.io/kubernetes/cmd/libs/go2idl/conversion-gen
-	go get k8s.io/kubernetes/cmd/libs/go2idl/deepcopy-gen
-	go get k8s.io/kubernetes/cmd/libs/go2idl/openapi-gen
-	go get k8s.io/kubernetes/cmd/libs/go2idl/lister-gen
-	go get k8s.io/kubernetes/cmd/libs/go2idl/informer-gen
-	go get github.com/kubernetes-incubator/reference-docs/gen-apidocs

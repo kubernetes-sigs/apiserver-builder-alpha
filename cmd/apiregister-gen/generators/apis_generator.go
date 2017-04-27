@@ -40,7 +40,7 @@ func CreateApisGenerator(apis *APIs, filename string) generator.Generator {
 
 func (d *apiGenerator) Imports(c *generator.Context) []string {
 	imports := []string{
-		"k8s.io/apiserver-builder/pkg/builders",
+		"github.com/kubernetes-incubator/apiserver-builder/pkg/builders",
 	}
 	for _, group := range d.apis.Groups {
 		imports = append(imports, group.PkgPath)

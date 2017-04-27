@@ -20,8 +20,8 @@ limitations under the License.
 
 // +k8s:openapi-gen=true
 // +k8s:deepcopy-gen=package,register
-// +k8s:conversion-gen=k8s.io/apiserver-builder/example/pkg/apis/innsmouth
+// +k8s:conversion-gen=github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/innsmouth
 // +k8s:defaulter-gen=TypeMeta
 
 // +groupName=innsmouth.k8s.io
-package v1 // import "k8s.io/apiserver-builder/example/pkg/apis/innsmouth/v1"
+package v1 // import "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/innsmouth/v1"

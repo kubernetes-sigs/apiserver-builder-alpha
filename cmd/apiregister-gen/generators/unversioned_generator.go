@@ -44,7 +44,7 @@ func (d *unversionedGenerator) Imports(c *generator.Context) []string {
 		"metav1 \"k8s.io/apimachinery/pkg/apis/meta/v1\"",
 		"k8s.io/apimachinery/pkg/runtime",
 		"k8s.io/apimachinery/pkg/runtime/schema",
-		"k8s.io/apiserver-builder/pkg/builders",
+		"github.com/kubernetes-incubator/apiserver-builder/pkg/builders",
 		"k8s.io/apiserver/pkg/endpoints/request",
 		"k8s.io/apiserver/pkg/registry/rest",
 		"k8s.io/client-go/pkg/api",

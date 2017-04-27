@@ -19,13 +19,13 @@ package v1beta1
 import (
 	"testing"
 
+	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis"
+	v1beta1miskatonic "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic/v1beta1"
+	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/clientset_generated/clientset"
+	v1beta1miskatonicclient "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/clientset_generated/clientset/typed/miskatonic/v1beta1"
+	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/openapi"
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apiserver-builder/example/pkg/apis"
-	v1beta1miskatonic "k8s.io/apiserver-builder/example/pkg/apis/miskatonic/v1beta1"
-	"k8s.io/apiserver-builder/example/pkg/client/clientset_generated/clientset"
-	v1beta1miskatonicclient "k8s.io/apiserver-builder/example/pkg/client/clientset_generated/clientset/typed/miskatonic/v1beta1"
-	"k8s.io/apiserver-builder/example/pkg/openapi"
-	"k8s.io/apiserver-builder/pkg/test"
 	"k8s.io/client-go/rest"
 	"os"
 )
@@ -71,8 +71,8 @@ func TestCreateDeleteUniversities(t *testing.T) {
 	if actual.Spec.FacultySize != univ.Spec.FacultySize {
 		t.Fatalf("Expected to find FacultySize %d, found %d", univ.Spec.FacultySize, actual.Spec.FacultySize)
 	}
-	if actual.Spec.MaxStudents == nil || *actual.Spec.MaxStudents != *univ.Spec.MaxStudents {
-		t.Fatalf("Expected to find MaxStudents %d, found %v", *univ.Spec.MaxStudents, actual.Spec.MaxStudents)
+	if actual.Spec.MaxStudents == nil || *actual.Spec.MaxStudents != 15 {
+		t.Fatalf("Expected to find MaxStudents %d, found %v", 15, actual.Spec.MaxStudents)
 	}
 
 	// Make sure we can delete the resource

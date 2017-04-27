@@ -20,13 +20,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis"
+	v1innsmouth "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/innsmouth/v1"
+	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/clientset_generated/clientset"
+	v1innsmouthclient "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/clientset_generated/clientset/typed/innsmouth/v1"
+	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/openapi"
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apiserver-builder/example/pkg/apis"
-	v1innsmouth "k8s.io/apiserver-builder/example/pkg/apis/innsmouth/v1"
-	"k8s.io/apiserver-builder/example/pkg/client/clientset_generated/clientset"
-	v1innsmouthclient "k8s.io/apiserver-builder/example/pkg/client/clientset_generated/clientset/typed/innsmouth/v1"
-	"k8s.io/apiserver-builder/example/pkg/openapi"
-	"k8s.io/apiserver-builder/pkg/test"
 	"k8s.io/client-go/rest"
 )
 
