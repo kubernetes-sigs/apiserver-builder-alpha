@@ -56,13 +56,12 @@ type UniversityStatus struct {
 }
 
 // GetDefaultingFunctions returns functions for defaulting v1beta1.University values
-func (UniversitySchemeFns) GetDefaultingFunctions() []interface{} {
-	return []interface{}{func(obj *University) {
-		if obj.Spec.MaxStudents == nil {
-			n := 15
-			obj.Spec.MaxStudents = &n
-		}
-	}}
+func (UniversitySchemeFns) DefaultingFunction(o interface{}) {
+	obj := o.(*University)
+	if obj.Spec.MaxStudents == nil {
+		n := 15
+		obj.Spec.MaxStudents = &n
+	}
 }
 
 // +genclient=true

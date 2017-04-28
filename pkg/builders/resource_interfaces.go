@@ -71,7 +71,7 @@ type StorageBuilder interface {
 }
 
 type SchemeFns interface {
-	GetDefaultingFunctions() []interface{}
+	DefaultingFunction(obj interface{})
 	GetConversionFunctions() []interface{}
 	Register(scheme *runtime.Scheme) error
 }

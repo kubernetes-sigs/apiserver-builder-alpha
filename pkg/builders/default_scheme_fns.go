@@ -27,7 +27,7 @@ var SchemeFnsSingleton = DefaultSchemeFns{}
 type DefaultSchemeFns struct {
 }
 
-func (DefaultSchemeFns) GetDefaultingFunctions() []interface{} { return []interface{}{} }
+func (DefaultSchemeFns) DefaultingFunction(interface{}) {}
 
 func (DefaultSchemeFns) GetConversionFunctions() []interface{} { return []interface{}{} }
 
