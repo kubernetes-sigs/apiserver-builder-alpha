@@ -43,7 +43,7 @@ deps:
 	go get k8s.io/kubernetes/cmd/libs/go2idl/openapi-gen
 	go get k8s.io/kubernetes/cmd/libs/go2idl/lister-gen
 	go get k8s.io/kubernetes/cmd/libs/go2idl/informer-gen
-	go get github.com/kubernetes-incubator/apiserver-builder/register-gen
+	go get github.com/kubernetes-incubator/apiserver-builder/cmd/apiregister-gen
 	go get github.com/kubernetes-incubator/reference-docs/gen-apidocs
 
 # Build the main
@@ -51,9 +51,8 @@ build: generate
 	go build main.go
 
 # Run code generators
-# TODO: Make this use the downloaded bin for apiregister-gen
 generate: cleangenerated
-	go run $(REGISTER_GEN) -i $(REPO)/pkg/apis/...
+	apiregister-gen -i $(REPO)/pkg/apis/...
 	conversion-gen -i "$(SRC)"  --extra-peer-dirs="k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/conversion,k8s.io/apimachinery/pkg/runtime" -o $(OUT)   -O zz_generated.conversion --go-header-file $(BOILER_PLATE)
 	deepcopy-gen -i "$(SRC)" -o $(OUT) -O zz_generated.deepcopy --go-header-file $(BOILER_PLATE)
 	openapi-gen  -i "$(SRC),$(GENERIC_API)" --output-package "$(REPO)/pkg/openapi" --go-header-file $(BOILER_PLATE)
