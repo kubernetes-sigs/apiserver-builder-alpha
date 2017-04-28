@@ -72,8 +72,3 @@ Construct a set of libraries and tools to reduce and generate the boilerplate.
 - How to override each default
 - Build tools
 - How to use libraries directly (without relying on code generation)
-
-## Proof of concept
-
-A proof of concept is implemented [here](https://github.com/pwittrock/kubernetes/tree/apibuilder/staging/src/k8s.io/apiserver-builder)
-with this [example](https://github.com/pwittrock/kubernetes/tree/apibuilder/staging/src/k8s.io/apiserver-builder/example).
