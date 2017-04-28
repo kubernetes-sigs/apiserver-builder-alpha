@@ -22,6 +22,5 @@ limitations under the License.
 // +k8s:deepcopy-gen=package,register
 // +k8s:conversion-gen=github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic
 // +k8s:defaulter-gen=TypeMeta
-
 // +groupName=miskatonic.k8s.io
 package v1beta1 // import "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic/v1beta1"

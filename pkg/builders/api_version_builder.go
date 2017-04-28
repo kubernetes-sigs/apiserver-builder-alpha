@@ -75,18 +75,14 @@ func (s *VersionedApiBuilder) registerTypes(scheme *runtime.Scheme) error {
 
 func (s *VersionedApiBuilder) registerDefaults(scheme *runtime.Scheme) error {
 	for _, k := range s.Kinds {
-		err := scheme.AddDefaultingFuncs(k.SchemeFns.GetDefaultingFunctions()...)
-		if err != nil {
-			glog.Errorf("Failed to add Defaulting functions %v", err)
-			return err
-		}
+		scheme.AddTypeDefaultingFunc(k.New(), k.SchemeFns.DefaultingFunction)
 	}
 	return nil
 }
 
 func (s *VersionedApiBuilder) registerConversions(scheme *runtime.Scheme) error {
 	for _, k := range s.Kinds {
-		err := scheme.AddDefaultingFuncs(k.SchemeFns.GetConversionFunctions()...)
+		err := scheme.AddConversionFuncs(k.SchemeFns.GetConversionFunctions()...)
 		if err != nil {
 			glog.Errorf("Failed to add conversion functions %v", err)
 			return err
