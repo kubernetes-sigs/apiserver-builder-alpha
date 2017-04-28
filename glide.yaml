@@ -5,6 +5,7 @@ import:
 - package: github.com/pkg/errors
 - package: github.com/spf13/cobra
 - package: github.com/spf13/pflag
+  version: d90f37a48761fe767528f31db1955e4f795d652f
 - package: k8s.io/apimachinery
 - package: k8s.io/apiserver
 - package: k8s.io/client-go

@@ -1,5 +1,5 @@
-hash: c7280f175bfc2ea79a3b62e93d485bde120b163bd9f139094db5bb47981b6224
-updated: 2017-04-27T18:51:43.353411081-07:00
+hash: 4a92670832839bec1c4b9285ea8290f01f1a85a003f22eb20879922ce5115cca
+updated: 2017-04-27T20:10:49.42686316-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -195,7 +195,7 @@ imports:
 - name: github.com/spf13/cobra
   version: 7b1b6e8dc027253d45fc029bc269d1c019f83a34
 - name: github.com/spf13/pflag
-  version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
+  version: d90f37a48761fe767528f31db1955e4f795d652f
 - name: github.com/ugorji/go
   version: ded73eae5db7e7a0ef6f55aace87a2873c5d2b74
   subpackages:
