@@ -35,7 +35,7 @@ import (
 // strategy - unversionedBuilder from calling NewUnversionedXXX()
 // new - function for creating new empty VERSIONED instances - e.g. func() runtime.Object { return &Deployment{} }
 // newList - function for creating an empty list of VERSIONED instances - e.g. func() runtime.Object { return &DeploymentList{} }
-// storeFunc - override storage defaults
+// storeBuilder - builder for creating the store
 func NewApiResource(
 	unversionedBuilder UnversionedResourceBuilder,
 	schemeFns SchemeFns,
@@ -51,13 +51,12 @@ func NewApiResource(
 	}
 }
 
-// NewApiStoragelessResource returns a new versionedResourceBuilder for registering endpoints for
-// subresources that are not persisted to storage.
+// NewApiResourceWithStorage returns a new versionedResourceBuilder for registering endpoints that
+// does not require standard storage (e.g. subresources reuses the storage for the parent resource).
 // strategy - unversionedBuilder from calling NewUnversionedXXX()
 // new - function for creating new empty VERSIONED instances - e.g. func() runtime.Object { return &Deployment{} }
-// newList - function for creating an empty list of VERSIONED instances - e.g. func() runtime.Object { return &DeploymentList{} }
-// restFunc - returns the REST implementation for this resource
-func NewApiStoragelessResource(
+// storage - storage for manipulating the resource
+func NewApiResourceWithStorage(
 	unversionedBuilder UnversionedResourceBuilder,
 	new func() runtime.Object,
 	storage rest.Storage) *versionedResourceBuilder {

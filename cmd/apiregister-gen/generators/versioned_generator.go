@@ -18,9 +18,9 @@ package generators
 
 import (
 	"io"
+	"text/template"
 
 	"k8s.io/gengo/generator"
-	"text/template"
 )
 
 type versionedGenerator struct {
@@ -77,7 +77,7 @@ var (
 			&{{ $api.Group }}.{{ $api.Kind }}StatusStrategy{builders.StatusStorageStrategySingleton},
 		),
 		{{ range $subresource := $api.Subresources -}}
-		builders.NewApiStoragelessResource(
+		builders.NewApiResourceWithStorage(
 			{{ $api.Group }}.Internal{{ $subresource.REST }},
 			func() runtime.Object { return &{{ $subresource.Request }}{} }, // Register versioned resource
 			&{{ $api.Group }}.{{ $subresource.REST }}{ {{$api.Group}}.New{{$api.Kind}}Registry({{$api.Group}}{{$api.Kind}}Storage) },
