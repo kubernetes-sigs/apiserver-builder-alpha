@@ -26,7 +26,7 @@ import (
 // +genclient=true
 
 // +k8s:openapi-gen=true
-// +resource=universities
+// +resource=universities,University
 // +subresource=scale,University,Scale,ScaleUniversityREST
 type University struct {
 	metav1.TypeMeta   `json:",inline"`

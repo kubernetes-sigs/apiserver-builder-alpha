@@ -22,7 +22,20 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/apiserver/pkg/endpoints/request"
 	"k8s.io/apiserver/pkg/registry/rest"
+
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
 )
+
+// Custom REST storage that delegates to the generated standard Registry
+func NewUniversityREST() rest.Storage {
+	return builders.NewApiResource( // Resource status endpoint
+		InternalUniversityStatus,
+		builders.DefaultSchemeFns{},
+		func() runtime.Object { return &University{} },     // Register versioned resource
+		func() runtime.Object { return &UniversityList{} }, // Register versioned resource list
+		&UniversityStatusStrategy{builders.StatusStorageStrategySingleton},
+	).GetStandardStorage()
+}
 
 // Resource Validation
 func (UniversityStrategy) Validate(ctx request.Context, obj runtime.Object) field.ErrorList {
