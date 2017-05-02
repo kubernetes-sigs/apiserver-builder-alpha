@@ -17,6 +17,7 @@ limitations under the License.
 package miskatonic
 
 import (
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -68,4 +69,18 @@ func (r *ScaleUniversityREST) Update(ctx request.Context, name string, objInfo r
 
 func (r *ScaleUniversityREST) New() runtime.Object {
 	return &Scale{}
+}
+
+var _ rest.CreaterUpdater = NewStudentREST()
+var _ rest.Patcher = NewStudentREST()
+
+// Custom REST storage that delegates to the generated standard Registry
+func NewStudentREST() rest.StandardStorage {
+	return builders.NewApiResource( // Resource endpoint
+		InternalStudent,
+		builders.DefaultSchemeFns{},
+		func() runtime.Object { return &Student{} },     // Register versioned resource
+		func() runtime.Object { return &StudentList{} }, // Register versioned resource list
+		&StudentStrategy{builders.StorageStrategySingleton},
+	).GetStandardStorage()
 }

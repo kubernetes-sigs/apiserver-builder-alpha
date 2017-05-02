@@ -58,10 +58,11 @@ func NewApiResource(
 // storage - storage for manipulating the resource
 func NewApiResourceWithStorage(
 	unversionedBuilder UnversionedResourceBuilder,
-	new func() runtime.Object,
+	schemeFns SchemeFns,
+	new, newList func() runtime.Object,
 	storage rest.Storage) *versionedResourceBuilder {
 	return &versionedResourceBuilder{
-		unversionedBuilder, SchemeFnsSingleton, new, nil, nil, storage, nil,
+		unversionedBuilder, schemeFns, new, newList, nil, storage, nil,
 	}
 }
 
