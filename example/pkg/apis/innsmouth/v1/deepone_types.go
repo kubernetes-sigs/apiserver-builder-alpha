@@ -23,7 +23,7 @@ import (
 // +genclient=true
 
 // +k8s:openapi-gen=true
-// +resource=deepones
+// +resource:path=deepones
 // DeepOne defines a resident of innsmouth
 type DeepOne struct {
 	metav1.TypeMeta   `json:",inline"`
