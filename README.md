@@ -1,9 +1,13 @@
 # apiserver-framework
 
 The apiserver-framework implements libraries and tools to quickly and easily build Kubernetes apiservers
-to support custom resource types.  Framework supports 100% feature paritity with core Kubernetes resource types,
-such as subresources, schema validation, field defaulting, client generation, type conversion,
-api reference documentation.
+to support custom resource types.  The intention is provide 100% feature parity with
+apiservers built from scratch, but without the boilerplate and copy-pasting.
+
+## Getting started
+
+Instructions for building your first apiserver using the `apiserver-boot` tool can be found
+[here](https://github.com/kubernetes-incubator/apiserver-builder/blob/master/docs/getting_started.md).
 
 ## Motivation
 

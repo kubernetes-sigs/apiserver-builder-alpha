@@ -1,5 +1,13 @@
 # Getting started
 
+This document covers building your first apiserver from scratch:
+
+- Setup your environment by installing the necessary binaries using `go get`
+- Initialize your package
+- Create an API group, version, resource
+- Build your API server
+- Write an automated test for your API server
+
 ## Create your Go project
 
 Create a Go project under GOPATH/src/
