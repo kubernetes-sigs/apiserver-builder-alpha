@@ -1,5 +1,0 @@
-
-# <strong>innsmouth</strong>
-
-------------
-

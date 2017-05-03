@@ -18,9 +18,10 @@ BOILER_PLATE="boilerplate.go.txt"
 UNVERSIONED="miskatonic/,innsmouth/"
 VERSIONED="miskatonic/v1beta1,innsmouth/v1"
 
+REGISTER_GEN="apiregister-gen"
+REGISTER_GEN="../cmd/apiregister-gen/main.go"
 
 SRC=$(REPO)/pkg/apis/...
-REGISTER_GEN="../cmd/apiregister-gen/main.go"
 DIR=pkg
 
 GENERIC_API="k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/api/resource/,k8s.io/apimachinery/pkg/version/,k8s.io/apimachinery/pkg/runtime/,k8s.io/apimachinery/pkg//util/intstr/"
@@ -53,7 +54,7 @@ build: generate
 
 # Run code generators
 generate: cleangenerated
-	apiregister-gen -i $(REPO)/pkg/apis/...
+	go run $(REGISTER_GEN) -i $(REPO)/pkg/apis/...
 	conversion-gen -i "$(SRC)"  --extra-peer-dirs="k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/conversion,k8s.io/apimachinery/pkg/runtime" -o $(OUT) -O zz_generated.conversion --go-header-file $(BOILER_PLATE)
 	deepcopy-gen -i "$(SRC)" -o $(OUT) -O zz_generated.deepcopy --go-header-file $(BOILER_PLATE)
 	openapi-gen  -i "$(SRC),$(GENERIC_API)" --output-package "$(REPO)/pkg/openapi" --go-header-file $(BOILER_PLATE)

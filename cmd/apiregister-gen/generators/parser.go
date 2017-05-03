@@ -20,6 +20,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"fmt"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/gengo/args"
@@ -473,6 +474,7 @@ func (apigroup *APIGroup) DoType(t *types.Type) (*Struct, []*types.Type) {
 			memberName = ""
 		}
 
+		fmt.Printf("%s Field %s\n", s.Name, memberKind)
 		s.Fields = append(s.Fields, &Field{
 			Type: memberKind,
 			Name: memberName,

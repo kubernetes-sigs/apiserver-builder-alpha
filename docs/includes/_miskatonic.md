@@ -1,5 +1,0 @@
-
-# <strong>miskatonic</strong>
-
-------------
-
