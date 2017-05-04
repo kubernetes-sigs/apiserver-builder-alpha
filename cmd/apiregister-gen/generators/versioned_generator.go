@@ -57,14 +57,26 @@ func (d *versionedGenerator) Finalize(context *generator.Context, w io.Writer) e
 var VersionedAPITemplate = `
 var (
 	{{ range $api := .Resources -}}
-	{{$api.Group}}{{$api.Kind}}Storage = builders.NewApiResource( //  Resource endpoint
-			{{ $api.Group }}.Internal{{ $api.Kind }},
+
+	{{if $api.REST }}
+		{{$api.Group}}{{$api.Kind}}Storage = builders.NewApiResourceWithStorage( // Resource status endpoint
+			{{ $api.Group }}.Internal{{ $api.Kind }}Status,
 			{{.Kind}}SchemeFns{},
 			func() runtime.Object { return &{{ $api.Kind }}{} },     // Register versioned resource
 			func() runtime.Object { return &{{ $api.Kind }}List{} }, // Register versioned resource list
-			&{{ $api.Group }}.{{ $api.Kind }}Strategy{builders.StorageStrategySingleton},
+			{{ $api.Group }}.New{{ $api.REST }}(),
 		)
-	{{ end -}}
+	{{else}} 
+		{{$api.Group}}{{$api.Kind}}Storage = builders.NewApiResource( // Resource status endpoint
+			{{ $api.Group }}.Internal{{ $api.Kind }}Status,
+			{{.Kind}}SchemeFns{},
+			func() runtime.Object { return &{{ $api.Kind }}{} },     // Register versioned resource
+			func() runtime.Object { return &{{ $api.Kind }}List{} }, // Register versioned resource list
+			&{{ $api.Group }}.{{ $api.Kind }}StatusStrategy{builders.StatusStorageStrategySingleton},
+		)
+	{{end}}
+
+	{{end}}
 
 	ApiVersion = builders.NewApiVersion("{{.Group}}.{{.Domain}}", "{{.Version}}").WithResources(
 		{{ range $api := .Resources -}}
@@ -79,7 +91,9 @@ var (
 		{{ range $subresource := $api.Subresources -}}
 		builders.NewApiResourceWithStorage(
 			{{ $api.Group }}.Internal{{ $subresource.REST }},
+			builders.SchemeFnsSingleton,
 			func() runtime.Object { return &{{ $subresource.Request }}{} }, // Register versioned resource
+			nil,
 			&{{ $api.Group }}.{{ $subresource.REST }}{ {{$api.Group}}.New{{$api.Kind}}Registry({{$api.Group}}{{$api.Kind}}Storage) },
 		),
 		{{ end -}}
