@@ -26,6 +26,7 @@ import (
 	"k8s.io/gengo/args"
 	"k8s.io/gengo/generator"
 	"k8s.io/gengo/types"
+	"os"
 )
 
 type APIs struct {
@@ -298,9 +299,9 @@ func (b *APIsBuilder) GetSubresources(c *APIResource) map[string]*APISubresource
 			sr.Request, sr.ImportPackage = b.GetNameAndImport(tags)
 		}
 		if v, found := r[sr.Path]; found {
-			panic(errors.Errorf("Multiple subresources registered for path %s: %v %v",
-				sr.Path, v, subresource))
-
+			fmt.Fprintf(os.Stderr, "Multiple subresources registered for path %s: %v %v",
+				sr.Path, v, subresource)
+			os.Exit(-1)
 		}
 		r[sr.Path] = sr
 	}
@@ -335,20 +336,33 @@ type SubresourceTags struct {
 
 // ParseSubresourceTag parses the tags in a "+subresource=" comment into a SubresourceTags struct
 func (b *APIsBuilder) ParseSubresourceTag(c *APIResource, tag string) SubresourceTags {
-	args := strings.Split(tag, ",")
-	path := strings.Replace(args[0], c.Resource+"/", "", -1)
-	return SubresourceTags{
-		Path:        path,
-		Kind:        args[1],
-		RequestKind: args[2],
-		REST:        args[3],
+	result := SubresourceTags{}
+	for _, elem := range strings.Split(tag, ",") {
+		kv := strings.Split(elem, "=")
+		if len(kv) != 2 {
+			fmt.Fprintf(os.Stderr, "// +subresource: tags must be key value pairs.  Expected "+
+				"keys [request=<requestType>,rest=<restImplType>,path=<subresourcepath>] "+
+				"Got string: [%s]", tag)
+			os.Exit(-1)
+		}
+		value := kv[1]
+		switch kv[0] {
+		case "request":
+			result.RequestKind = value
+		case "rest":
+			result.REST = value
+		case "path":
+			// Strip the parent resource
+			result.Path = strings.Replace(value, c.Resource+"/", "", -1)
+		}
 	}
+	return result
 }
 
 // GetResourceTag returns the value of the "+resource=" comment tag
 func (b *APIsBuilder) GetResourceTag(c *types.Type) string {
 	comments := Comments(c.CommentLines)
-	resource := comments.GetTag("resource")
+	resource := comments.GetTag("resource", "=")
 	if len(resource) == 0 {
 		panic(errors.Errorf("Must specify +resource comment for type %v", c.Name))
 	}
@@ -357,7 +371,7 @@ func (b *APIsBuilder) GetResourceTag(c *types.Type) string {
 
 func (b *APIsBuilder) GetSubresourceTags(c *types.Type) []string {
 	comments := Comments(c.CommentLines)
-	return comments.GetTags("subresource")
+	return comments.GetTags("subresource", ":")
 }
 
 // ParseGroupNames initializes b.GroupNames with the set of all groups
@@ -405,7 +419,7 @@ func (b *APIsBuilder) ParseDomain() {
 		panic(errors.Errorf("Missing apis package."))
 	}
 	comments := Comments(pkg.Comments)
-	b.Domain = comments.GetTag("domain")
+	b.Domain = comments.GetTag("domain", "=")
 	if len(b.Domain) == 0 {
 		panic("Could not find string matching // +domain=.+ in apis/doc.go")
 	}
@@ -474,7 +488,6 @@ func (apigroup *APIGroup) DoType(t *types.Type) (*Struct, []*types.Type) {
 			memberName = ""
 		}
 
-		fmt.Printf("%s Field %s\n", s.Name, memberKind)
 		s.Fields = append(s.Fields, &Field{
 			Type: memberKind,
 			Name: memberName,
