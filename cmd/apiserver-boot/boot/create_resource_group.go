@@ -22,7 +22,6 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"io/ioutil"
 )
 
 var createGroupCmd = &cobra.Command{
@@ -48,18 +47,8 @@ func RunCreateGroup(cmd *cobra.Command, args []string) {
 		fmt.Fprintf(os.Stderr, "apiserver-boot create-group requires the --groupName flag\n")
 		os.Exit(-1)
 	}
-	if len(copyright) == 0 {
-		fmt.Fprintf(os.Stderr, "apiserver-boot create-group requires the --copyright flag\n")
-		os.Exit(-1)
-	}
-
-	cr, err := ioutil.ReadFile(copyright)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "could not read copyright file %s\n", copyright)
-		os.Exit(-1)
-	}
-
-	createGroup(string(cr))
+	cr := getCopyright()
+	createGroup(cr)
 }
 
 func createGroup(boilerplate string) {

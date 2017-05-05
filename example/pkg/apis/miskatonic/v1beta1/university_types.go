@@ -27,7 +27,7 @@ import (
 
 // +k8s:openapi-gen=true
 // +resource=universities
-// +subresource=scale,University,Scale,ScaleUniversityREST
+// +subresource:request=Scale,path=scale,rest=ScaleUniversityREST
 type University struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

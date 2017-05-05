@@ -18,6 +18,7 @@ package boot
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -64,6 +65,40 @@ func writeIfNotFound(path, templateName, templateValue string, data interface{})
 	}
 
 	return true
+}
+
+func getCopyright() string {
+	if len(copyright) == 0 {
+		// default to boilerplate.go.txt
+		if _, err := os.Stat("boilerplate.go.txt"); err == nil {
+			// Set this because it is passed to generators
+			copyright = "boilerplate.go.txt"
+			cr, err := ioutil.ReadFile(copyright)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "could not read copyright file %s\n", copyright)
+				os.Exit(-1)
+			}
+			return string(cr)
+		}
+
+		fmt.Fprintf(os.Stderr, "apiserver-boot create-resource requires the --copyright flag if boilerplate.go.txt does not exist\n")
+		os.Exit(-1)
+	}
+
+	if _, err := os.Stat(copyright); err != nil {
+		if !os.IsNotExist(err) {
+			fmt.Fprintf(os.Stderr, "Could not stat %s: %v\n", copyright, err)
+			os.Exit(-1)
+		}
+		return ""
+	} else {
+		cr, err := ioutil.ReadFile(copyright)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "could not read copyright file %s\n", copyright)
+			os.Exit(-1)
+		}
+		return string(cr)
+	}
 }
 
 func create(path string) {

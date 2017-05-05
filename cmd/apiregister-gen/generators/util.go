@@ -103,9 +103,9 @@ type Comments []string
 
 // GetTags returns the value for the first comment with a prefix matching "+name="
 // e.g. "+name=foo\n+name=bar" would return "foo"
-func (c Comments) GetTag(name string) string {
+func (c Comments) GetTag(name, sep string) string {
 	for _, c := range c {
-		prefix := fmt.Sprintf("+%s=", name)
+		prefix := fmt.Sprintf("+%s%s", name, sep)
 		if strings.HasPrefix(c, prefix) {
 			return strings.Replace(c, prefix, "", 1)
 		}
@@ -113,12 +113,12 @@ func (c Comments) GetTag(name string) string {
 	return ""
 }
 
-// GetTags returns the value for all comments with a prefix matching "+name="
-// e.g. "+name=foo\n+name=bar" would return []string{"foo", "bar"}
-func (c Comments) GetTags(name string) []string {
+// GetTags returns the value for all comments with a prefix and separator.  E.g. for "name" and "="
+// "+name=foo\n+name=bar" would return []string{"foo", "bar"}
+func (c Comments) GetTags(name, sep string) []string {
 	tags := []string{}
 	for _, c := range c {
-		prefix := fmt.Sprintf("+%s=", name)
+		prefix := fmt.Sprintf("+%s%s", name, sep)
 		if strings.HasPrefix(c, prefix) {
 			tags = append(tags, strings.Replace(c, prefix, "", 1))
 		}

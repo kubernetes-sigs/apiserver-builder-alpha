@@ -23,7 +23,6 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"io/ioutil"
 )
 
 var initCmd = &cobra.Command{
@@ -36,7 +35,7 @@ var initCmd = &cobra.Command{
 func AddInit(cmd *cobra.Command) {
 	cmd.AddCommand(initCmd)
 	initCmd.Flags().StringVar(&domain, "domain", "", "domain the api groups live under")
-	initCmd.Flags().StringVar(&copyright, "copyright", "boilerplate.go.txt", "path to copyright file.  defaults to boilerplate.go.txt")
+	initCmd.Flags().StringVar(&copyright, "copyright", "", "path to copyright file.  defaults to boilerplate.go.txt")
 }
 
 func RunInit(cmd *cobra.Command, args []string) {
@@ -44,21 +43,12 @@ func RunInit(cmd *cobra.Command, args []string) {
 		fmt.Fprintf(os.Stderr, "apiserver-boot init requires the --domain flag\n")
 		os.Exit(-1)
 	}
-	if len(copyright) == 0 {
-		fmt.Fprintf(os.Stderr, "apiserver-boot init requires the --copyright flag\n")
-		os.Exit(-1)
-	}
-
-	cr, err := ioutil.ReadFile(copyright)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "could not read copyright file %s\n", copyright)
-		os.Exit(-1)
-	}
+	cr := getCopyright()
 
 	createGlide()
-	createMain(string(cr))
-	createAPIs(string(cr))
-	createOpenAPI(string(cr))
+	createMain(cr)
+	createAPIs(cr)
+	createOpenAPI(cr)
 	createDocs()
 }
 

@@ -18,14 +18,14 @@ package boot
 
 import (
 	"fmt"
-	"os"
-
-	"github.com/spf13/cobra"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/spf13/cobra"
 )
 
 var versionedAPIs string
@@ -70,16 +70,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	if len(copyright) == 0 {
-		fmt.Fprintf(os.Stderr, "apiserver-boot generate requires the --copyright flag\n")
-		os.Exit(-1)
-	}
-
-	_, err := ioutil.ReadFile(copyright)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "could not read copyright file %s\n", copyright)
-		os.Exit(-1)
-	}
+	getCopyright()
 
 	src := filepath.Join(Repo, "pkg", "apis", "...")
 
