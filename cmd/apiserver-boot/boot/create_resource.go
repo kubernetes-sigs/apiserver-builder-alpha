@@ -20,10 +20,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
-	"io/ioutil"
-	"strings"
 )
 
 var createResourceCmd = &cobra.Command{
@@ -38,7 +37,7 @@ func AddCreateResource(cmd *cobra.Command) {
 	createResourceCmd.Flags().StringVar(&versionName, "version", "", "name of the API version")
 	createResourceCmd.Flags().StringVar(&kindName, "kind", "", "name of the API kind to create")
 	createResourceCmd.Flags().StringVar(&resourceName, "resource", "", "name of the API resource to create, plural name of the kind")
-	createResourceCmd.Flags().StringVar(&copyright, "copyright", "boilerplate.go.txt", "path to copyright file.  defaults to boilerplate.go.txt")
+	createResourceCmd.Flags().StringVar(&copyright, "copyright", "", "path to copyright file.  defaults to boilerplate.go.txt")
 	createResourceCmd.Flags().StringVar(&domain, "domain", "", "domain the api group lives under")
 	cmd.AddCommand(createResourceCmd)
 }
@@ -64,18 +63,9 @@ func RunCreateResource(cmd *cobra.Command, args []string) {
 		fmt.Fprintf(os.Stderr, "apiserver-boot create-resource requires the --resource flag\n")
 		os.Exit(-1)
 	}
-	if len(copyright) == 0 {
-		fmt.Fprintf(os.Stderr, "apiserver-boot create-resource requires the --copyright flag\n")
-		os.Exit(-1)
-	}
 
-	cr, err := ioutil.ReadFile(copyright)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "could not read copyright file %s\n", copyright)
-		os.Exit(-1)
-	}
-
-	createResource(string(cr))
+	cr := getCopyright()
+	createResource(cr)
 }
 
 func createResource(boilerplate string) {
