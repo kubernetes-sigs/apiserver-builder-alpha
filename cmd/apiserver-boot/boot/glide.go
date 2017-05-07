@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -36,6 +37,8 @@ func AddGlideInstall(cmd *cobra.Command) {
 }
 
 func RunGlideInstall(cmd *cobra.Command, args []string) {
+	createGlide()
+
 	c := exec.Command("glide", "install", "--strip-vendor")
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout
@@ -44,4 +47,43 @@ func RunGlideInstall(cmd *cobra.Command, args []string) {
 		fmt.Fprintf(os.Stderr, "failed to run glide install\n%v\n", err)
 		os.Exit(-1)
 	}
+}
+
+type glideTemplateArguments struct {
+	Repo string
+}
+
+var glideTemplate = `
+package: {{.Repo}}
+import:
+- package: github.com/go-openapi/spec
+- package: github.com/go-openapi/loads
+- package: github.com/golang/glog
+- package: github.com/pkg/errors
+- package: github.com/spf13/cobra
+- package: github.com/spf13/pflag
+  version: d90f37a48761fe767528f31db1955e4f795d652f
+- package: k8s.io/apimachinery
+- package: k8s.io/apiserver
+- package: k8s.io/client-go
+- package: k8s.io/gengo
+- package: k8s.io/kubernetes
+  subpackages:
+  - pkg/api
+- package: k8s.io/apimachinery
+  subpackages:
+  - pkg/apis/meta/v1
+  - pkg/apis/meta
+ignore:
+- {{.Repo}}
+`
+
+func createGlide() {
+	dir, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(-1)
+	}
+	path := filepath.Join(dir, "glide.yaml")
+	writeIfNotFound(path, "glide-template", glideTemplate, glideTemplateArguments{Repo})
 }
