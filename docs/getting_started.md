@@ -166,13 +166,29 @@ The following command will generate the wiring to register your API resources.
 - api-versions: comma seperated list of the API group/version packages to generate code for
 
 ```sh
-apiserver-boot generate --api-versions "your-group/your-version"
+apiserver-boot generate --api-versions "your-group/your-version" --api-versions "your-group/your-other-version"
 ```
 
-## Build the apiserver
+## Build and run the apiserver
+
+Build the apiserver binary
 
 ```sh
 go build main.go -o apiserver
+```
+
+Run an etcd instance and the apiserver.
+
+**Note:** must have etcd on your PATH
+
+```sh
+apiserver-boot run --server ./apiserver
+```
+
+Test with kubectl
+
+```sh
+kubectl --kubeconfig kubeconfig version
 ```
 
 ## Run a test
