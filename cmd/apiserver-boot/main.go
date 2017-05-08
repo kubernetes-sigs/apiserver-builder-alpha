@@ -56,8 +56,9 @@ func main() {
 	boot.AddCreateResource(cmd)
 	boot.AddCreateVersion(cmd)
 	boot.AddGenerate(cmd)
+	boot.AddGlideInstallCmd(cmd)
 	boot.AddInit(cmd)
-	boot.AddGlideInstall(cmd)
+	boot.AddRunCmd(cmd)
 
 	if err := cmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "%v", err)

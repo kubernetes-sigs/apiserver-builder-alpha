@@ -34,25 +34,23 @@ var glideInstallCmd = &cobra.Command{
 
 var fetch bool
 
-func AddGlideInstall(cmd *cobra.Command) {
+func AddGlideInstallCmd(cmd *cobra.Command) {
 	glideInstallCmd.Flags().BoolVar(&fetch, "fetch", false, "if true, fetch new glide deps instead of copying the ones packaged with the tools")
 	cmd.AddCommand(glideInstallCmd)
 }
 
-func RunGlideInstall(cmd *cobra.Command, args []string) {
-	if fetch {
-		createGlide()
-		c := exec.Command("glide", "install", "--strip-vendor")
-		c.Stderr = os.Stderr
-		c.Stdout = os.Stdout
-		err := c.Run()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "failed to run glide install\n%v\n", err)
-			os.Exit(-1)
-		}
-		return
+func fetchGlide() {
+	c := exec.Command("glide", "install", "--strip-vendor")
+	c.Stderr = os.Stderr
+	c.Stdout = os.Stdout
+	err := c.Run()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to run glide install\n%v\n", err)
+		os.Exit(-1)
 	}
+}
 
+func copyGlide() {
 	// copy the files
 	e, err := os.Executable()
 	if err != nil {
@@ -85,6 +83,15 @@ func RunGlideInstall(cmd *cobra.Command, args []string) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to copy go dependencies\n%v\n", err)
 		os.Exit(-1)
+	}
+}
+
+func RunGlideInstall(cmd *cobra.Command, args []string) {
+	createGlide()
+	if fetch {
+		fetchGlide()
+	} else {
+		copyGlide()
 	}
 }
 
