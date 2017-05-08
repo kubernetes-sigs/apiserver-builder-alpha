@@ -32,19 +32,58 @@ var glideInstallCmd = &cobra.Command{
 	Run:   RunGlideInstall,
 }
 
+var fetch bool
+
 func AddGlideInstall(cmd *cobra.Command) {
+	glideInstallCmd.Flags().BoolVar(&fetch, "fetch", false, "if true, fetch new glide deps instead of copying the ones packaged with the tools")
 	cmd.AddCommand(glideInstallCmd)
 }
 
 func RunGlideInstall(cmd *cobra.Command, args []string) {
-	createGlide()
+	if fetch {
+		createGlide()
+		c := exec.Command("glide", "install", "--strip-vendor")
+		c.Stderr = os.Stderr
+		c.Stdout = os.Stdout
+		err := c.Run()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to run glide install\n%v\n", err)
+			os.Exit(-1)
+		}
+		return
+	}
 
-	c := exec.Command("glide", "install", "--strip-vendor")
+	// copy the files
+	e, err := os.Executable()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "unable to get directory of apiserver-builder tools")
+	}
+	e = filepath.Dir(filepath.Dir(e))
+
+	c := exec.Command("cp", "-r", filepath.Join(e, "src", "vendor"), "vendor")
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout
-	err := c.Run()
+	err = c.Run()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to run glide install\n%v\n", err)
+		fmt.Fprintf(os.Stderr, "failed to copy go dependencies\n%v\n", err)
+		os.Exit(-1)
+	}
+
+	c = exec.Command("cp", filepath.Join(e, "src", "glide.yaml"), "glide.yaml")
+	c.Stderr = os.Stderr
+	c.Stdout = os.Stdout
+	err = c.Run()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to copy go dependencies\n%v\n", err)
+		os.Exit(-1)
+	}
+
+	c = exec.Command("cp", filepath.Join(e, "src", "glide.lock"), "glide.lock")
+	c.Stderr = os.Stderr
+	c.Stdout = os.Stdout
+	err = c.Run()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to copy go dependencies\n%v\n", err)
 		os.Exit(-1)
 	}
 }
