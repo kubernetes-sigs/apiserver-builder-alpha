@@ -31,24 +31,30 @@ import (
 
 var targets = []string{}
 var output string
-var dir string
 var dobuild bool
 var dofetch bool
+var dovendor bool
 var version string
+
+var cachetooldir string
+var cachevendordir string
 
 var DefaultTargets = []string{"linux:amd64", "darwin:amd64", "windows:amd64"}
 
 func main() {
 	buildCmd.Flags().StringSliceVar(&targets, "targets",
 		DefaultTargets, "GOOS:GOARCH pair.  maybe specified multiple times.")
-	buildCmd.Flags().StringVar(&dir, "dir", "",
-		"if specified, use the build directory instead of creating a tmp directory.")
+	buildCmd.Flags().StringVar(&cachetooldir, "tooldir", "",
+		"if specified, use this directory for building tools instead of creating a tmp directory.")
+	buildCmd.Flags().StringVar(&cachevendordir, "vendordir", "",
+		"if specified, use this directory for setting up vendor instead of creating a tmp directory.")
 	buildCmd.Flags().StringVar(&output, "output", "apiserver-builder",
 		"value name of the tar file to build")
 	buildCmd.Flags().StringVar(&version, "version", "", "version name")
 
-	buildCmd.Flags().BoolVar(&dobuild, "build", true, "if true, build the go packages")
+	buildCmd.Flags().BoolVar(&dobuild, "build", true, "if false, only build the go packages for the current os:arch")
 	buildCmd.Flags().BoolVar(&dofetch, "fetch", true, "if true, fetch the go packages")
+	buildCmd.Flags().BoolVar(&dovendor, "vendor", true, "if true, fetch packages to vendor")
 
 	cmd.AddCommand(buildCmd)
 
@@ -76,86 +82,134 @@ var buildCmd = &cobra.Command{
 	Run:   RunBuild,
 }
 
+func TmpDir() string {
+	dir, err := ioutil.TempDir(os.TempDir(), "apiserver-builder-release")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to create temp directory %s %v\n", dir, err)
+		os.Exit(-1)
+	}
+
+	dir, err = filepath.EvalSymlinks(dir)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(-1)
+	}
+
+	err = os.Mkdir(filepath.Join(dir, "src"), 0700)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to create directory %s %v\n", filepath.Join(dir, "src"), err)
+		os.Exit(-1)
+	}
+
+	err = os.Mkdir(filepath.Join(dir, "bin"), 0700)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to create directory %s %v\n", filepath.Join(dir, "bin"), err)
+		os.Exit(-1)
+	}
+	return dir
+}
+
 func RunBuild(cmd *cobra.Command, args []string) {
 	if len(version) == 0 {
 		fmt.Fprintf(os.Stderr, "must specify the --version flag")
 		os.Exit(-1)
 	}
+	if len(targets) == 0 && dobuild {
+		fmt.Fprintf(os.Stderr, "must provide at least one --targets flag when building tools")
+		os.Exit(-1)
+	}
 
 	// Create a temporary build directory
-	if len(dir) == 0 {
+	tooldir := cachetooldir
+	if len(tooldir) == 0 {
+		tooldir = TmpDir()
+		fmt.Printf("to rerun with cached go fetch use `--tooldir %s`\n", tooldir)
+	} else {
+		// Make sure we aren't using a symlink, because when we create the tar file we don't
+		// copy symlinks
 		var err error
-		dir, err = ioutil.TempDir(os.TempDir(), "apiserver-builder-release")
+		tooldir, err = filepath.EvalSymlinks(tooldir)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "failed to create temp directory %s %v\n", dir, err)
-			os.Exit(-1)
-		}
-		fmt.Printf("build directory: %s.  to rerun with cached go fetch use `--dir %s`\n", dir, dir)
-
-		err = os.Mkdir(filepath.Join(dir, "src"), 0700)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "failed to create directory %s %v\n", filepath.Join(dir, "src"), err)
-			os.Exit(-1)
-		}
-
-		err = os.Mkdir(filepath.Join(dir, "bin"), 0700)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "failed to create directory %s %v\n", filepath.Join(dir, "bin"), err)
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(-1)
 		}
 	}
 
 	if dofetch {
 		for _, pkg := range BuildPackages {
-			Fetch(pkg)
+			Fetch(pkg, tooldir)
 		}
 	}
 
-	if dobuild {
-		if len(targets) == 0 {
-			for _, pkg := range BuildPackages {
-				Build(filepath.Join("src", pkg, "main.go"),
-					filepath.Join("bin", filepath.Base(pkg)),
-					"", "",
-				)
-			}
-			PackageTar("", "")
+	vendor := ""
+	if dovendor {
+		//Build binaries for the current platform
+		for _, pkg := range BuildPackages {
+			Build(filepath.Join("src", pkg, "main.go"),
+				filepath.Join("bin", filepath.Base(pkg)),
+				"", "", tooldir,
+			)
 		}
-		for _, target := range targets {
-			parts := strings.Split(target, ":")
-			if len(parts) != 2 {
-				fmt.Fprintf(os.Stderr, "--targets flags must be GOOS:GOARCH pairs [%s]\n", target)
+		vendor = BuildVendor(tooldir)
+	}
+
+	// Build binaries for the targeted platforms in then tar
+	for _, target := range targets {
+		// Build binaries for this os:arch
+		parts := strings.Split(target, ":")
+		if len(parts) != 2 {
+			fmt.Fprintf(os.Stderr, "--targets flags must be GOOS:GOARCH pairs [%s]\n", target)
+			os.Exit(-1)
+		}
+		goos := parts[0]
+		goarch := parts[1]
+		if dobuild {
+			// Cleanup old binaries
+			os.RemoveAll(filepath.Join(tooldir, "bin"))
+			err := os.Mkdir(filepath.Join(tooldir, "bin"), 0700)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "failed to create directory %s %v\n", filepath.Join(tooldir, "bin"), err)
 				os.Exit(-1)
 			}
-			goos := parts[0]
-			goarch := parts[1]
+
 			for _, pkg := range BuildPackages {
 				Build(filepath.Join("src", pkg, "main.go"),
 					filepath.Join("bin", filepath.Base(pkg)),
-					goos, goarch,
+					goos, goarch, tooldir,
 				)
 			}
-			PackageTar(goos, goarch)
 		}
-
+		PackageTar(goos, goarch, tooldir, vendor)
 	}
 }
 
-func RunCmd(cmd *exec.Cmd) {
-	cmd.Env = append(cmd.Env, fmt.Sprintf("GOPATH=%s", dir))
+func RunCmd(cmd *exec.Cmd, gopath string) {
+	gopath, err := filepath.Abs(gopath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(-1)
+	}
+	gopath, err = filepath.EvalSymlinks(gopath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(-1)
+	}
+	cmd.Env = append(cmd.Env, fmt.Sprintf("GOPATH=%s", gopath))
 	cmd.Env = append(cmd.Env, os.Environ()...)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
-	cmd.Dir = dir
+	if len(cmd.Dir) == 0 {
+		cmd.Dir = gopath
+	}
 	fmt.Printf("%s\n", strings.Join(cmd.Args, " "))
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(-1)
 	}
 }
 
-func Build(input, output, goos, goarch string) {
+func Build(input, output, goos, goarch, dir string) {
 	cmd := exec.Command("go", "build", "-o", output, input)
 
 	// CGO_ENABLED=0 for statically compile binaries
@@ -166,12 +220,11 @@ func Build(input, output, goos, goarch string) {
 	if len(goarch) > 0 {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("GOARCH=%s", goarch))
 	}
-	RunCmd(cmd)
+	RunCmd(cmd, dir)
 }
 
-func Fetch(pkg string) {
-	cmd := exec.Command("go", "get", "-d", pkg)
-	RunCmd(cmd)
+func Fetch(pkg, dir string) {
+	RunCmd(exec.Command("go", "get", "-d", pkg), dir)
 }
 
 var BuildPackages = []string{
@@ -187,7 +240,7 @@ var BuildPackages = []string{
 	"k8s.io/kubernetes/cmd/libs/go2idl/openapi-gen",
 }
 
-func PackageTar(goos, goarch string) {
+func PackageTar(goos, goarch, tooldir, vendordir string) {
 	// create the new file
 	fw, err := os.Create(fmt.Sprintf("%s-%s-%s-%s.tar.gz", output, version, goos, goarch))
 	if err != nil {
@@ -204,28 +257,148 @@ func PackageTar(goos, goarch string) {
 	tw := tar.NewWriter(gw)
 	defer tw.Close()
 
-	// Add some files to the archive.
-	for _, pkg := range BuildPackages {
-		name := filepath.Base(pkg)
-		path := filepath.Join(dir, "bin", name)
-		body, err := ioutil.ReadFile(path)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "failed to read file %s %v\n", path, err)
-			os.Exit(-1)
-		}
+	// Add all of the bin files
+	filepath.Walk(filepath.Join(tooldir, "bin"), TarFile{
+		tw,
+		0555,
+		tooldir,
+		"",
+	}.Do)
 
-		hdr := &tar.Header{
-			Name: filepath.Join("apiserver-builder", name),
-			Mode: 0500,
-			Size: int64(len(body)),
-		}
-		if err := tw.WriteHeader(hdr); err != nil {
-			fmt.Fprintf(os.Stderr, "failed to write output for %s %v\n", path, err)
-			os.Exit(-1)
-		}
-		if _, err := tw.Write(body); err != nil {
-			fmt.Fprintf(os.Stderr, "failed to write output for %s %v\n", path, err)
-			os.Exit(-1)
-		}
+	// Add all of the src files
+	tf := TarFile{
+		tw,
+		0644,
+		vendordir,
+		"src",
 	}
+	filepath.Walk(filepath.Join(vendordir, "vendor"), tf.Do)
+	tf.Write(filepath.Join(vendordir, "glide.yaml"))
+	tf.Write(filepath.Join(vendordir, "glide.lock"))
+}
+
+type TarFile struct {
+	Writer *tar.Writer
+	Mode   int64
+	Root   string
+	Parent string
+}
+
+func (t TarFile) Do(path string, info os.FileInfo, err error) error {
+	if info.IsDir() {
+		return nil
+	}
+
+	eval, err := filepath.EvalSymlinks(path)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(-1)
+	}
+	if eval != path {
+		name := strings.Replace(path, t.Root, "", -1)
+		if len(t.Parent) != 0 {
+			name = filepath.Join(t.Parent, name)
+		}
+		linkName := strings.Replace(eval, t.Root, "", -1)
+		if len(t.Parent) != 0 {
+			linkName = filepath.Join(t.Parent, linkName)
+		}
+		hdr := &tar.Header{
+			Name:     name,
+			Mode:     t.Mode,
+			Linkname: linkName,
+		}
+		if err := t.Writer.WriteHeader(hdr); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to write output for %s %v\n", path, err)
+			os.Exit(-1)
+		}
+		return nil
+	}
+
+	return t.Write(path)
+}
+
+func (t TarFile) Write(path string) error {
+	// Get the relative name of the file
+	name := strings.Replace(path, t.Root, "", -1)
+	if len(t.Parent) != 0 {
+		name = filepath.Join(t.Parent, name)
+	}
+	body, err := ioutil.ReadFile(path)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to read file %s %v\n", path, err)
+		os.Exit(-1)
+	}
+	if len(body) == 0 {
+		return nil
+	}
+
+	hdr := &tar.Header{
+		Name: name,
+		Mode: t.Mode,
+		Size: int64(len(body)),
+	}
+	if err := t.Writer.WriteHeader(hdr); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to write output for %s %v\n", path, err)
+		os.Exit(-1)
+	}
+	if _, err := t.Writer.Write(body); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to write output for %s %v\n", path, err)
+		os.Exit(-1)
+	}
+	return nil
+}
+
+func BuildVendor(tooldir string) string {
+	vendordir := cachevendordir
+	if len(vendordir) == 0 {
+		vendordir = TmpDir()
+		fmt.Printf("to rerun with cached glide use `--vendordir %s`\n", vendordir)
+	}
+
+	vendordir, err := filepath.EvalSymlinks(vendordir)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(-1)
+	}
+
+	pkgDir := filepath.Join(vendordir, "src", "github.com", "kubernetes-incubator", "test")
+	bootBin := filepath.Join(tooldir, "bin", "apiserver-boot")
+	err = os.MkdirAll(pkgDir, 0700)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to create directory %s %v\n", pkgDir, err)
+		os.Exit(-1)
+	}
+
+	ioutil.WriteFile(filepath.Join(pkgDir, "boilerplate.go.txt"), []byte(""), 0555)
+
+	cmd := exec.Command(bootBin, "init", "--domain", "k8s.io")
+	cmd.Dir = pkgDir
+	RunCmd(cmd, vendordir)
+
+	cmd = exec.Command(bootBin, "create-group", "--domain", "k8s.io", "--group", "misk")
+	cmd.Dir = pkgDir
+	RunCmd(cmd, vendordir)
+
+	cmd = exec.Command(bootBin, "create-version", "--domain", "k8s.io", "--group", "misk", "--version", "v1beta1")
+	cmd.Dir = pkgDir
+	RunCmd(cmd, vendordir)
+
+	cmd = exec.Command(bootBin, "create-resource", "--domain", "k8s.io", "--group", "misk", "--version", "v1beta1", "--kind", "Student", "--resource", "students")
+	cmd.Dir = pkgDir
+	RunCmd(cmd, vendordir)
+
+	cmd = exec.Command(bootBin, "glide-install", "--fetch")
+	cmd.Dir = pkgDir
+	RunCmd(cmd, vendordir)
+
+	cmd = exec.Command(bootBin, "generate", "--api-versions", "misk/v1beta1")
+	cmd.Dir = pkgDir
+	RunCmd(cmd, vendordir)
+
+	cmd = exec.Command("go", "build", "main.go")
+	cmd.Dir = pkgDir
+	RunCmd(cmd, vendordir)
+
+	return pkgDir
 }
