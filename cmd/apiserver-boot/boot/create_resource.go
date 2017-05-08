@@ -124,7 +124,7 @@ import (
 // +genclient=true
 
 // +k8s:openapi-gen=true
-// +resource={{.Resource}}
+// +resource:path={{.Resource}}
 // {{.Kind}}
 type {{.Kind}} struct {
 	metav1.TypeMeta   ` + "`" + `json:",inline"` + "`" + `
@@ -147,7 +147,7 @@ type {{.Kind}}Status struct {
 var resourceTestTemplate = `
 {{.BoilerPlate}}
 
-package {{.Version}}
+package {{.Version}}_test
 
 import (
 	"os"
