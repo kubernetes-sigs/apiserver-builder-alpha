@@ -66,8 +66,8 @@ generate: cleangenerated
 
 # Run integration tests
 test: build
-	go test pkg/apis/miskatonic/v1beta1/university_types_test.go
-	go test pkg/apis/innsmouth/v1/deepone_types_test.go
+	go test github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic/v1beta1
+	go test github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/innsmouth/v1
 	bash -c "find $(DIR)/apis/ -name apiserver.local.config | xargs rm -rf"
 
 # Clean up functions

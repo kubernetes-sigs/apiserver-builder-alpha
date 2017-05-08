@@ -96,6 +96,10 @@ type APIResource struct {
 	Kind string
 	// Resource is the resource name - e.g. peachescastles
 	Resource string
+	// REST is the rest.Storage implementation used to handle requests
+	// This field is optional. The standard REST implementation will be used
+	// by default.
+	REST string
 	// Subresources is a map of subresources keyed by name
 	Subresources map[string]*APISubresource
 	// Type is the Type object from code-gen
@@ -192,6 +196,7 @@ func (b *APIsBuilder) ParseAPIs() {
 					Group:        resource.Group,
 					Resource:     resource.Resource,
 					Type:         resource.Type,
+					REST:         resource.REST,
 					Kind:         resource.Kind,
 					Subresources: resource.Subresources,
 				}
@@ -246,7 +251,12 @@ func (b *APIsBuilder) ParseIndex() {
 		r.Version = GetVersion(c, r.Group)
 		r.Kind = GetKind(c, r.Group)
 		r.Domain = b.Domain
-		r.Resource = b.GetResourceTag(c)
+
+		rt := ParseResourceTag(b.GetResourceTag(c))
+
+		r.Resource = rt.Resource
+		r.REST = rt.REST
+
 		if _, f := b.ByGroupKindVersion[r.Group]; !f {
 			b.ByGroupKindVersion[r.Group] = map[string]map[string]*APIResource{}
 		}
@@ -282,7 +292,7 @@ func (b *APIsBuilder) GetSubresources(c *APIResource) map[string]*APISubresource
 	}
 	for _, subresource := range subresources {
 		// Parse the values for each subresource
-		tags := b.ParseSubresourceTag(c, subresource)
+		tags := ParseSubresourceTag(c, subresource)
 		sr := &APISubresource{
 			Kind:     tags.Kind,
 			Request:  tags.RequestKind,
@@ -326,6 +336,34 @@ func (b *APIsBuilder) GetNameAndImport(tags SubresourceTags) (string, string) {
 	return strings.Join([]string{pkg, tags.RequestKind}, "."), importPackage
 }
 
+// ResourceTags contains the tags present in a "+resource=" comment
+type ResourceTags struct {
+	Resource string
+	REST     string
+}
+
+// ParseResourceTag parses the tags in a "+resource=" comment into a ResourceTags struct
+func ParseResourceTag(tag string) ResourceTags {
+	result := ResourceTags{}
+	for _, elem := range strings.Split(tag, ",") {
+		kv := strings.Split(elem, "=")
+		if len(kv) != 2 {
+			fmt.Fprintf(os.Stderr, "// +resource: tags must be key value pairs.  Expected "+
+				"keys [path=<subresourcepath>] "+
+				"Got string: [%s]", tag)
+			os.Exit(-1)
+		}
+		value := kv[1]
+		switch kv[0] {
+		case "rest":
+			result.REST = value
+		case "path":
+			result.Resource = value
+		}
+	}
+	return result
+}
+
 // SubresourceTags contains the tags present in a "+subresource=" comment
 type SubresourceTags struct {
 	Path        string
@@ -335,7 +373,7 @@ type SubresourceTags struct {
 }
 
 // ParseSubresourceTag parses the tags in a "+subresource=" comment into a SubresourceTags struct
-func (b *APIsBuilder) ParseSubresourceTag(c *APIResource, tag string) SubresourceTags {
+func ParseSubresourceTag(c *APIResource, tag string) SubresourceTags {
 	result := SubresourceTags{}
 	for _, elem := range strings.Split(tag, ",") {
 		kv := strings.Split(elem, "=")
@@ -362,7 +400,7 @@ func (b *APIsBuilder) ParseSubresourceTag(c *APIResource, tag string) Subresourc
 // GetResourceTag returns the value of the "+resource=" comment tag
 func (b *APIsBuilder) GetResourceTag(c *types.Type) string {
 	comments := Comments(c.CommentLines)
-	resource := comments.GetTag("resource", "=")
+	resource := comments.GetTag("resource", ":")
 	if len(resource) == 0 {
 		panic(errors.Errorf("Must specify +resource comment for type %v", c.Name))
 	}

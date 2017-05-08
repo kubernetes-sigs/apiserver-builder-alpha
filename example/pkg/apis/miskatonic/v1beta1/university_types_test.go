@@ -14,37 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1beta1
+package v1beta1_test
 
 import (
 	"testing"
 
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis"
 	v1beta1miskatonic "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic/v1beta1"
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/clientset_generated/clientset"
-	v1beta1miskatonicclient "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/clientset_generated/clientset/typed/miskatonic/v1beta1"
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/openapi"
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/rest"
-	"os"
 )
 
-var testenv *test.TestEnvironment
-var config *rest.Config
-var client *v1beta1miskatonicclient.MiskatonicV1beta1Client
-
-// Do Test Suite setup / teardown
-func TestMain(m *testing.M) {
-	testenv = test.NewTestEnvironment()
-	config = testenv.Start(apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions)
-	client = clientset.NewForConfigOrDie(config).MiskatonicV1beta1Client
-	retCode := m.Run()
-	testenv.Stop()
-	os.Exit(retCode)
-}
-
 func TestCreateDeleteUniversities(t *testing.T) {
+	client := cs.MiskatonicV1beta1Client
 	intf := client.Universities("test-create-delete-universities")
 
 	univ := &v1beta1miskatonic.University{}
@@ -89,6 +69,7 @@ func TestCreateDeleteUniversities(t *testing.T) {
 }
 
 func TestValidateUniversities(t *testing.T) {
+	client := cs.MiskatonicV1beta1Client
 	intf := client.Universities("test-validate-universities")
 	univ := &v1beta1miskatonic.University{}
 	univ.Name = "miskatonic-university"
@@ -121,6 +102,7 @@ func TestValidateUniversities(t *testing.T) {
 }
 
 func TestScaleUniversities(t *testing.T) {
+	client := cs.MiskatonicV1beta1Client
 	namespace := "test-scale-universities"
 	intf := client.Universities(namespace)
 

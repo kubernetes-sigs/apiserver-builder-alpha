@@ -17,6 +17,7 @@ limitations under the License.
 package builders
 
 import (
+	"fmt"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apiserver/pkg/endpoints/request"
@@ -58,11 +59,19 @@ func NewApiResource(
 // storage - storage for manipulating the resource
 func NewApiResourceWithStorage(
 	unversionedBuilder UnversionedResourceBuilder,
-	new func() runtime.Object,
+	schemeFns SchemeFns,
+	new, newList func() runtime.Object,
 	storage rest.Storage) *versionedResourceBuilder {
-	return &versionedResourceBuilder{
-		unversionedBuilder, SchemeFnsSingleton, new, nil, nil, storage, nil,
+	v := &versionedResourceBuilder{
+		unversionedBuilder, schemeFns, new, newList, nil, storage, nil,
 	}
+	if new == nil {
+		panic(fmt.Errorf("Cannot call NewApiResourceWithStorage with nil new function."))
+	}
+	if storage == nil {
+		panic(fmt.Errorf("Cannot call NewApiResourceWithStorage with nil new storage."))
+	}
+	return v
 }
 
 type versionedResourceBuilder struct {
@@ -168,6 +177,7 @@ func (b *versionedResourceBuilder) registerEndpoints(
 		registry[path] = b.REST
 	} else {
 		// Create a new REST implementation wired to storage.
-		registry[path] = b.Build(group, optionsGetter)
+		registry[path] = b.
+			Build(group, optionsGetter)
 	}
 }
