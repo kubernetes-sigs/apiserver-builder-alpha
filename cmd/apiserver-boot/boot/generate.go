@@ -72,83 +72,73 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 
 	getCopyright()
 
+	root, err := os.Executable()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(-1)
+	}
+	root = filepath.Dir(root)
+
 	src := filepath.Join(Repo, "pkg", "apis", "...")
 
-	fmt.Printf("%s %s\n", "apiregister-gen", strings.Join([]string{"-i", src}, " "))
-	out, err := exec.Command("apiregister-gen",
-		"-i", src).CombinedOutput()
+	c := exec.Command(filepath.Join(root, "apiregister-gen"),
+		"-i", src)
+	fmt.Printf("%s\n", strings.Join(c.Args, " "))
+	out, err := c.CombinedOutput()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to run apiregister-gen %s %v\n", out, err)
 		os.Exit(-1)
 	}
 
-	fmt.Printf("%s %s\n", "conversion-gen", strings.Join([]string{
+	c = exec.Command(filepath.Join(root, "conversion-gen"),
 		"-o", GoSrc,
 		"--go-header-file", copyright,
 		"-O", "zz_generated.conversion",
 		"-i", src,
 		"--extra-peer-dirs", extraAPI,
-	}, " "))
-	out, err = exec.Command("conversion-gen",
-		"-o", GoSrc,
-		"--go-header-file", copyright,
-		"-O", "zz_generated.conversion",
-		"-i", src,
-		"--extra-peer-dirs", extraAPI,
-	).CombinedOutput()
+	)
+	fmt.Printf("%s\n", strings.Join(c.Args, " "))
+	out, err = c.CombinedOutput()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to run conversion-gen %s %v\n", out, err)
 		os.Exit(-1)
 	}
 
-	fmt.Printf("%s %s\n", "deepcopy-gen", strings.Join([]string{
+	c = exec.Command(filepath.Join(root, "deepcopy-gen"),
 		"-o", GoSrc,
 		"--go-header-file", copyright,
 		"-O", "zz_generated.deepcopy",
 		"-i", src,
-	}, " "))
-	out, err = exec.Command("deepcopy-gen",
-		"-o", GoSrc,
-		"--go-header-file", copyright,
-		"-O", "zz_generated.deepcopy",
-		"-i", src,
-	).CombinedOutput()
+	)
+	fmt.Printf("%s\n", strings.Join(c.Args, " "))
+	out, err = c.CombinedOutput()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to run deepcopy-gen %s %v\n", out, err)
 		os.Exit(-1)
 	}
 
-	fmt.Printf("%s %s\n", "openapi-gen", strings.Join([]string{
-		"-o", GoSrc,
-		"--go-header-file", copyright,
-		"-i", src + "," + genericAPI,
-		"--output-package", filepath.Join(Repo, "pkg", "openapi"),
-	}, " "))
-	out, err = exec.Command("openapi-gen",
+	c = exec.Command(filepath.Join(root, "openapi-gen"),
 		"-o", GoSrc,
 		"--go-header-file", copyright,
 		"-i", src+","+genericAPI,
 		"--output-package", filepath.Join(Repo, "pkg", "openapi"),
-	).CombinedOutput()
+	)
+	fmt.Printf("%s\n", strings.Join(c.Args, " "))
+	out, err = c.CombinedOutput()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to run openapi-gen %s %v\n", out, err)
 		os.Exit(-1)
 	}
 
-	fmt.Printf("%s %s\n", "defaulter-gen", strings.Join([]string{
+	c = exec.Command(filepath.Join(root, "defaulter-gen"),
 		"-o", GoSrc,
 		"--go-header-file", copyright,
 		"-O", "zz_generated.defaults",
 		"-i", src,
 		"--extra-peer-dirs=", extraAPI,
-	}, " "))
-	out, err = exec.Command("defaulter-gen",
-		"-o", GoSrc,
-		"--go-header-file", copyright,
-		"-O", "zz_generated.defaults",
-		"-i", src,
-		"--extra-peer-dirs=", extraAPI,
-	).CombinedOutput()
+	)
+	fmt.Printf("%s\n", strings.Join(c.Args, " "))
+	out, err = c.CombinedOutput()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to run defaulter-gen %s %v\n", out, err)
 		os.Exit(-1)
@@ -157,23 +147,16 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	// Builder the versioned apis client
 	clientPkg := filepath.Join(Repo, "pkg", "client")
 	clientset := filepath.Join(clientPkg, "clientset_generated")
-	cmdargs := []string{
+	c = exec.Command(filepath.Join(root, "client-gen"),
 		"-o", GoSrc,
 		"--go-header-file", copyright,
 		"--input-base", filepath.Join(Repo, "pkg", "apis"),
 		"--input", versionedAPIs,
 		"--clientset-path", clientset,
 		"--clientset-name", "clientset",
-	}
-	fmt.Printf("%s %s\n", "client-gen", strings.Join(cmdargs, " "))
-	out, err = exec.Command("client-gen",
-		"-o", GoSrc,
-		"--go-header-file", copyright,
-		"--input-base", filepath.Join(Repo, "pkg", "apis"),
-		"--input", versionedAPIs,
-		"--clientset-path", clientset,
-		"--clientset-name", "clientset",
-	).CombinedOutput()
+	)
+	fmt.Printf("%s\n", strings.Join(c.Args, " "))
+	out, err = c.CombinedOutput()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to run client-gen %s %v\n", out, err)
 		os.Exit(-1)
@@ -191,62 +174,45 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	}
 	unversionedAPIs := strings.Join(u, ",")
 
-	cmdargs = []string{"-o", GoSrc,
-		"--go-header-file", copyright,
-		"--input-base", filepath.Join(Repo, "pkg", "apis"),
-		"--input", unversionedAPIs,
-		"--clientset-path", clientset,
-		"--clientset-name", "internalclientset",
-	}
-	fmt.Printf("%s %s\n", "client-gen", strings.Join(cmdargs, " "))
-	out, err = exec.Command("client-gen",
+	c = exec.Command(filepath.Join(root, "client-gen"),
 		"-o", GoSrc,
 		"--go-header-file", copyright,
 		"--input-base", filepath.Join(Repo, "pkg", "apis"),
 		"--input", unversionedAPIs,
 		"--clientset-path", clientset,
-		"--clientset-name", "internalclientset").CombinedOutput()
+		"--clientset-name", "internalclientset")
+	fmt.Printf("%s\n", strings.Join(c.Args, " "))
+	out, err = c.CombinedOutput()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to run client-gen for unversioned APIs %s %v\n", out, err)
 		os.Exit(-1)
 	}
 
 	listerPkg := filepath.Join(clientPkg, "listers_generated")
-	cmdargs = []string{"-o", GoSrc,
-		"--go-header-file", copyright,
-		"-i", src,
-		"--output-package", listerPkg,
-	}
-	fmt.Printf("%s %s\n", "lister-gen", strings.Join(cmdargs, " "))
-	out, err = exec.Command("lister-gen",
+	c = exec.Command(filepath.Join(root, "lister-gen"),
 		"-o", GoSrc,
 		"--go-header-file", copyright,
 		"-i", src,
 		"--output-package", listerPkg,
-	).CombinedOutput()
+	)
+	fmt.Printf("%s\n", strings.Join(c.Args, " "))
+	out, err = c.CombinedOutput()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to run lister-gen %s %v\n", out, err)
 		os.Exit(-1)
 	}
 
 	informerPkg := filepath.Join(clientPkg, "informers_generated")
-	cmdargs = []string{"-o", GoSrc,
-		"--go-header-file", copyright,
-		"-i", src,
-		"--output-package", informerPkg,
-		"--listers-package", listerPkg,
-		"--versioned-clientset-package", filepath.Join(clientset, "clientset"),
-		"--internal-clientset-package", filepath.Join(clientset, "internalclientset"),
-	}
-	fmt.Printf("%s %s\n", "informer-gen", strings.Join(cmdargs, " "))
-	out, err = exec.Command("informer-gen",
+	c = exec.Command(filepath.Join(root, "informer-gen"),
 		"-o", GoSrc,
 		"--go-header-file", copyright,
 		"-i", src,
 		"--output-package", informerPkg,
 		"--listers-package", listerPkg,
 		"--versioned-clientset-package", filepath.Join(clientset, "clientset"),
-		"--internal-clientset-package", filepath.Join(clientset, "internalclientset")).CombinedOutput()
+		"--internal-clientset-package", filepath.Join(clientset, "internalclientset"))
+	fmt.Printf("%s\n", strings.Join(c.Args, " "))
+	out, err = c.CombinedOutput()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to run informer-gen %s %v\n", out, err)
 		os.Exit(-1)
