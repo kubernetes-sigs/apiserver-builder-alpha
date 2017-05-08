@@ -2,11 +2,16 @@
 
 This document covers building your first apiserver from scratch:
 
-- Setup your environment by installing the necessary binaries using `go get`
-- Initialize your package
+- Bootstrapping your go dependencies
+- Initialize your project directory structure and go packages
 - Create an API group, version, resource
-- Build your API server
-- Write an automated test for your API server
+- Build the apiserver command
+- Write an automated test for the API resource
+
+## Download the latest release
+
+Make sure you downloaded and installed the latest release as described
+[here](https://github.com/kubernetes-incubator/apiserver-builder/blob/master/docs/installing.md)
 
 ## Create your Go project
 
@@ -16,31 +21,35 @@ For example
 
 > GOPATH/src/github.com/my-org/my-project
 
-## Download and install the code generators
+## Install the apiserver-builder go libraries as vendored deps
 
-Make sure the GOPATH/bin directory is on your path, and then use
- `go get` to download and compile the code generators:
+Using `apiserver-boot` to install the vendored go libraries will
+make sure that your project is bootstrapped with a known set of
+good libraries.
+
+The will bootstrap will copy the files included in the apiserver-builder
+binary distribution.
+
+Files created under GOPATH/src/github.com/my-org/my-project:
+
+- vendor
+- glide.yaml
+- glide.lock
+
+At the root of your go package under your GOPATH run the following command.
 
 ```sh
-go get github.com/kubernetes-incubator/apiserver-builder/cmd/apiregister-boot
-go get k8s.io/kubernetes/cmd/libs/go2idl/client-gen
-go get k8s.io/kubernetes/cmd/libs/go2idl/conversion-gen
-go get k8s.io/kubernetes/cmd/libs/go2idl/deepcopy-gen
-go get k8s.io/kubernetes/cmd/libs/go2idl/openapi-gen
-go get k8s.io/kubernetes/cmd/libs/go2idl/defaulter-gen
-go get k8s.io/kubernetes/cmd/libs/go2idl/lister-gen
-go get k8s.io/kubernetes/cmd/libs/go2idl/informer-gen
-go get github.com/kubernetes-incubator/apiserver-builder/cmd/apiregister-gen
-go get github.com/kubernetes-incubator/reference-docs/gen-apidocs
+apiserver-boot glide-install
 ```
 
-Verify the downloaded code generators can be found on the path by running
-`apiserver-boot`
-
-## Create your copyright header
+## Create a copyright header
 
 Create a file called `boilerplate.go.txt` that contains the copyright
 you want to appear at the top of generated files.
+
+Under GOPATH/src/github.com/my-org/my-project:
+
+- `boilerplate.go.txt`
 
 e.g.
 
@@ -62,21 +71,22 @@ limitations under the License.
 */
 ```
 
-## Initialize your package
-
-At the root of your go package under your GOPATH run the following command.
+## Initialize your project
 
 This will setup the initial file structure for your apiserver, including:
 
-- pkg/apis/doc.go
-- pkg/openapi/doc.go
+Files created under GOPATH/src/github.com/my-org/my-project:
+
+- `pkg/apis/doc.go`
+- `pkg/openapi/doc.go`
 - docs/...
 - main.go
-- glide.yaml
 
 Flags:
 
 - your-domain: unique namespace for your API groups
+
+At the root of your go package under your GOPATH run the following command:
 
 ```sh
 apiserver-boot init --domain <your-domain>
@@ -87,13 +97,15 @@ apiserver-boot init --domain <your-domain>
 An API group contains one or more related API versions.  It is similar to
 a package in go or Java.
 
-This will create:
+Files created under GOPATH/src/github.com/my-org/my-project:
 
 - pkg/apis/your-group/doc.go
 
 Flags:
 
 - your-group: name of the API group e.g. `cicd` or `apps`
+
+At the root of your go package under your GOPATH run the following command:
 
 ```sh
 apiserver-boot create-group --domain <your-domain> --group <your-group>
@@ -107,13 +119,15 @@ An API version contains one or more APIs.  The version is used
 to support introducing changes to APIs without breaking backwards
 compatibility.
 
-This will create:
+Files created under GOPATH/src/github.com/my-org/my-project:
 
 - pkg/apis/your-group/your-version/doc.go
 
 Flags:
 
 - your-version: name of the API version e.g. `v1beta1` or `v1`
+
+At the root of your go package under your GOPATH run the following command:
 
 ```sh
 apiserver-boot create-group create-version --domain <your-domain> --group <your-group> --version <your-version>
@@ -127,7 +141,7 @@ An API resource provides REST endpoints for CRUD operations on a resource
 type.  This is what will be used by clients to read and store instances
 of the resource kind.
 
-This will create:
+Files created under GOPATH/src/github.com/my-org/my-project:
 
 - pkg/apis/your-group/your-version/your-kind_types.go
 - pkg/apis/your-group/your-version/your-kind_types_test.go
@@ -137,18 +151,10 @@ Flags:
 - your-kind: camelcase name of the type e.g. `MyKind`
 - your-resource: lowercase pluralization of the kind e.g. `mykinds`
 
+At the root of your go package under your GOPATH run the following command:
+
 ```sh
 apiserver-boot create-resource --domain <your-domain> --group <your-group> --version <your-version> --kind <your-kind> --resource <your-resource>
-```
-
-## Fetch the go dependencies
-
-The following command will run `glide install --strip-vendor` so that vendored dependencies work across vendored packages.
-
-This will take a while.
-
-```sh
-apiserver-boot glide-install
 ```
 
 ## Generate the code
