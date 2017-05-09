@@ -55,6 +55,7 @@ func main() {
 	boot.AddCreateGroup(cmd)
 	boot.AddCreateResource(cmd)
 	boot.AddCreateVersion(cmd)
+	boot.AddDocs(cmd)
 	boot.AddGenerate(cmd)
 	boot.AddGlideInstallCmd(cmd)
 	boot.AddInit(cmd)
