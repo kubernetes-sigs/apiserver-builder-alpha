@@ -33,7 +33,6 @@ var runCmd = &cobra.Command{
 	Run:   RunRun,
 }
 
-var server string
 var etcd string
 var config string
 var printapiserver bool

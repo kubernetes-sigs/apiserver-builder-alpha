@@ -25,6 +25,7 @@ import (
 	"text/template"
 )
 
+var server string
 var groupName string
 var kindName string
 var resourceName string
