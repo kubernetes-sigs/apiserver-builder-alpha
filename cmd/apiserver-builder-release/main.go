@@ -372,6 +372,10 @@ func BuildVendor(tooldir string) string {
 
 	ioutil.WriteFile(filepath.Join(pkgDir, "boilerplate.go.txt"), []byte(""), 0555)
 
+	os.RemoveAll(filepath.Join(pkgDir, "pkg"))
+	os.RemoveAll(filepath.Join(pkgDir, "docs"))
+	os.RemoveAll(filepath.Join(pkgDir, "main.go"))
+
 	cmd := exec.Command(bootBin, "init", "--domain", "k8s.io")
 	cmd.Dir = pkgDir
 	RunCmd(cmd, vendordir)
@@ -397,6 +401,11 @@ func BuildVendor(tooldir string) string {
 	RunCmd(cmd, vendordir)
 
 	cmd = exec.Command("go", "build", "main.go")
+	cmd.Dir = pkgDir
+	RunCmd(cmd, vendordir)
+
+	cmd = exec.Command("go", "test", filepath.Join(
+		"github.com", "kubernetes-incubator", "test", "pkg", "apis", "misk", "v1beta1"))
 	cmd.Dir = pkgDir
 	RunCmd(cmd, vendordir)
 
