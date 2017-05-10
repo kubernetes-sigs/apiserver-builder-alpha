@@ -45,6 +45,13 @@ Instructions on how to add a new subresource to an existing resource
 
 Details [here](https://github.com/kubernetes-incubator/apiserver-builder/blob/master/docs/adding_subresources.md)
 
+### Defining custom REST handlers
+
+Instructions on how to Overriding the default resource storage with
+custom REST handlers
+
+Details [here](https://github.com/kubernetes-incubator/apiserver-builder/blob/master/docs/adding_custom_rest.md)
+
 ### Generating code
 
 Run:
