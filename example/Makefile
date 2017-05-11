@@ -17,11 +17,13 @@ REPO=github.com/kubernetes-incubator/apiserver-builder/example
 BOILER_PLATE="boilerplate.go.txt"
 UNVERSIONED="miskatonic/,innsmouth/"
 VERSIONED="miskatonic/v1beta1,innsmouth/v1"
+UNVERSIONED_DIRS="--input-dirs=github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic --input-dirs=github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/innsmouth"
+VERSIONED_DIRS="--input-dirs=github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic/v1beta1 --input-dirs=github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/innsmouth/v1"
 
 REGISTER_GEN="apiregister-gen"
 REGISTER_GEN="../cmd/apiregister-gen/main.go"
 
-SRC=$(REPO)/pkg/apis/...
+SRC="$(UNVERSIONED_DIRS) $(VERSIONED_DIRS)"
 DIR=pkg
 
 GENERIC_API="k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/api/resource/,k8s.io/apimachinery/pkg/version/,k8s.io/apimachinery/pkg/runtime/,k8s.io/apimachinery/pkg//util/intstr/"
@@ -33,10 +35,43 @@ INTERNAL_CLIENT=internalclientset
 LISTERS_PKG="$(CLIENT_PKG)/listers_generated"
 INFORMERS_PKG="$(CLIENT_PKG)/informers_generated"
 
-all: build
+all: test
+
+# Run integration tests
+test: build
+	go test github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic/v1beta1
+	go test github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/innsmouth/v1
+	bash -c "find $(DIR)/apis/ -name apiserver.local.config | xargs rm -rf"
+
+# Build the main binary
+build: generate
+	go build -o bin/apiserver main.go
+
+# Generate code
+generate: cmds cleangenerated
+	bin/apiserver-boot generate
+
+# Build docs
+docs: cleandocs build
+	apiserver-boot docs --server bin/apiserver
+
+# Build the tools needed by apiserver-boot
+# Note: These are available in the release tar
+cmds: deps
+	go build -o bin/apiserver-boot ../cmd/apiserver-boot/main.go
+	go build -o bin/apiregister-gen ../cmd/apiregister-gen/main.go
+	go build -o bin/client-gen k8s.io/kubernetes/cmd/libs/go2idl/client-gen
+	go build -o bin/conversion-gen k8s.io/kubernetes/cmd/libs/go2idl/conversion-gen
+	go build -o bin/deepcopy-gen k8s.io/kubernetes/cmd/libs/go2idl/deepcopy-gen
+	go build -o bin/openapi-gen k8s.io/kubernetes/cmd/libs/go2idl/openapi-gen
+	go build -o bin/defaulter-gen k8s.io/kubernetes/cmd/libs/go2idl/defaulter-gen
+	go build -o bin/lister-gen k8s.io/kubernetes/cmd/libs/go2idl/lister-gen
+	go build -o bin/informer-gen k8s.io/kubernetes/cmd/libs/go2idl/informer-gen
+	go build -o bin/apiregister-gen github.com/kubernetes-incubator/apiserver-builder/cmd/apiregister-gen
+	go build -o bin/gen-apidocs github.com/kubernetes-incubator/reference-docs/gen-apidocs
 
 # Download all of the code generators
-# TODO: Package and distribute these in a release tar
+# NOTE: These are available in the release tar
 deps:
 	go get k8s.io/kubernetes/cmd/libs/go2idl/client-gen
 	go get k8s.io/kubernetes/cmd/libs/go2idl/conversion-gen
@@ -48,28 +83,6 @@ deps:
 	go get github.com/kubernetes-incubator/apiserver-builder/cmd/apiregister-gen
 	go get github.com/kubernetes-incubator/reference-docs/gen-apidocs
 
-# Build the main
-build: generate
-	go build main.go
-
-# Run code generators
-generate: cleangenerated
-	go run $(REGISTER_GEN) -i $(REPO)/pkg/apis/...
-	conversion-gen -i "$(SRC)"  --extra-peer-dirs="k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/conversion,k8s.io/apimachinery/pkg/runtime" -o $(OUT) -O zz_generated.conversion --go-header-file $(BOILER_PLATE)
-	deepcopy-gen -i "$(SRC)" -o $(OUT) -O zz_generated.deepcopy --go-header-file $(BOILER_PLATE)
-	openapi-gen  -i "$(SRC),$(GENERIC_API)" --output-package "$(REPO)/pkg/openapi" --go-header-file $(BOILER_PLATE)
-	defaulter-gen -i "$(SRC)" -o $(OUT) -O "zz_generated.defaults" --go-header-file $(BOILER_PLATE) --extra-peer-dirs="k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/conversion,k8s.io/apimachinery/pkg/runtime"
-	client-gen --input-base "$(REPO)/pkg/apis/" --input $(VERSIONED) --clientset-path=$(CLIENT_PATH)  --clientset-name=$(CLIENT) -o $(OUT) --go-header-file $(BOILER_PLATE)
-	client-gen --input-base "$(REPO)/pkg/apis/" --input $(UNVERSIONED) --clientset-path=$(CLIENT_PATH) --clientset-name=$(INTERNAL_CLIENT)  -o $(OUT) --go-header-file $(BOILER_PLATE)
-	lister-gen -i $(SRC) --output-package=$(LISTERS_PKG) -o $(OUT) --go-header-file $(BOILER_PLATE)
-	informer-gen -i $(SRC) -o $(OUT) --go-header-file $(BOILER_PLATE) --internal-clientset-package="$(CLIENT_PATH)/$(INTERNAL_CLIENT)" --versioned-clientset-package="$(CLIENT_PATH)/$(CLIENT)" --listers-package=$(LISTERS_PKG) --output-package=$(INFORMERS_PKG)
-
-# Run integration tests
-test: build
-	go test github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic/v1beta1
-	go test github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/innsmouth/v1
-	bash -c "find $(DIR)/apis/ -name apiserver.local.config | xargs rm -rf"
-
 # Clean up functions
 
 clean: cleanbin cleangenerated cleandocs
@@ -77,27 +90,8 @@ clean: cleanbin cleangenerated cleandocs
 cleanbin:
 	rm -f main
 
-cleangenerated:
-	bash -c "find $(DIR)/apis/ -name zz_generated.api.*.go | xargs rm -f"
-	bash -c "find $(DIR)/apis/ -name zz_generated.deepcopy.go | xargs rm -f"
-	bash -c "find $(DIR)/apis/ -name zz_generated.defaults.go | xargs rm -f"
-	bash -c "find $(DIR)/apis/ -name zz_generated.conversion.go | xargs rm -f"
-	bash -c "find . -name apiserver.local.config | xargs rm -rf"
-	rm -f $(DIR)/openapi/openapi_generated.go
-	rm -rf $(DIR)/client/clientset_generated/
-	rm -rf $(DIR)/client/informers_generated/
+cleangenerated: cmds
+	bin/apiserver-boot generate clean
 
-cleandocs:
-	rm -rf $(shell pwd)/docs/build
-	rm -rf $(shell pwd)/docs/includes
-	rm -rf $(shell pwd)/docs/manifest.json
-	rm -rf $(shell pwd)/docs/includes/_generated_*
-
-docs: cleandocs build
-	bash -c "mkdir -p docs/openapi-spec; mkdir -p docs/static_includes; echo ''"
-	./main --delegated-auth=false --etcd-servers=http://localhost:2379 --secure-port=9443 --print-openapi > ./docs/openapi-spec/swagger.json
-	gen-apidocs --allow-errors --use-tags --config-dir docs
-	docker run -v $(shell pwd)/docs/includes:/source -v $(shell pwd)/docs/build:/build -v $(shell pwd)/docs/:/manifest pwittrock/brodocs
-
-run: build
-	./main -v 10 --authentication-kubeconfig ~/.kube/auth_config --authorization-kubeconfig ~/.kube/auth_config --client-ca-file /var/run/kubernetes/apiserver.crt  --requestheader-client-ca-file /var/run/kubernetes/apiserver.crt --requestheader-username-headers=X-Remote-User --requestheader-group-headers=X-Remote-Group --requestheader-extra-headers-prefix=X-Remote-Extra- --etcd-servers=http://localhost:2379 --secure-port=9443 --tls-ca-file  /var/run/kubernetes/apiserver.crt --print-bearer-token
+cleandocs: cmds
+	bin/apiserver-boot docs clean
