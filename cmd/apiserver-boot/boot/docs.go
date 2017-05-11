@@ -42,6 +42,20 @@ func AddDocs(cmd *cobra.Command) {
 	docsCmd.Flags().StringVar(&server, "server", "", "path to apiserver binary to run to get openapi.json")
 	docsCmd.Flags().BoolVar(&operations, "operations", false, "if true, include operations in docs.")
 	cmd.AddCommand(docsCmd)
+	docsCmd.AddCommand(docsCleanCmd)
+}
+
+var docsCleanCmd = &cobra.Command{
+	Use:   "clean",
+	Short: "Removes generated docs",
+	Long:  `Removes generated docs`,
+	Run:   RunCleanDocs,
+}
+
+func RunCleanDocs(cmd *cobra.Command, args []string) {
+	os.RemoveAll(filepath.Join("docs", "build"))
+	os.RemoveAll(filepath.Join("docs", "includes"))
+	os.Remove(filepath.Join("docs", "manifest.json"))
 }
 
 func RunDocs(cmd *cobra.Command, args []string) {
