@@ -120,12 +120,13 @@ func (b *versionedResourceBuilder) Build(
 	optionsGetter generic.RESTOptionsGetter) rest.StandardStorage {
 
 	// Set a default strategy
+	watchCacheSize := 1000
 	store := &StorageWrapper{registry.Store{
 		Copier:            api.Scheme,
 		NewFunc:           b.Unversioned.New,     // Use the unversioned type
 		NewListFunc:       b.Unversioned.NewList, // Use the unversioned type
 		QualifiedResource: b.getGroupResource(group),
-		WatchCacheSize:    1000,
+		WatchCacheSize:    &watchCacheSize,
 	}}
 
 	// Use default, requires
