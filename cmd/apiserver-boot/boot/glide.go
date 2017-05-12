@@ -40,7 +40,7 @@ func AddGlideInstallCmd(cmd *cobra.Command) {
 }
 
 func fetchGlide() {
-	c := exec.Command("glide", "install", "--strip-vendor")
+	c := exec.Command("glide", "install", "--strip-vendor", "--strip-vcs")
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout
 	err := c.Run()
