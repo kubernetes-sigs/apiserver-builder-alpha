@@ -58,6 +58,7 @@ var generateCleanCmd = &cobra.Command{
 func RunCleanGenerate(cmd *cobra.Command, args []string) {
 	os.RemoveAll(filepath.Join("pkg", "client", "clientset_generated"))
 	os.RemoveAll(filepath.Join("pkg", "client", "informers_generated"))
+	os.RemoveAll(filepath.Join("pkg", "client", "listers_generated"))
 	os.Remove(filepath.Join("pkg", "openapi", "openapi_generated.go"))
 
 	filepath.Walk("pkg", func(path string, info os.FileInfo, err error) error {
