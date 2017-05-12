@@ -1,0 +1,4 @@
+bin/
+default.etcd/
+kubeconfig
+apiserver.local.config/
