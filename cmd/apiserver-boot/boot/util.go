@@ -34,6 +34,7 @@ var copyright string
 var domain string
 var Repo string
 var GoSrc string
+var ignoreExists = false
 
 // writeIfNotFound returns true if the file was created and false if it already exists
 func writeIfNotFound(path, templateName, templateValue string, data interface{}) bool {

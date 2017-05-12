@@ -65,6 +65,12 @@ func RunCreateResource(cmd *cobra.Command, args []string) {
 	}
 
 	cr := getCopyright()
+
+	ignoreExists = true
+	createGroup(cr)
+	createVersion(cr)
+
+	ignoreExists = false
 	createResource(cr)
 }
 
