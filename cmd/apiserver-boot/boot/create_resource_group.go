@@ -63,7 +63,7 @@ func createGroup(boilerplate string) {
 		domain,
 		groupName,
 	})
-	if !created {
+	if !created && !ignoreExists {
 		fmt.Fprintf(os.Stderr, "API group %s already exists.\n", groupName)
 		os.Exit(-1)
 	}

@@ -23,18 +23,17 @@ import (
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/apiserver"
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	genericapiserver "k8s.io/apiserver/pkg/server"
-	genericmux "k8s.io/apiserver/pkg/server/mux"
 	genericoptions "k8s.io/apiserver/pkg/server/options"
 
 	"bytes"
 	"github.com/golang/glog"
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/validators"
 	"k8s.io/apimachinery/pkg/openapi"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/validators"
 	"k8s.io/apiserver/pkg/util/logs"
 	"k8s.io/client-go/pkg/api"
 	"net/http"
@@ -208,7 +207,7 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}) error {
 	}
 
 	s := server.GenericAPIServer.PrepareRun()
-	err = validators.OpenAPI.SetSchema(readOpenapi(server.GenericAPIServer.HandlerContainer))
+	err = validators.OpenAPI.SetSchema(readOpenapi(server.GenericAPIServer.Handler))
 	if o.PrintOpenapi {
 		fmt.Printf("%s", validators.OpenAPI.OpenApi)
 		os.Exit(0)
@@ -222,7 +221,7 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}) error {
 	return nil
 }
 
-func readOpenapi(handler *genericmux.APIContainer) string {
+func readOpenapi(handler *genericapiserver.APIServerHandler) string {
 	req, err := http.NewRequest("GET", "/swagger.json", nil)
 	if err != nil {
 		panic(fmt.Errorf("Could not create openapi request %v", err))

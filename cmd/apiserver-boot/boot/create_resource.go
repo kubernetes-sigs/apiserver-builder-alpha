@@ -65,6 +65,12 @@ func RunCreateResource(cmd *cobra.Command, args []string) {
 	}
 
 	cr := getCopyright()
+
+	ignoreExists = true
+	createGroup(cr)
+	createVersion(cr)
+
+	ignoreExists = false
 	createResource(cr)
 }
 
@@ -123,9 +129,9 @@ import (
 
 // +genclient=true
 
+// {{.Kind}}
 // +k8s:openapi-gen=true
 // +resource:path={{.Resource}}
-// {{.Kind}}
 type {{.Kind}} struct {
 	metav1.TypeMeta   ` + "`" + `json:",inline"` + "`" + `
 	metav1.ObjectMeta ` + "`" + `json:"metadata,omitempty"` + "`" + `

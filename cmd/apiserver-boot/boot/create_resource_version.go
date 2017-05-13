@@ -54,6 +54,11 @@ func RunCreateVersion(cmd *cobra.Command, args []string) {
 	}
 
 	cr := getCopyright()
+
+	ignoreExists = true
+	createGroup(cr)
+
+	ignoreExists = false
 	createVersion(cr)
 }
 
@@ -71,7 +76,7 @@ func createVersion(boilerplate string) {
 		versionName,
 		Repo,
 	})
-	if !created {
+	if !created && !ignoreExists {
 		fmt.Fprintf(os.Stderr, "API group version %s/%s already exists.\n", groupName, versionName)
 		os.Exit(-1)
 	}
