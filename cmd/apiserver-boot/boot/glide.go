@@ -21,6 +21,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -40,10 +41,21 @@ func AddGlideInstallCmd(cmd *cobra.Command) {
 }
 
 func fetchGlide() {
-	c := exec.Command("glide", "install", "--strip-vendor", "--strip-vcs")
+	o, err := exec.Command("glide", "-v").CombinedOutput()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "must install glide v0.12 or later\n")
+		os.Exit(-1)
+	}
+	if !strings.HasPrefix(string(o), "glide version v0.12") &&
+		!strings.HasPrefix(string(o), "glide version v0.13") {
+		fmt.Fprintf(os.Stderr, "must install glide  or later, was %s\n", o)
+		os.Exit(-1)
+	}
+
+	c := exec.Command("glide", "install", "--strip-vendor")
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout
-	err := c.Run()
+	err = c.Run()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to run glide install\n%v\n", err)
 		os.Exit(-1)
@@ -102,11 +114,24 @@ type glideTemplateArguments struct {
 var glideTemplate = `
 package: {{.Repo}}
 import:
-- package: github.com/go-openapi/spec
+- package: github.com/go-openapi/analysis
+  version: b44dc874b601d9e4e2f6e19140e794ba24bead3b
+- package: github.com/go-openapi/jsonpointer
+  version: 46af16f9f7b149af66e5d1bd010e3574dc06de98
+- package: github.com/go-openapi/jsonreference
+  version: 13c6e3589ad90f49bd3e3bbe2c2cb3d7a4142272
 - package: github.com/go-openapi/loads
+  version: 18441dfa706d924a39a030ee2c3b1d8d81917b38
+- package: github.com/go-openapi/spec
+  version: 6aced65f8501fe1217321abf0749d354824ba2ff
+- package: github.com/go-openapi/swag
+  version: 1d0bd113de87027671077d3c71eb3ac5d7dbba72
 - package: github.com/golang/glog
+  version: 44145f04b68cf362d9c4df2182967c2275eaefed
 - package: github.com/pkg/errors
+  version: a22138067af1c4942683050411a841ade67fe1eb
 - package: github.com/spf13/cobra
+  version: 7b1b6e8dc027253d45fc029bc269d1c019f83a34
 - package: github.com/spf13/pflag
   version: d90f37a48761fe767528f31db1955e4f795d652f
 - package: k8s.io/apimachinery
@@ -116,10 +141,6 @@ import:
 - package: k8s.io/kubernetes
   subpackages:
   - pkg/api
-- package: k8s.io/apimachinery
-  subpackages:
-  - pkg/apis/meta/v1
-  - pkg/apis/meta
 ignore:
 - {{.Repo}}
 `
