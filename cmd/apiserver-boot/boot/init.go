@@ -47,6 +47,7 @@ func RunInit(cmd *cobra.Command, args []string) {
 
 	createMain(cr)
 	createAPIs(cr)
+	createController(cr)
 	createOpenAPI(cr)
 	createDocs()
 }
@@ -113,6 +114,28 @@ var apisDocTemplate = `
 // +domain={{.Domain}}
 
 package apis
+
+`
+
+func createController(boilerplate string) {
+	dir, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(-1)
+	}
+	path := filepath.Join(dir, "pkg", "controller", "doc.go")
+	writeIfNotFound(path, "controller-template", controllerDocTemplate, controllerDocTemplateArguments{boilerplate})
+}
+
+type controllerDocTemplateArguments struct {
+	BoilerPlate string
+}
+
+var controllerDocTemplate = `
+{{.BoilerPlate}}
+
+
+package controller
 
 `
 

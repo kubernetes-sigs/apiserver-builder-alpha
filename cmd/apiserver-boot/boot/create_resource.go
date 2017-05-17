@@ -91,11 +91,14 @@ func createResource(boilerplate string) {
 		resourceName,
 		Repo,
 	}
+
+	found := false
+
 	created := writeIfNotFound(path, "resource-template", resourceTemplate, a)
 	if !created {
 		fmt.Fprintf(os.Stderr,
 			"API group version kind %s/%s/%s already exists.\n", groupName, versionName, kindName)
-		os.Exit(-1)
+		found = true
 	}
 
 	typesFileName = fmt.Sprintf("%s_types_test.go", strings.ToLower(kindName))
@@ -103,7 +106,20 @@ func createResource(boilerplate string) {
 	created = writeIfNotFound(path, "resource-test-template", resourceTestTemplate, a)
 	if !created {
 		fmt.Fprintf(os.Stderr,
-			"API group version kind %s/%s/%s already exists.\n", groupName, versionName, kindName)
+			"API group version kind %s/%s/%s test already exists.\n", groupName, versionName, kindName)
+		found = true
+	}
+
+	typesFileName = fmt.Sprintf("%s.go", strings.ToLower(kindName))
+	path = filepath.Join(dir, "pkg", "controller", kindName, typesFileName)
+	created = writeIfNotFound(path, "resource-controller-template", resourceControllerTemplate, a)
+	if !created {
+		fmt.Fprintf(os.Stderr,
+			"Controller for %s/%s/%s already exists.\n", groupName, versionName, kindName)
+		found = true
+	}
+
+	if found {
 		os.Exit(-1)
 	}
 }
@@ -124,6 +140,8 @@ var resourceTemplate = `
 package {{.Version}}
 
 import (
+	"log""
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -146,6 +164,13 @@ type {{.Kind}}Spec struct {
 
 // {{.Kind}}Status defines the observed state of {{.Kind}}
 type {{.Kind}}Status struct {
+}
+
+// DefaultingFunction sets default {{.Kind}} field values
+func ({{.Kind}}SchemeFns) DefaultingFunction(o interface{}) {
+	obj := o.(*{{.Kind}})
+	// Set default field values here
+	log.Printf("Defaulting fields for {{.Kind}} %s\n", obj.Name)
 }
 
 `
@@ -182,5 +207,56 @@ func TestMain(m *testing.M) {
 }
 
 func TestCreateDelete{{.Kind}}(t *testing.T) {
+}
+`
+
+var resourceControllerTemplate = `
+{{.BoilerPlate}}
+
+package controller
+
+import (
+	"fmt"
+
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/controller"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/cache"
+	"k8s.io/client-go/util/workqueue"
+
+	"{{.Repo}}/pkg/apis/{{.Group}}/{{.Version}}"
+	listers "{{.Repo}}/pkg/client/listers_generated/{{.Group}}/{{.Version}}"
+)
+
+type {{.Kind}}ControllerImpl struct {
+	// informer listens for events about Universities
+	informer cache.SharedIndexInformer
+
+	// lister indexes properties about Universities
+	lister listers.UniversityLister
+}
+
+// Init initializes the controller and is called by the generated code
+// config - client configuration for talking to the apiserver
+// si - informer factory shared across all controllers for listening to events and indexing resource properties
+// queue - message queue for handling new events.  unique to this controller.
+func (c *{{.Kind}}ControllerImpl) Init(
+	config *rest.Config,
+	si *SharedInformers,
+	queue workqueue.RateLimitingInterface) {
+
+	// Set the informer and lister for subscribing to events and indexing {{.Resource}} labels
+	i := si.factory.{{title .Group}}().{{title .Version}}().{{title .Resource}}()
+	c.informer = i.Informer()
+	c.lister = i.Lister()
+
+	// Add an event handler to enqueue a message for {{.Resource}} adds / updates
+	c.informer.AddEventHandler(&controller.QueueingEventHandler{queue})
+}
+
+// Reconcile handles enqueued messages
+func (c *{{.Kind}}ControllerImpl) Reconcile(u *{{.Version}}.{{.Kind}}) error {
+	// Implement controller logic here
+	fmt.Printf("Running reconcile {{.Kind}} for %s\n", u.Name)
+	return nil
 }
 `
