@@ -36,6 +36,15 @@ func IsAPIResource(t *types.Type) bool {
 	return false
 }
 
+func IsController(t *types.Type) bool {
+	for _, c := range t.CommentLines {
+		if strings.Contains(c, "+controller") {
+			return true
+		}
+	}
+	return false
+}
+
 // IsAPISubresource returns true if t has a +subresource-request comment tag
 func IsAPISubresource(t *types.Type) bool {
 	for _, c := range t.CommentLines {

@@ -22,10 +22,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"text/template"
 )
 
 var server string
+var controllermanager string
 var groupName string
 var kindName string
 var resourceName string
@@ -51,7 +53,11 @@ func writeIfNotFound(path, templateName, templateValue string, data interface{})
 	}
 	create(path)
 
-	t := template.Must(template.New(templateName).Parse(templateValue))
+	t := template.Must(template.New(templateName).Funcs(
+		template.FuncMap{
+			"title": strings.Title,
+		},
+	).Parse(templateValue))
 
 	f, err := os.OpenFile(path, os.O_WRONLY, 0)
 	if err != nil {

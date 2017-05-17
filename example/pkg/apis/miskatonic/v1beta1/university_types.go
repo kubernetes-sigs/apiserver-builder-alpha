@@ -18,6 +18,7 @@ package v1beta1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"log"
 )
 
 // Generating code from university_types.go file will generate storage and status REST endpoints for
@@ -58,6 +59,7 @@ type UniversityStatus struct {
 // GetDefaultingFunctions returns functions for defaulting v1beta1.University values
 func (UniversitySchemeFns) DefaultingFunction(o interface{}) {
 	obj := o.(*University)
+	log.Printf("Defaulting University %s\n", obj.Name)
 	if obj.Spec.MaxStudents == nil {
 		n := 15
 		obj.Spec.MaxStudents = &n

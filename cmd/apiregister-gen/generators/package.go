@@ -89,9 +89,9 @@ func (g *Gen) Packages(context *generator.Context, arguments *args.GeneratorArgs
 	for _, apigroup := range b.APIs.Groups {
 		for _, apiversion := range apigroup.Versions {
 			factory := &packageFactory{apiversion.Pkg, arguments}
+			// Add generators for versioned types
 			gen := CreateVersionedGenerator(apiversion, apigroup, arguments.OutputFileBaseName)
 			g.p = append(g.p, factory.createPackage(gen))
-
 		}
 
 		factory := &packageFactory{apigroup.Pkg, arguments}
@@ -102,6 +102,27 @@ func (g *Gen) Packages(context *generator.Context, arguments *args.GeneratorArgs
 	factory := &packageFactory{b.APIs.Pkg, arguments}
 	gen := CreateApisGenerator(b.APIs, arguments.OutputFileBaseName)
 	g.p = append(g.p, factory.createPackage(gen))
+
+	// Add generators for Controllers.
+	repo := ""
+	for _, c := range b.Controllers {
+		repo = c.Repo
+		factory = &packageFactory{c.Pkg, arguments}
+		cgen := CreateControllerGenerator(c, arguments.OutputFileBaseName)
+		g.p = append(g.p, factory.createPackage(cgen))
+	}
+
+	if len(b.Controllers) > 0 {
+		factory = &packageFactory{context.Universe[repo+"/pkg/controller"], arguments}
+		cgen := CreateAllControllerGenerator(b.Controllers, arguments.OutputFileBaseName)
+		g.p = append(g.p, factory.createPackage(cgen))
+	}
+
+	if len(b.Controllers) > 0 {
+		factory = &packageFactory{context.Universe[repo+"/pkg/controller/sharedinformers"], arguments}
+		cgen := CreateInformersGenerator(b.Controllers, arguments.OutputFileBaseName)
+		g.p = append(g.p, factory.createPackage(cgen))
+	}
 	return g.p
 }
 

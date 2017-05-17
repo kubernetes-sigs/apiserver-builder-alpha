@@ -24,6 +24,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 var runCmd = &cobra.Command{
@@ -36,13 +37,16 @@ var runCmd = &cobra.Command{
 var etcd string
 var config string
 var printapiserver bool
+var printcontrollermanager bool
 var printetcd bool
 
 func AddRunCmd(cmd *cobra.Command) {
 	runCmd.Flags().StringVar(&server, "server", "", "path to apiserver binary to run")
+	runCmd.Flags().StringVar(&controllermanager, "controller-manager", "", "path to controller-manager binary to run")
 	runCmd.Flags().StringVar(&etcd, "etcd", "", "if non-empty, use this etcd instead of starting a new one")
 	runCmd.Flags().StringVar(&config, "config", "kubeconfig", "path to the kubeconfig to write for using kubectl")
 	runCmd.Flags().BoolVar(&printapiserver, "printapiserver", false, "if true, pipe the apiserver stdout and stderr")
+	runCmd.Flags().BoolVar(&printcontrollermanager, "printcontrollermanager", false, "if true, pipe the controller-manager stdout and stderr")
 	runCmd.Flags().BoolVar(&printetcd, "printetcd", false, "if true, pipe the etcd stdout and stderr")
 	cmd.AddCommand(runCmd)
 }
@@ -63,7 +67,14 @@ func RunRun(cmd *cobra.Command, args []string) {
 	}
 
 	// Start apiserver
-	RunApiserver()
+	go RunApiserver()
+
+	// Start controller manager
+	go RunControllerManager()
+
+	for {
+		time.Sleep(time.Minute)
+	}
 }
 
 func RunEtcd() *exec.Cmd {
@@ -106,6 +117,25 @@ func RunApiserver() *exec.Cmd {
 	}
 
 	return apiserverCmd
+}
+
+func RunControllerManager() *exec.Cmd {
+	controllerManagerCmd := exec.Command(controllermanager,
+		fmt.Sprintf("--kubeconfig=%s", config),
+	)
+	fmt.Printf("%s\n", strings.Join(controllerManagerCmd.Args, " "))
+	if printcontrollermanager {
+		controllerManagerCmd.Stderr = os.Stderr
+		controllerManagerCmd.Stdout = os.Stdout
+	}
+
+	err := controllerManagerCmd.Run()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to run controller-manager %v\n", err)
+		os.Exit(-1)
+	}
+
+	return controllerManagerCmd
 }
 
 func WriteKubeConfig() {

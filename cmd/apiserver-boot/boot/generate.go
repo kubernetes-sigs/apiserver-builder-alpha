@@ -97,6 +97,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 
 	c := exec.Command(filepath.Join(root, "apiregister-gen"),
 		"--input-dirs", filepath.Join(Repo, "pkg", "apis", "..."),
+		"--input-dirs", filepath.Join(Repo, "pkg", "controller", "..."),
 	)
 	fmt.Printf("%s\n", strings.Join(c.Args, " "))
 	out, err := c.CombinedOutput()
@@ -251,7 +252,6 @@ func initApis() {
 		u[path.Dir(a)] = true
 	}
 	for a, _ := range u {
-		fmt.Printf("found %s\n", a)
 		unversionedAPIs = append(unversionedAPIs, a)
 	}
 }
