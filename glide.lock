@@ -1,5 +1,5 @@
-hash: 6719c4dce1c13362a5e9721973345a85f73842a763782c336c329988ba443e5d
-updated: 2017-05-12T22:06:01.10395334-07:00
+hash: 7670a2f344cdc33b15eaba33f3710d11fd7137b65e038d540905277bc9920ddf
+updated: 2017-05-17T17:28:47.178626182+01:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -166,6 +166,8 @@ imports:
   - buffer
   - jlexer
   - jwriter
+- name: github.com/markbates/inflect
+  version: 6cacb66d100482ef7cc366289ccb156020e57e76
 - name: github.com/matttproud/golang_protobuf_extensions
   version: fc2b8d3a73c4867e51861bbdd5ae3c1f0869dd6a
   subpackages:

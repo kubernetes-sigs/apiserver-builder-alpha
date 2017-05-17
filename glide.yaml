@@ -1,4 +1,6 @@
 package: github.com/kubernetes-incubator/apiserver-builder
+ignore:
+- github.com/kubernetes-incubator/apiserver-builder
 import:
 - package: github.com/go-openapi/analysis
   version: b44dc874b601d9e4e2f6e19140e794ba24bead3b
@@ -20,9 +22,9 @@ import:
   version: 7b1b6e8dc027253d45fc029bc269d1c019f83a34
 - package: github.com/spf13/pflag
   version: d90f37a48761fe767528f31db1955e4f795d652f
+- package: github.com/markbates/inflect
+  version: 6cacb66d100482ef7cc366289ccb156020e57e76
 - package: k8s.io/apimachinery
 - package: k8s.io/apiserver
 - package: k8s.io/client-go
 - package: k8s.io/gengo
-ignore:
-- github.com/kubernetes-incubator/apiserver-builder
