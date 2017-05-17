@@ -45,19 +45,67 @@ func RunInit(cmd *cobra.Command, args []string) {
 	}
 	cr := getCopyright()
 
-	createMain(cr)
+	createApiserver(cr)
+	createControllerManager(cr)
 	createAPIs(cr)
-	createController(cr)
-	createOpenAPI(cr)
 	createDocs()
+
+	createPackage(cr, filepath.Join("pkg"))
+	createPackage(cr, filepath.Join("pkg", "controller"))
+	createPackage(cr, filepath.Join("pkg", "controller", "sharedinformers"))
+	createPackage(cr, filepath.Join("pkg", "openapi"))
 }
 
-type mainTemplateArguments struct {
+type controllerManagerTemplateArguments struct {
 	BoilerPlate string
 	Repo        string
 }
 
-var mainTemplate = `
+var controllerManagerTemplate = `
+{{.BoilerPlate}}
+
+package main
+
+import (
+	"flag"
+	"log"
+
+	controllerlib "github.com/kubernetes-incubator/apiserver-builder/pkg/controller"
+
+	"{{ .Repo }}/pkg/controller"
+)
+
+var kubeconfig = flag.String("kubeconfig", "", "path to kubeconfig")
+
+func main() {
+	flag.Parse()
+	config, err := controllerlib.GetConfig(*kubeconfig)
+	if err != nil {
+		log.Fatalf("Could not create Config for talking to the apiserver: %v\n", err)
+	}
+
+	controllers, _ := controller.GetAllControllers(config)
+	controllerlib.StartControllerManager(controllers...)
+}
+`
+
+func createControllerManager(boilerplate string) {
+	dir, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(-1)
+	}
+	path := filepath.Join(dir, "cmd", "controller", "main.go")
+	writeIfNotFound(path, "main-template", controllerManagerTemplate, controllerManagerTemplateArguments{boilerplate, Repo})
+
+}
+
+type apiserverTemplateArguments struct {
+	BoilerPlate string
+	Repo        string
+}
+
+var apiserverTemplate = `
 {{.BoilerPlate}}
 
 package main
@@ -80,16 +128,40 @@ func main() {
 }
 `
 
-func createMain(boilerplate string) {
+func createApiserver(boilerplate string) {
 	dir, err := os.Getwd()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(-1)
 	}
-	path := filepath.Join(dir, "main.go")
-	writeIfNotFound(path, "main-template", mainTemplate, mainTemplateArguments{boilerplate, Repo})
+	path := filepath.Join(dir, "cmd", "apiserver", "main.go")
+	writeIfNotFound(path, "apiserver-template", apiserverTemplate, apiserverTemplateArguments{boilerplate, Repo})
 
 }
+
+func createPackage(boilerplate, path string) {
+	pkg := filepath.Base(path)
+	dir, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(-1)
+	}
+	path = filepath.Join(dir, path, "doc.go")
+	writeIfNotFound(path, "pkg-template", packageDocTemplate, packageDocTemplateArguments{boilerplate, pkg})
+}
+
+type packageDocTemplateArguments struct {
+	BoilerPlate string
+	Package     string
+}
+
+var packageDocTemplate = `
+{{.BoilerPlate}}
+
+
+package {{.Package}}
+
+`
 
 func createAPIs(boilerplate string) {
 	dir, err := os.Getwd()
@@ -114,51 +186,6 @@ var apisDocTemplate = `
 // +domain={{.Domain}}
 
 package apis
-
-`
-
-func createController(boilerplate string) {
-	dir, err := os.Getwd()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(-1)
-	}
-	path := filepath.Join(dir, "pkg", "controller", "doc.go")
-	writeIfNotFound(path, "controller-template", controllerDocTemplate, controllerDocTemplateArguments{boilerplate})
-}
-
-type controllerDocTemplateArguments struct {
-	BoilerPlate string
-}
-
-var controllerDocTemplate = `
-{{.BoilerPlate}}
-
-
-package controller
-
-`
-
-func createOpenAPI(boilerplate string) {
-	dir, err := os.Getwd()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(-1)
-	}
-	path := filepath.Join(dir, "pkg", "openapi", "doc.go")
-	writeIfNotFound(path, "openapi-template", openAPIDoc, openAPITemplateArguments{boilerplate})
-}
-
-type openAPITemplateArguments struct {
-	BoilerPlate string
-}
-
-var openAPIDoc = `
-{{.BoilerPlate}}
-
-
-// Package openapi exists to hold generated openapi code
-package openapi
 
 `
 

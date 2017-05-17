@@ -110,8 +110,7 @@ func createResource(boilerplate string) {
 		found = true
 	}
 
-	typesFileName = fmt.Sprintf("%s.go", strings.ToLower(kindName))
-	path = filepath.Join(dir, "pkg", "controller", kindName, typesFileName)
+	path = filepath.Join(dir, "pkg", "controller", strings.ToLower(kindName), "controller.go")
 	created = writeIfNotFound(path, "resource-controller-template", resourceControllerTemplate, a)
 	if !created {
 		fmt.Fprintf(os.Stderr,
@@ -140,7 +139,7 @@ var resourceTemplate = `
 package {{.Version}}
 
 import (
-	"log""
+	"log"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -216,7 +215,7 @@ var resourceControllerTemplate = `
 package controller
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/controller"
 	"k8s.io/client-go/rest"
@@ -224,28 +223,31 @@ import (
 	"k8s.io/client-go/util/workqueue"
 
 	"{{.Repo}}/pkg/apis/{{.Group}}/{{.Version}}"
+	"{{.Repo}}/pkg/controller/sharedinformers"
 	listers "{{.Repo}}/pkg/client/listers_generated/{{.Group}}/{{.Version}}"
 )
 
+// +controller:group={{ .Group }},version={{ .Version }},kind={{ .Kind}},resource={{ .Resource }}
 type {{.Kind}}ControllerImpl struct {
-	// informer listens for events about Universities
+	// informer listens for events about {{.Kind}}
 	informer cache.SharedIndexInformer
 
-	// lister indexes properties about Universities
-	lister listers.UniversityLister
+	// lister indexes properties about {{.Kind}}
+	lister listers.{{.Kind}}Lister
 }
 
 // Init initializes the controller and is called by the generated code
+// Registers eventhandlers to enqueue events
 // config - client configuration for talking to the apiserver
 // si - informer factory shared across all controllers for listening to events and indexing resource properties
 // queue - message queue for handling new events.  unique to this controller.
 func (c *{{.Kind}}ControllerImpl) Init(
 	config *rest.Config,
-	si *SharedInformers,
+	si *sharedinformers.SharedInformers,
 	queue workqueue.RateLimitingInterface) {
 
 	// Set the informer and lister for subscribing to events and indexing {{.Resource}} labels
-	i := si.factory.{{title .Group}}().{{title .Version}}().{{title .Resource}}()
+	i := si.Factory.{{title .Group}}().{{title .Version}}().{{title .Resource}}()
 	c.informer = i.Informer()
 	c.lister = i.Lister()
 
@@ -256,7 +258,7 @@ func (c *{{.Kind}}ControllerImpl) Init(
 // Reconcile handles enqueued messages
 func (c *{{.Kind}}ControllerImpl) Reconcile(u *{{.Version}}.{{.Kind}}) error {
 	// Implement controller logic here
-	fmt.Printf("Running reconcile {{.Kind}} for %s\n", u.Name)
+	log.Printf("Running reconcile {{.Kind}} for %s\n", u.Name)
 	return nil
 }
 `
