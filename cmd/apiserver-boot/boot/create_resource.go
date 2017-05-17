@@ -212,7 +212,7 @@ func TestCreateDelete{{.Kind}}(t *testing.T) {
 var resourceControllerTemplate = `
 {{.BoilerPlate}}
 
-package controller
+package {{ lower .Kind }}
 
 import (
 	"log"
