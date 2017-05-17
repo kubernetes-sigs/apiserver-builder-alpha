@@ -130,7 +130,7 @@ Flags:
 At the root of your go package under your GOPATH run the following command:
 
 ```sh
-apiserver-boot create-group create-version --domain <your-domain> --group <your-group> --version <your-version>
+apiserver-boot create-version --domain <your-domain> --group <your-group> --version <your-version>
 ```
 
 This will create a new API version under pkg/apis/<your-group>/<your-version>
