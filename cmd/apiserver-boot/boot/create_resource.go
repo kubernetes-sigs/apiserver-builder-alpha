@@ -22,6 +22,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/markbates/inflect"
 	"github.com/spf13/cobra"
 )
 
@@ -36,7 +37,7 @@ func AddCreateResource(cmd *cobra.Command) {
 	createResourceCmd.Flags().StringVar(&groupName, "group", "", "name of the API group")
 	createResourceCmd.Flags().StringVar(&versionName, "version", "", "name of the API version")
 	createResourceCmd.Flags().StringVar(&kindName, "kind", "", "name of the API kind to create")
-	createResourceCmd.Flags().StringVar(&resourceName, "resource", "", "name of the API resource to create, plural name of the kind")
+	createResourceCmd.Flags().StringVar(&resourceName, "resource", "", "optional name of the API resource to create, normally the plural name of the kind in lowercase")
 	createResourceCmd.Flags().StringVar(&copyright, "copyright", "", "path to copyright file.  defaults to boilerplate.go.txt")
 	createResourceCmd.Flags().StringVar(&domain, "domain", "", "domain the api group lives under")
 	cmd.AddCommand(createResourceCmd)
@@ -60,8 +61,7 @@ func RunCreateResource(cmd *cobra.Command, args []string) {
 		os.Exit(-1)
 	}
 	if len(resourceName) == 0 {
-		fmt.Fprintf(os.Stderr, "apiserver-boot create-resource requires the --resource flag\n")
-		os.Exit(-1)
+		resourceName = inflect.NewDefaultRuleset().Pluralize(strings.ToLower(kindName))
 	}
 
 	cr := getCopyright()
