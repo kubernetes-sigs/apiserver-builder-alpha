@@ -17,6 +17,8 @@ limitations under the License.
 package miskatonic
 
 import (
+	"log"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -27,6 +29,7 @@ import (
 // Resource Validation
 func (UniversityStrategy) Validate(ctx request.Context, obj runtime.Object) field.ErrorList {
 	university := obj.(*University)
+	log.Printf("Validating University %s\n", university.Name)
 	errors := field.ErrorList{}
 	if university.Spec.MaxStudents == nil || *university.Spec.MaxStudents < 1 || *university.Spec.MaxStudents > 150 {
 		errors = append(errors, field.Invalid(

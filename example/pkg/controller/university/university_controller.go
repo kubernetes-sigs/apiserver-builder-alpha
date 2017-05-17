@@ -14,21 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controller
+package university
 
 import (
 	"fmt"
-
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic/v1beta1"
-	listers "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/listers_generated/miskatonic/v1beta1"
 
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/controller"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
+
+	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic/v1beta1"
+	listers "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/listers_generated/miskatonic/v1beta1"
+	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/controller/sharedinformers"
 )
 
-// +controller:group=miskatonic,version=v1beta1,kind=University
+// +controller:group=miskatonic,version=v1beta1,kind=University,resource=universities
 type UniversityControllerImpl struct {
 	// universityinformer listens for events about Universities
 	universityinformer cache.SharedIndexInformer
@@ -43,12 +44,12 @@ type UniversityControllerImpl struct {
 // queue - message queue for handling new events.  unique to this controller.
 func (c *UniversityControllerImpl) Init(
 	config *rest.Config,
-	si *SharedInformers,
+	si *sharedinformers.SharedInformers,
 	queue workqueue.RateLimitingInterface) {
 
 	// Get the informer and lister for subscribing to university events and querying universities from
 	// the lister cache
-	i := si.factory.Miskatonic().V1beta1().Universities()
+	i := si.Factory.Miskatonic().V1beta1().Universities()
 	c.universityinformer = i.Informer()
 	c.universitylister = i.Lister()
 

@@ -20,7 +20,8 @@ test: build
 	bash -c "find pkg/apis/ -name apiserver.local.config | xargs rm -rf"
 
 build: generate
-	go build -o bin/apiserver main.go
+	go build -o bin/apiserver cmd/apiserver/main.go
+	go build -o bin/controller-manager cmd/controller-manager/main.go
 
 # Generate code
 generate: cmds cleangenerated
@@ -36,10 +37,7 @@ cmds:
 	./build-tools.sh
 
 # Clean up functions
-clean: cleanbin cleangenerated cleandocs
-
-cleanbin:
-	rm -f main
+clean: cleangenerated cleandocs
 
 cleangenerated: cmds
 	bin/apiserver-boot generate clean
