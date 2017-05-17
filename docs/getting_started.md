@@ -174,7 +174,7 @@ apiserver-boot generate --api-versions "your-group/your-version" --api-versions 
 Build the apiserver binary
 
 ```sh
-go build main.go -o apiserver
+go build -o apiserver main.go
 ```
 
 Run an etcd instance and the apiserver.
