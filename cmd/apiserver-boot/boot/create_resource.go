@@ -212,7 +212,7 @@ func TestCreateDelete{{.Kind}}(t *testing.T) {
 var resourceControllerTemplate = `
 {{.BoilerPlate}}
 
-package controller
+package {{ lower .Kind }}
 
 import (
 	"log"
@@ -260,5 +260,9 @@ func (c *{{.Kind}}ControllerImpl) Reconcile(u *{{.Version}}.{{.Kind}}) error {
 	// Implement controller logic here
 	log.Printf("Running reconcile {{.Kind}} for %s\n", u.Name)
 	return nil
+}
+
+func (c *{{.Kind}}ControllerImpl) Get(namespace, name string) (*{{.Version}}.{{.Kind}}, error) {
+	return c.lister.{{ title .Resource }}(namespace).Get(name)
 }
 `

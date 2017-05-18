@@ -54,6 +54,9 @@ func RunInit(cmd *cobra.Command, args []string) {
 	createPackage(cr, filepath.Join("pkg", "controller"))
 	createPackage(cr, filepath.Join("pkg", "controller", "sharedinformers"))
 	createPackage(cr, filepath.Join("pkg", "openapi"))
+
+	exec.Command("mkdir", "-p", filepath.Join("bin")).CombinedOutput()
+
 }
 
 type controllerManagerTemplateArguments struct {

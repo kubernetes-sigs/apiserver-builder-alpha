@@ -69,6 +69,8 @@ func RunRun(cmd *cobra.Command, args []string) {
 	// Start apiserver
 	go RunApiserver()
 
+	time.Sleep(time.Second * 4)
+
 	// Start controller manager
 	go RunControllerManager()
 

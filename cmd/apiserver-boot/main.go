@@ -60,6 +60,7 @@ func main() {
 	boot.AddGlideInstallCmd(cmd)
 	boot.AddInit(cmd)
 	boot.AddRunCmd(cmd)
+	boot.AddBuild(cmd)
 
 	if err := cmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "%v", err)

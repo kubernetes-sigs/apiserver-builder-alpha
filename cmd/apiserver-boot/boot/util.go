@@ -56,6 +56,7 @@ func writeIfNotFound(path, templateName, templateValue string, data interface{})
 	t := template.Must(template.New(templateName).Funcs(
 		template.FuncMap{
 			"title": strings.Title,
+			"lower": strings.ToLower,
 		},
 	).Parse(templateValue))
 
