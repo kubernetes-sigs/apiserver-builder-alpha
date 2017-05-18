@@ -94,6 +94,8 @@ apiserver-boot init --domain <your-domain>
 
 ## Create an API group
 
+**Note:** This step is optional, `create-resource` will automatically do this for you
+
 An API group contains one or more related API versions.  It is similar to
 a package in go or Java.
 
@@ -114,6 +116,8 @@ apiserver-boot create-group --domain <your-domain> --group <your-group>
 This will create a new API group under pkg/apis/<your-group>
 
 ## Create an API version
+
+**Note:** This step is optional, `create-resource` will automatically do this for you
 
 An API version contains one or more APIs.  The version is used
 to support introducing changes to APIs without breaking backwards
@@ -137,6 +141,9 @@ This will create a new API version under pkg/apis/<your-group>/<your-version>
 
 ## Create an API resource
 
+**Note:** This will invoke `create-group` and `create-version` if they have not already been run.
+
+
 An API resource provides REST endpoints for CRUD operations on a resource
 type.  This is what will be used by clients to read and store instances
 of the resource kind.
@@ -154,19 +161,17 @@ Flags:
 At the root of your go package under your GOPATH run the following command:
 
 ```sh
-apiserver-boot create-resource --domain <your-domain> --group <your-group> --version <your-version> --kind <your-kind> --resource <your-resource>
+apiserver-boot create-resource --domain <your-domain> --group <your-group> --version <your-version> --kind <your-kind>
 ```
 
 ## Generate the code
 
 The following command will generate the wiring to register your API resources.
 
-**Note:** It must be rerun anytype new fields are added to your resources
-
-- api-versions: comma seperated list of the API group/version packages to generate code for
+**Note:** It must be rerun any time new fields are added to your resources
 
 ```sh
-apiserver-boot generate --api-versions "your-group/your-version" --api-versions "your-group/your-other-version"
+apiserver-boot generate
 ```
 
 ## Build and run the apiserver
@@ -174,7 +179,7 @@ apiserver-boot generate --api-versions "your-group/your-version" --api-versions 
 Build the apiserver binary
 
 ```sh
-go build -o apiserver main.go
+apiserver-boot generate
 ```
 
 Run an etcd instance and the apiserver.
@@ -182,7 +187,7 @@ Run an etcd instance and the apiserver.
 **Note:** must have etcd on your PATH
 
 ```sh
-apiserver-boot run --server ./apiserver
+apiserver-boot run
 ```
 
 Test with kubectl
