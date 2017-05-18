@@ -261,4 +261,8 @@ func (c *{{.Kind}}ControllerImpl) Reconcile(u *{{.Version}}.{{.Kind}}) error {
 	log.Printf("Running reconcile {{.Kind}} for %s\n", u.Name)
 	return nil
 }
+
+func (c *{{.Kind}}ControllerImpl) Get(namespace, name string) (*{{.Version}}.{{.Kind}}, error) {
+	return c.lister.{{ title .Resource }}(namespace).Get(name)
+}
 `
