@@ -174,15 +174,15 @@ The following command will generate the wiring to register your API resources.
 apiserver-boot generate
 ```
 
-## Build and run the apiserver
+## Build and run the apiserver + controller-manager
 
 Build the apiserver binary
 
 ```sh
-apiserver-boot generate
+apiserver-boot build
 ```
 
-Run an etcd instance and the apiserver.
+Run an etcd instance and the apiserver + controller-manager.
 
 **Note:** must have etcd on your PATH
 
@@ -198,7 +198,7 @@ kubectl --kubeconfig kubeconfig version
 
 ## Run a test
 
-A placehold test was created for your resource.  The test will
+A placeholder test was created for your resource.  The test will
 start your apiserver in memory, and allow you to create, read, and write
 your resource types.
 
