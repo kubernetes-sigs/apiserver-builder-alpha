@@ -27,13 +27,13 @@ func TestReconcileUniversity(t *testing.T) {
 	afterChan := make(chan struct{})
 	expectedKey := "test-controller-universities/miskatonic-university"
 	controller.BeforeReconcile = func(key string) {
-		close(beforeChan)
+		defer close(beforeChan)
 		if key != expectedKey {
 			t.Fatalf("Expected reconcile before university %s got %s", expectedKey, key)
 		}
 	}
 	controller.AfterReconcile = func(key string, err error) {
-		close(afterChan)
+		defer close(afterChan)
 		if key != expectedKey {
 			t.Fatalf("Expected reconcile after university %s got %s", expectedKey, key)
 		}

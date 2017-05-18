@@ -73,6 +73,7 @@ func RunRun(cmd *cobra.Command, args []string) {
 	// Start controller manager
 	go RunControllerManager()
 
+	fmt.Printf("to test the server run `kubectl --kubeconfig %s version`\n", config)
 	for {
 		time.Sleep(time.Minute)
 	}
@@ -112,8 +113,6 @@ func RunApiserver() *exec.Cmd {
 		apiserverCmd.Stderr = os.Stderr
 		apiserverCmd.Stdout = os.Stdout
 	}
-
-	fmt.Printf("to test the server run `kubectl --kubeconfig %s version`\n", config)
 
 	err := apiserverCmd.Run()
 	if err != nil {
