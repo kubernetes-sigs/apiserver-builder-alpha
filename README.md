@@ -19,9 +19,9 @@ Details [here](https://github.com/kubernetes-incubator/apiserver-builder/blob/ma
 
 Instructions on how to bootstrap a new apiserver with a simple type
 
-Details [here](https://github.com/kubernetes-incubator/apiserver-builder/blob/master/docs/creating_an_api_server.md)
+Details [here](https://github.com/kubernetes-incubator/apiserver-builder/blob/master/docs/getting_started.md)
 
-### Adding a new resource
+### Adding a new resource with a controller
 
 Instructions on how to add a new resource
 
@@ -56,9 +56,7 @@ Details [here](https://github.com/kubernetes-incubator/apiserver-builder/blob/ma
 
 Run:
 
-`apiserver-boot generate --api-versions "your-group/your-version"`
-
-- `api-versions` may be specified multiple times
+`apiserver-boot generate"`
 
 ### Generating docs
 
@@ -66,11 +64,13 @@ Run:
 
 `apiserver-boot generate docs --server <apiserver-binary>`
 
-### Running the apiserver
+### Build and run etcd + apiserver + controller manager
 
 Run:
 
-`apiserver-boot run --server <apiserver-binary>`
+`apiserver-boot build`
+
+`apiserver-boot run`
 
 This will create a kubeconfig file to use with `kubectl --kubeconfig`
 
