@@ -34,6 +34,7 @@ var output string
 var dobuild bool
 var dofetch bool
 var dovendor bool
+var test bool
 var version string
 
 var cachetooldir string
@@ -55,6 +56,7 @@ func main() {
 	buildCmd.Flags().BoolVar(&dobuild, "build", true, "if false, only build the go packages for the current os:arch")
 	buildCmd.Flags().BoolVar(&dofetch, "fetch", true, "if true, fetch the go packages")
 	buildCmd.Flags().BoolVar(&dovendor, "vendor", true, "if true, fetch packages to vendor")
+	buildCmd.Flags().BoolVar(&test, "test", true, "if true, run tests")
 
 	cmd.AddCommand(buildCmd)
 
@@ -388,7 +390,7 @@ func BuildVendor(tooldir string) string {
 	cmd.Dir = pkgDir
 	RunCmd(cmd, vendordir)
 
-	cmd = exec.Command(bootBin, "create-resource", "--domain", "k8s.io", "--group", "misk", "--version", "v1beta1", "--kind", "Student", "--resource", "students")
+	cmd = exec.Command(bootBin, "create-resource", "--domain", "k8s.io", "--group", "misk", "--version", "v1beta1", "--kind", "Student")
 	cmd.Dir = pkgDir
 	RunCmd(cmd, vendordir)
 
@@ -396,18 +398,24 @@ func BuildVendor(tooldir string) string {
 	cmd.Dir = pkgDir
 	RunCmd(cmd, vendordir)
 
-	cmd = exec.Command(bootBin, "generate", "--api-versions", "misk/v1beta1")
-	cmd.Dir = pkgDir
-	RunCmd(cmd, vendordir)
+	if test {
+		cmd = exec.Command(bootBin, "generate", "--api-versions", "misk/v1beta1")
+		cmd.Dir = pkgDir
+		RunCmd(cmd, vendordir)
 
-	cmd = exec.Command("go", "build", "main.go")
-	cmd.Dir = pkgDir
-	RunCmd(cmd, vendordir)
+		cmd = exec.Command("go", "build", "cmd/apiserver/main.go")
+		cmd.Dir = pkgDir
+		RunCmd(cmd, vendordir)
 
-	cmd = exec.Command("go", "test", filepath.Join(
-		"github.com", "kubernetes-incubator", "test", "pkg", "apis", "misk", "v1beta1"))
-	cmd.Dir = pkgDir
-	RunCmd(cmd, vendordir)
+		cmd = exec.Command("go", "build", "cmd/controller/main.go")
+		cmd.Dir = pkgDir
+		RunCmd(cmd, vendordir)
+
+		cmd = exec.Command("go", "test", filepath.Join(
+			"github.com", "kubernetes-incubator", "test", "pkg", "apis", "misk", "v1beta1"))
+		cmd.Dir = pkgDir
+		RunCmd(cmd, vendordir)
+	}
 
 	return pkgDir
 }
