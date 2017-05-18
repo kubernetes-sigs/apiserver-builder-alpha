@@ -41,12 +41,14 @@ var printcontrollermanager bool
 var printetcd bool
 
 func AddRunCmd(cmd *cobra.Command) {
-	runCmd.Flags().StringVar(&server, "server", "", "path to apiserver binary to run")
+	runCmd.Flags().StringVar(&server, "apiserver", "", "path to apiserver binary to run")
 	runCmd.Flags().StringVar(&controllermanager, "controller-manager", "", "path to controller-manager binary to run")
 	runCmd.Flags().StringVar(&etcd, "etcd", "", "if non-empty, use this etcd instead of starting a new one")
+
 	runCmd.Flags().StringVar(&config, "config", "kubeconfig", "path to the kubeconfig to write for using kubectl")
-	runCmd.Flags().BoolVar(&printapiserver, "printapiserver", true, "if true, pipe the apiserver stdout and stderr")
-	runCmd.Flags().BoolVar(&printcontrollermanager, "printcontrollermanager", true, "if true, pipe the controller-manager stdout and stderr")
+
+	runCmd.Flags().BoolVar(&printapiserver, "print-apiserver", true, "if true, pipe the apiserver stdout and stderr")
+	runCmd.Flags().BoolVar(&printcontrollermanager, "print-controller-manager", true, "if true, pipe the controller-manager stdout and stderr")
 	runCmd.Flags().BoolVar(&printetcd, "printetcd", false, "if true, pipe the etcd stdout and stderr")
 	cmd.AddCommand(runCmd)
 }
