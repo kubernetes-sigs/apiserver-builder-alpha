@@ -35,4 +35,7 @@ func main() {
 
 	controllers, _ := examplecontroller.GetAllControllers(config)
 	controller.StartControllerManager(controllers...)
+
+	// Blockforever
+	select {}
 }

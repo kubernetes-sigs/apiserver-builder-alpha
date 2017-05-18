@@ -64,21 +64,21 @@ type QueueWorker struct {
 	Reconcile  func(key string) error
 }
 
-// Run continuously processes messages from the Queue until shutdown is called
-func (q *QueueWorker) Run(stop <-chan struct{}) {
+// Run schedules a routine to continuously process Queue messages
+// until shutdown is closed
+func (q *QueueWorker) Run(shutdown <-chan struct{}) {
 	defer runtime.HandleCrash()
 
 	// Every second, process all messages in the Queue until it is time to shutdown
-	shutdown := make(chan struct{})
 	go wait.Until(q.ProcessAllMessages, time.Second, shutdown)
 
-	// Stop accepting messages into the Queue
-	m := <-stop
-	glog.V(1).Infof("Shutting down %s Queue\n", q.Name)
-	q.Queue.ShutDown()
+	go func() {
+		<-shutdown
 
-	// Wait for the Queue to drain
-	shutdown <- m
+		// Stop accepting messages into the Queue
+		glog.V(1).Infof("Shutting down %s Queue\n", q.Name)
+		q.Queue.ShutDown()
+	}()
 }
 
 // ProcessAllMessages tries to process all messages in the Queue
@@ -125,19 +125,11 @@ type Controller interface {
 
 // StartControllerManager
 func StartControllerManager(controllers ...Controller) <-chan struct{} {
-	stop := make(chan struct{})
 	shutdown := make(chan struct{})
 	for _, c := range controllers {
 		c.Run(shutdown)
 	}
-	go func() {
-		// Tell each controller to shutdown when we get the stop message
-		m := <-stop
-		for range controllers {
-			shutdown <- m
-		}
-	}()
-	return stop
+	return shutdown
 }
 
 func GetConfig(kubeconfig string) (*rest.Config, error) {

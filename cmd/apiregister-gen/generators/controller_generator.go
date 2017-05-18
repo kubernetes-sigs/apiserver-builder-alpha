@@ -70,6 +70,9 @@ type {{.Target.Kind}}Controller struct {
 	controller *{{.Target.Kind}}ControllerImpl
 
 	Name string
+
+	BeforeReconcile func(key string)
+	AfterReconcile  func(key string, err error)
 }
 
 // NewController returns a new {{.Target.Kind}}Controller for responding to {{.Target.Kind}} events
@@ -81,7 +84,7 @@ func New{{.Target.Kind}}Controller(config *rest.Config, si *sharedinformers.Shar
 	uc.Init(config, si, q)
 
 	queue := &controller.QueueWorker{q, 10, "{{.Target.Kind}}", nil}
-	c := &{{.Target.Kind}}Controller{queue, uc, "{{.Target.Kind}}"}
+	c := &{{.Target.Kind}}Controller{queue, uc, "{{.Target.Kind}}", nil, nil}
 	queue.Reconcile = c.reconcile
 	return c
 }
@@ -90,23 +93,38 @@ func (c *{{.Target.Kind}}Controller) GetName() string {
 	return c.Name
 }
 
-func (c *{{.Target.Kind}}Controller) reconcile(key string) error {
-	namespace, name, err := cache.SplitMetaNamespaceKey(key)
+func (c *{{.Target.Kind}}Controller) reconcile(key string) (err error) {
+	var namespace, name string
+
+	if c.BeforeReconcile != nil {
+		c.BeforeReconcile(key)
+	}
+	if c.AfterReconcile != nil {
+		// Wrap in a function so err is evaluated after it is set
+		defer func() { c.AfterReconcile(key, err) }()
+	}
+
+	namespace, name, err = cache.SplitMetaNamespaceKey(key)
 	if err != nil {
-		return err
+		return
 	}
 
 	u, err := c.controller.Get(namespace, name)
 	if errors.IsNotFound(err) {
 		glog.Infof("Not doing work for {{.Target.Kind}} %v because it has been deleted", key)
-		return nil
+		// Set error so it is picked up by AfterReconcile and the return function
+		err = nil
+		return
 	}
 	if err != nil {
 		glog.Errorf("Unable to retrieve {{.Target.Kind}} %v from store: %v", key, err)
-		return err
+		return
 	}
 
-	return c.controller.Reconcile(u)
+	// Set error so it is picked up by AfterReconcile and the return function
+	err = c.controller.Reconcile(u)
+
+	return
 }
 
 func (c *{{.Target.Kind}}Controller) Run(stopCh <-chan struct{}) {
@@ -220,25 +238,18 @@ type SharedInformers struct {
 }
 
 // newSharedInformers returns a set of started informers
-func NewSharedInformers(config *rest.Config, stop <-chan struct{}) *SharedInformers {
+func NewSharedInformers(config *rest.Config, shutdown <-chan struct{}) *SharedInformers {
 	cs := clientset.NewForConfigOrDie(config)
 	si := &SharedInformers{externalversions.NewSharedInformerFactory(cs, 10*time.Minute)}
-	si.startInformers(stop)
+	si.startInformers(shutdown)
 	return si
 }
 
 // startInformers starts all of the informers
-func (si *SharedInformers) startInformers(stop <-chan struct{}) {
-	shutdown := make(chan struct{})
+func (si *SharedInformers) startInformers(shutdown <-chan struct{}) {
 	{{ range $c := . -}}
 	go si.Factory.{{title $c.Target.Group}}().{{title $c.Target.Version}}().{{title $c.Resource}}().Informer().Run(shutdown)
 	{{ end -}}
-	go func() {
-		m := <-stop
-		{{ range $c := . -}}
-		shutdown <- m
-		{{ end -}}
-	}()
 }
 
 `

@@ -90,6 +90,7 @@ func createResource(boilerplate string) {
 		kindName,
 		resourceName,
 		Repo,
+		inflect.NewDefaultRuleset().Pluralize(kindName),
 	}
 
 	found := false
@@ -118,19 +119,28 @@ func createResource(boilerplate string) {
 		found = true
 	}
 
+	path = filepath.Join(dir, "pkg", "controller", strings.ToLower(kindName), "controller_test.go")
+	created = writeIfNotFound(path, "controller-test-template", controllerTestTemplate, a)
+	if !created {
+		fmt.Fprintf(os.Stderr,
+			"Controller test for %s/%s/%s already exists.\n", groupName, versionName, kindName)
+		found = true
+	}
+
 	if found {
 		os.Exit(-1)
 	}
 }
 
 type resourceTemplateArgs struct {
-	BoilerPlate string
-	Domain      string
-	Group       string
-	Version     string
-	Kind        string
-	Resource    string
-	Repo        string
+	BoilerPlate    string
+	Domain         string
+	Group          string
+	Version        string
+	Kind           string
+	Resource       string
+	Repo           string
+	PluralizedKind string
 }
 
 var resourceTemplate = `
@@ -183,12 +193,14 @@ import (
 	"os"
 	"testing"
 
-	"k8s.io/client-go/rest"
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/test"
+	"k8s.io/client-go/rest"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"{{.Repo}}/pkg/apis"
 	"{{.Repo}}/pkg/client/clientset_generated/clientset"
 	"{{.Repo}}/pkg/openapi"
+	{{ .Group }}{{ .Version }} "{{ .Repo }}/pkg/apis/{{ .Group }}/{{ .Version }}"
 )
 
 var testenv *test.TestEnvironment
@@ -206,6 +218,40 @@ func TestMain(m *testing.M) {
 }
 
 func TestCreateDelete{{.Kind}}(t *testing.T) {
+	intf := client.{{ title .Group }}{{ title .Version }}Client.{{ .PluralizedKind }}("test-create-delete-{{ lower .Kind }}")
+
+	instance := &{{ .Group }}{{ .Version }}.{{ .Kind }}{}
+	instance.Name = "{{ lower .Kind }}-1"
+
+	// Make sure we can create the resource
+	if _, err := intf.Create(instance); err != nil {
+		t.Fatalf("Failed to create %T %v", instance, err)
+	}
+
+	// Make sure we can list the resource
+	result, err := intf.List(metav1.ListOptions{})
+	if err != nil {
+		t.Fatalf("Failed to list %T %v", instance, err)
+	}
+	if len(result.Items) != 1 {
+		t.Fatalf("Expected to find 1 {{.Kind}}, found %d", len(result.Items))
+	}
+	actual := result.Items[0]
+	if actual.Name != instance.Name {
+		t.Fatalf("Expected to find {{.Kind}} named %s, found %s", instance.Name, actual.Name)
+	}
+
+	// Make sure we can delete the resource
+	if err = intf.Delete(instance.Name, &metav1.DeleteOptions{}); err != nil {
+		t.Fatalf("Failed to delete %T %v", instance, err)
+	}
+	result, err = intf.List(metav1.ListOptions{})
+	if err != nil {
+		t.Fatalf("Failed to list %T %v", instance, err)
+	}
+	if len(result.Items) > 0 {
+		t.Fatalf("Expected to find 0 {{ .Kind }}, found %d", len(result.Items))
+	}
 }
 `
 
@@ -264,5 +310,96 @@ func (c *{{.Kind}}ControllerImpl) Reconcile(u *{{.Version}}.{{.Kind}}) error {
 
 func (c *{{.Kind}}ControllerImpl) Get(namespace, name string) (*{{.Version}}.{{.Kind}}, error) {
 	return c.lister.{{ title .Resource }}(namespace).Get(name)
+}
+`
+
+var controllerTestTemplate = `
+{{.BoilerPlate}}
+
+package {{ lower .Kind }}_test
+
+import (
+	"os"
+	"testing"
+	"time"
+
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/test"
+	"k8s.io/client-go/rest"
+
+	"{{ .Repo }}/pkg/apis"
+	{{ .Group }}{{ .Version }} "{{ .Repo }}/pkg/apis/{{ .Group }}/{{ .Version}}"
+	"{{ .Repo }}/pkg/client/clientset_generated/clientset"
+	"{{ .Repo }}/pkg/controller/sharedinformers"
+	"{{ .Repo }}/pkg/controller/{{ lower .Kind }}"
+	"{{ .Repo }}/pkg/openapi"
+)
+
+var testenv *test.TestEnvironment
+var config *rest.Config
+var client *clientset.Clientset
+var controller *{{lower .Kind }}.{{ .Kind }}Controller
+var si *sharedinformers.SharedInformers
+
+// Do Test Suite setup / teardown
+func TestMain(m *testing.M) {
+	testenv = test.NewTestEnvironment()
+	config = testenv.Start(apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions)
+	client = clientset.NewForConfigOrDie(config)
+
+	shutdown := make(chan struct{})
+	si = sharedinformers.NewSharedInformers(config, shutdown)
+	controller = {{ lower .Kind }}.New{{ .Kind }}Controller(config, si)
+	controller.Run(shutdown)
+
+	retCode := m.Run()
+	close(shutdown)
+	os.Exit(retCode)
+}
+
+
+func TestReconcile{{ .Kind }}(t *testing.T) {
+	beforeChan := make(chan struct{})
+	afterChan := make(chan struct{})
+
+	ns := "test-controller-{{ lower .Kind }}"
+	name := "{{ lower .Kind }}-1"
+	expectedKey := ns + "/" + name
+	controller.BeforeReconcile = func(key string) {
+		defer close(beforeChan)
+		if key != expectedKey {
+			t.Fatalf("Expected reconcile before %s got %s", expectedKey, key)
+		}
+	}
+	controller.AfterReconcile = func(key string, err error) {
+		defer close(afterChan)
+		if key != expectedKey {
+			t.Fatalf("Expected reconcile after %s got %s", expectedKey, key)
+		}
+		if err != nil {
+			t.Fatalf("Expected no error on reconcile university %s", key)
+		}
+	}
+
+	intf := client.{{ title .Group }}{{ title .Version }}Client.{{ .PluralizedKind }}(ns)
+
+	instance := &{{ .Group }}{{ .Version }}.{{ .Kind }}{}
+	instance.Name = name
+
+	// Make sure we can create the resource
+	if _, err := intf.Create(instance); err != nil {
+		t.Fatalf("Failed to create %T %v", instance, err)
+	}
+
+	select {
+	case <-beforeChan:
+	case <-time.After(time.Second * 2):
+		t.Fatalf("Create {{ .Kind }} event never reconciled")
+	}
+
+	select {
+	case <-afterChan:
+	case <-time.After(time.Second * 2):
+		t.Fatalf("Create {{ .Kind }} event never finished")
+	}
 }
 `
