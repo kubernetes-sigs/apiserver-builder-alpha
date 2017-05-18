@@ -238,25 +238,18 @@ type SharedInformers struct {
 }
 
 // newSharedInformers returns a set of started informers
-func NewSharedInformers(config *rest.Config, stop <-chan struct{}) *SharedInformers {
+func NewSharedInformers(config *rest.Config, shutdown <-chan struct{}) *SharedInformers {
 	cs := clientset.NewForConfigOrDie(config)
 	si := &SharedInformers{externalversions.NewSharedInformerFactory(cs, 10*time.Minute)}
-	si.startInformers(stop)
+	si.startInformers(shutdown)
 	return si
 }
 
 // startInformers starts all of the informers
-func (si *SharedInformers) startInformers(stop <-chan struct{}) {
-	shutdown := make(chan struct{})
+func (si *SharedInformers) startInformers(shutdown <-chan struct{}) {
 	{{ range $c := . -}}
 	go si.Factory.{{title $c.Target.Group}}().{{title $c.Target.Version}}().{{title $c.Resource}}().Informer().Run(shutdown)
 	{{ end -}}
-	go func() {
-		m := <-stop
-		{{ range $c := . -}}
-		shutdown <- m
-		{{ end -}}
-	}()
 }
 
 `

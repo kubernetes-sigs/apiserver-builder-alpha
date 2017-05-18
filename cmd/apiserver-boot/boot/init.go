@@ -89,6 +89,9 @@ func main() {
 
 	controllers, _ := controller.GetAllControllers(config)
 	controllerlib.StartControllerManager(controllers...)
+
+	// Blockforever
+	select {}
 }
 `
 
