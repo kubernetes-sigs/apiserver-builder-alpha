@@ -45,18 +45,13 @@ func AddRunCmd(cmd *cobra.Command) {
 	runCmd.Flags().StringVar(&controllermanager, "controller-manager", "", "path to controller-manager binary to run")
 	runCmd.Flags().StringVar(&etcd, "etcd", "", "if non-empty, use this etcd instead of starting a new one")
 	runCmd.Flags().StringVar(&config, "config", "kubeconfig", "path to the kubeconfig to write for using kubectl")
-	runCmd.Flags().BoolVar(&printapiserver, "printapiserver", false, "if true, pipe the apiserver stdout and stderr")
-	runCmd.Flags().BoolVar(&printcontrollermanager, "printcontrollermanager", false, "if true, pipe the controller-manager stdout and stderr")
+	runCmd.Flags().BoolVar(&printapiserver, "printapiserver", true, "if true, pipe the apiserver stdout and stderr")
+	runCmd.Flags().BoolVar(&printcontrollermanager, "printcontrollermanager", true, "if true, pipe the controller-manager stdout and stderr")
 	runCmd.Flags().BoolVar(&printetcd, "printetcd", false, "if true, pipe the etcd stdout and stderr")
 	cmd.AddCommand(runCmd)
 }
 
 func RunRun(cmd *cobra.Command, args []string) {
-	if len(server) == 0 {
-		fmt.Fprintf(os.Stderr, "apiserver-boot run requires the --server flag\n")
-		os.Exit(-1)
-	}
-
 	WriteKubeConfig()
 
 	// Start etcd
@@ -66,10 +61,12 @@ func RunRun(cmd *cobra.Command, args []string) {
 		defer etcdCmd.Process.Kill()
 	}
 
+	time.Sleep(time.Second * 2)
+
 	// Start apiserver
 	go RunApiserver()
 
-	time.Sleep(time.Second * 4)
+	time.Sleep(time.Second * 2)
 
 	// Start controller manager
 	go RunControllerManager()
@@ -98,6 +95,10 @@ func RunEtcd() *exec.Cmd {
 }
 
 func RunApiserver() *exec.Cmd {
+	if len(server) == 0 {
+		server = "bin/apiserver"
+	}
+
 	apiserverCmd := exec.Command(server,
 		"--delegated-auth=false",
 		fmt.Sprintf("--etcd-servers=%s", etcd),
@@ -122,6 +123,9 @@ func RunApiserver() *exec.Cmd {
 }
 
 func RunControllerManager() *exec.Cmd {
+	if len(controllermanager) == 0 {
+		controllermanager = "bin/controller-manager"
+	}
 	controllerManagerCmd := exec.Command(controllermanager,
 		fmt.Sprintf("--kubeconfig=%s", config),
 	)
