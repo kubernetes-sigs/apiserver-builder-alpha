@@ -415,6 +415,11 @@ func BuildVendor(tooldir string) string {
 			"github.com", "kubernetes-incubator", "test", "pkg", "apis", "misk", "v1beta1"))
 		cmd.Dir = pkgDir
 		RunCmd(cmd, vendordir)
+
+		cmd = exec.Command("go", "test", filepath.Join(
+			"github.com", "kubernetes-incubator", "test", "pkg", "controller", "student"))
+		cmd.Dir = pkgDir
+		RunCmd(cmd, vendordir)
 	}
 
 	return pkgDir
