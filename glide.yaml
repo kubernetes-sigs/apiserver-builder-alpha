@@ -28,3 +28,7 @@ import:
 - package: k8s.io/apiserver
 - package: k8s.io/client-go
 - package: k8s.io/gengo
+- package: github.com/onsi/ginkgo
+  version: ~1.3.1
+- package: github.com/onsi/gomega
+  version: ~1.1.0
