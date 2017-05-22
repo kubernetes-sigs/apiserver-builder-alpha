@@ -19,11 +19,11 @@ package test
 import (
 	"bufio"
 	"fmt"
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/cmd/server"
 	"io"
 	"io/ioutil"
 	openapi "k8s.io/apimachinery/pkg/openapi"
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/cmd/server"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	"k8s.io/client-go/rest"
 	"net"
@@ -81,6 +81,10 @@ func (te *TestEnvironment) Start(
 
 	etcdready := make(chan string)
 	go te.startEtcd(etcdready)
+
+	// Wait for etcd to start
+	// TODO: Poll the /health address to wait for etcd to become healthy
+	time.Sleep(time.Second * 1)
 
 	apiserverready := make(chan *rest.Config)
 	go te.startApiserver(apiserverready, apis, openapidefs)
