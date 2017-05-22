@@ -17,23 +17,31 @@ limitations under the License.
 package v1beta1_test
 
 import (
-	"testing"
+	. "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic/v1beta1"
 
-	v1beta1miskatonic "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic/v1beta1"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-func TestCreateStudents(t *testing.T) {
-	client := cs.MiskatonicV1beta1Client
-	sclient := client.Students("test-create-delete-students")
+var _ = Describe("Student", func() {
+	var instance Student
+	var expected Student
 
-	student := &v1beta1miskatonic.Student{}
-	student.Name = "joe"
-	student.Spec.ID = 3
-	if actual, err := sclient.Create(student); err != nil {
-		t.Fatalf("Failed to create %T %v", student, err)
-	} else {
-		if actual.Spec.ID != student.Spec.ID+1 {
-			t.Fatalf("Expected to find ID %d, found %d", student.Spec.ID, actual.Spec.ID+1)
-		}
-	}
-}
+	BeforeEach(func() {
+		instance = Student{}
+		instance.Name = "joe"
+		instance.Spec.ID = 3
+
+		expected = instance
+	})
+
+	Describe("when sending a storage request", func() {
+		It("should return the instance with an incremented the ID", func() {
+			client := cs.MiskatonicV1beta1Client.Students("test-create-delete-students")
+			actual, err := client.Create(&instance)
+			Expect(err).NotTo(HaveOccurred())
+			expected.Spec.ID = instance.Spec.ID + 1
+			Expect(actual.Spec).To(Equal(expected.Spec))
+		})
+	})
+})

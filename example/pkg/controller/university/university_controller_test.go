@@ -17,52 +17,74 @@ limitations under the License.
 package university_test
 
 import (
-	v1beta1miskatonic "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic/v1beta1"
-	"testing"
 	"time"
+
+	. "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic/v1beta1"
+	. "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/clientset_generated/clientset/typed/miskatonic/v1beta1"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestReconcileUniversity(t *testing.T) {
-	beforeChan := make(chan struct{})
-	afterChan := make(chan struct{})
-	expectedKey := "test-controller-universities/miskatonic-university"
-	controller.BeforeReconcile = func(key string) {
-		defer close(beforeChan)
-		if key != expectedKey {
-			t.Fatalf("Expected reconcile before university %s got %s", expectedKey, key)
-		}
-	}
-	controller.AfterReconcile = func(key string, err error) {
-		defer close(afterChan)
-		if key != expectedKey {
-			t.Fatalf("Expected reconcile after university %s got %s", expectedKey, key)
-		}
-		if err != nil {
-			t.Fatalf("Expected no error on reconcile university %s", key)
-		}
-	}
+var _ = Describe("University controller", func() {
+	var instance University
+	var expectedKey string
+	var client UniversityInterface
+	var before chan struct{}
+	var after chan struct{}
 
-	client := cs.MiskatonicV1beta1Client
-	intf := client.Universities("test-controller-universities")
+	BeforeEach(func() {
+		instance = University{}
+		instance.Name = "miskatonic-university"
+		instance.Spec.FacultySize = 7
+		expectedKey = "university-controller-test-handler/miskatonic-university"
+	})
 
-	univ := &v1beta1miskatonic.University{}
-	univ.Name = "miskatonic-university"
-	univ.Spec.FacultySize = 7
+	AfterEach(func() {
+		client.Delete(instance.Name, &metav1.DeleteOptions{})
+	})
 
-	// Make sure we can create the resource
-	if _, err := intf.Create(univ); err != nil {
-		t.Fatalf("Failed to create %T %v", univ, err)
-	}
+	Describe("when creating a new object", func() {
+		It("invoke the reconcile method", func() {
+			client = cs.MiskatonicV1beta1Client.Universities("university-controller-test-handler")
+			before = make(chan struct{})
+			after = make(chan struct{})
 
-	select {
-	case <-beforeChan:
-	case <-time.After(time.Second * 2):
-		t.Fatalf("Create University event never reconciled")
-	}
+			actualKey := ""
+			var actualErr error = nil
 
-	select {
-	case <-afterChan:
-	case <-time.After(time.Second * 2):
-		t.Fatalf("Create University event never finished")
-	}
-}
+			// Setup test callbacks to be called when the message is reconciled
+			controller.BeforeReconcile = func(key string) {
+				defer close(before)
+				actualKey = key
+			}
+			controller.AfterReconcile = func(key string, err error) {
+				defer close(after)
+				actualKey = key
+				actualErr = err
+			}
+
+			// Create an instance
+			_, err := client.Create(&instance)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Verify reconcile function is called against the correct key
+			select {
+			case <-before:
+				Expect(actualKey).To(Equal(expectedKey))
+				Expect(actualErr).ShouldNot(HaveOccurred())
+			case <-time.After(time.Second * 2):
+				Fail("reconcile never called")
+			}
+
+			select {
+			case <-after:
+				Expect(actualKey).To(Equal(expectedKey))
+				Expect(actualErr).ShouldNot(HaveOccurred())
+			case <-time.After(time.Second * 2):
+				Fail("reconcile never finished")
+			}
+		})
+	})
+})

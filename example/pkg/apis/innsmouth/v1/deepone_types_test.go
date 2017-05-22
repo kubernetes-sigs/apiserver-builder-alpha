@@ -17,70 +17,61 @@ limitations under the License.
 package v1_test
 
 import (
-	"os"
-	"testing"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis"
-	v1innsmouth "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/innsmouth/v1"
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/clientset_generated/clientset"
-	v1innsmouthclient "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/clientset_generated/clientset/typed/innsmouth/v1"
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/openapi"
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/test"
+	. "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/innsmouth/v1"
+	. "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/clientset_generated/clientset/typed/innsmouth/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/rest"
 )
 
-var testenv *test.TestEnvironment
-var config *rest.Config
-var client *v1innsmouthclient.InnsmouthV1Client
+var _ = Describe("Deepone", func() {
+	var instance DeepOne
+	var expected DeepOne
+	var client DeepOneInterface
 
-// Do Test Suite setup / teardown
-func TestMain(m *testing.M) {
-	testenv = test.NewTestEnvironment()
-	config = testenv.Start(apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions)
-	client = clientset.NewForConfigOrDie(config).InnsmouthV1Client
-	retCode := m.Run()
-	testenv.Stop()
-	os.Exit(retCode)
-}
+	BeforeEach(func() {
+		instance = DeepOne{}
+		instance.Name = "deepone-1"
+		instance.Spec.FishRequired = 150
 
-func TestCreateDeleteUniversities(t *testing.T) {
-	intf := client.DeepOnes("test-create-delete-innsmouth")
+		expected = instance
+	})
 
-	deepone := &v1innsmouth.DeepOne{}
-	deepone.Name = "fish-eater"
-	deepone.Spec.FishRequired = 150
+	AfterEach(func() {
+		client.Delete(instance.Name, &metav1.DeleteOptions{})
+	})
 
-	// Make sure we can create the resource
-	if _, err := intf.Create(deepone); err != nil {
-		t.Fatalf("Failed to create %T %v", deepone, err)
-	}
+	Describe("when sending a storage request", func() {
+		Context("for a valid config", func() {
+			It("should provide CRUD access to the object", func() {
+				client = cs.InnsmouthV1Client.DeepOnes("deepone-test-valid")
 
-	// Make sure we can list the resource
-	result, err := intf.List(metav1.ListOptions{})
-	if err != nil {
-		t.Fatalf("Failed to list %T %v", deepone, err)
-	}
-	if len(result.Items) != 1 {
-		t.Fatalf("Expected to find 1 DeepOne, found %d", len(result.Items))
-	}
-	actual := result.Items[0]
-	if actual.Name != deepone.Name {
-		t.Fatalf("Expected to find DeepOne named %s, found %s", deepone.Name, actual.Name)
-	}
-	if actual.Spec.FishRequired != deepone.Spec.FishRequired {
-		t.Fatalf("Expected to find FishRequired %d, found %d", deepone.Spec.FishRequired, actual.Spec.FishRequired)
-	}
+				By("returning success from the create request")
+				actual, err := client.Create(&instance)
+				Expect(err).ShouldNot(HaveOccurred())
 
-	// Make sure we can delete the resource
-	if err = intf.Delete(deepone.Name, &metav1.DeleteOptions{}); err != nil {
-		t.Fatalf("Failed to delete %T %v", deepone, err)
-	}
-	result, err = intf.List(metav1.ListOptions{})
-	if err != nil {
-		t.Fatalf("Failed to list %T %v", deepone, err)
-	}
-	if len(result.Items) > 0 {
-		t.Fatalf("Expected to find 0 DeepOnes, found %d", len(result.Items))
-	}
-}
+				By("defaulting the expected fields")
+				Expect(actual.Spec).To(Equal(expected.Spec))
+
+				By("returning the item for list requests")
+				result, err := client.List(metav1.ListOptions{})
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(result.Items).To(HaveLen(1))
+				Expect(result.Items[0].Spec).To(Equal(expected.Spec))
+
+				By("returning the item for get requests")
+				actual, err = client.Get(instance.Name, metav1.GetOptions{})
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(actual.Spec).To(Equal(expected.Spec))
+
+				By("deleting the item for delete requests")
+				err = client.Delete(instance.Name, &metav1.DeleteOptions{})
+				Expect(err).ShouldNot(HaveOccurred())
+				result, err = client.List(metav1.ListOptions{})
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(result.Items).To(HaveLen(0))
+			})
+		})
+	})
+})

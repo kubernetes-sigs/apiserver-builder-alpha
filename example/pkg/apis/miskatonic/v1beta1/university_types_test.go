@@ -17,134 +17,105 @@ limitations under the License.
 package v1beta1_test
 
 import (
-	"testing"
-
-	v1beta1miskatonic "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic/v1beta1"
+	. "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic/v1beta1"
+	. "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/clientset_generated/clientset/typed/miskatonic/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-func TestCreateDeleteUniversities(t *testing.T) {
-	client := cs.MiskatonicV1beta1Client
-	intf := client.Universities("test-create-delete-universities")
+var _ = Describe("University", func() {
+	var instance University
+	var expected University
+	var client UniversityInterface
 
-	univ := &v1beta1miskatonic.University{}
-	univ.Name = "miskatonic-university"
-	univ.Spec.FacultySize = 7
+	BeforeEach(func() {
+		instance = University{}
+		instance.Name = "miskatonic-university"
+		instance.Spec.FacultySize = 7
 
-	// Make sure we can create the resource
-	if _, err := intf.Create(univ); err != nil {
-		t.Fatalf("Failed to create %T %v", univ, err)
-	}
+		expected = instance
+		val := 15
+		expected.Spec.MaxStudents = &val
+	})
 
-	// Make sure we can list the resource
-	result, err := intf.List(metav1.ListOptions{})
-	if err != nil {
-		t.Fatalf("Failed to list Universities %v", err)
-	}
-	if len(result.Items) != 1 {
-		t.Fatalf("Expected to find 1 University, found %d", len(result.Items))
-	}
-	actual := result.Items[0]
-	if actual.Name != univ.Name {
-		t.Fatalf("Expected to find University named %s, found %s", univ.Name, actual.Name)
-	}
-	if actual.Spec.FacultySize != univ.Spec.FacultySize {
-		t.Fatalf("Expected to find FacultySize %d, found %d", univ.Spec.FacultySize, actual.Spec.FacultySize)
-	}
-	if actual.Spec.MaxStudents == nil || *actual.Spec.MaxStudents != 15 {
-		t.Fatalf("Expected to find MaxStudents %d, found %v", 15, actual.Spec.MaxStudents)
-	}
+	AfterEach(func() {
+		client.Delete(instance.Name, &metav1.DeleteOptions{})
+	})
 
-	// Make sure we can delete the resource
-	if err = intf.Delete(univ.Name, &metav1.DeleteOptions{}); err != nil {
-		t.Fatalf("Failed to delete %T %v", univ, err)
-	}
-	result, err = intf.List(metav1.ListOptions{})
-	if err != nil {
-		t.Fatalf("Failed to list Universities %v", err)
-	}
-	if len(result.Items) > 0 {
-		t.Fatalf("Expected to find 0 University, found %d", len(result.Items))
-	}
-}
+	Describe("when sending a storage request", func() {
+		Context("for a valid config", func() {
+			It("should provide CRUD access to the object", func() {
+				client = cs.MiskatonicV1beta1Client.Universities("university-test-valid")
 
-func TestValidateUniversities(t *testing.T) {
-	client := cs.MiskatonicV1beta1Client
-	intf := client.Universities("test-validate-universities")
-	univ := &v1beta1miskatonic.University{}
-	univ.Name = "miskatonic-university"
-	univ.Spec.FacultySize = 7
-	maxStudents := 0
-	univ.Spec.MaxStudents = &maxStudents
+				By("returning success from the create request")
+				actual, err := client.Create(&instance)
+				Expect(err).ShouldNot(HaveOccurred())
 
-	// To many students - fails validation
-	maxStudents = 151
-	if _, err := intf.Create(univ); err == nil {
-		t.Fatalf("Created University with 151 MaxStudents %v", err)
-	}
+				By("defaulting the expected fields")
+				Expect(actual.Spec).To(Equal(expected.Spec))
 
-	// Not enough students - fails validation
-	maxStudents = 0
-	if _, err := intf.Create(univ); err == nil {
-		t.Fatalf("Created University with 0 MaxStudents %v", err)
-	}
+				By("returning the item for list requests")
+				result, err := client.List(metav1.ListOptions{})
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(result.Items).To(HaveLen(1))
+				Expect(result.Items[0].Spec).To(Equal(expected.Spec))
 
-	// Just right number of students
-	maxStudents = 150
-	if _, err := intf.Create(univ); err != nil {
-		t.Fatalf("Failed to create %T %v", univ, err)
-	}
+				By("returning the item for get requests")
+				actual, err = client.Get(instance.Name, metav1.GetOptions{})
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(actual.Spec).To(Equal(expected.Spec))
 
-	// Clean up
-	if err := intf.Delete(univ.Name, &metav1.DeleteOptions{}); err != nil {
-		t.Fatalf("Failed to delete %T %v", univ, err)
-	}
-}
+				By("deleting the item for delete requests")
+				err = client.Delete(instance.Name, &metav1.DeleteOptions{})
+				Expect(err).ShouldNot(HaveOccurred())
+				result, err = client.List(metav1.ListOptions{})
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(result.Items).To(HaveLen(0))
+			})
+		})
+		Context("for an invalid config", func() {
+			It("should fail if there are too many students", func() {
+				client = cs.MiskatonicV1beta1Client.Universities("university-test-too-many")
+				val := 151
+				instance.Spec.MaxStudents = &val
+				_, err := client.Create(&instance)
+				Expect(err).Should(HaveOccurred())
+			})
 
-func TestScaleUniversities(t *testing.T) {
-	client := cs.MiskatonicV1beta1Client
-	namespace := "test-scale-universities"
-	intf := client.Universities(namespace)
+			It("should fail if there are not enough students", func() {
+				client = cs.MiskatonicV1beta1Client.Universities("university-test-not-enough")
+				val := 0
+				instance.Spec.MaxStudents = &val
+				_, err := client.Create(&instance)
+				Expect(err).Should(HaveOccurred())
+			})
+		})
+	})
 
-	univ := &v1beta1miskatonic.University{}
-	univ.Name = "miskatonic-university"
-	univ.Spec.FacultySize = 7
-	maxStudents := 150
-	univ.Spec.MaxStudents = &maxStudents
+	Describe("when sending a scale request", func() {
+		It("should set the faculty count", func() {
+			client = cs.MiskatonicV1beta1Client.Universities("university-test-scale")
+			_, err := client.Create(&instance)
+			Expect(err).ShouldNot(HaveOccurred())
 
-	if _, err := intf.Create(univ); err != nil {
-		t.Fatalf("Failed to create %T %v", univ, err)
-	}
+			scale := &Scale{
+				Faculty: 30,
+			}
+			scale.Name = instance.Name
+			restClient := cs.MiskatonicV1beta1Client.RESTClient()
+			err = restClient.Post().Namespace("university-test-scale").
+				Name(instance.Name).
+				Resource("universities").
+				SubResource("scale").
+				Body(scale).Do().Error()
+			Expect(err).ShouldNot(HaveOccurred())
 
-	// Verify the original size
-	if newUniv, err := intf.Get(univ.Name, metav1.GetOptions{}); err != nil {
-		t.Fatalf("Failed to create University %v", err)
-	} else if newUniv.Spec.FacultySize != univ.Spec.FacultySize {
-		t.Fatalf("Expected FacultySize %d got %d", univ.Spec.FacultySize, newUniv.Spec.FacultySize)
-	}
-
-	// Scale the university
-	scale := &v1beta1miskatonic.Scale{
-		Faculty: 30,
-	}
-	scale.Name = univ.Name
-	restClient := client.RESTClient()
-	err := restClient.Post().Namespace(namespace).
-		Name(univ.Name).
-		Resource("universities").
-		SubResource("scale").
-		Body(scale).Do().Error()
-	if err != nil {
-		t.Fatalf("Failed to create University %v", err)
-	}
-
-	// Verify the new size
-	if newUniv, err := intf.Get(univ.Name, metav1.GetOptions{}); err != nil {
-		t.Fatalf("Failed to create University %v", err)
-	} else if newUniv.Spec.FacultySize != 30 {
-		t.Fatalf("Expected FacultySize %d got %d", 30, newUniv.Spec.FacultySize)
-	}
-
-	// Clean up
-	intf.Delete(univ.Name, &metav1.DeleteOptions{})
-}
+			expected.Spec.FacultySize = 30
+			actual, err := client.Get(instance.Name, metav1.GetOptions{})
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(actual.Spec).Should(Equal(expected.Spec))
+		})
+	})
+})
