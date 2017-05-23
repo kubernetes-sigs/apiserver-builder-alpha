@@ -30,14 +30,15 @@ import (
 	genericoptions "k8s.io/apiserver/pkg/server/options"
 
 	"bytes"
+	"net/http"
+	"os"
+
 	"github.com/golang/glog"
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/validators"
 	"k8s.io/apimachinery/pkg/openapi"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apiserver/pkg/util/logs"
 	"k8s.io/client-go/pkg/api"
-	"net/http"
-	"os"
 )
 
 var GetOpenApiDefinition openapi.GetOpenAPIDefinitions
@@ -148,14 +149,6 @@ func (o ServerOptions) Config() (*apiserver.Config, error) {
 
 	serverConfig := genericapiserver.NewConfig(api.Codecs)
 
-	if o.RunDelegatedAuth {
-		if err := o.RecommendedOptions.Authentication.ApplyTo(serverConfig); err != nil {
-			return nil, err
-		}
-		if err := o.RecommendedOptions.Authorization.ApplyTo(serverConfig); err != nil {
-			return nil, err
-		}
-	}
 	if err := o.RecommendedOptions.Etcd.ApplyTo(serverConfig); err != nil {
 		return nil, err
 	}
@@ -167,6 +160,14 @@ func (o ServerOptions) Config() (*apiserver.Config, error) {
 	}
 	if err := o.RecommendedOptions.Features.ApplyTo(serverConfig); err != nil {
 		return nil, err
+	}
+	if o.RunDelegatedAuth {
+		if err := o.RecommendedOptions.Authentication.ApplyTo(serverConfig); err != nil {
+			return nil, err
+		}
+		if err := o.RecommendedOptions.Authorization.ApplyTo(serverConfig); err != nil {
+			return nil, err
+		}
 	}
 
 	config := &apiserver.Config{
