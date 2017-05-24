@@ -115,9 +115,11 @@ var glideTemplate = `
 package: {{.Repo}}
 import:
 - package: k8s.io/apimachinery
+  version: 565bae4589e797e6474096f31f9e70a47132d5e5
 - package: k8s.io/apiserver
+  version: 8f71532ed814093d43a03eb58f55503f77816992
 - package: k8s.io/client-go
-# Freeze the following deps because they don't all provide backwards compatibility
+  version: 1b8c2a3e22db89d0749437fb75717be7845a5880
 - package: github.com/go-openapi/analysis
   version: b44dc874b601d9e4e2f6e19140e794ba24bead3b
 - package: github.com/go-openapi/jsonpointer
