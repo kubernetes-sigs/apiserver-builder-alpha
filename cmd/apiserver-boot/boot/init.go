@@ -119,7 +119,6 @@ package main
 import (
 	// Make sure glide gets these dependencies
 	_ "k8s.io/apimachinery/pkg/apis/meta/v1"
-	_ "k8s.io/kubernetes/pkg/api"
 	_ "github.com/go-openapi/loads"
 
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/cmd/server"
