@@ -114,6 +114,10 @@ type glideTemplateArguments struct {
 var glideTemplate = `
 package: {{.Repo}}
 import:
+- package: k8s.io/apimachinery
+- package: k8s.io/apiserver
+- package: k8s.io/client-go
+# Freeze the following deps because they don't all provide backwards compatibility
 - package: github.com/go-openapi/analysis
   version: b44dc874b601d9e4e2f6e19140e794ba24bead3b
 - package: github.com/go-openapi/jsonpointer
@@ -134,13 +138,6 @@ import:
   version: 7b1b6e8dc027253d45fc029bc269d1c019f83a34
 - package: github.com/spf13/pflag
   version: d90f37a48761fe767528f31db1955e4f795d652f
-- package: k8s.io/apimachinery
-- package: k8s.io/apiserver
-- package: k8s.io/client-go
-- package: k8s.io/gengo
-- package: k8s.io/kubernetes
-  subpackages:
-  - pkg/api
 ignore:
 - {{.Repo}}
 `
