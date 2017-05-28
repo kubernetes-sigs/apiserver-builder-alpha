@@ -63,11 +63,15 @@ func fetchGlide() {
 }
 
 func copyGlide() {
-	// copy the files
+	// Move up two directories from the location of the `apiserver-boot`
+	// executable to find the `vendor` directory we package with our
+	// releases. TODO(campbellalex@google.com): this doesn't work for people
+	// who used `go install` to put `apiserver-boot` in their $GOPATH/bin.
 	e, err := os.Executable()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "unable to get directory of apiserver-builder tools")
 	}
+
 	e = filepath.Dir(filepath.Dir(e))
 
 	doCmd := func(cmd string, args ...string) {
