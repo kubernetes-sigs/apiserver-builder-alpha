@@ -1,7 +1,7 @@
 # Apiserver Builder
 
-Apiserver builder is a collection of libraries and tools to
-build Kubernetes native extensions using Kubernetes apiserver cdoe.
+Apiserver Builder is a collection of libraries and tools to build native
+Kubernetes extensions using Kubernetes apiserver code.
 
 ## Quick start
 
@@ -94,10 +94,10 @@ implementing the business logic of their component.
 
 ## Goals
 
-- Working hello-world apiserver in ~5 lines
-- Declaring new resource types only requires defining the struct definition
-  and taging it as a resource
-- Adding sub-resources only requires defining the request-type struct definition,
+- Working hello-world apiserver in ~5 lines.
+- Users can make a new resource type by simply defining a struct and tagging it
+  as a resource.
+- Adding sub-resources requires only defining the request-type struct definition,
   implementing the REST implementation, and tagging the parent resource.
 - Adding validation / defaulting to a type only requires defining the validation / defaulting method
   as a function of the appropriate struct type.
@@ -106,9 +106,9 @@ implementing the business logic of their component.
 
 ### Binary distribution of build tools
 
-- Distribute binaries for all of the code-generators
-- Write porcelian wrapper for code-generators that is able to detect
-  the appropriate arguments for each from the go PATH and types.go files
+- Distribute binaries for all code-generators
+- Write porcelain wrapper for code-generators that is able to detect the
+  appropriate arguments for each from the GOPATH and `types.go`.
 
 ### Helper libraries
 
@@ -125,21 +125,20 @@ implementing the business logic of their component.
 - Implementations for "unversioned" types
 - Implementations for "List" types
 - Package variables used by code generation
-- Generate invocations of helper libraries from observered types.go types
+- Generate invocations of helper libraries from the types in `types.go`.
 
 ### Support hooks for overriding defaults
 
 - Try to support 100% of the flexibility of manually writing the boilerplate by 
   providing hooks.
-  - Implement functions that can be invoked to register overrides
-  - Use type embeding to inherit defaults but allow new functions to override the defaults
+  - Users can call functions to register overrides.
   
 ### Support for generating reference documentation
 
 - Generate k8s.io style reference documentation for declared types
-  - Support for request / response examples and manual edits
+  - Support request / response examples and manual edits
 
-### Thorough documentation and examples for how to use the framework
+### Thorough documentation and examples
 
 - Hello-world example
 - How to override each default
