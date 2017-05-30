@@ -19,19 +19,20 @@ package test
 import (
 	"bufio"
 	"fmt"
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/cmd/server"
 	"io"
 	"io/ioutil"
-	openapi "k8s.io/apimachinery/pkg/openapi"
-	genericapiserver "k8s.io/apiserver/pkg/server"
-	"k8s.io/client-go/rest"
 	"net"
 	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/cmd/server"
+	openapi "k8s.io/apimachinery/pkg/openapi"
+	genericapiserver "k8s.io/apiserver/pkg/server"
+	"k8s.io/client-go/rest"
 )
 
 type TestEnvironment struct {

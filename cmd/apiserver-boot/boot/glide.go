@@ -63,39 +63,31 @@ func fetchGlide() {
 }
 
 func copyGlide() {
-	// copy the files
+	// Move up two directories from the location of the `apiserver-boot`
+	// executable to find the `vendor` directory we package with our
+	// releases. TODO(campbellalex@google.com): this doesn't work for people
+	// who used `go install` to put `apiserver-boot` in their $GOPATH/bin.
 	e, err := os.Executable()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "unable to get directory of apiserver-builder tools")
 	}
+
 	e = filepath.Dir(filepath.Dir(e))
 
-	c := exec.Command("cp", "-r", filepath.Join(e, "src", "vendor"), "vendor")
-	c.Stderr = os.Stderr
-	c.Stdout = os.Stdout
-	err = c.Run()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to copy go dependencies\n%v\n", err)
-		os.Exit(-1)
+	doCmd := func(cmd string, args ...string) {
+		c := exec.Command(cmd, args...)
+		c.Stderr = os.Stderr
+		c.Stdout = os.Stdout
+		err = c.Run()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to copy go dependencies\n%v\n", err)
+			os.Exit(-1)
+		}
 	}
 
-	c = exec.Command("cp", filepath.Join(e, "src", "glide.yaml"), "glide.yaml")
-	c.Stderr = os.Stderr
-	c.Stdout = os.Stdout
-	err = c.Run()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to copy go dependencies\n%v\n", err)
-		os.Exit(-1)
-	}
-
-	c = exec.Command("cp", filepath.Join(e, "src", "glide.lock"), "glide.lock")
-	c.Stderr = os.Stderr
-	c.Stdout = os.Stdout
-	err = c.Run()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to copy go dependencies\n%v\n", err)
-		os.Exit(-1)
-	}
+	doCmd("cp", "-r", filepath.Join(e, "src", "vendor"), "vendor")
+	doCmd("cp", filepath.Join(e, "src", "glide.yaml"), "glide.yaml")
+	doCmd("cp", filepath.Join(e, "src", "glide.lock"), "glide.lock")
 }
 
 func RunGlideInstall(cmd *cobra.Command, args []string) {

@@ -5,7 +5,7 @@ of authentication and authorization options designed for use with an
 existing Kubernetes cluster.  Together, these options form the *delegated
 authentication and authorization* pattern.
 
-In this doccument, we'll refer to API servers generated using
+In this document, we'll refer to API servers generated using
 apiserver-builder as *addon API servers*.
 
 ## Certificates Overview
@@ -142,7 +142,7 @@ often use client certificate authentication.
 By default, a main Kubernetes API server configured with the
 `--client-ca-file` option automatically creates a ConfigMap called
 `extension-apiserver-authentication` in the `kube-system` namespace,
-populated with the the client CA file.  Addon API servers use this CA
+populated with the client CA file.  Addon API servers use this CA
 certificate as the CA used to verify client authentication. This way,
 client certificate users who can authenticate with the main Kubernetes
 system can also authenticate with addon API servers.
@@ -180,7 +180,7 @@ server.
 If you do not wish to have your addon API server authenticate against the
 same cluster that it is running on, or if it is running outside of
 a cluster, you can pass the `--authentication-kubeconfig` option to the
-serice catalog API server to specify a different Kubeconfig file to use to
+service catalog API server to specify a different Kubeconfig file to use to
 connect.
 
 The [Webhook token
@@ -242,5 +242,5 @@ server.
 If you do not wish to have your addon API server authenticate against the
 same cluster that it is running on, or if it is running outside of
 a cluster, you can pass the `--authorization-kubeconfig` option to the
-serice catalog API server to specify a different Kubeconfig file to use to
+service catalog API server to specify a different Kubeconfig file to use to
 connect.

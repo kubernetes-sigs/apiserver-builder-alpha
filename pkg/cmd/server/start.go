@@ -45,10 +45,7 @@ var GetOpenApiDefinition openapi.GetOpenAPIDefinitions
 
 type ServerOptions struct {
 	RecommendedOptions *genericoptions.RecommendedOptions
-
-	StdOut      io.Writer
-	StdErr      io.Writer
-	APIBuilders []*builders.APIGroupBuilder
+	APIBuilders        []*builders.APIGroupBuilder
 
 	PrintBearerToken bool
 	PrintOpenapi     bool
@@ -85,11 +82,8 @@ func NewServerOptions(etcdPath string, out, errOut io.Writer, builders []*builde
 
 	o := &ServerOptions{
 		RecommendedOptions: genericoptions.NewRecommendedOptions(etcdPath, api.Scheme, api.Codecs.LegacyCodec(versions...)),
-
-		StdOut:           out,
-		StdErr:           errOut,
-		APIBuilders:      builders,
-		RunDelegatedAuth: true,
+		APIBuilders:        builders,
+		RunDelegatedAuth:   true,
 	}
 	o.RecommendedOptions.SecureServing.BindPort = 443
 
