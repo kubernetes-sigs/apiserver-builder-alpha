@@ -47,7 +47,7 @@ func main() {
 			"bootstrap. This must be under $GOPATH/src/<package>. "+
 			"\nCurrent GOPATH=%s.  \nCurrent directory=%s", gopath, wd)
 	}
-	boot.Repo = strings.Replace(wd, boot.GoSrc+"/", "", 1)
+	boot.Repo = strings.Replace(wd, boot.GoSrc+string(filepath.Separator), "", 1)
 	boot.AddCreateGroup(cmd)
 	boot.AddCreateResource(cmd)
 	boot.AddCreateVersion(cmd)
