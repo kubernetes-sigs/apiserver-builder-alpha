@@ -115,11 +115,11 @@ func NewCommandStartServer(etcdPath string, out, errOut io.Writer, builders []*b
 
 	flags := cmd.Flags()
 	flags.BoolVar(&o.PrintBearerToken, "print-bearer-token", false,
-		"If true, print a curl command with the bearer token to test the server")
+		"Print a curl command with the bearer token to test the server")
 	flags.BoolVar(&o.PrintOpenapi, "print-openapi", false,
-		"If true, print the openapi json and exit.")
+		"Print the openapi json and exit")
 	flags.BoolVar(&o.RunDelegatedAuth, "delegated-auth", true,
-		"If true, setup delegated auth.")
+		"Setup delegated auth")
 	o.RecommendedOptions.AddFlags(flags)
 	return cmd, o
 }
