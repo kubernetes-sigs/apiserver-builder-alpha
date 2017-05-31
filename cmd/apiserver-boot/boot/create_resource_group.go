@@ -17,7 +17,7 @@ limitations under the License.
 package boot
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -40,12 +40,10 @@ func AddCreateGroup(cmd *cobra.Command) {
 
 func RunCreateGroup(cmd *cobra.Command, args []string) {
 	if len(domain) == 0 {
-		fmt.Fprintf(os.Stderr, "apiserver-boot create-group requires the --domain flag\n")
-		os.Exit(-1)
+		log.Fatalf("apiserver-boot create-group requires the --domain flag")
 	}
 	if len(groupName) == 0 {
-		fmt.Fprintf(os.Stderr, "apiserver-boot create-group requires the --groupName flag\n")
-		os.Exit(-1)
+		log.Fatalf("apiserver-boot create-group requires the --groupName flag")
 	}
 	cr := getCopyright()
 	createGroup(cr)
@@ -54,8 +52,7 @@ func RunCreateGroup(cmd *cobra.Command, args []string) {
 func createGroup(boilerplate string) {
 	dir, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(-1)
+		log.Fatal(err)
 	}
 	path := filepath.Join(dir, "pkg", "apis", groupName, "doc.go")
 	created := writeIfNotFound(path, "group-template", groupTemplate, groupTemplateArgs{
@@ -64,8 +61,7 @@ func createGroup(boilerplate string) {
 		groupName,
 	})
 	if !created && !ignoreExists {
-		fmt.Fprintf(os.Stderr, "API group %s already exists.\n", groupName)
-		os.Exit(-1)
+		log.Fatalf("API group %s already exists.", groupName)
 	}
 }
 

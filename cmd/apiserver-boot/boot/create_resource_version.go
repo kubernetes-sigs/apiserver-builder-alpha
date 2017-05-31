@@ -17,7 +17,7 @@ limitations under the License.
 package boot
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -41,16 +41,13 @@ func AddCreateVersion(cmd *cobra.Command) {
 
 func RunCreateVersion(cmd *cobra.Command, args []string) {
 	if len(domain) == 0 {
-		fmt.Fprintf(os.Stderr, "apiserver-boot create-version requires the --domain flag\n")
-		os.Exit(-1)
+		log.Fatalf("apiserver-boot create-version requires the --domain flag")
 	}
 	if len(groupName) == 0 {
-		fmt.Fprintf(os.Stderr, "apiserver-boot create-version requires the --group flag\n")
-		os.Exit(-1)
+		log.Fatalf("apiserver-boot create-version requires the --group flag")
 	}
 	if len(versionName) == 0 {
-		fmt.Fprintf(os.Stderr, "apiserver-boot create-version requires the --version flag\n")
-		os.Exit(-1)
+		log.Fatalf("apiserver-boot create-version requires the --version flag")
 	}
 
 	cr := getCopyright()
@@ -65,7 +62,7 @@ func RunCreateVersion(cmd *cobra.Command, args []string) {
 func createVersion(boilerplate string) {
 	dir, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
+		log.Fatalf("%v\n", err)
 		os.Exit(-1)
 	}
 	path := filepath.Join(dir, "pkg", "apis", groupName, versionName, "doc.go")
@@ -77,8 +74,7 @@ func createVersion(boilerplate string) {
 		Repo,
 	})
 	if !created && !ignoreExists {
-		fmt.Fprintf(os.Stderr, "API group version %s/%s already exists.\n", groupName, versionName)
-		os.Exit(-1)
+		log.Fatalf("API group version %s/%s already exists.", groupName, versionName)
 	}
 }
 

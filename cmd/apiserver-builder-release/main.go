@@ -21,6 +21,7 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -61,8 +62,7 @@ func main() {
 	cmd.AddCommand(buildCmd)
 
 	if err := cmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "%v", err)
-		os.Exit(-1)
+		log.Fatal(err)
 	}
 }
 
@@ -87,38 +87,32 @@ var buildCmd = &cobra.Command{
 func TmpDir() string {
 	dir, err := ioutil.TempDir(os.TempDir(), "apiserver-builder-release")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to create temp directory %s %v\n", dir, err)
-		os.Exit(-1)
+		log.Fatalf("failed to create temp directory %s %v", dir, err)
 	}
 
 	dir, err = filepath.EvalSymlinks(dir)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(-1)
+		log.Fatal(err)
 	}
 
 	err = os.Mkdir(filepath.Join(dir, "src"), 0700)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to create directory %s %v\n", filepath.Join(dir, "src"), err)
-		os.Exit(-1)
+		log.Fatalf("failed to create directory %s %v", filepath.Join(dir, "src"), err)
 	}
 
 	err = os.Mkdir(filepath.Join(dir, "bin"), 0700)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to create directory %s %v\n", filepath.Join(dir, "bin"), err)
-		os.Exit(-1)
+		log.Fatalf("failed to create directory %s %v", filepath.Join(dir, "bin"), err)
 	}
 	return dir
 }
 
 func RunBuild(cmd *cobra.Command, args []string) {
 	if len(version) == 0 {
-		fmt.Fprintf(os.Stderr, "must specify the --version flag")
-		os.Exit(-1)
+		log.Fatal("must specify the --version flag")
 	}
 	if len(targets) == 0 && dobuild {
-		fmt.Fprintf(os.Stderr, "must provide at least one --targets flag when building tools")
-		os.Exit(-1)
+		log.Fatal("must provide at least one --targets flag when building tools")
 	}
 
 	// Create a temporary build directory
@@ -132,8 +126,7 @@ func RunBuild(cmd *cobra.Command, args []string) {
 		var err error
 		tooldir, err = filepath.EvalSymlinks(tooldir)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(-1)
+			log.Fatal(err)
 		}
 	}
 
@@ -160,8 +153,7 @@ func RunBuild(cmd *cobra.Command, args []string) {
 		// Build binaries for this os:arch
 		parts := strings.Split(target, ":")
 		if len(parts) != 2 {
-			fmt.Fprintf(os.Stderr, "--targets flags must be GOOS:GOARCH pairs [%s]\n", target)
-			os.Exit(-1)
+			log.Fatalf("--targets flags must be GOOS:GOARCH pairs [%s]", target)
 		}
 		goos := parts[0]
 		goarch := parts[1]
@@ -170,8 +162,7 @@ func RunBuild(cmd *cobra.Command, args []string) {
 			os.RemoveAll(filepath.Join(tooldir, "bin"))
 			err := os.Mkdir(filepath.Join(tooldir, "bin"), 0700)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "failed to create directory %s %v\n", filepath.Join(tooldir, "bin"), err)
-				os.Exit(-1)
+				log.Fatalf("failed to create directory %s %v", filepath.Join(tooldir, "bin"), err)
 			}
 
 			for _, pkg := range BuildPackages {
@@ -188,13 +179,11 @@ func RunBuild(cmd *cobra.Command, args []string) {
 func RunCmd(cmd *exec.Cmd, gopath string) {
 	gopath, err := filepath.Abs(gopath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(-1)
+		log.Fatal(err)
 	}
 	gopath, err = filepath.EvalSymlinks(gopath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(-1)
+		log.Fatal(err)
 	}
 	cmd.Env = append(cmd.Env, fmt.Sprintf("GOPATH=%s", gopath))
 	cmd.Env = append(cmd.Env, os.Environ()...)
@@ -206,8 +195,7 @@ func RunCmd(cmd *exec.Cmd, gopath string) {
 	fmt.Printf("%s\n", strings.Join(cmd.Args, " "))
 	err = cmd.Run()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(-1)
+		log.Fatal(err)
 	}
 }
 
@@ -246,8 +234,7 @@ func PackageTar(goos, goarch, tooldir, vendordir string) {
 	// create the new file
 	fw, err := os.Create(fmt.Sprintf("%s-%s-%s-%s.tar.gz", output, version, goos, goarch))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to create output file %s %v\n", output, err)
-		os.Exit(-1)
+		log.Fatalf("failed to create output file %s %v", output, err)
 	}
 	defer fw.Close()
 
@@ -293,8 +280,7 @@ func (t TarFile) Do(path string, info os.FileInfo, err error) error {
 
 	eval, err := filepath.EvalSymlinks(path)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(-1)
+		log.Fatal(err)
 	}
 	if eval != path {
 		name := strings.Replace(path, t.Root, "", -1)
@@ -311,8 +297,7 @@ func (t TarFile) Do(path string, info os.FileInfo, err error) error {
 			Linkname: linkName,
 		}
 		if err := t.Writer.WriteHeader(hdr); err != nil {
-			fmt.Fprintf(os.Stderr, "failed to write output for %s %v\n", path, err)
-			os.Exit(-1)
+			log.Fatalf("failed to write output for %s %v", path, err)
 		}
 		return nil
 	}
@@ -328,8 +313,7 @@ func (t TarFile) Write(path string) error {
 	}
 	body, err := ioutil.ReadFile(path)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to read file %s %v\n", path, err)
-		os.Exit(-1)
+		log.Fatalf("failed to read file %s %v", path, err)
 	}
 	if len(body) == 0 {
 		return nil
@@ -341,12 +325,10 @@ func (t TarFile) Write(path string) error {
 		Size: int64(len(body)),
 	}
 	if err := t.Writer.WriteHeader(hdr); err != nil {
-		fmt.Fprintf(os.Stderr, "failed to write output for %s %v\n", path, err)
-		os.Exit(-1)
+		log.Fatalf("failed to write output for %s %v", path, err)
 	}
 	if _, err := t.Writer.Write(body); err != nil {
-		fmt.Fprintf(os.Stderr, "failed to write output for %s %v\n", path, err)
-		os.Exit(-1)
+		log.Fatalf("failed to write output for %s %v", path, err)
 	}
 	return nil
 }
@@ -360,16 +342,14 @@ func BuildVendor(tooldir string) string {
 
 	vendordir, err := filepath.EvalSymlinks(vendordir)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(-1)
+		log.Fatal(err)
 	}
 
 	pkgDir := filepath.Join(vendordir, "src", "github.com", "kubernetes-incubator", "test")
 	bootBin := filepath.Join(tooldir, "bin", "apiserver-boot")
 	err = os.MkdirAll(pkgDir, 0700)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to create directory %s %v\n", pkgDir, err)
-		os.Exit(-1)
+		log.Fatalf("failed to create directory %s %v", pkgDir, err)
 	}
 
 	ioutil.WriteFile(filepath.Join(pkgDir, "boilerplate.go.txt"), []byte(""), 0555)

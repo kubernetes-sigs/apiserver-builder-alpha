@@ -17,7 +17,7 @@ limitations under the License.
 package boot
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -43,13 +43,11 @@ func AddGlideInstallCmd(cmd *cobra.Command) {
 func fetchGlide() {
 	o, err := exec.Command("glide", "-v").CombinedOutput()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "must install glide v0.12 or later\n")
-		os.Exit(-1)
+		log.Fatal("must install glide v0.12 or later")
 	}
 	if !strings.HasPrefix(string(o), "glide version v0.12") &&
 		!strings.HasPrefix(string(o), "glide version v0.13") {
-		fmt.Fprintf(os.Stderr, "must install glide  or later, was %s\n", o)
-		os.Exit(-1)
+		log.Fatalf("must install glide  or later, was %s", o)
 	}
 
 	c := exec.Command("glide", "install", "--strip-vendor")
@@ -57,8 +55,7 @@ func fetchGlide() {
 	c.Stdout = os.Stdout
 	err = c.Run()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to run glide install\n%v\n", err)
-		os.Exit(-1)
+		log.Fatalf("failed to run glide install\n%v\n", err)
 	}
 }
 
@@ -69,7 +66,7 @@ func copyGlide() {
 	// who used `go install` to put `apiserver-boot` in their $GOPATH/bin.
 	e, err := os.Executable()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "unable to get directory of apiserver-builder tools")
+		log.Fatal("unable to get directory of apiserver-builder tools")
 	}
 
 	e = filepath.Dir(filepath.Dir(e))
@@ -80,8 +77,7 @@ func copyGlide() {
 		c.Stdout = os.Stdout
 		err = c.Run()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "failed to copy go dependencies\n%v\n", err)
-			os.Exit(-1)
+			log.Fatalf("failed to copy go dependencies %v", err)
 		}
 	}
 
@@ -139,8 +135,7 @@ ignore:
 func createGlide() {
 	dir, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(-1)
+		log.Fatal(err)
 	}
 	path := filepath.Join(dir, "glide.yaml")
 	writeIfNotFound(path, "glide-template", glideTemplate, glideTemplateArguments{Repo})

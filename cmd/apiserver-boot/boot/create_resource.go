@@ -18,6 +18,7 @@ package boot
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -45,20 +46,16 @@ func AddCreateResource(cmd *cobra.Command) {
 
 func RunCreateResource(cmd *cobra.Command, args []string) {
 	if len(domain) == 0 {
-		fmt.Fprintf(os.Stderr, "apiserver-boot create-resource requires the --domain flag\n")
-		os.Exit(-1)
+		log.Fatal("apiserver-boot create-resource requires the --domain flag")
 	}
 	if len(groupName) == 0 {
-		fmt.Fprintf(os.Stderr, "apiserver-boot create-resource requires the --group flag\n")
-		os.Exit(-1)
+		log.Fatal("apiserver-boot create-resource requires the --group flag")
 	}
 	if len(versionName) == 0 {
-		fmt.Fprintf(os.Stderr, "apiserver-boot create-resource requires the --version flag\n")
-		os.Exit(-1)
+		log.Fatal("apiserver-boot create-resource requires the --version flag")
 	}
 	if len(kindName) == 0 {
-		fmt.Fprintf(os.Stderr, "apiserver-boot create-resource requires the --kind flag\n")
-		os.Exit(-1)
+		log.Fatal("apiserver-boot create-resource requires the --kind flag")
 	}
 	if len(resourceName) == 0 {
 		resourceName = inflect.NewDefaultRuleset().Pluralize(strings.ToLower(kindName))
@@ -77,8 +74,7 @@ func RunCreateResource(cmd *cobra.Command, args []string) {
 func createResource(boilerplate string) {
 	dir, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(-1)
+		log.Fatal(err)
 	}
 	typesFileName := fmt.Sprintf("%s_types.go", strings.ToLower(kindName))
 	path := filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
@@ -97,8 +93,8 @@ func createResource(boilerplate string) {
 
 	created := writeIfNotFound(path, "resource-template", resourceTemplate, a)
 	if !created {
-		fmt.Fprintf(os.Stderr,
-			"API group version kind %s/%s/%s already exists.\n", groupName, versionName, kindName)
+		log.Printf("API group version kind %s/%s/%s already exists.",
+			groupName, versionName, kindName)
 		found = true
 	}
 
@@ -111,16 +107,16 @@ func createResource(boilerplate string) {
 	path = filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
 	created = writeIfNotFound(path, "resource-test-template", resourceTestTemplate, a)
 	if !created {
-		fmt.Fprintf(os.Stderr,
-			"API group version kind %s/%s/%s test already exists.\n", groupName, versionName, kindName)
+		log.Printf("API group version kind %s/%s/%s test already exists.",
+			groupName, versionName, kindName)
 		found = true
 	}
 
 	path = filepath.Join(dir, "pkg", "controller", strings.ToLower(kindName), "controller.go")
 	created = writeIfNotFound(path, "resource-controller-template", resourceControllerTemplate, a)
 	if !created {
-		fmt.Fprintf(os.Stderr,
-			"Controller for %s/%s/%s already exists.\n", groupName, versionName, kindName)
+		log.Printf("Controller for %s/%s/%s already exists.",
+			groupName, versionName, kindName)
 		found = true
 	}
 
@@ -130,8 +126,8 @@ func createResource(boilerplate string) {
 	path = filepath.Join(dir, "pkg", "controller", strings.ToLower(kindName), "controller_test.go")
 	created = writeIfNotFound(path, "controller-test-template", controllerTestTemplate, a)
 	if !created {
-		fmt.Fprintf(os.Stderr,
-			"Controller test for %s/%s/%s already exists.\n", groupName, versionName, kindName)
+		log.Printf("Controller test for %s/%s/%s already exists.",
+			groupName, versionName, kindName)
 		found = true
 	}
 

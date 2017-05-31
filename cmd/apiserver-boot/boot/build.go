@@ -18,11 +18,13 @@ package boot
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/spf13/cobra"
 )
 
 var createBuildCmd = &cobra.Command{
@@ -44,8 +46,7 @@ func RunBuild(cmd *cobra.Command, args []string) {
 	c.Stdout = os.Stdout
 	err := c.Run()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(-1)
+		log.Fatal(err)
 	}
 
 	path = filepath.Join("cmd", "controller", "main.go")
@@ -55,7 +56,6 @@ func RunBuild(cmd *cobra.Command, args []string) {
 	c.Stdout = os.Stdout
 	err = c.Run()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(-1)
+		log.Fatal(err)
 	}
 }

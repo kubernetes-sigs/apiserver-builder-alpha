@@ -26,6 +26,7 @@ import (
 	"strings"
 
 	"bytes"
+
 	"github.com/spf13/cobra"
 )
 
@@ -60,8 +61,7 @@ func RunCleanDocs(cmd *cobra.Command, args []string) {
 
 func RunDocs(cmd *cobra.Command, args []string) {
 	if len(server) == 0 {
-		fmt.Fprintf(os.Stderr, "apiserver-boot run requires the --server flag\n")
-		os.Exit(-1)
+		log.Fatal("apiserver-boot run requires the --server flag")
 	}
 
 	c := exec.Command(server,

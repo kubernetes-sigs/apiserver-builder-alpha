@@ -19,6 +19,7 @@ package boot
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -47,8 +48,7 @@ func writeIfNotFound(path, templateName, templateValue string, data interface{})
 	if _, err := os.Stat(path); err == nil {
 		return false
 	} else if !os.IsNotExist(err) {
-		fmt.Fprintf(os.Stderr, "Could not stat %s: %v\n", path, err)
-		os.Exit(-1)
+		log.Fatalf("Could not stat %s: %v", path, err)
 
 	}
 	create(path)
@@ -62,15 +62,13 @@ func writeIfNotFound(path, templateName, templateValue string, data interface{})
 
 	f, err := os.OpenFile(path, os.O_WRONLY, 0)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create %s: %v\n", path, err)
-		os.Exit(-1)
+		log.Fatalf("Failed to create %s: %v", path, err)
 	}
 	defer f.Close()
 
 	err = t.Execute(f, data)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create %s: %v\n", path, err)
-		os.Exit(-1)
+		log.Fatalf("Failed to create %s: %v", path, err)
 	}
 
 	return true
@@ -84,27 +82,23 @@ func getCopyright() string {
 			copyright = "boilerplate.go.txt"
 			cr, err := ioutil.ReadFile(copyright)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "could not read copyright file %s\n", copyright)
-				os.Exit(-1)
+				log.Fatalf("could not read copyright file %s", copyright)
 			}
 			return string(cr)
 		}
 
-		fmt.Fprintf(os.Stderr, "apiserver-boot create-resource requires the --copyright flag if boilerplate.go.txt does not exist\n")
-		os.Exit(-1)
+		log.Fatalf("apiserver-boot create-resource requires the --copyright flag if boilerplate.go.txt does not exist")
 	}
 
 	if _, err := os.Stat(copyright); err != nil {
 		if !os.IsNotExist(err) {
-			fmt.Fprintf(os.Stderr, "Could not stat %s: %v\n", copyright, err)
-			os.Exit(-1)
+			log.Fatalf("Could not stat %s: %v", copyright, err)
 		}
 		return ""
 	} else {
 		cr, err := ioutil.ReadFile(copyright)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "could not read copyright file %s\n", copyright)
-			os.Exit(-1)
+			log.Fatalf("could not read copyright file %s", copyright)
 		}
 		return string(cr)
 	}
