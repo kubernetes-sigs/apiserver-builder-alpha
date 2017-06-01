@@ -70,10 +70,12 @@ func RunDocs(cmd *cobra.Command, args []string) {
 		"--secure-port=9443",
 		"--print-openapi",
 	)
+	log.Printf("%s\n", strings.Join(c.Args, " "))
+
 	var b bytes.Buffer
 	c.Stdout = &b
-	log.Printf("%s\n", strings.Join(c.Args, " "))
 	c.Stderr = os.Stderr
+
 	err := c.Run()
 	if err != nil {
 		log.Fatalf("error: %v\n", err)
@@ -115,7 +117,7 @@ func RunDocs(cmd *cobra.Command, args []string) {
 		"-v", fmt.Sprintf("%s:%s", filepath.Join(wd, "docs"), "/manifest"),
 		"pwittrock/brodocs",
 	)
-	log.Printf("%s\n", strings.Join(c.Args, " "))
+	log.Println(strings.Join(c.Args, " "))
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout
 	err = c.Run()
