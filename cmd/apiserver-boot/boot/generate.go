@@ -38,8 +38,35 @@ var generateCmd = &cobra.Command{
 	Run:   RunGenerate,
 }
 
-const genericAPI = "k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/api/resource/,k8s.io/apimachinery/pkg/version/,k8s.io/apimachinery/pkg/runtime/,k8s.io/apimachinery/pkg//util/intstr/"
-const extraAPI = "k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/conversion,k8s.io/apimachinery/pkg/runtime"
+var genericAPI = strings.Join([]string{
+	"k8s.io/client-go/pkg/api/v1",
+	"k8s.io/client-go/pkg/apis/apps/v1beta1",
+	"k8s.io/client-go/pkg/apis/authentication/v1",
+	"k8s.io/client-go/pkg/apis/authentication/v1beta1",
+	"k8s.io/client-go/pkg/apis/authorization/v1",
+	"k8s.io/client-go/pkg/apis/authorization/v1beta1",
+	"k8s.io/client-go/pkg/apis/autoscaling/v1",
+	"k8s.io/client-go/pkg/apis/autoscaling/v2alpha1",
+	"k8s.io/client-go/pkg/apis/batch/v1",
+	"k8s.io/client-go/pkg/apis/batch/v2alpha1",
+	"k8s.io/client-go/pkg/apis/certificates/v1beta1",
+	"k8s.io/client-go/pkg/apis/extensions/v1beta1",
+	"k8s.io/client-go/pkg/apis/policy/v1beta1",
+	"k8s.io/client-go/pkg/apis/rbac/v1alpha1",
+	"k8s.io/client-go/pkg/apis/rbac/v1beta1",
+	"k8s.io/client-go/pkg/apis/settings/v1alpha1",
+	"k8s.io/client-go/pkg/apis/storage/v1",
+	"k8s.io/client-go/pkg/apis/storage/v1beta1",
+	"k8s.io/apimachinery/pkg/apis/meta/v1",
+	"k8s.io/apimachinery/pkg/api/resource",
+	"k8s.io/apimachinery/pkg/version",
+	"k8s.io/apimachinery/pkg/runtime",
+	"k8s.io/apimachinery/pkg//util/intstr"}, ",")
+
+var extraAPI = strings.Join([]string{
+	"k8s.io/apimachinery/pkg/apis/meta/v1",
+	"k8s.io/apimachinery/pkg/conversion",
+	"k8s.io/apimachinery/pkg/runtime"}, ",")
 
 func AddGenerate(cmd *cobra.Command) {
 	cmd.AddCommand(generateCmd)

@@ -28,6 +28,7 @@ import (
 	"k8s.io/gengo/args"
 	"k8s.io/gengo/generator"
 	"k8s.io/gengo/types"
+	"path"
 )
 
 type APIs struct {
@@ -76,8 +77,11 @@ type Struct struct {
 type Field struct {
 	// Name is the name of the field
 	Name string
-	// Type is the type of the field
-	Type string
+	// For versioned Kubernetes types, this is the versioned package
+	VersionedPackage string
+	// For versioned Kubernetes types, this is theun versioned package
+	UnversionedImport string
+	UnversionedType   string
 }
 
 type APIVersion struct {
@@ -568,20 +572,40 @@ func (apigroup *APIGroup) DoType(t *types.Type) (*Struct, []*types.Type) {
 	}
 	for _, member := range t.Members {
 		memberGroup := GetGroup(member.Type)
-		memberKind := member.Type.Name.Name
+		uType := member.Type.Name.Name
 		memberName := member.Name
+		uImport := ""
 
 		base := filepath.Base(member.Type.String())
 		samepkg := t.Name.Package == member.Type.Name.Package
 
-		// If not in the same package, calculate the import pkg = parentpkg +pkg - e.g.
-		// meta/v1.ObjectMeta = metav1.ObjectMeta
+		// If not in the same package, calculate the import pkg
 		if !samepkg {
 			parts := strings.Split(base, ".")
 			if len(parts) > 1 {
-				pkg := parts[0]
-				pkg = filepath.Base(filepath.Dir(member.Type.Name.Package)) + pkg
-				memberKind = pkg + "." + parts[1]
+				switch member.Type.Name.Package {
+				case "k8s.io/apimachinery/pkg/apis/meta/v1":
+					// Use versioned types for meta/v1
+					uImport = fmt.Sprintf("%s \"%s\"", "metav1", "k8s.io/apimachinery/pkg/apis/meta/v1")
+					uType = "metav1." + parts[1]
+				default:
+					// Use unversioned types for everything else
+					t := member.Type
+					hasElem := false
+					if t.Elem != nil {
+						// Handle Pointers, Maps, Slices correctly
+						t = t.Elem
+						hasElem = true
+					}
+					uImportName := path.Base(path.Dir(t.Name.Package))
+					uImport = path.Dir(t.Name.Package)
+					uType = uImportName + "." + t.Name.Name
+					if hasElem {
+						uType = strings.Replace(member.Type.String(), path.Dir(uImport)+"/", "", 1)
+						uType = strings.Replace(uType, "/"+path.Base(t.Name.Package), "", 1)
+					}
+					fmt.Printf("\n%s : %s : %s\n%s : %s\n\n", member.Type.Kind, member.Type.String(), path.Dir(uImport), uImport, uType)
+				}
 			}
 		}
 
@@ -590,8 +614,10 @@ func (apigroup *APIGroup) DoType(t *types.Type) (*Struct, []*types.Type) {
 		}
 
 		s.Fields = append(s.Fields, &Field{
-			Type: memberKind,
-			Name: memberName,
+			Name:              memberName,
+			VersionedPackage:  member.Type.Name.Package,
+			UnversionedImport: uImport,
+			UnversionedType:   uType,
 		})
 
 		// Add this member Type for processing
