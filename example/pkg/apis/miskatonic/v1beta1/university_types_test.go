@@ -20,6 +20,7 @@ import (
 	. "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic/v1beta1"
 	. "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/clientset_generated/clientset/typed/miskatonic/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/pkg/api/v1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -34,10 +35,15 @@ var _ = Describe("University", func() {
 		instance = University{}
 		instance.Name = "miskatonic-university"
 		instance.Spec.FacultySize = 7
+		instance.Spec.ServiceSpec = v1.ServiceSpec{}
+		instance.Spec.ServiceSpec.ClusterIP = "1.1.1.1"
 
 		expected = instance
 		val := 15
 		expected.Spec.MaxStudents = &val
+		expected.Spec.ServiceSpec = v1.ServiceSpec{}
+		expected.Spec.ServiceSpec.ClusterIP = "1.1.1.1"
+
 	})
 
 	AfterEach(func() {

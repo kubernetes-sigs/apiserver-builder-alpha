@@ -20,6 +20,7 @@ import (
 	"io"
 	"text/template"
 
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/gengo/generator"
 )
 
@@ -38,17 +39,26 @@ func CreateUnversionedGenerator(apigroup *APIGroup, filename string) generator.G
 }
 
 func (d *unversionedGenerator) Imports(c *generator.Context) []string {
-	return []string{
+	imports := sets.NewString(
 		"fmt",
+		"github.com/kubernetes-incubator/apiserver-builder/pkg/builders",
 		"k8s.io/apimachinery/pkg/apis/meta/internalversion",
-		"metav1 \"k8s.io/apimachinery/pkg/apis/meta/v1\"",
 		"k8s.io/apimachinery/pkg/runtime",
 		"k8s.io/apimachinery/pkg/runtime/schema",
-		"github.com/kubernetes-incubator/apiserver-builder/pkg/builders",
 		"k8s.io/apiserver/pkg/endpoints/request",
 		"k8s.io/apiserver/pkg/registry/rest",
-		"k8s.io/client-go/pkg/api",
+		"k8s.io/client-go/pkg/api")
+
+	// Get imports for all fields
+	for _, s := range d.apigroup.Structs {
+		for _, f := range s.Fields {
+			if len(f.UnversionedImport) > 0 {
+				imports.Insert(f.UnversionedImport)
+			}
+		}
 	}
+
+	return imports.List()
 }
 
 func (d *unversionedGenerator) Finalize(context *generator.Context, w io.Writer) error {
@@ -115,7 +125,7 @@ func Resource(resource string) schema.GroupResource {
 
 type {{ $s.Name }} struct {
 {{ range $f := $s.Fields -}}
-    {{ $f.Name }} {{ $f.Type }}
+    {{ $f.Name }} {{ $f.UnversionedType }}
 {{ end -}}
 }
 

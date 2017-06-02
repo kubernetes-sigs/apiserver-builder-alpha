@@ -15,4 +15,5 @@ limitations under the License.
 */
 
 // +groupName=storage.k8s.io
+// +k8s:openapi-gen=true
 package v1

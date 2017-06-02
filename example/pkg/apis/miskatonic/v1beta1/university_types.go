@@ -17,8 +17,11 @@ limitations under the License.
 package v1beta1
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	apiv1 "k8s.io/client-go/pkg/api/v1"
+	extensionsv1beta1 "k8s.io/client-go/pkg/apis/extensions/v1beta1"
 )
 
 // Generating code from university_types.go file will generate storage and status REST endpoints for
@@ -45,6 +48,21 @@ type UniversitySpec struct {
 	// max_students defines the maximum number of enrolled students.  Defaults to 300.
 	// +optional
 	MaxStudents *int `json:"max_students,omitempty"`
+
+	// WARNING: Using types from client-go as fields does not work outside this example
+	// This example hacked the vendored client-go to add the openapi generation directives
+	// to make this work
+	Template *apiv1.PodSpec `json:"template,omitempty"`
+
+	// WARNING: Using types from client-go as fields does not work outside this example
+	// This example hacked the vendored client-go to add the openapi generation directives
+	// to make this work
+	ServiceSpec apiv1.ServiceSpec `json:"service_spec,omitempty"`
+
+	// WARNING: Using types from client-go as fields does not work outside this example
+	// This example hacked the vendored client-go to add the openapi generation directives
+	// to make this work
+	Rollout []extensionsv1beta1.Deployment `json:"rollout,omitempty"`
 }
 
 // UniversityStatus defines the observed state of University
@@ -63,6 +81,13 @@ func (UniversitySchemeFns) DefaultingFunction(o interface{}) {
 	if obj.Spec.MaxStudents == nil {
 		n := 15
 		obj.Spec.MaxStudents = &n
+	}
+}
+
+func (UniversitySchemeFns) GetConversionFunctions() []interface{} {
+	return []interface{}{
+		apiv1.Convert_api_PodSpec_To_v1_PodSpec,
+		apiv1.Convert_v1_PodSpec_To_api_PodSpec,
 	}
 }
 
