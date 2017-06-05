@@ -61,7 +61,7 @@ func RunCleanDocs(cmd *cobra.Command, args []string) {
 
 func RunDocs(cmd *cobra.Command, args []string) {
 	if len(server) == 0 {
-		log.Fatal("apiserver-boot run requires the --server flag")
+		log.Fatal("apiserver-boot docs requires the --server flag")
 	}
 
 	c := exec.Command(server,
