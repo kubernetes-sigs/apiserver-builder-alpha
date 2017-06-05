@@ -20,11 +20,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -76,9 +76,7 @@ func RunRun(cmd *cobra.Command, args []string) {
 	go RunControllerManager()
 
 	fmt.Printf("to test the server run `kubectl --kubeconfig %s version`\n", config)
-	for {
-		time.Sleep(time.Minute)
-	}
+	select {} // wait forever
 }
 
 func RunEtcd() *exec.Cmd {
