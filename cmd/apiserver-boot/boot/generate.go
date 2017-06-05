@@ -19,6 +19,7 @@ package boot
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -103,8 +104,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 
 	root, err := os.Executable()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(-1)
+		log.Fatalf("error: %v", err)
 	}
 	root = filepath.Dir(root)
 
@@ -129,8 +129,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	fmt.Printf("%s\n", strings.Join(c.Args, " "))
 	out, err := c.CombinedOutput()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to run apiregister-gen %s %v\n", out, err)
-		os.Exit(-1)
+		log.Fatalf("failed to run apiregister-gen %s %v", out, err)
 	}
 
 	c = exec.Command(filepath.Join(root, "conversion-gen"),
@@ -143,8 +142,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	fmt.Printf("%s\n", strings.Join(c.Args, " "))
 	out, err = c.CombinedOutput()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to run conversion-gen %s %v\n", out, err)
-		os.Exit(-1)
+		log.Fatalf("failed to run conversion-gen %s %v", out, err)
 	}
 
 	c = exec.Command(filepath.Join(root, "deepcopy-gen"),
@@ -156,8 +154,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	fmt.Printf("%s\n", strings.Join(c.Args, " "))
 	out, err = c.CombinedOutput()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to run deepcopy-gen %s %v\n", out, err)
-		os.Exit(-1)
+		log.Fatalf("failed to run deepcopy-gen %s %v", out, err)
 	}
 
 	c = exec.Command(filepath.Join(root, "openapi-gen"),
@@ -170,8 +167,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	fmt.Printf("%s\n", strings.Join(c.Args, " "))
 	out, err = c.CombinedOutput()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to run openapi-gen %s %v\n", out, err)
-		os.Exit(-1)
+		log.Fatalf("failed to run openapi-gen %s %v", out, err)
 	}
 
 	c = exec.Command(filepath.Join(root, "defaulter-gen"),
@@ -184,8 +180,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	fmt.Printf("%s\n", strings.Join(c.Args, " "))
 	out, err = c.CombinedOutput()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to run defaulter-gen %s %v\n", out, err)
-		os.Exit(-1)
+		log.Fatalf("failed to run defaulter-gen %s %v", out, err)
 	}
 
 	// Builder the versioned apis client
@@ -202,8 +197,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	fmt.Printf("%s\n", strings.Join(c.Args, " "))
 	out, err = c.CombinedOutput()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to run client-gen %s %v\n", out, err)
-		os.Exit(-1)
+		log.Fatalf("failed to run client-gen %s %v", out, err)
 	}
 
 	c = exec.Command(filepath.Join(root, "client-gen"),
@@ -216,8 +210,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	fmt.Printf("%s\n", strings.Join(c.Args, " "))
 	out, err = c.CombinedOutput()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to run client-gen for unversioned APIs %s %v\n", out, err)
-		os.Exit(-1)
+		log.Fatalf("failed to run client-gen for unversioned APIs %s %v", out, err)
 	}
 
 	listerPkg := filepath.Join(clientPkg, "listers_generated")
@@ -230,8 +223,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	fmt.Printf("%s\n", strings.Join(c.Args, " "))
 	out, err = c.CombinedOutput()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to run lister-gen %s %v\n", out, err)
-		os.Exit(-1)
+		log.Fatalf("failed to run lister-gen %s %v", out, err)
 	}
 
 	informerPkg := filepath.Join(clientPkg, "informers_generated")
@@ -247,8 +239,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	fmt.Printf("%s\n", strings.Join(c.Args, " "))
 	out, err = c.CombinedOutput()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to run informer-gen %s %v\n", out, err)
-		os.Exit(-1)
+		log.Fatalf("failed to run informer-gen %s %v", out, err)
 	}
 }
 
@@ -256,15 +247,13 @@ func initApis() {
 	if len(versionedAPIs) == 0 {
 		groups, err := ioutil.ReadDir(filepath.Join("pkg", "apis"))
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "could not read pkg/apis directory to find api versions\n")
-			os.Exit(-1)
+			log.Fatalf("could not read pkg/apis directory to find api versions")
 		}
 		for _, g := range groups {
 			if g.IsDir() {
 				versionFiles, err := ioutil.ReadDir(filepath.Join("pkg", "apis", g.Name()))
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "could not read pkg/apis/%s directory to find api versions\n", g.Name())
-					os.Exit(-1)
+					log.Fatalf("could not read pkg/apis/%s directory to find api versions", g.Name())
 				}
 				for _, v := range versionFiles {
 					if v.IsDir() {

@@ -18,13 +18,15 @@ package boot
 
 import (
 	"fmt"
+	"log"
 	"os"
 
-	"github.com/spf13/cobra"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/spf13/cobra"
 )
 
 var runCmd = &cobra.Command{
@@ -90,7 +92,7 @@ func RunEtcd() *exec.Cmd {
 	go func() {
 		err := etcdCmd.Run()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to run etcd %v\n", err)
+			log.Fatalf("Failed to run etcd %v", err)
 			os.Exit(-1)
 		}
 	}()
@@ -116,7 +118,7 @@ func RunApiserver() *exec.Cmd {
 
 	err := apiserverCmd.Run()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to run apiserver %v\n", err)
+		log.Fatalf("Failed to run apiserver %v", err)
 		os.Exit(-1)
 	}
 
@@ -138,7 +140,7 @@ func RunControllerManager() *exec.Cmd {
 
 	err := controllerManagerCmd.Run()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to run controller-manager %v\n", err)
+		log.Fatalf("Failed to run controller-manager %v", err)
 		os.Exit(-1)
 	}
 
@@ -149,7 +151,7 @@ func WriteKubeConfig() {
 	// Write a kubeconfig
 	dir, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Cannot get working directory %v\n", err)
+		log.Fatalf("Cannot get working directory %v", err)
 		os.Exit(-1)
 	}
 	path := filepath.Join(dir, "apiserver.local.config", "certificates", "apiserver")

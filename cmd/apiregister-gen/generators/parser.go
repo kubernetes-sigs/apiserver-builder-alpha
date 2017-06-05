@@ -17,8 +17,7 @@ limitations under the License.
 package generators
 
 import (
-	"fmt"
-	"os"
+	"log"
 	"path/filepath"
 	"strings"
 
@@ -335,9 +334,8 @@ func (b *APIsBuilder) GetSubresources(c *APIResource) map[string]*APISubresource
 			sr.Request, sr.ImportPackage = b.GetNameAndImport(tags)
 		}
 		if v, found := r[sr.Path]; found {
-			fmt.Fprintf(os.Stderr, "Multiple subresources registered for path %s: %v %v",
+			log.Fatalf("Multiple subresources registered for path %s: %v %v",
 				sr.Path, v, subresource)
-			os.Exit(-1)
 		}
 		r[sr.Path] = sr
 	}
@@ -374,10 +372,9 @@ func ParseResourceTag(tag string) ResourceTags {
 	for _, elem := range strings.Split(tag, ",") {
 		kv := strings.Split(elem, "=")
 		if len(kv) != 2 {
-			fmt.Fprintf(os.Stderr, "// +resource: tags must be key value pairs.  Expected "+
+			log.Fatalf("// +resource: tags must be key value pairs.  Expected "+
 				"keys [path=<subresourcepath>] "+
 				"Got string: [%s]", tag)
-			os.Exit(-1)
 		}
 		value := kv[1]
 		switch kv[0] {
@@ -402,10 +399,9 @@ func ParseControllerTag(tag string) ControllerTags {
 	for _, elem := range strings.Split(tag, ",") {
 		kv := strings.Split(elem, "=")
 		if len(kv) != 2 {
-			fmt.Fprintf(os.Stderr, "// +controller: tags must be key value pairs.  Expected "+
+			log.Fatalf("// +controller: tags must be key value pairs.  Expected "+
 				"keys [group=<group>,version=<version>,kind=<kind>,resource=<resource>] "+
 				"Got string: [%s]", tag)
-			os.Exit(-1)
 		}
 		value := kv[1]
 		switch kv[0] {
@@ -436,10 +432,9 @@ func ParseSubresourceTag(c *APIResource, tag string) SubresourceTags {
 	for _, elem := range strings.Split(tag, ",") {
 		kv := strings.Split(elem, "=")
 		if len(kv) != 2 {
-			fmt.Fprintf(os.Stderr, "// +subresource: tags must be key value pairs.  Expected "+
+			log.Fatalf("// +subresource: tags must be key value pairs.  Expected "+
 				"keys [request=<requestType>,rest=<restImplType>,path=<subresourcepath>] "+
 				"Got string: [%s]", tag)
-			os.Exit(-1)
 		}
 		value := kv[1]
 		switch kv[0] {

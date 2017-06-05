@@ -17,7 +17,7 @@ limitations under the License.
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -32,24 +32,20 @@ var wd string
 func main() {
 	gopath = os.Getenv("GOPATH")
 	if len(gopath) == 0 {
-		fmt.Fprintf(os.Stderr, "GOPATH not defined\n")
-		os.Exit(-1)
+		log.Fatal("GOPATH not defined")
 	}
 	boot.GoSrc = filepath.Join(gopath, "src")
 
 	var err error
 	wd, err = os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(-1)
+		log.Fatal(err)
 	}
 
 	if !strings.HasPrefix(filepath.Dir(wd), boot.GoSrc) {
-		fmt.Fprintf(os.Stderr,
-			"apiserver-boot must be run from the directory containing the go package to "+
-				"bootstrap. This must be under $GOPATH/src/<package>. "+
-				"\nCurrent GOPATH=%s.  \nCurrent directory=%s\n", gopath, wd)
-		os.Exit(-1)
+		log.Fatalf("apiserver-boot must be run from the directory containing the go package to "+
+			"bootstrap. This must be under $GOPATH/src/<package>. "+
+			"\nCurrent GOPATH=%s.  \nCurrent directory=%s", gopath, wd)
 	}
 	boot.Repo = strings.Replace(wd, boot.GoSrc+"/", "", 1)
 	boot.AddCreateGroup(cmd)
@@ -63,8 +59,7 @@ func main() {
 	boot.AddBuild(cmd)
 
 	if err := cmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "%v", err)
-		os.Exit(-1)
+		log.Fatal(err)
 	}
 }
 

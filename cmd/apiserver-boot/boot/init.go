@@ -17,7 +17,7 @@ limitations under the License.
 package boot
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -40,8 +40,7 @@ func AddInit(cmd *cobra.Command) {
 
 func RunInit(cmd *cobra.Command, args []string) {
 	if len(domain) == 0 {
-		fmt.Fprintf(os.Stderr, "apiserver-boot init requires the --domain flag\n")
-		os.Exit(-1)
+		log.Fatal("apiserver-boot init requires the --domain flag")
 	}
 	cr := getCopyright()
 
@@ -84,7 +83,7 @@ func main() {
 	flag.Parse()
 	config, err := controllerlib.GetConfig(*kubeconfig)
 	if err != nil {
-		log.Fatalf("Could not create Config for talking to the apiserver: %v\n", err)
+		log.Fatalf("Could not create Config for talking to the apiserver: %v", err)
 	}
 
 	controllers, _ := controller.GetAllControllers(config)
@@ -98,8 +97,7 @@ func main() {
 func createControllerManager(boilerplate string) {
 	dir, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(-1)
+		log.Fatal(err)
 	}
 	path := filepath.Join(dir, "cmd", "controller", "main.go")
 	writeIfNotFound(path, "main-template", controllerManagerTemplate, controllerManagerTemplateArguments{boilerplate, Repo})
@@ -136,8 +134,7 @@ func main() {
 func createApiserver(boilerplate string) {
 	dir, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(-1)
+		log.Fatal(err)
 	}
 	path := filepath.Join(dir, "cmd", "apiserver", "main.go")
 	writeIfNotFound(path, "apiserver-template", apiserverTemplate, apiserverTemplateArguments{boilerplate, Repo})
@@ -148,8 +145,7 @@ func createPackage(boilerplate, path string) {
 	pkg := filepath.Base(path)
 	dir, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(-1)
+		log.Fatal(err)
 	}
 	path = filepath.Join(dir, path, "doc.go")
 	writeIfNotFound(path, "pkg-template", packageDocTemplate, packageDocTemplateArguments{boilerplate, pkg})
@@ -171,8 +167,7 @@ package {{.Package}}
 func createAPIs(boilerplate string) {
 	dir, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(-1)
+		log.Fatal(err)
 	}
 	path := filepath.Join(dir, "pkg", "apis", "doc.go")
 	writeIfNotFound(path, "apis-template", apisDocTemplate, apisDocTemplateArguments{boilerplate, domain})
