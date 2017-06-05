@@ -17,7 +17,9 @@ limitations under the License.
 package generators
 
 import (
+	"fmt"
 	"log"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -27,7 +29,6 @@ import (
 	"k8s.io/gengo/args"
 	"k8s.io/gengo/generator"
 	"k8s.io/gengo/types"
-	"path"
 )
 
 type APIs struct {
