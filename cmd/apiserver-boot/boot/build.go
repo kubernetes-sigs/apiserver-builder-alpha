@@ -51,7 +51,7 @@ func RunBuild(cmd *cobra.Command, args []string) {
 
 	path = filepath.Join("cmd", "controller", "main.go")
 	c = exec.Command("go", "build", "-o", "bin/controller-manager", path)
-	fmt.Printf("%s\n", strings.Join(c.Args, " "))
+	fmt.Println(strings.Join(c.Args, " "))
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout
 	err = c.Run()

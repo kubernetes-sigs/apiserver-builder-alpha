@@ -62,7 +62,7 @@ var genericAPI = strings.Join([]string{
 	"k8s.io/apimachinery/pkg/api/resource",
 	"k8s.io/apimachinery/pkg/version",
 	"k8s.io/apimachinery/pkg/runtime",
-	"k8s.io/apimachinery/pkg//util/intstr"}, ",")
+	"k8s.io/apimachinery/pkg/util/intstr"}, ",")
 
 var extraAPI = strings.Join([]string{
 	"k8s.io/apimachinery/pkg/apis/meta/v1",

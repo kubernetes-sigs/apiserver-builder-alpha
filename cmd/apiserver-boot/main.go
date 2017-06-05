@@ -26,18 +26,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var gopath string
-var wd string
-
 func main() {
-	gopath = os.Getenv("GOPATH")
+	gopath := os.Getenv("GOPATH")
 	if len(gopath) == 0 {
 		log.Fatal("GOPATH not defined")
 	}
 	boot.GoSrc = filepath.Join(gopath, "src")
 
-	var err error
-	wd, err = os.Getwd()
+	wd, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -47,7 +43,7 @@ func main() {
 			"bootstrap. This must be under $GOPATH/src/<package>. "+
 			"\nCurrent GOPATH=%s.  \nCurrent directory=%s", gopath, wd)
 	}
-	boot.Repo = strings.Replace(wd, boot.GoSrc+"/", "", 1)
+	boot.Repo = strings.Replace(wd, boot.GoSrc+string(filepath.Separator), "", 1)
 	boot.AddCreateGroup(cmd)
 	boot.AddCreateResource(cmd)
 	boot.AddCreateVersion(cmd)

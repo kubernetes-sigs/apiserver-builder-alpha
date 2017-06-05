@@ -115,11 +115,11 @@ func NewCommandStartServer(etcdPath string, out, errOut io.Writer, builders []*b
 
 	flags := cmd.Flags()
 	flags.BoolVar(&o.PrintBearerToken, "print-bearer-token", false,
-		"If true, print a curl command with the bearer token to test the server")
+		"Print a curl command with the bearer token to test the server")
 	flags.BoolVar(&o.PrintOpenapi, "print-openapi", false,
-		"If true, print the openapi json and exit.")
+		"Print the openapi json and exit")
 	flags.BoolVar(&o.RunDelegatedAuth, "delegated-auth", true,
-		"If true, setup delegated auth.")
+		"Setup delegated auth")
 	o.RecommendedOptions.AddFlags(flags)
 	return cmd, o
 }
@@ -132,41 +132,48 @@ func (o *ServerOptions) Complete() error {
 	return nil
 }
 
+func applyOptions(config *genericapiserver.Config, applyTo ...func(*genericapiserver.Config) error) error {
+	for _, fn := range applyTo {
+		if err := fn(config); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (o ServerOptions) Config() (*apiserver.Config, error) {
 	// TODO have a "real" external address
 	if err := o.RecommendedOptions.SecureServing.MaybeDefaultWithSelfSignedCerts(
-		"localhost",
-		nil,
-		nil); err != nil {
+		"localhost", nil, nil); err != nil {
+
 		return nil, fmt.Errorf("error creating self-signed certificates: %v", err)
 	}
 
 	serverConfig := genericapiserver.NewConfig(api.Codecs)
 
-	if err := o.RecommendedOptions.Etcd.ApplyTo(serverConfig); err != nil {
+	err := applyOptions(
+		serverConfig,
+		o.RecommendedOptions.Etcd.ApplyTo,
+		o.RecommendedOptions.SecureServing.ApplyTo,
+		o.RecommendedOptions.Audit.ApplyTo,
+		o.RecommendedOptions.Features.ApplyTo,
+	)
+	if err != nil {
 		return nil, err
 	}
-	if err := o.RecommendedOptions.SecureServing.ApplyTo(serverConfig); err != nil {
-		return nil, err
-	}
-	if err := o.RecommendedOptions.Audit.ApplyTo(serverConfig); err != nil {
-		return nil, err
-	}
-	if err := o.RecommendedOptions.Features.ApplyTo(serverConfig); err != nil {
-		return nil, err
-	}
+
 	if o.RunDelegatedAuth {
-		if err := o.RecommendedOptions.Authentication.ApplyTo(serverConfig); err != nil {
-			return nil, err
-		}
-		if err := o.RecommendedOptions.Authorization.ApplyTo(serverConfig); err != nil {
+		err := applyOptions(
+			serverConfig,
+			o.RecommendedOptions.Authentication.ApplyTo,
+			o.RecommendedOptions.Authorization.ApplyTo,
+		)
+		if err != nil {
 			return nil, err
 		}
 	}
 
-	config := &apiserver.Config{
-		GenericConfig: serverConfig,
-	}
+	config := &apiserver.Config{GenericConfig: serverConfig}
 	return config, nil
 }
 
