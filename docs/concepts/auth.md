@@ -97,13 +97,19 @@ use the following commands:
 
 ```shell
 export SERVICE_NAME=<service>
-export ALT_NAMES="<service>.<namespace>,<service>.<namespace>.svc"
+export ALT_NAMES='"<service>.<namespace>","<service>.<namespace>.svc"'
 echo '{"CN":"'${SERVICE_NAME}'","hosts":['${ALT_NAMES}'],"key":{"algo":"rsa","size":2048}}' | cfssl gencert -ca=server-ca.crt -ca-key=server-ca.key -config=server-ca-config.json - | cfssljson -bare apiserver
 ```
 
 `<service>` should be the name of the Service for the addon API server,
 and `<namespace>` is the name of the namespace in which the server will
 run.
+
+This will create a pair of files named `apiserver-key.pem` and
+`apiserver.pem`.  These are the private key and public certificate,
+respectively.  The private key and certificate are commonly referred to
+with `.key ` and `.crt` extensions, respectively: `apiserver.key` and
+`apiserver.crt`.
 
 ### Serving Certificates
 
