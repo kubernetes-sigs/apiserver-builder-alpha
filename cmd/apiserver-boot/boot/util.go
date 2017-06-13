@@ -25,6 +25,7 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
+	"github.com/markbates/inflect"
 )
 
 var server string
@@ -57,6 +58,7 @@ func writeIfNotFound(path, templateName, templateValue string, data interface{})
 		template.FuncMap{
 			"title": strings.Title,
 			"lower": strings.ToLower,
+			"plural": inflect.NewDefaultRuleset().Pluralize,
 		},
 	).Parse(templateValue))
 
