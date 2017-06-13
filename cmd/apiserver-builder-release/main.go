@@ -358,7 +358,7 @@ func BuildVendor(tooldir string) string {
 	os.RemoveAll(filepath.Join(pkgDir, "docs"))
 	os.RemoveAll(filepath.Join(pkgDir, "main.go"))
 
-	cmd := exec.Command(bootBin, "init", "--domain", "k8s.io")
+	cmd := exec.Command(bootBin, "init", "--domain", "k8s.io", "--install-deps=false")
 	cmd.Dir = pkgDir
 	RunCmd(cmd, vendordir)
 
