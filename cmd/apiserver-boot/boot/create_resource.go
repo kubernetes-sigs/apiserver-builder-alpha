@@ -21,6 +21,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/markbates/inflect"
@@ -45,6 +46,10 @@ func AddCreateResource(cmd *cobra.Command) {
 }
 
 func RunCreateResource(cmd *cobra.Command, args []string) {
+	if _, err := os.Stat("pkg"); err != nil {
+		log.Fatalf("could not find 'pkg' directory.  must run apiserver-boot init before creating resources")
+	}
+
 	if len(domain) == 0 {
 		log.Fatal("apiserver-boot create-resource requires the --domain flag")
 	}
@@ -59,6 +64,19 @@ func RunCreateResource(cmd *cobra.Command, args []string) {
 	}
 	if len(resourceName) == 0 {
 		resourceName = inflect.NewDefaultRuleset().Pluralize(strings.ToLower(kindName))
+	}
+
+	if strings.ToLower(groupName) != groupName {
+		log.Fatalf("--group must be lowercase was (%s)", groupName)
+	}
+	versionMatch := regexp.MustCompile("^v\\d+(alpha\\d+|beta\\d+)$")
+	if !versionMatch.MatchString(versionName) {
+		log.Fatalf(
+			"--version has bad format. must match ^v\\d+(alpha\\d+|beta\\d+)$.  "+
+				"e.g. v1alpha1,v1beta1,v1 was(%s)", versionName)
+	}
+	if string(kindName[0]) != strings.ToUpper(string(kindName[0])) {
+		log.Fatalf("--kind must start with uppercase letter was (%s)", kindName)
 	}
 
 	cr := getCopyright()

@@ -27,6 +27,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var generateForBuild bool
+
 var createBuildCmd = &cobra.Command{
 	Use:   "build",
 	Short: "Creates an API resource",
@@ -36,9 +38,16 @@ var createBuildCmd = &cobra.Command{
 
 func AddBuild(cmd *cobra.Command) {
 	cmd.AddCommand(createBuildCmd)
+
+	createBuildCmd.Flags().BoolVar(&generateForBuild, "generate", true, "if true, generate code before building")
 }
 
 func RunBuild(cmd *cobra.Command, args []string) {
+	if generateForBuild {
+		log.Printf("regenerating generated code.  To disable regeneration, run with --generate=false.")
+		RunGenerate(cmd, args)
+	}
+
 	path := filepath.Join("cmd", "apiserver", "main.go")
 	c := exec.Command("go", "build", "-o", "bin/apiserver", path)
 	fmt.Printf("%s\n", strings.Join(c.Args, " "))

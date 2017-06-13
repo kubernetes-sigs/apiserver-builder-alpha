@@ -32,10 +32,13 @@ var initCmd = &cobra.Command{
 	Run:   RunInit,
 }
 
+var installDeps bool
+
 func AddInit(cmd *cobra.Command) {
 	cmd.AddCommand(initCmd)
 	initCmd.Flags().StringVar(&domain, "domain", "", "domain the api groups live under")
 	initCmd.Flags().StringVar(&copyright, "copyright", "", "path to copyright file.  defaults to boilerplate.go.txt")
+	initCmd.Flags().BoolVar(&installDeps, "install-deps", true, "if true, install the vendored deps")
 }
 
 func RunInit(cmd *cobra.Command, args []string) {
@@ -56,6 +59,10 @@ func RunInit(cmd *cobra.Command, args []string) {
 
 	exec.Command("mkdir", "-p", filepath.Join("bin")).CombinedOutput()
 
+	if installDeps {
+		log.Printf("installing godeps.  To disable this, run with --install-deps=false.")
+		copyGlide()
+	}
 }
 
 type controllerManagerTemplateArguments struct {
