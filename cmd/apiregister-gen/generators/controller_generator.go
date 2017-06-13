@@ -22,6 +22,7 @@ import (
 	"text/template"
 
 	"k8s.io/gengo/generator"
+	"github.com/markbates/inflect"
 )
 
 type controllerGenerator struct {
@@ -225,6 +226,7 @@ func (d *informersGenerator) Finalize(context *generator.Context, w io.Writer) e
 	temp := template.Must(template.New("informersGenerator-template").Funcs(
 		template.FuncMap{
 			"title": strings.Title,
+			"plural": inflect.NewDefaultRuleset().Pluralize,
 		},
 	).Parse(InformersTemplate))
 	return temp.Execute(w, d.Controllers)
@@ -248,7 +250,7 @@ func NewSharedInformers(config *rest.Config, shutdown <-chan struct{}) *SharedIn
 // startInformers starts all of the informers
 func (si *SharedInformers) startInformers(shutdown <-chan struct{}) {
 	{{ range $c := . -}}
-	go si.Factory.{{title $c.Target.Group}}().{{title $c.Target.Version}}().{{title $c.Resource}}().Informer().Run(shutdown)
+	go si.Factory.{{title $c.Target.Group}}().{{title $c.Target.Version}}().{{plural $c.Target.Kind}}().Informer().Run(shutdown)
 	{{ end -}}
 }
 
