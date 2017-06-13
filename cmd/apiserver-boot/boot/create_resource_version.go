@@ -20,6 +20,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -40,6 +42,10 @@ func AddCreateVersion(cmd *cobra.Command) {
 }
 
 func RunCreateVersion(cmd *cobra.Command, args []string) {
+	if _, err := os.Stat("pkg"); err != nil {
+		log.Fatalf("could not find 'pkg' directory.  must run apiserver-boot init before creating resources")
+	}
+
 	if len(domain) == 0 {
 		log.Fatalf("apiserver-boot create-version requires the --domain flag")
 	}
@@ -48,6 +54,16 @@ func RunCreateVersion(cmd *cobra.Command, args []string) {
 	}
 	if len(versionName) == 0 {
 		log.Fatalf("apiserver-boot create-version requires the --version flag")
+	}
+
+	if strings.ToLower(groupName) != groupName {
+		log.Fatalf("--group must be lowercase was (%s)", groupName)
+	}
+	versionMatch := regexp.MustCompile("^v\\d+(alpha\\d+|beta\\d+)$")
+	if !versionMatch.MatchString(versionName) {
+		log.Fatalf(
+			"--version has bad format. must match ^v\\d+(alpha\\d+|beta\\d+)$.  "+
+				"e.g. v1alpha1,v1beta1,v1 was(%s)", versionName)
 	}
 
 	cr := getCopyright()

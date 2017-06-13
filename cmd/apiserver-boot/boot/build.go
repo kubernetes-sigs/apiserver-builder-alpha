@@ -44,6 +44,7 @@ func AddBuild(cmd *cobra.Command) {
 
 func RunBuild(cmd *cobra.Command, args []string) {
 	if generateForBuild {
+		log.Printf("regenerating generated code.  To disable regeneration, run with --generate=false.")
 		RunGenerate(cmd, args)
 	}
 

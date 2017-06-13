@@ -60,6 +60,7 @@ func RunInit(cmd *cobra.Command, args []string) {
 	exec.Command("mkdir", "-p", filepath.Join("bin")).CombinedOutput()
 
 	if installDeps {
+		log.Printf("installing godeps.  To disable this, run with --install-deps=false.")
 		copyGlide()
 	}
 }

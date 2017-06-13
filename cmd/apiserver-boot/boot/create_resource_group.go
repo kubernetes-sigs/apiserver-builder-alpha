@@ -22,6 +22,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"strings"
 )
 
 var createGroupCmd = &cobra.Command{
@@ -39,12 +40,21 @@ func AddCreateGroup(cmd *cobra.Command) {
 }
 
 func RunCreateGroup(cmd *cobra.Command, args []string) {
+	if _, err := os.Stat("pkg"); err != nil {
+		log.Fatalf("could not find 'pkg' directory.  must run apiserver-boot init before creating resources")
+	}
+
 	if len(domain) == 0 {
 		log.Fatalf("apiserver-boot create-group requires the --domain flag")
 	}
 	if len(groupName) == 0 {
 		log.Fatalf("apiserver-boot create-group requires the --groupName flag")
 	}
+
+	if strings.ToLower(groupName) != groupName {
+		log.Fatalf("--group must be lowercase was (%s)", groupName)
+	}
+
 	cr := getCopyright()
 	createGroup(cr)
 }
