@@ -1,5 +1,10 @@
 # Creating an API Server
 
+**Note:** This document explains how to manually create the files generated
+by `apiserver-boot`.  It is recommended to automatically create these files
+instead.  See [getting started](https://github.com/kubernetes-incubator/apiserver-builder/blob/master/docs/getting_started.md)
+for more details.
+
 ## Create the apiserver command
 
 Create a file called `main.go` at the root of your project.  This
