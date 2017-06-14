@@ -69,10 +69,10 @@ func RunCreateResource(cmd *cobra.Command, args []string) {
 	if strings.ToLower(groupName) != groupName {
 		log.Fatalf("--group must be lowercase was (%s)", groupName)
 	}
-	versionMatch := regexp.MustCompile("^v\\d+(alpha\\d+|beta\\d+)$")
+	versionMatch := regexp.MustCompile("^v\\d+(alpha\\d+|beta\\d+)*$")
 	if !versionMatch.MatchString(versionName) {
 		log.Fatalf(
-			"--version has bad format. must match ^v\\d+(alpha\\d+|beta\\d+)$.  "+
+			"--version has bad format. must match ^v\\d+(alpha\\d+|beta\\d+)*$.  "+
 				"e.g. v1alpha1,v1beta1,v1 was(%s)", versionName)
 	}
 	if string(kindName[0]) != strings.ToUpper(string(kindName[0])) {
