@@ -21,9 +21,10 @@ type Bar struct {
 The following line tells the code generator to generate a subresource for this resource.
 
 - under the path `bar/scale`
-- with request Kind `<version>.Scale`
-- implemented by the go type `<group>.ScaleBarREST`
+- with request Kind `Scale`
+- implemented by the go type `ScaleBarREST`
 
+Scale and ScaleBarREST live in the versioned package (same as the versioned resource definition)
 
 ```go
 // +subresource:request=Scale,path=scale,rest=ScaleBarREST
@@ -58,6 +59,8 @@ This tells the code generator that this is a subresource type and to
 register it in the wiring.
 
 ## Create the REST implementation
+
+Create the rest implementation in the *versioned* package.
 
 Example:
 
@@ -168,7 +171,7 @@ func (r *ScaleBarREST) New() runtime.Object {
 
 Run the code generation command to generate the wiring for your subresource.
 
-`apiserver-boot generate --api-versions "your-group/your-version"`
+`apiserver-boot generate`
 
 ## Invoke your subresource from a test
 
