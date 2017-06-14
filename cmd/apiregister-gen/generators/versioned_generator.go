@@ -95,7 +95,7 @@ var (
 			builders.SchemeFnsSingleton,
 			func() runtime.Object { return &{{ $subresource.Request }}{} }, // Register versioned resource
 			nil,
-			&{{ $api.Group }}.{{ $subresource.REST }}{ {{$api.Group}}.New{{$api.Kind}}Registry({{$api.Group}}{{$api.Kind}}Storage) },
+			&{{ $subresource.REST }}{ {{$api.Group}}.New{{$api.Kind}}Registry({{$api.Group}}{{$api.Kind}}Storage) },
 		),
 		{{ end -}}
 		{{ end -}}

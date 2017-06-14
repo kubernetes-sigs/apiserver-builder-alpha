@@ -24,6 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/apiserver/pkg/endpoints/request"
+	"k8s.io/apiserver/pkg/registry/rest"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 	extensionsv1beta1 "k8s.io/client-go/pkg/apis/extensions/v1beta1"
 )
@@ -119,4 +120,36 @@ type Scale struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	Faculty int `json:"faculty,omitempty"`
+}
+
+var _ rest.CreaterUpdater = &ScaleUniversityREST{}
+var _ rest.Patcher = &ScaleUniversityREST{}
+
+type ScaleUniversityREST struct {
+	Registry miskatonic.UniversityRegistry
+}
+
+func (r *ScaleUniversityREST) Create(ctx request.Context, obj runtime.Object) (runtime.Object, error) {
+	scale := obj.(*Scale)
+	u, err := r.Registry.GetUniversity(ctx, scale.Name, &metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	u.Spec.FacultySize = scale.Faculty
+	r.Registry.UpdateUniversity(ctx, u)
+	return u, nil
+}
+
+// Get retrieves the object from the storage. It is required to support Patch.
+func (r *ScaleUniversityREST) Get(ctx request.Context, name string, options *metav1.GetOptions) (runtime.Object, error) {
+	return nil, nil
+}
+
+// Update alters the status subset of an object.
+func (r *ScaleUniversityREST) Update(ctx request.Context, name string, objInfo rest.UpdatedObjectInfo) (runtime.Object, bool, error) {
+	return nil, false, nil
+}
+
+func (r *ScaleUniversityREST) New() runtime.Object {
+	return &Scale{}
 }
