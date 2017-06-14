@@ -81,6 +81,15 @@ var {{ $group.Group }}ApiGroup = builders.NewApiGroupBuilder(
 		{{ range $version := $group.Versions -}}
 		{{ $group.Group }}{{ $version.Version }}.ApiVersion,
 		{{ end -}}
+	).
+	WithRootScopedKinds(
+		{{ range $version := $group.Versions -}}
+		{{ range $res := $version.Resources -}}
+		{{ if $res.NonNamespaced -}}
+		"{{ $res.Kind }}",
+		{{ end -}}
+		{{ end -}}
+		{{ end -}}
 	)
 
 func Get{{ $group.GroupTitle }}APIBuilder() *builders.APIGroupBuilder {

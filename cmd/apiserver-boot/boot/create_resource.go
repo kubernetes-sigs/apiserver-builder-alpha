@@ -42,6 +42,7 @@ func AddCreateResource(cmd *cobra.Command) {
 	createResourceCmd.Flags().StringVar(&resourceName, "resource", "", "optional name of the API resource to create, normally the plural name of the kind in lowercase")
 	createResourceCmd.Flags().StringVar(&copyright, "copyright", "", "path to copyright file.  defaults to boilerplate.go.txt")
 	createResourceCmd.Flags().StringVar(&domain, "domain", "", "domain the api group lives under")
+	createResourceCmd.Flags().BoolVar(&nonNamespacedKind, "non-namespaced", false, "if set, the API kind will be non namespaced")
 	cmd.AddCommand(createResourceCmd)
 }
 
@@ -105,6 +106,7 @@ func createResource(boilerplate string) {
 		resourceName,
 		Repo,
 		inflect.NewDefaultRuleset().Pluralize(kindName),
+		nonNamespacedKind,
 	}
 
 	found := false
@@ -163,6 +165,7 @@ type resourceTemplateArgs struct {
 	Resource       string
 	Repo           string
 	PluralizedKind string
+	NonNamespacedKind bool
 }
 
 var resourceTemplate = `
@@ -183,6 +186,8 @@ import (
 )
 
 // +genclient=true
+{{- if .NonNamespacedKind }}
+// +nonNamespaced=true{{ end }}
 
 // {{.Kind}}
 // +k8s:openapi-gen=true
@@ -292,7 +297,7 @@ var _ = Describe("{{.Kind}}", func() {
 	Describe("when sending a storage request", func() {
 		Context("for a valid config", func() {
 			It("should provide CRUD access to the object", func() {
-				client = cs.{{ title .Group}}{{title .Version}}Client.{{plural .Kind}}("{{lower .Kind}}-test-valid")
+				client = cs.{{ title .Group}}{{title .Version}}Client.{{plural .Kind}}({{ if not .NonNamespacedKind }}"{{lower .Kind}}-test-valid"{{ end }})
 
 				By("returning success from the create request")
 				actual, err := client.Create(&instance)
@@ -378,7 +383,7 @@ func (c *{{.Kind}}ControllerImpl) Reconcile(u *{{.Version}}.{{.Kind}}) error {
 }
 
 func (c *{{.Kind}}ControllerImpl) Get(namespace, name string) (*{{.Version}}.{{.Kind}}, error) {
-	return c.lister.{{ title .Resource }}(namespace).Get(name)
+	return c.lister.{{ if not .NonNamespacedKind }}{{ title .Resource }}(namespace).{{ end }}Get(name)
 }
 `
 
@@ -457,7 +462,7 @@ var _ = Describe("{{ .Kind }} controller", func() {
 	BeforeEach(func() {
 		instance = {{ .Kind }}{}
 		instance.Name = "instance-1"
-		expectedKey = "{{lower .Kind }}-controller-test-handler/instance-1"
+		expectedKey = "{{ if not .NonNamespacedKind }}{{lower .Kind }}-controller-test-handler/{{ end }}instance-1"
 	})
 
 	AfterEach(func() {
@@ -466,7 +471,7 @@ var _ = Describe("{{ .Kind }} controller", func() {
 
 	Describe("when creating a new object", func() {
 		It("invoke the reconcile method", func() {
-			client = cs.{{title .Group}}{{title .Version}}Client.{{ plural .Kind }}("{{lower .Kind }}-controller-test-handler")
+			client = cs.{{title .Group}}{{title .Version}}Client.{{ plural .Kind }}({{ if not .NonNamespacedKind }}"{{lower .Kind }}-controller-test-handler"{{ end }})
 			before = make(chan struct{})
 			after = make(chan struct{})
 
