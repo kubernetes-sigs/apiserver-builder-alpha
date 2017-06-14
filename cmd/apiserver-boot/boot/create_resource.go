@@ -173,14 +173,20 @@ package {{.Version}}
 import (
 	"log"
 
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apiserver/pkg/endpoints/request"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/validation/field"
+
+	"{{ .Repo }}/pkg/apis/{{.Group}}"
 )
 
 // +genclient=true
 
 // {{.Kind}}
 // +k8s:openapi-gen=true
-// +resource:path={{.Resource}}
+// +resource:path={{.Resource}},strategy={{.Kind}}Strategy
 type {{.Kind}} struct {
 	metav1.TypeMeta   ` + "`" + `json:",inline"` + "`" + `
 	metav1.ObjectMeta ` + "`" + `json:"metadata,omitempty"` + "`" + `
@@ -197,13 +203,21 @@ type {{.Kind}}Spec struct {
 type {{.Kind}}Status struct {
 }
 
+// Validate checks that an instance of {{.Kind}} is well formed
+func ({{.Kind}}Strategy) Validate(ctx request.Context, obj runtime.Object) field.ErrorList {
+	o := obj.(*{{.Group}}.{{.Kind}})
+	log.Printf("Validating fields for {{.Kind}} %s\n", o.Name)
+	errors := field.ErrorList{}
+	// perform validation here and add to errors using field.Invalid
+	return errors
+}
+
 // DefaultingFunction sets default {{.Kind}} field values
 func ({{.Kind}}SchemeFns) DefaultingFunction(o interface{}) {
 	obj := o.(*{{.Kind}})
-	// Set default field values here
+	// set default field values here
 	log.Printf("Defaulting fields for {{.Kind}} %s\n", obj.Name)
 }
-
 `
 
 var resourceSuiteTestTemplate = `
