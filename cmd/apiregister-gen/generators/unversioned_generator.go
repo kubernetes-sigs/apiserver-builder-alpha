@@ -182,7 +182,7 @@ func (pc *{{$api.Kind}}) SetStatus(s interface{}) {
 }
 
 func (pc *{{$api.Kind}}) GetSpec() interface{} {
-	return pc.Status
+	return pc.Spec
 }
 
 func (pc *{{$api.Kind}}) SetSpec(s interface{}) {
