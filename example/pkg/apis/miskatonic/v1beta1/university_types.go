@@ -19,7 +19,11 @@ package v1beta1
 import (
 	"log"
 
+	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/validation/field"
+	"k8s.io/apiserver/pkg/endpoints/request"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 	extensionsv1beta1 "k8s.io/client-go/pkg/apis/extensions/v1beta1"
 )
@@ -30,7 +34,7 @@ import (
 // +genclient=true
 
 // +k8s:openapi-gen=true
-// +resource:path=universities
+// +resource:path=universities,strategy=UniversityStrategy
 // +subresource:request=Scale,path=scale,rest=ScaleUniversityREST
 type University struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -74,6 +78,20 @@ type UniversityStatus struct {
 	FacultyEmployed []string `json:"faculty_employed,omitempty"`
 }
 
+// Resource Validation
+func (UniversityStrategy) Validate(ctx request.Context, obj runtime.Object) field.ErrorList {
+	university := obj.(*miskatonic.University)
+	log.Printf("Validating University %s\n", university.Name)
+	errors := field.ErrorList{}
+	if university.Spec.MaxStudents == nil || *university.Spec.MaxStudents < 1 || *university.Spec.MaxStudents > 150 {
+		errors = append(errors, field.Invalid(
+			field.NewPath("spec", "MaxStudents"),
+			*university.Spec.MaxStudents,
+			"Must be between 1 and 150"))
+	}
+	return errors
+}
+
 // GetDefaultingFunctions returns functions for defaulting v1beta1.University values
 func (UniversitySchemeFns) DefaultingFunction(o interface{}) {
 	obj := o.(*University)
@@ -84,6 +102,8 @@ func (UniversitySchemeFns) DefaultingFunction(o interface{}) {
 	}
 }
 
+// GetConversionFunctions returns functions for converting resource versions to override the
+// conversion functions
 func (UniversitySchemeFns) GetConversionFunctions() []interface{} {
 	return []interface{}{
 		apiv1.Convert_api_PodSpec_To_v1_PodSpec,
