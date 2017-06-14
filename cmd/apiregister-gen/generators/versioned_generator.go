@@ -72,7 +72,7 @@ var (
 			{{.Kind}}SchemeFns{},
 			func() runtime.Object { return &{{ $api.Kind }}{} },     // Register versioned resource
 			func() runtime.Object { return &{{ $api.Kind }}List{} }, // Register versioned resource list
-			&{{ $api.Group }}.{{ $api.Kind }}Strategy{builders.StorageStrategySingleton},
+			&{{ $api.Strategy }}{builders.StorageStrategySingleton},
 		)
 	{{ end -}}
 	{{ end -}}
@@ -86,7 +86,7 @@ var (
 			{{.Kind}}SchemeFns{},
 			func() runtime.Object { return &{{ $api.Kind }}{} },     // Register versioned resource
 			func() runtime.Object { return &{{ $api.Kind }}List{} }, // Register versioned resource list
-			&{{ $api.Group }}.{{ $api.Kind }}StatusStrategy{builders.StatusStorageStrategySingleton},
+			&{{ $api.StatusStrategy }}{builders.StatusStorageStrategySingleton},
 		),{{ end -}}
 
 		{{ range $subresource := $api.Subresources -}}
@@ -126,6 +126,15 @@ func Resource(resource string) schema.GroupResource {
 type {{.Kind}}SchemeFns struct {
 	builders.DefaultSchemeFns
 }
+
+type {{.Kind}}Strategy struct {
+	builders.DefaultStorageStrategy
+}
+
+type {{$api.Kind}}StatusStrategy struct {
+	builders.DefaultStatusStorageStrategy
+}
+
 
 type {{$api.Kind}}List struct {
 	metav1.TypeMeta ` + "`json:\",inline\"`" + `

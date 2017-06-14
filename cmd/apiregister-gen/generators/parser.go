@@ -116,6 +116,10 @@ type APIResource struct {
 	Subresources map[string]*APISubresource
 	// Type is the Type object from code-gen
 	Type *types.Type
+	// Strategy is name of the struct to use for the strategy
+	Strategy string
+	// Strategy is name of the struct to use for the strategy
+	StatusStrategy string
 }
 
 type APISubresource struct {
@@ -217,14 +221,16 @@ func (b *APIsBuilder) ParseAPIs() {
 			}
 			for kind, resource := range kindMap {
 				apiResource := &APIResource{
-					Domain:       resource.Domain,
-					Version:      resource.Version,
-					Group:        resource.Group,
-					Resource:     resource.Resource,
-					Type:         resource.Type,
-					REST:         resource.REST,
-					Kind:         resource.Kind,
-					Subresources: resource.Subresources,
+					Domain:         resource.Domain,
+					Version:        resource.Version,
+					Group:          resource.Group,
+					Resource:       resource.Resource,
+					Type:           resource.Type,
+					REST:           resource.REST,
+					Kind:           resource.Kind,
+					Subresources:   resource.Subresources,
+					StatusStrategy: resource.StatusStrategy,
+					Strategy:       resource.Strategy,
 				}
 				apiVersion.Resources[kind] = apiResource
 				// Set the package for the api version
@@ -282,6 +288,17 @@ func (b *APIsBuilder) ParseIndex() {
 
 		r.Resource = rt.Resource
 		r.REST = rt.REST
+
+		r.Strategy = rt.Strategy
+
+		// If not defined, default the strategy to the group strategy for backwards compatibility
+		if len(r.Strategy) == 0 {
+			r.Strategy = fmt.Sprintf("%s.%sStrategy", r.Group, r.Kind)
+		}
+
+		// Copy the Status strategy to mirror the non-status strategy
+		r.StatusStrategy = strings.TrimSuffix(r.Strategy, "Strategy")
+		r.StatusStrategy = fmt.Sprintf("%sStatusStrategy", r.StatusStrategy)
 
 		if _, f := b.ByGroupKindVersion[r.Group]; !f {
 			b.ByGroupKindVersion[r.Group] = map[string]map[string]*APIResource{}
@@ -365,6 +382,7 @@ func (b *APIsBuilder) GetNameAndImport(tags SubresourceTags) (string, string) {
 type ResourceTags struct {
 	Resource string
 	REST     string
+	Strategy string
 }
 
 // ParseResourceTag parses the tags in a "+resource=" comment into a ResourceTags struct
@@ -383,6 +401,8 @@ func ParseResourceTag(tag string) ResourceTags {
 			result.REST = value
 		case "path":
 			result.Resource = value
+		case "strategy":
+			result.Strategy = value
 		}
 	}
 	return result
