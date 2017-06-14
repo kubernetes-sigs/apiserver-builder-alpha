@@ -23,8 +23,8 @@ For example
 
 ## Create a copyright header
 
-Create a file called `boilerplate.go.txt` that contains the copyright
-you want to appear at the top of generated files.
+Create a file called `boilerplate.go.txt`.  This file will contain the
+copyright boilerplate appearing at the top of all generated files.
 
 Under GOPATH/src/github.com/my-org/my-project:
 
