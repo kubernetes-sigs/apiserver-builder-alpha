@@ -1,14 +1,14 @@
 # Adding a validation to a resources schema
 
-To add server side schema validation for your resource override
-the function `func (<group>.<Kind>Strategy) Validate(ctx request.Context, obj runtime.Object) field.ErrorList`
-in the group package.
+**Note:** By default, when creating a resource with `apiserver-boot create-resource` a validation
+function will be created in the versioned `<kind>_types.go` file.
 
-**Important:** The validation logic lives in the group package *not* the version package.
+To add server side validation for your resource override the `Validate` function
+on the `<Kind>Strategy` struct in the version package.
 
 Example:
 
-File: `pkg/apis/<group>/bar.go`
+File: `pkg/apis/<group>/<version>/bar_types.go`
 
 ```go
 // Resource Validation
@@ -44,3 +44,8 @@ Use the field.Invalid function to specify errors scoped to fields in the object.
 ```go
 field.Invalid(field.NewPath("spec", "Field"), *bar.Spec.Field, "Error message")
 ```
+
+**Note:** To specify a different struct type for validation, specify `stragegy` in the resource
+comment.  e.g. `// +resource:path=<resource>,strategy=<Kind>Strategy`.  This struct type must
+have a single field of type `builders.DefaultStorageStrategy` for the generated code to correctly
+create an pass it into the wiring.
