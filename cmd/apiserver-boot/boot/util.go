@@ -39,6 +39,7 @@ var domain string
 var Repo string
 var GoSrc string
 var ignoreExists = false
+var nonNamespacedKind = false
 
 // writeIfNotFound returns true if the file was created and false if it already exists
 func writeIfNotFound(path, templateName, templateValue string, data interface{}) bool {

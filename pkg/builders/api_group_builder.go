@@ -37,6 +37,7 @@ type APIGroupBuilder struct {
 	Versions     []*VersionedApiBuilder
 	Name         string
 	ImportPrefix string
+	RootScopedKinds []string
 }
 
 func NewApiGroupBuilder(name, prefix string) *APIGroupBuilder {
@@ -54,6 +55,11 @@ func (g *APIGroupBuilder) WithUnVersionedApi(unversioned *UnVersionedApiBuilder)
 
 func (g *APIGroupBuilder) WithVersionedApis(versions ...*VersionedApiBuilder) *APIGroupBuilder {
 	g.Versions = append(g.Versions, versions...)
+	return g
+}
+
+func (g *APIGroupBuilder) WithRootScopedKinds(kinds ...string) *APIGroupBuilder {
+	g.RootScopedKinds = append(g.RootScopedKinds, kinds...)
 	return g
 }
 
@@ -121,7 +127,7 @@ func (g *APIGroupBuilder) Install(
 	if err := announced.NewGroupMetaFactory(
 		&announced.GroupMetaFactoryArgs{
 			GroupName:                  g.Name,
-			RootScopedKinds:            sets.NewString("APIService"),
+			RootScopedKinds:            sets.NewString(append(g.RootScopedKinds, "APIService")...),
 			VersionPreferenceOrder:     g.GetVersionPreferenceOrder(),
 			ImportPrefix:               g.ImportPrefix,
 			AddInternalObjectsToScheme: g.UnVersioned.SchemaBuilder.AddToScheme,
