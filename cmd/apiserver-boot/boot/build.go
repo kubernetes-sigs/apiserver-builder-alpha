@@ -28,11 +28,14 @@ import (
 )
 
 var generateForBuild bool
+var goos string
+var goarch string
+var outputdir string
 
 var createBuildCmd = &cobra.Command{
 	Use:   "build",
-	Short: "Creates an API resource",
-	Long:  `Creates an API resource`,
+	Short: "Builds the source into executables",
+	Long:  `Builds the source into executables`,
 	Run:   RunBuild,
 }
 
@@ -40,6 +43,9 @@ func AddBuild(cmd *cobra.Command) {
 	cmd.AddCommand(createBuildCmd)
 
 	createBuildCmd.Flags().BoolVar(&generateForBuild, "generate", true, "if true, generate code before building")
+	createBuildCmd.Flags().StringVar(&goos, "goos", "", "if set, use this GOOS")
+	createBuildCmd.Flags().StringVar(&goarch, "goarch", "", "if set, use this GOARCH")
+	createBuildCmd.Flags().StringVar(&outputdir, "outputdir", "bin", "if set, write the binary to this directory")
 }
 
 func RunBuild(cmd *cobra.Command, args []string) {
@@ -48,8 +54,17 @@ func RunBuild(cmd *cobra.Command, args []string) {
 		RunGenerate(cmd, args)
 	}
 
+	// Build the apiserver
 	path := filepath.Join("cmd", "apiserver", "main.go")
-	c := exec.Command("go", "build", "-o", "bin/apiserver", path)
+	c := exec.Command("go", "build", "-o", filepath.Join(outputdir, "apiserver"), path)
+	c.Env = append(os.Environ(), "CGO_ENABLED=0")
+	if len(goos) > 0 {
+		c.Env = append(c.Env, fmt.Sprintf("GOOS=%s", goos))
+	}
+	if len(goarch) > 0 {
+		c.Env = append(c.Env, fmt.Sprintf("GOARCH=%s", goarch))
+	}
+
 	fmt.Printf("%s\n", strings.Join(c.Args, " "))
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout
@@ -58,8 +73,17 @@ func RunBuild(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
+	// Build the controller manager
 	path = filepath.Join("cmd", "controller", "main.go")
-	c = exec.Command("go", "build", "-o", "bin/controller-manager", path)
+	c = exec.Command("go", "build", "-o", filepath.Join(outputdir, "controller-manager"), path)
+	c.Env = append(os.Environ(), "CGO_ENABLED=0")
+	if len(goos) > 0 {
+		c.Env = append(c.Env, fmt.Sprintf("GOOS=%s", goos))
+	}
+	if len(goarch) > 0 {
+		c.Env = append(c.Env, fmt.Sprintf("GOARCH=%s", goarch))
+	}
+
 	fmt.Println(strings.Join(c.Args, " "))
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout
