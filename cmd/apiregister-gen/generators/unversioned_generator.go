@@ -139,9 +139,21 @@ type {{.Kind}}Strategy struct {
 	builders.DefaultStorageStrategy
 }
 
+{{ if .NonNamespaced -}}
+var {{.Kind}}StrategySingleton = {{.Kind}}Strategy{builders.StorageStrategySingleton}
+
+func ({{.Kind}}Strategy) NamespaceScoped() bool { return false }
+{{ end -}}
+
 type {{$api.Kind}}StatusStrategy struct {
 	builders.DefaultStatusStorageStrategy
 }
+
+{{ if .NonNamespaced -}}
+var {{.Kind}}StatusStrategySingleton = {{.Kind}}StatusStrategy{builders.StatusStorageStrategySingleton}
+
+func ({{.Kind}}StatusStrategy) NamespaceScoped() bool { return false }
+{{ end -}}
 
 type {{$api.Kind}}List struct {
 	metav1.TypeMeta

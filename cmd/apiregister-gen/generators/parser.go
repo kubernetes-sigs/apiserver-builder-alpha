@@ -120,6 +120,8 @@ type APIResource struct {
 	Strategy string
 	// Strategy is name of the struct to use for the strategy
 	StatusStrategy string
+	// NonNamespaced indicates that the resource kind is non namespaced
+	NonNamespaced bool
 }
 
 type APISubresource struct {
@@ -231,6 +233,7 @@ func (b *APIsBuilder) ParseAPIs() {
 					Subresources:   resource.Subresources,
 					StatusStrategy: resource.StatusStrategy,
 					Strategy:       resource.Strategy,
+					NonNamespaced:  resource.NonNamespaced,
 				}
 				apiVersion.Resources[kind] = apiResource
 				// Set the package for the api version
@@ -278,6 +281,7 @@ func (b *APIsBuilder) ParseIndex() {
 
 		r := &APIResource{
 			Type: c,
+			NonNamespaced: IsNonNamespaced(c),
 		}
 		r.Group = GetGroup(c)
 		r.Version = GetVersion(c, r.Group)

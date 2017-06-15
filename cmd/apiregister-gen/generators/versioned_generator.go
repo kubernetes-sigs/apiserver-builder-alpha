@@ -72,7 +72,11 @@ var (
 			{{.Kind}}SchemeFns{},
 			func() runtime.Object { return &{{ $api.Kind }}{} },     // Register versioned resource
 			func() runtime.Object { return &{{ $api.Kind }}List{} }, // Register versioned resource list
+			{{ if $api.NonNamespaced -}}
+			&{{ $api.Group }}.{{ $api.Kind }}StrategySingleton,
+			{{ else -}}
 			&{{ $api.Strategy }}{builders.StorageStrategySingleton},
+			{{ end -}}
 		)
 	{{ end -}}
 	{{ end -}}
@@ -86,7 +90,11 @@ var (
 			{{.Kind}}SchemeFns{},
 			func() runtime.Object { return &{{ $api.Kind }}{} },     // Register versioned resource
 			func() runtime.Object { return &{{ $api.Kind }}List{} }, // Register versioned resource list
+			{{ if $api.NonNamespaced -}}
+			&{{ $api.Group }}.{{ $api.Kind }}StatusStrategySingleton,
+			{{ else -}}
 			&{{ $api.StatusStrategy }}{builders.StatusStorageStrategySingleton},
+			{{ end -}}
 		),{{ end -}}
 
 		{{ range $subresource := $api.Subresources -}}
