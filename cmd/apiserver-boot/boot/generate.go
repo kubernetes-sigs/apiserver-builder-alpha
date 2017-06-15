@@ -35,7 +35,7 @@ var unversionedAPIs []string
 var generateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Generates source code for a repo",
-	Long:  `Generates source code for a repo`,
+	Long:  `Generates source code for a repo.  By default, automatically run with build`,
 	Run:   RunGenerate,
 }
 
