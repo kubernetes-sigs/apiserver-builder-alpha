@@ -29,7 +29,7 @@ import (
 var createVersionCmd = &cobra.Command{
 	Use:   "create-version",
 	Short: "Creates an API version",
-	Long:  `Creates an API version`,
+	Long:  `Creates an API version.  Automatically run with create-resource.`,
 	Run:   RunCreateVersion,
 }
 
