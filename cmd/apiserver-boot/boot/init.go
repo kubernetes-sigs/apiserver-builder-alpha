@@ -112,6 +112,7 @@ func createControllerManager(boilerplate string) {
 }
 
 type apiserverTemplateArguments struct {
+	Domain      string
 	BoilerPlate string
 	Repo        string
 }
@@ -134,7 +135,7 @@ import (
 )
 
 func main() {
-	server.StartApiServer("/registry/sample.kubernetes.io", apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions)
+	server.StartApiServer("/registry/{{ .Domain }}", apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions)
 }
 `
 
@@ -144,7 +145,7 @@ func createApiserver(boilerplate string) {
 		log.Fatal(err)
 	}
 	path := filepath.Join(dir, "cmd", "apiserver", "main.go")
-	writeIfNotFound(path, "apiserver-template", apiserverTemplate, apiserverTemplateArguments{boilerplate, Repo})
+	writeIfNotFound(path, "apiserver-template", apiserverTemplate, apiserverTemplateArguments{domain, boilerplate, Repo})
 
 }
 
