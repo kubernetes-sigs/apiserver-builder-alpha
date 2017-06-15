@@ -28,8 +28,8 @@ import (
 
 var glideInstallCmd = &cobra.Command{
 	Use:   "glide-install",
-	Short: "Runs glide install and flatten vendored directories",
-	Long:  `Runs glide install and flatten vendored directories`,
+	Short: "Copy source deps distributed with apiserver-boot into a vendor dir",
+	Long:  `Copy source deps distributed with apiserver-boot into a vendor dir.  By default, automatically run with init.`,
 	Run:   RunGlideInstall,
 }
 

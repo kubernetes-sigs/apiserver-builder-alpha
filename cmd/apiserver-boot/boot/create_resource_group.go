@@ -28,7 +28,7 @@ import (
 var createGroupCmd = &cobra.Command{
 	Use:   "create-group",
 	Short: "Creates an API group",
-	Long:  `Creates an API group`,
+	Long:  `Creates an API group.  Automatically run with create-version and create-resource.`,
 	Run:   RunCreateGroup,
 }
 
