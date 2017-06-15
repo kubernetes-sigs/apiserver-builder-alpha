@@ -292,7 +292,7 @@ var _ = Describe("{{.Kind}}", func() {
 	Describe("when sending a storage request", func() {
 		Context("for a valid config", func() {
 			It("should provide CRUD access to the object", func() {
-				client = cs.{{ title .Group}}{{title .Version}}Client.{{title .Resource}}("{{lower .Kind}}-test-valid")
+				client = cs.{{ title .Group}}{{title .Version}}Client.{{plural .Kind}}("{{lower .Kind}}-test-valid")
 
 				By("returning success from the create request")
 				actual, err := client.Create(&instance)
@@ -362,7 +362,7 @@ func (c *{{.Kind}}ControllerImpl) Init(
 	queue workqueue.RateLimitingInterface) {
 
 	// Set the informer and lister for subscribing to events and indexing {{.Resource}} labels
-	i := si.Factory.{{title .Group}}().{{title .Version}}().{{title .Resource}}()
+	i := si.Factory.{{title .Group}}().{{title .Version}}().{{plural .Kind}}()
 	c.informer = i.Informer()
 	c.lister = i.Lister()
 
@@ -466,7 +466,7 @@ var _ = Describe("{{ .Kind }} controller", func() {
 
 	Describe("when creating a new object", func() {
 		It("invoke the reconcile method", func() {
-			client = cs.{{title .Group}}{{title .Version}}Client.{{ title .Resource }}("{{lower .Kind }}-controller-test-handler")
+			client = cs.{{title .Group}}{{title .Version}}Client.{{ plural .Kind }}("{{lower .Kind }}-controller-test-handler")
 			before = make(chan struct{})
 			after = make(chan struct{})
 
