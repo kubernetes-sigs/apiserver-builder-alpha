@@ -1,4 +1,6 @@
-# Apiserver Builder
+## `apiserver-builder`
+
+[![Build Status](https://travis-ci.org/kubernetes-incubator/apiserver-builder.svg?branch=master)](https://travis-ci.org/kubernetes-incubator/apiserver-builder "Travis")
 
 Apiserver Builder is a collection of libraries and tools to build native
 Kubernetes extensions using Kubernetes apiserver code.
