@@ -1,0 +1,14 @@
+language: go
+
+go:
+- 1.8.1
+
+git:
+  depth: 3
+
+install:
+- scripts/install_etcd.sh
+
+script:
+- cd example
+- PATH=$PATH:/tmp/test-etcd make test
