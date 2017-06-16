@@ -27,6 +27,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"regexp"
 )
 
 var versionedAPIs []string
@@ -255,8 +256,9 @@ func initApis() {
 				if err != nil {
 					log.Fatalf("could not read pkg/apis/%s directory to find api versions", g.Name())
 				}
+				versionMatch := regexp.MustCompile("^v\\d+(alpha\\d+|beta\\d+)*$")
 				for _, v := range versionFiles {
-					if v.IsDir() {
+					if v.IsDir() && versionMatch.MatchString(v.Name()) {
 						versionedAPIs = append(versionedAPIs, filepath.Join(g.Name(), v.Name()))
 					}
 				}

@@ -18,7 +18,9 @@ package builders
 
 import (
 	"k8s.io/apimachinery/pkg/apimachinery/announced"
+	"k8s.io/apimachinery/pkg/apimachinery/registered"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apiserver/pkg/registry/generic"
@@ -112,8 +114,10 @@ func (g *APIGroupBuilder) Build(optionsGetter generic.RESTOptionsGetter) *generi
 
 }
 
-// Announce installs the API group for an api server
-func (g *APIGroupBuilder) Announce() {
+func (g *APIGroupBuilder) Install(
+	groupFactoryRegistry announced.APIGroupFactoryRegistry,
+	registry *registered.APIRegistrationManager,
+	scheme *runtime.Scheme) {
 	if err := announced.NewGroupMetaFactory(
 		&announced.GroupMetaFactoryArgs{
 			GroupName:                  g.Name,
@@ -123,8 +127,13 @@ func (g *APIGroupBuilder) Announce() {
 			AddInternalObjectsToScheme: g.UnVersioned.SchemaBuilder.AddToScheme,
 		},
 		g.VersionToSchemeFunc(),
-	).Announce(api.GroupFactoryRegistry).RegisterAndEnable(api.Registry, api.Scheme); err != nil {
+	).Announce(groupFactoryRegistry).RegisterAndEnable(registry, scheme); err != nil {
 		panic(err)
 	}
 
+}
+
+// Announce installs the API group for an api server
+func (g *APIGroupBuilder) Announce() {
+	g.Install(api.GroupFactoryRegistry, api.Registry, api.Scheme)
 }

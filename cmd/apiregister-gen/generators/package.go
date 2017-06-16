@@ -17,6 +17,7 @@ limitations under the License.
 package generators
 
 import (
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -88,18 +89,22 @@ func (g *Gen) Packages(context *generator.Context, arguments *args.GeneratorArgs
 	b := NewAPIsBuilder(context, arguments)
 	for _, apigroup := range b.APIs.Groups {
 		for _, apiversion := range apigroup.Versions {
-			factory := &packageFactory{apiversion.Pkg, arguments}
+			factory := &packageFactory{apiversion.Pkg.Path, arguments}
 			// Add generators for versioned types
 			gen := CreateVersionedGenerator(apiversion, apigroup, arguments.OutputFileBaseName)
 			g.p = append(g.p, factory.createPackage(gen))
 		}
 
-		factory := &packageFactory{apigroup.Pkg, arguments}
+		factory := &packageFactory{apigroup.Pkg.Path, arguments}
 		gen := CreateUnversionedGenerator(apigroup, arguments.OutputFileBaseName)
+		g.p = append(g.p, factory.createPackage(gen))
+
+		factory = &packageFactory{path.Join(apigroup.Pkg.Path, "install"), arguments}
+		gen = CreateInstallGenerator(apigroup, arguments.OutputFileBaseName)
 		g.p = append(g.p, factory.createPackage(gen))
 	}
 
-	factory := &packageFactory{b.APIs.Pkg, arguments}
+	factory := &packageFactory{b.APIs.Pkg.Path, arguments}
 	gen := CreateApisGenerator(b.APIs, arguments.OutputFileBaseName)
 	g.p = append(g.p, factory.createPackage(gen))
 
@@ -107,19 +112,19 @@ func (g *Gen) Packages(context *generator.Context, arguments *args.GeneratorArgs
 	repo := ""
 	for _, c := range b.Controllers {
 		repo = c.Repo
-		factory = &packageFactory{c.Pkg, arguments}
+		factory = &packageFactory{c.Pkg.Path, arguments}
 		cgen := CreateControllerGenerator(c, arguments.OutputFileBaseName)
 		g.p = append(g.p, factory.createPackage(cgen))
 	}
 
 	if len(b.Controllers) > 0 {
-		factory = &packageFactory{context.Universe[repo+"/pkg/controller"], arguments}
+		factory = &packageFactory{context.Universe[repo+"/pkg/controller"].Path, arguments}
 		cgen := CreateAllControllerGenerator(b.Controllers, arguments.OutputFileBaseName)
 		g.p = append(g.p, factory.createPackage(cgen))
 	}
 
 	if len(b.Controllers) > 0 {
-		factory = &packageFactory{context.Universe[repo+"/pkg/controller/sharedinformers"], arguments}
+		factory = &packageFactory{context.Universe[repo+"/pkg/controller/sharedinformers"].Path, arguments}
 		cgen := CreateInformersGenerator(b.Controllers, arguments.OutputFileBaseName)
 		g.p = append(g.p, factory.createPackage(cgen))
 	}
@@ -127,14 +132,14 @@ func (g *Gen) Packages(context *generator.Context, arguments *args.GeneratorArgs
 }
 
 type packageFactory struct {
-	pkg       *types.Package
+	path      string
 	arguments *args.GeneratorArgs
 }
 
 // Creates a package with a generator
 func (f *packageFactory) createPackage(gen generator.Generator) generator.Package {
-	path := f.pkg.Path
-	name := strings.Split(filepath.Base(f.pkg.Path), ".")[0]
+	path := f.path
+	name := strings.Split(filepath.Base(f.path), ".")[0]
 	return &generator.DefaultPackage{
 		PackageName: name,
 		PackagePath: path,
@@ -143,7 +148,7 @@ func (f *packageFactory) createPackage(gen generator.Generator) generator.Packag
 			return []generator.Generator{gen}
 		},
 		FilterFunc: func(c *generator.Context, t *types.Type) bool {
-			return t.Name.Package == f.pkg.Path
+			return t.Name.Package == f.path
 		},
 	}
 }
