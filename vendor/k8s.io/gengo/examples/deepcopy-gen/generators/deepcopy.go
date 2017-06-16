@@ -196,7 +196,6 @@ func Packages(context *generator.Context, arguments *args.GeneratorArgs) generat
 				expandedPath := strings.TrimPrefix(pkg.SourcePath, arguments.OutputBase)
 				if strings.Contains(expandedPath, "/vendor/") {
 					path = expandedPath
-					glog.V(3).Infof("  %s", path)
 				}
 			}
 			packages = append(packages,
@@ -523,12 +522,11 @@ func (g *genDeepCopy) doMap(t *types.Type, sw *generator.SnippetWriter) {
 				sw.Do("}\n", nil)
 				sw.Do("(*out)[key] = *newVal\n", nil)
 			} else {
-				sw.Do("newVal, err := c.DeepCopy(&val)\n", nil)
-				sw.Do("if err != nil {\n", nil)
+				sw.Do("if newVal, err := c.DeepCopy(&val); err != nil {\n", nil)
 				sw.Do("return err\n", nil)
-				sw.Do("}\n", nil)
+				sw.Do("} else {\n", nil)
 				sw.Do("(*out)[key] = *newVal.(*$.|raw$)\n", t.Elem)
-				sw.Do("\n", nil)
+				sw.Do("}\n", nil)
 			}
 			sw.Do("}\n", nil)
 		}
@@ -565,12 +563,11 @@ func (g *genDeepCopy) doSlice(t *types.Type, sw *generator.SnippetWriter) {
 			sw.Do("return err\n", nil)
 			sw.Do("}\n", nil)
 		} else {
-			sw.Do("newVal, err := c.DeepCopy(&(*in)[i])\n", nil)
-			sw.Do("if err != nil {\n", nil)
+			sw.Do("if newVal, err := c.DeepCopy(&(*in)[i]); err != nil {\n", nil)
 			sw.Do("return err\n", nil)
-			sw.Do("}\n", nil)
+			sw.Do("} else {\n", nil)
 			sw.Do("(*out)[i] = *newVal.(*$.|raw$)\n", t.Elem)
-			sw.Do("\n", nil)
+			sw.Do("}\n", nil)
 		}
 		sw.Do("}\n", nil)
 	}
@@ -630,12 +627,11 @@ func (g *genDeepCopy) doStruct(t *types.Type, sw *generator.SnippetWriter) {
 			} else {
 				// Fall back on the slow-path and hope it works.
 				// TODO: don't depend on kubernetes code for this
-				sw.Do("newVal, err := c.DeepCopy(&in.$.name$)\n", args)
-				sw.Do("if err != nil {\n", nil)
+				sw.Do("if newVal, err := c.DeepCopy(&in.$.name$); err != nil {\n", args)
 				sw.Do("return err\n", nil)
-				sw.Do("}\n", nil)
+				sw.Do("} else {\n", nil)
 				sw.Do("out.$.name$ = *newVal.(*$.type|raw$)\n", args)
-				sw.Do("\n", nil)
+				sw.Do("}\n", nil)
 			}
 		default:
 			// Interfaces, Arrays, and other Kinds we don't understand.
@@ -647,12 +643,11 @@ func (g *genDeepCopy) doStruct(t *types.Type, sw *generator.SnippetWriter) {
 			} else {
 				// TODO: don't depend on kubernetes code for this
 				sw.Do("if in.$.name$ != nil {\n", args)
-				sw.Do("newVal, err := c.DeepCopy(&in.$.name$)\n", args)
-				sw.Do("if err != nil {\n", nil)
+				sw.Do("if newVal, err := c.DeepCopy(&in.$.name$); err != nil {\n", args)
 				sw.Do("return err\n", nil)
-				sw.Do("}\n", nil)
+				sw.Do("} else {\n", nil)
 				sw.Do("out.$.name$ = *newVal.(*$.type|raw$)\n", args)
-				sw.Do("\n", nil)
+				sw.Do("}\n", nil)
 				sw.Do("}\n", nil)
 			}
 		}
@@ -677,12 +672,11 @@ func (g *genDeepCopy) doPointer(t *types.Type, sw *generator.SnippetWriter) {
 		sw.Do("return err\n", nil)
 		sw.Do("}\n", nil)
 	} else {
-		sw.Do("newVal, err := c.DeepCopy(*in)\n", nil)
-		sw.Do("if err != nil {\n", nil)
+		sw.Do("if newVal, err := c.DeepCopy(*in); err != nil {\n", nil)
 		sw.Do("return err\n", nil)
-		sw.Do("}\n", nil)
+		sw.Do("} else {\n", nil)
 		sw.Do("*out = newVal.(*$.|raw$)\n", t.Elem)
-		sw.Do("\n", nil)
+		sw.Do("}\n", nil)
 	}
 }
 

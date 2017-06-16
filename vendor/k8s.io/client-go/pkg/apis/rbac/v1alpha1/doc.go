@@ -15,5 +15,4 @@ limitations under the License.
 */
 
 // +groupName=rbac.authorization.k8s.io
-// +k8s:openapi-gen=true
 package v1alpha1
