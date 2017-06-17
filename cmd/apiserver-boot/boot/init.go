@@ -135,7 +135,8 @@ import (
 )
 
 func main() {
-	server.StartApiServer("/registry/{{ .Domain }}", apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions)
+	version := "v0"
+	server.StartApiServer("/registry/{{ .Domain }}", apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions, "Api", version)
 }
 `
 

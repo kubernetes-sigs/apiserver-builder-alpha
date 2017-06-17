@@ -60,14 +60,14 @@ type PostStartHook struct {
 }
 
 // StartApiServer starts an apiserver hosting the provider apis and openapi definitions.
-func StartApiServer(etcdPath string, apis []*builders.APIGroupBuilder, openapidefs openapi.GetOpenAPIDefinitions) {
+func StartApiServer(etcdPath string, apis []*builders.APIGroupBuilder, openapidefs openapi.GetOpenAPIDefinitions, title, version string) {
 	logs.InitLogs()
 	defer logs.FlushLogs()
 
 	GetOpenApiDefinition = openapidefs
 
 	// To disable providers, manually specify the list provided by getKnownProviders()
-	cmd, _ := NewCommandStartServer(etcdPath, os.Stdout, os.Stderr, apis, wait.NeverStop)
+	cmd, _ := NewCommandStartServer(etcdPath, os.Stdout, os.Stderr, apis, wait.NeverStop, title, version)
 	cmd.Flags().AddFlagSet(flag.CommandLine)
 	if err := cmd.Execute(); err != nil {
 		panic(err)
@@ -92,7 +92,7 @@ func NewServerOptions(etcdPath string, out, errOut io.Writer, builders []*builde
 
 // NewCommandStartMaster provides a CLI handler for 'start master' command
 func NewCommandStartServer(etcdPath string, out, errOut io.Writer, builders []*builders.APIGroupBuilder,
-	stopCh <-chan struct{}) (*cobra.Command, *ServerOptions) {
+	stopCh <-chan struct{}, title, version string) (*cobra.Command, *ServerOptions) {
 	o := NewServerOptions(etcdPath, out, errOut, builders)
 
 	// Support overrides
@@ -106,7 +106,7 @@ func NewCommandStartServer(etcdPath string, out, errOut io.Writer, builders []*b
 			if err := o.Validate(args); err != nil {
 				return err
 			}
-			if err := o.RunServer(stopCh); err != nil {
+			if err := o.RunServer(stopCh, title, version); err != nil {
 				return err
 			}
 			return nil
@@ -177,14 +177,15 @@ func (o ServerOptions) Config() (*apiserver.Config, error) {
 	return config, nil
 }
 
-func (o *ServerOptions) RunServer(stopCh <-chan struct{}) error {
+func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string) error {
 	config, err := o.Config()
 	if err != nil {
 		return err
 	}
 
 	config.GenericConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(GetOpenApiDefinition, api.Scheme)
-	config.GenericConfig.OpenAPIConfig.Info.Title = "Api"
+	config.GenericConfig.OpenAPIConfig.Info.Title = title
+	config.GenericConfig.OpenAPIConfig.Info.Version = version
 
 	if o.PrintBearerToken {
 		glog.Infof("Serving on loopback...")
