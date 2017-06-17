@@ -232,7 +232,7 @@ func (s *storage{{.Kind}}) Get{{.Kind}}(ctx request.Context, id string, options 
 
 func (s *storage{{.Kind}}) Create{{.Kind}}(ctx request.Context, object *{{.Kind}}) (*{{.Kind}}, error) {
 	st := s.GetStandardStorage()
-	obj, err := st.Create(ctx, object)
+	obj, err := st.Create(ctx, object, false)
 	if err != nil {
 		return nil, err
 	}

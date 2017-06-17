@@ -111,8 +111,8 @@ type StorageWrapper struct {
 	registry.Store
 }
 
-func (s StorageWrapper) Create(ctx request.Context, obj runtime.Object) (runtime.Object, error) {
-	return s.Store.Create(ctx, obj)
+func (s StorageWrapper) Create(ctx request.Context, obj runtime.Object, includeUninitialized bool) (runtime.Object, error) {
+	return s.Store.Create(ctx, obj, false)
 }
 
 func (b *versionedResourceBuilder) Build(

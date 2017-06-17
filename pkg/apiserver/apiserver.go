@@ -95,7 +95,7 @@ func (c *Config) SkipComplete() completedConfig {
 // NewFunc returns a new instance of Server from the given config.
 func (c completedConfig) New() (*Server, error) {
 	genericServer, err := c.Config.GenericConfig.SkipComplete().
-		New(genericapiserver.EmptyDelegate) // completion is done in Complete, no need for a second time
+		New("aggregated-apiserver", genericapiserver.EmptyDelegate) // completion is done in Complete, no need for a second time
 	if err != nil {
 		return nil, err
 	}
