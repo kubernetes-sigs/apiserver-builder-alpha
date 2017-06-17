@@ -26,7 +26,7 @@ import (
 	"k8s.io/apiserver/pkg/endpoints/request"
 	"k8s.io/apiserver/pkg/registry/rest"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
-	extensionsv1beta1 "k8s.io/client-go/pkg/apis/extensions/v1beta1"
+	//extensionsv1beta1 "k8s.io/client-go/pkg/apis/extensions/v1beta1"
 )
 
 // Generating code from university_types.go file will generate storage and status REST endpoints for
@@ -54,20 +54,20 @@ type UniversitySpec struct {
 	// +optional
 	MaxStudents *int `json:"max_students,omitempty"`
 
-	// WARNING: Using types from client-go as fields does not work outside this example
-	// This example hacked the vendored client-go to add the openapi generation directives
-	// to make this work
-	Template *apiv1.PodSpec `json:"template,omitempty"`
-
-	// WARNING: Using types from client-go as fields does not work outside this example
-	// This example hacked the vendored client-go to add the openapi generation directives
-	// to make this work
-	ServiceSpec apiv1.ServiceSpec `json:"service_spec,omitempty"`
-
-	// WARNING: Using types from client-go as fields does not work outside this example
-	// This example hacked the vendored client-go to add the openapi generation directives
-	// to make this work
-	Rollout []extensionsv1beta1.Deployment `json:"rollout,omitempty"`
+	//// WARNING: Using types from client-go as fields does not work outside this example
+	//// This example hacked the vendored client-go to add the openapi generation directives
+	//// to make this work
+	//Template *apiv1.PodSpec `json:"template,omitempty"`
+	//
+	//// WARNING: Using types from client-go as fields does not work outside this example
+	//// This example hacked the vendored client-go to add the openapi generation directives
+	//// to make this work
+	//ServiceSpec apiv1.ServiceSpec `json:"service_spec,omitempty"`
+	//
+	//// WARNING: Using types from client-go as fields does not work outside this example
+	//// This example hacked the vendored client-go to add the openapi generation directives
+	//// to make this work
+	//Rollout []extensionsv1beta1.Deployment `json:"rollout,omitempty"`
 }
 
 // UniversityStatus defines the observed state of University
@@ -129,7 +129,7 @@ type ScaleUniversityREST struct {
 	Registry miskatonic.UniversityRegistry
 }
 
-func (r *ScaleUniversityREST) Create(ctx request.Context, obj runtime.Object) (runtime.Object, error) {
+func (r *ScaleUniversityREST) Create(ctx request.Context, obj runtime.Object, includeUninitialized bool) (runtime.Object, error) {
 	scale := obj.(*Scale)
 	u, err := r.Registry.GetUniversity(ctx, scale.Name, &metav1.GetOptions{})
 	if err != nil {

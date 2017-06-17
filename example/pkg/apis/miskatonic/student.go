@@ -33,7 +33,7 @@ type StudentREST struct {
 	Registry StudentRegistry
 }
 
-func (r *StudentREST) Create(ctx request.Context, obj runtime.Object) (runtime.Object, error) {
+func (r *StudentREST) Create(ctx request.Context, obj runtime.Object, includeUninitialized bool) (runtime.Object, error) {
 	s := obj.(*Student)
 	s.Spec.ID = s.Spec.ID + 1
 	return s, nil
