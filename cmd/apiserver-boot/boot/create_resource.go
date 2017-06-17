@@ -111,9 +111,11 @@ func createResource(boilerplate string) {
 
 	created := writeIfNotFound(path, "resource-template", resourceTemplate, a)
 	if !created {
-		log.Printf("API group version kind %s/%s/%s already exists.",
-			groupName, versionName, kindName)
-		found = true
+		if !found {
+			log.Printf("API group version kind %s/%s/%s already exists.",
+				groupName, versionName, kindName)
+			found = true
+		}
 	}
 
 	// write the suite if it is missing
@@ -125,17 +127,21 @@ func createResource(boilerplate string) {
 	path = filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
 	created = writeIfNotFound(path, "resource-test-template", resourceTestTemplate, a)
 	if !created {
-		log.Printf("API group version kind %s/%s/%s test already exists.",
-			groupName, versionName, kindName)
-		found = true
+		if !found {
+			log.Printf("API group version kind %s/%s/%s test already exists.",
+				groupName, versionName, kindName)
+			found = true
+		}
 	}
 
 	path = filepath.Join(dir, "pkg", "controller", strings.ToLower(kindName), "controller.go")
 	created = writeIfNotFound(path, "resource-controller-template", resourceControllerTemplate, a)
 	if !created {
-		log.Printf("Controller for %s/%s/%s already exists.",
-			groupName, versionName, kindName)
-		found = true
+		if !found {
+			log.Printf("Controller for %s/%s/%s already exists.",
+				groupName, versionName, kindName)
+			found = true
+		}
 	}
 
 	path = filepath.Join(dir, "pkg", "controller", strings.ToLower(kindName), fmt.Sprintf("%s_suite_test.go", strings.ToLower(kindName)))
@@ -144,9 +150,11 @@ func createResource(boilerplate string) {
 	path = filepath.Join(dir, "pkg", "controller", strings.ToLower(kindName), "controller_test.go")
 	created = writeIfNotFound(path, "controller-test-template", controllerTestTemplate, a)
 	if !created {
-		log.Printf("Controller test for %s/%s/%s already exists.",
-			groupName, versionName, kindName)
-		found = true
+		if !found {
+			log.Printf("Controller test for %s/%s/%s already exists.",
+				groupName, versionName, kindName)
+			found = true
+		}
 	}
 
 	if found {

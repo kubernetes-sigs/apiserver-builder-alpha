@@ -103,7 +103,7 @@ func (te *TestEnvironment) startApiserver(
 	server.GetOpenApiDefinition = openapidefs
 	cmd, options := server.NewCommandStartServer(
 		te.EtcdPath,
-		te.ServerOuput, te.ServerOuput, apis, te.StopServer)
+		te.ServerOuput, te.ServerOuput, apis, te.StopServer, "API", "v0")
 
 	options.RecommendedOptions.SecureServing.BindPort = te.ApiserverPort
 	options.RunDelegatedAuth = false

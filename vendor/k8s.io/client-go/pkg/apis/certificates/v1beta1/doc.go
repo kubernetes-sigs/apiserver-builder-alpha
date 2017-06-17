@@ -15,5 +15,4 @@ limitations under the License.
 */
 
 // +groupName=certificates.k8s.io
-// +k8s:openapi-gen=true
 package v1beta1

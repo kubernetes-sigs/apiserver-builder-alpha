@@ -64,12 +64,20 @@ func createGroup(boilerplate string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	path := filepath.Join(dir, "pkg", "apis", groupName, "doc.go")
-	created := writeIfNotFound(path, "group-template", groupTemplate, groupTemplateArgs{
+
+	a := groupTemplateArgs{
 		boilerplate,
 		domain,
 		groupName,
-	})
+	}
+
+	path := filepath.Join(dir, "pkg", "apis", groupName, "doc.go")
+	created := writeIfNotFound(path, "group-template", groupTemplate, a)
+	if !created && !ignoreExists {
+	}
+
+	path = filepath.Join(dir, "pkg", "apis", groupName, "install", "doc.go")
+	created = writeIfNotFound(path, "install-template", installTemplate, a)
 	if !created && !ignoreExists {
 		log.Fatalf("API group %s already exists.", groupName)
 	}
@@ -90,5 +98,12 @@ var groupTemplate = `
 
 // Package api is the internal version of the API.
 package {{.Name}}
+
+`
+
+var installTemplate = `
+{{.BoilerPlate}}
+
+package install
 
 `

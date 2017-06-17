@@ -25,5 +25,5 @@ import (
 )
 
 func main() {
-	server.StartApiServer("/registry/sample.kubernetes.io", apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions)
+	server.StartApiServer("/registry/sample.kubernetes.io", apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions, "Api", "v0")
 }

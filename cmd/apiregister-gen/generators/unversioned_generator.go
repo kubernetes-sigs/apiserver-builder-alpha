@@ -232,7 +232,7 @@ func (s *storage{{.Kind}}) Get{{.Kind}}(ctx request.Context, id string, options 
 
 func (s *storage{{.Kind}}) Create{{.Kind}}(ctx request.Context, object *{{.Kind}}) (*{{.Kind}}, error) {
 	st := s.GetStandardStorage()
-	obj, err := st.Create(ctx, object)
+	obj, err := st.Create(ctx, object, false)
 	if err != nil {
 		return nil, err
 	}
@@ -255,4 +255,25 @@ func (s *storage{{.Kind}}) Delete{{.Kind}}(ctx request.Context, id string) (bool
 }
 
 {{ end -}}
+`
+
+var installTemplate = `
+{{.BoilerPlate}}
+
+package install
+
+import (
+	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis"
+	"k8s.io/apimachinery/pkg/apimachinery/announced"
+	"k8s.io/apimachinery/pkg/apimachinery/registered"
+	"k8s.io/apimachinery/pkg/runtime"
+)
+
+func Install(
+	groupFactoryRegistry announced.APIGroupFactoryRegistry,
+	registry *registered.APIRegistrationManager,
+	scheme *runtime.Scheme) {
+
+	apis.{{ title .Group }}APIBuilder().Install(groupFactoryRegistry, registry, scheme)
+}
 `
