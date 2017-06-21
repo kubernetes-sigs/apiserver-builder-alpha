@@ -70,6 +70,8 @@ type APIGroup struct {
 type Struct struct {
 	// Name is the name of the type
 	Name string
+	// IsResource
+	IsResource bool
 	// Fields is the list of fields appearing in the struct
 	Fields []*Field
 }
@@ -481,6 +483,12 @@ func (b *APIsBuilder) GetResourceTag(c *types.Type) string {
 	return resource
 }
 
+func (b *APIsBuilder) IsResource(c *types.Type) bool {
+	comments := Comments(c.CommentLines)
+	resource := comments.GetTag("resource", ":")
+	return len(resource) > 0
+}
+
 func (b *APIsBuilder) GetControllerTag(c *types.Type) string {
 	comments := Comments(c.CommentLines)
 	resource := comments.GetTag("controller", ":")
@@ -574,6 +582,11 @@ func (b *APIsBuilder) ParseStructs(apigroup *APIGroup) {
 
 		// Generate the struct and append to the list
 		result, additionalTypes := apigroup.DoType(next)
+
+		// This is a resource, so generate the client
+		if b.IsResource(next) {
+			result.IsResource = true
+		}
 		apigroup.Structs = append(apigroup.Structs, result)
 
 		// Add the newly discovered subtypes
@@ -584,7 +597,8 @@ func (b *APIsBuilder) ParseStructs(apigroup *APIGroup) {
 func (apigroup *APIGroup) DoType(t *types.Type) (*Struct, []*types.Type) {
 	remaining := []*types.Type{}
 	s := &Struct{
-		Name: t.Name.Name,
+		Name:       t.Name.Name,
+		IsResource: false,
 	}
 	for _, member := range t.Members {
 		memberGroup := GetGroup(member.Type)
