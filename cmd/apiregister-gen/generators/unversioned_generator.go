@@ -121,7 +121,7 @@ func Resource(resource string) schema.GroupResource {
 }
 
 {{ range $s := .Structs -}}
-// +genclient=true
+{{ if $s.IsResource }}// +genclient=true{{end}}
 
 type {{ $s.Name }} struct {
 {{ range $f := $s.Fields -}}

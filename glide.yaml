@@ -25,8 +25,11 @@ import:
 - package: github.com/markbates/inflect
   version: 6cacb66d100482ef7cc366289ccb156020e57e76
 - package: k8s.io/apimachinery
+  version: cff8db64dd5b6fb0166dc2cf36e39c7ff4fe48c8
 - package: k8s.io/apiserver
+  version: 2e70bac0745c7f8e506f7f3e432d040c55d5718a
 - package: k8s.io/client-go
+  version: 36b51953e6efc7779fe27c14258d78573de4e0de
 - package: k8s.io/gengo
 - package: github.com/onsi/ginkgo
   version: ~1.3.1
