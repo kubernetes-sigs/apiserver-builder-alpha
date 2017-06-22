@@ -32,6 +32,7 @@ import (
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/cmd/server"
 	openapi "k8s.io/apimachinery/pkg/openapi"
 	genericapiserver "k8s.io/apiserver/pkg/server"
+	genericoptions "k8s.io/apiserver/pkg/server/options"
 	"k8s.io/client-go/rest"
 )
 
@@ -110,6 +111,7 @@ func (te *TestEnvironment) startApiserver(
 	options.RecommendedOptions.Etcd.StorageConfig.ServerList = []string{
 		fmt.Sprintf("http://localhost:%d", te.EtcdClientPort),
 	}
+	options.RecommendedOptions.SecureServing.ServerCert = genericoptions.GeneratableKeyCert{}
 
 	// Notify once the apiserver is ready to serve traffic
 	options.PostStartHooks = []server.PostStartHook{
