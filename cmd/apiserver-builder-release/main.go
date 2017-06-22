@@ -391,7 +391,7 @@ func BuildVendor(tooldir string) string {
 		cmd.Dir = pkgDir
 		RunCmd(cmd, vendordir)
 
-		cmd = exec.Command("go", "test", filepath.Join("pkg", "..."))
+		cmd = exec.Command("go", "test", "./"+filepath.Join("pkg", "..."))
 		cmd.Dir = pkgDir
 		RunCmd(cmd, vendordir)
 	}
