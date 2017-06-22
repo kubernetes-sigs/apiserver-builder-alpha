@@ -85,6 +85,10 @@ func NewServerOptions(etcdPath string, out, errOut io.Writer, builders []*builde
 		APIBuilders:        builders,
 		RunDelegatedAuth:   true,
 	}
+	o.RecommendedOptions.SecureServing.ServerCert.CertKey = genericoptions.CertKey{
+		CertFile: "/apiserver.local.config/certificates/tls.crt",
+		KeyFile:  "/apiserver.local.config/certificates/tls.key",
+	}
 	o.RecommendedOptions.SecureServing.BindPort = 443
 
 	return o
