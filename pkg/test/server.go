@@ -111,7 +111,13 @@ func (te *TestEnvironment) startApiserver(
 	options.RecommendedOptions.Etcd.StorageConfig.ServerList = []string{
 		fmt.Sprintf("http://localhost:%d", te.EtcdClientPort),
 	}
-	options.RecommendedOptions.SecureServing.ServerCert = genericoptions.GeneratableKeyCert{}
+	tmpdir, err := ioutil.TempDir("", "apiserver-test")
+	if err != nil {
+		panic(fmt.Sprintf("Could not create temp dir for testing: %v", err))
+	}
+	options.RecommendedOptions.SecureServing.ServerCert = genericoptions.GeneratableKeyCert{
+		CertDirectory: tmpdir,
+	}
 
 	// Notify once the apiserver is ready to serve traffic
 	options.PostStartHooks = []server.PostStartHook{
