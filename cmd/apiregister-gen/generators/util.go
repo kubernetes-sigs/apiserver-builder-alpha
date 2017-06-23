@@ -36,6 +36,22 @@ func IsAPIResource(t *types.Type) bool {
 	return false
 }
 
+// IsNonNamespaced returns true if t has a +nonNamespaced comment tag
+func IsNonNamespaced(t *types.Type) bool {
+	if !IsAPIResource(t) {
+		return false
+	}
+
+	// here we check only SecondClosestCommentLines in order to reuse
+	// the lister-gen's +nonNamespaced tag
+	v, err := types.ExtractSingleBoolCommentTag("+", "nonNamespaced",
+		false, t.SecondClosestCommentLines)
+	if err != nil {
+		panic(errors.Errorf("Cannot get value for nonNamespaced tag: %v", err))
+	}
+	return v
+}
+
 func IsController(t *types.Type) bool {
 	for _, c := range t.CommentLines {
 		if strings.Contains(c, "+controller") {
