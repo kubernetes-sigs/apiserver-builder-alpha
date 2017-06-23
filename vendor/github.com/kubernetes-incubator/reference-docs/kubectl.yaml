@@ -1,0 +1,1067 @@
+toplevelcommandgroups:
+- commands:
+  - maincommand:
+      name: annotate
+      synopsis: Update the annotations on a resource
+      description: "Update the annotations on one or more resources. \n\n  * An annotation
+        is a key/value pair that can hold larger (compared to a label), and possibly
+        not human-readable, data.  \n  * It is intended to store non-identifying auxiliary
+        data, especially data manipulated by tools and system extensions.  \n  * If
+        --overwrite is true, then existing annotations can be overwritten, otherwise
+        attempting to overwrite an annotation will result in an error.  \n  * If --resource-version
+        is specified, then updates will use this resource version, otherwise the existing
+        resource-version will be used.  \n\nValid resource types include: \n\n  *
+        all  \n  * clusters (valid only for federation apiservers)  \n  * clusterrolebindings
+        \ \n  * clusterroles  \n  * componentstatuses (aka 'cs')  \n  * configmaps
+        (aka 'cm')  \n  * daemonsets (aka 'ds')  \n  * deployments (aka 'deploy')
+        \ \n  * endpoints (aka 'ep')  \n  * events (aka 'ev')  \n  * horizontalpodautoscalers
+        (aka 'hpa')  \n  * ingresses (aka 'ing')  \n  * jobs  \n  * limitranges (aka
+        'limits')  \n  * namespaces (aka 'ns')  \n  * networkpolicies  \n  * nodes
+        (aka 'no')  \n  * persistentvolumeclaims (aka 'pvc')  \n  * persistentvolumes
+        (aka 'pv')  \n  * pods (aka 'po')  \n  * podsecuritypolicies (aka 'psp')  \n
+        \ * podtemplates  \n  * replicasets (aka 'rs')  \n  * replicationcontrollers
+        (aka 'rc')  \n  * resourcequotas (aka 'quota')  \n  * rolebindings  \n  *
+        roles  \n  * secrets  \n  * serviceaccounts (aka 'sa')  \n  * services (aka
+        'svc')  \n  * statefulsets  \n  * storageclasses  \n  * thirdpartyresources"
+      example: "  # Update pod 'foo' with the annotation 'description' and the value
+        'my frontend'.\n  # If the same annotation is set multiple times, only the
+        last value will be applied\n  kubectl annotate pods foo description='my frontend'\n
+        \ \n  # Update a pod identified by type and name in \"pod.json\"\n  kubectl
+        annotate -f pod.json description='my frontend'\n  \n  # Update pod 'foo' with
+        the annotation 'description' and the value 'my frontend running nginx', overwriting
+        any existing value.\n  kubectl annotate --overwrite pods foo description='my
+        frontend running nginx'\n  \n  # Update all pods in the namespace\n  kubectl
+        annotate pods --all description='my frontend running nginx'\n  \n  # Update
+        pod 'foo' only if the resource is unchanged from version 1.\n  kubectl annotate
+        pods foo description='my frontend running nginx' --resource-version=1\n  \n
+        \ # Update pod 'foo' by removing an annotation named 'description' if it exists.\n
+        \ # Does not require the --overwrite flag.\n  kubectl annotate pods foo description-"
+      usage: annotate [--overwrite] (-f FILENAME | TYPE NAME) KEY_1=VAL_1 ... KEY_N=VAL_N
+        [--resource-version=version]
+  - maincommand:
+      name: api-versions
+      synopsis: Print the supported API versions on the server, in the form of "group/version"
+      usage: api-versions
+  - maincommand:
+      name: apply
+      synopsis: Apply a configuration to a resource by filename or stdin
+      description: "Apply a configuration to a resource by filename or stdin. This
+        resource will be created if it doesn't exist yet. To use 'apply', always create
+        the resource initially with either 'apply' or 'create --save-config'. \n\nJSON
+        and YAML formats are accepted. \n\nAlpha Disclaimer: the --prune functionality
+        is not yet complete. Do not use unless you are aware of what the current state
+        is. See https://issues.k8s.io/34274."
+      example: "  # Apply the configuration in pod.json to a pod.\n  kubectl apply
+        -f ./pod.json\n  \n  # Apply the JSON passed into stdin to a pod.\n  cat pod.json
+        | kubectl apply -f -\n  \n  # Note: --prune is still in Alpha\n  # Apply the
+        configuration in manifest.yaml that matches label app=nginx and delete all
+        the other resources that are not in the file and match label app=nginx.\n
+        \ kubectl apply --prune -f manifest.yaml -l app=nginx\n  \n  # Apply the configuration
+        in manifest.yaml and delete all the other configmaps that are not in the file.\n
+        \ kubectl apply --prune -f manifest.yaml --all --prune-whitelist=core/v1/ConfigMap"
+      usage: apply -f FILENAME
+  - maincommand:
+      name: attach
+      synopsis: Attach to a running container
+      description: Attach to a process that is already running inside an existing
+        container.
+      example: "  # Get output from running pod 123456-7890, using the first container
+        by default\n  kubectl attach 123456-7890\n  \n  # Get output from ruby-container
+        from pod 123456-7890\n  kubectl attach 123456-7890 -c ruby-container\n  \n
+        \ # Switch to raw terminal mode, sends stdin to 'bash' in ruby-container from
+        pod 123456-7890\n  # and sends stdout/stderr from 'bash' back to the client\n
+        \ kubectl attach 123456-7890 -c ruby-container -i -t"
+      usage: attach POD -c CONTAINER
+  - maincommand:
+      name: autoscale
+      synopsis: Auto-scale a Deployment, ReplicaSet, or ReplicationController
+      description: "Creates an autoscaler that automatically chooses and sets the
+        number of pods that run in a kubernetes cluster. \n\nLooks up a Deployment,
+        ReplicaSet, or ReplicationController by name and creates an autoscaler that
+        uses the given resource as a reference. An autoscaler can automatically increase
+        or decrease number of pods deployed within the system as needed."
+      example: "  # Auto scale a deployment \"foo\", with the number of pods between
+        2 and 10, target CPU utilization specified so a default autoscaling policy
+        will be used:\n  kubectl autoscale deployment foo --min=2 --max=10\n  \n  #
+        Auto scale a replication controller \"foo\", with the number of pods between
+        1 and 5, target CPU utilization at 80%:\n  kubectl autoscale rc foo --max=5
+        --cpu-percent=80"
+      usage: autoscale (-f FILENAME | TYPE NAME | TYPE/NAME) [--min=MINPODS] --max=MAXPODS
+        [--cpu-percent=CPU] [flags]
+  - maincommand:
+      name: certificate
+      synopsis: Modify certificate resources.
+      usage: certificate SUBCOMMAND
+    subcommands:
+    - name: approve
+      path: approve
+      synopsis: Approve a certificate signing request
+      description: "Approve a certificate signing request. \n\nkubectl certificate
+        approve allows a cluster admin to approve a certificate signing request (CSR).
+        This action tells a certificate signing controller to issue a certificate
+        to the requestor with the attributes requested in the CSR. \n\nSECURITY NOTICE:
+        Depending on the requested attributes, the issued certificate can potentially
+        grant a requester access to cluster resources or to authenticate as a requested
+        identity. Before approving a CSR, ensure you understand what the signed certificate
+        can do."
+      usage: approve (-f FILENAME | NAME)
+    - name: deny
+      path: deny
+      synopsis: Deny a certificate signing request
+      description: "Deny a certificate signing request. \n\nkubectl certificate deny
+        allows a cluster admin to deny a certificate signing request (CSR). This action
+        tells a certificate signing controller to not to issue a certificate to the
+        requestor."
+      usage: deny (-f FILENAME | NAME)
+  - maincommand:
+      name: cluster-info
+      synopsis: Display cluster info
+      description: Display addresses of the master and services with label kubernetes.io/cluster-service=true
+        To further debug and diagnose cluster problems, use 'kubectl cluster-info
+        dump'.
+      usage: cluster-info
+    subcommands:
+    - name: dump
+      path: dump
+      synopsis: Dump lots of relevant info for debugging and diagnosis
+      description: "Dumps cluster info out suitable for debugging and diagnosing cluster
+        problems.  By default, dumps everything to stdout. You can optionally specify
+        a directory with --output-directory.  If you specify a directory, kubernetes
+        will build a set of files in that directory.  By default only dumps things
+        in the 'kube-system' namespace, but you can switch to a different namespace
+        with the --namespaces flag, or specify --all-namespaces to dump all namespaces.
+        \n\nThe command also dumps the logs of all of the pods in the cluster, these
+        logs are dumped into different directories based on namespace and pod name."
+      example: "  # Dump current cluster state to stdout\n  kubectl cluster-info dump\n
+        \ \n  # Dump current cluster state to /path/to/cluster-state\n  kubectl cluster-info
+        dump --output-directory=/path/to/cluster-state\n  \n  # Dump all namespaces
+        to stdout\n  kubectl cluster-info dump --all-namespaces\n  \n  # Dump a set
+        of namespaces to /path/to/cluster-state\n  kubectl cluster-info dump --namespaces
+        default,kube-system --output-directory=/path/to/cluster-state"
+      usage: dump
+  - maincommand:
+      name: completion
+      synopsis: Output shell completion code for the given shell (bash or zsh)
+      description: "Output shell completion code for the given shell (bash or zsh).
+        \n\nThis command prints shell code which must be evaluation to provide interactive
+        completion of kubectl commands. \n\n  $ source <(kubectl completion bash)\n
+        \ \nwill load the kubectl completion code for bash. Note that this depends
+        on the bash-completion framework. It must be sourced before sourcing the kubectl
+        completion, e.g. on the Mac: \n\n  $ brew install bash-completion\n  $ source
+        $(brew --prefix)/etc/bash_completion\n  $ source <(kubectl completion bash)\n
+        \ \nIf you use zsh [1], the following will load kubectl zsh completion: \n\n
+        \ $ source <(kubectl completion zsh)\n  \n [1] zsh completions are only supported
+        in versions of zsh >= 5.2"
+      usage: completion SHELL
+  - maincommand:
+      name: config
+      synopsis: Modify kubeconfig files
+      description: "Modify kubeconfig files using subcommands like \"kubectl config
+        set current-context my-context\" \n\nThe loading order follows these rules:
+        \n\n  1. If the --kubeconfig flag is set, then only that file is loaded.  The
+        flag may only be set once and no merging takes place.  \n  2. If $KUBECONFIG
+        environment variable is set, then it is used a list of paths (normal path
+        delimitting rules for your system).  These paths are merged.  When a value
+        is modified, it is modified in the file that defines the stanza.  When a value
+        is created, it is created in the first file that exists.  If no files in the
+        chain exist, then it creates the last file in the list.  \n  3. Otherwise,
+        ${HOME}/.kube/config is used and no merging takes place."
+      usage: config SUBCOMMAND
+    subcommands:
+    - name: current-context
+      path: current-context
+      synopsis: Displays the current-context
+      description: Displays the current-context
+      example: |2-
+          # Display the current-context
+          kubectl config current-context
+      usage: current-context
+    - name: delete-cluster
+      path: delete-cluster
+      synopsis: Delete the specified cluster from the kubeconfig
+      usage: delete-cluster NAME
+    - name: delete-context
+      path: delete-context
+      synopsis: Delete the specified context from the kubeconfig
+      usage: delete-context NAME
+    - name: get-clusters
+      path: get-clusters
+      synopsis: Display clusters defined in the kubeconfig
+      usage: get-clusters
+    - name: get-contexts
+      path: get-contexts
+      synopsis: Describe one or many contexts
+      description: Displays one or many contexts from the kubeconfig file.
+      example: "  # List all the contexts in your kubeconfig file\n  kubectl config
+        get-contexts\n  \n  # Describe one context in your kubeconfig file.\n  kubectl
+        config get-contexts my-context"
+      usage: get-contexts [(-o|--output=)name)]
+    - name: set
+      path: set
+      synopsis: Sets an individual value in a kubeconfig file
+      description: "Sets an individual value in a kubeconfig file \n\nPROPERTY _NAME
+        is a dot delimited name where each token represents either an attribute name
+        or a map key.  Map keys may not contain dots. \n\nPROPERTY _VALUE is the new
+        value you wish to set. Binary fields such as 'certificate-authority-data'
+        expect a base64 encoded string unless the --set-raw-bytes flag is used."
+      usage: set PROPERTY_NAME PROPERTY_VALUE
+    - name: set-cluster
+      path: set-cluster
+      synopsis: Sets a cluster entry in kubeconfig
+      description: "Sets a cluster entry in kubeconfig. \n\nSpecifying a name that
+        already exists will merge new fields on top of existing values for those fields."
+      example: "  # Set only the server field on the e2e cluster entry without touching
+        other values.\n  kubectl config set-cluster e2e --server=https://1.2.3.4\n
+        \ \n  # Embed certificate authority data for the e2e cluster entry\n  kubectl
+        config set-cluster e2e --certificate-authority=~/.kube/e2e/kubernetes.ca.crt\n
+        \ \n  # Disable cert checking for the dev cluster entry\n  kubectl config
+        set-cluster e2e --insecure-skip-tls-verify=true"
+      usage: set-cluster NAME [--server=server] [--certificate-authority=path/to/certificate/authority]
+        [--insecure-skip-tls-verify=true]
+    - name: set-context
+      path: set-context
+      synopsis: Sets a context entry in kubeconfig
+      description: "Sets a context entry in kubeconfig \n\nSpecifying a name that
+        already exists will merge new fields on top of existing values for those fields."
+      example: |2-
+          # Set the user field on the gce context entry without touching other values
+          kubectl config set-context gce --user=cluster-admin
+      usage: set-context NAME [--cluster=cluster_nickname] [--user=user_nickname]
+        [--namespace=namespace]
+    - name: set-credentials
+      path: set-credentials
+      synopsis: Sets a user entry in kubeconfig
+      description: "Sets a user entry in kubeconfig \n\nSpecifying a name that already
+        exists will merge new fields on top of existing values. \n\n  Client-certificate
+        flags:\n  --client-certificate=certfile --client-key=keyfile\n  \n  Bearer
+        token flags:\n    --token=bearer_token\n  \n  Basic auth flags:\n    --username=basic_user
+        --password=basic_password\n  \nBearer token and basic auth are mutually exclusive."
+      example: "  # Set only the \"client-key\" field on the \"cluster-admin\"\n  #
+        entry, without touching other values:\n  kubectl config set-credentials cluster-admin
+        --client-key=~/.kube/admin.key\n  \n  # Set basic auth for the \"cluster-admin\"
+        entry\n  kubectl config set-credentials cluster-admin --username=admin --password=uXFGweU9l35qcif\n
+        \ \n  # Embed client certificate data in the \"cluster-admin\" entry\n  kubectl
+        config set-credentials cluster-admin --client-certificate=~/.kube/admin.crt
+        --embed-certs=true\n  \n  # Enable the Google Compute Platform auth provider
+        for the \"cluster-admin\" entry\n  kubectl config set-credentials cluster-admin
+        --auth-provider=gcp\n  \n  # Enable the OpenID Connect auth provider for the
+        \"cluster-admin\" entry with additional args\n  kubectl config set-credentials
+        cluster-admin --auth-provider=oidc --auth-provider-arg=client-id=foo --auth-provider-arg=client-secret=bar\n
+        \ \n  # Remove the \"client-secret\" config value for the OpenID Connect auth
+        provider for the \"cluster-admin\" entry\n  kubectl config set-credentials
+        cluster-admin --auth-provider=oidc --auth-provider-arg=client-secret-"
+      usage: set-credentials NAME [--client-certificate=path/to/certfile] [--client-key=path/to/keyfile]
+        [--token=bearer_token] [--username=basic_user] [--password=basic_password]
+        [--auth-provider=provider_name] [--auth-provider-arg=key=value]
+    - name: unset
+      path: unset
+      synopsis: Unsets an individual value in a kubeconfig file
+      description: "Unsets an individual value in a kubeconfig file \n\nPROPERTY _NAME
+        is a dot delimited name where each token represents either an attribute name
+        or a map key.  Map keys may not contain dots."
+      usage: unset PROPERTY_NAME
+    - name: use-context
+      path: use-context
+      synopsis: Sets the current-context in a kubeconfig file
+      description: Sets the current-context in a kubeconfig file
+      usage: use-context CONTEXT_NAME
+    - name: view
+      path: view
+      synopsis: Display merged kubeconfig settings or a specified kubeconfig file
+      description: "Display merged kubeconfig settings or a specified kubeconfig file.
+        \n\nYou can use --output jsonpath={...} to extract specific values using a
+        jsonpath expression."
+      example: "  # Show Merged kubeconfig settings.\n  kubectl config view\n  \n
+        \ # Get the password for the e2e user\n  kubectl config view -o jsonpath='{.users[?(@.name
+        == \"e2e\")].user.password}'"
+      usage: view
+  - maincommand:
+      name: convert
+      synopsis: Convert config files between different API versions
+      description: "Convert config files between different API versions. Both YAML
+        and JSON formats are accepted. \n\nThe command takes filename, directory,
+        or URL as input, and convert it into format of version specified by --output-version
+        flag. If target version is not specified or not supported, convert to latest
+        version. \n\nThe default output will be printed to stdout in YAML format.
+        One can use -o option to change to output destination."
+      example: "  # Convert 'pod.yaml' to latest version and print to stdout.\n  kubectl
+        convert -f pod.yaml\n  \n  # Convert the live state of the resource specified
+        by 'pod.yaml' to the latest version\n  # and print to stdout in json format.\n
+        \ kubectl convert -f pod.yaml --local -o json\n  \n  # Convert all files under
+        current directory to latest version and create them all.\n  kubectl convert
+        -f . | kubectl create -f -"
+      usage: convert -f FILENAME
+  - maincommand:
+      name: cordon
+      synopsis: Mark node as unschedulable
+      description: Mark node as unschedulable.
+      example: |2-
+          # Mark node "foo" as unschedulable.
+          kubectl cordon foo
+      usage: cordon NODE
+  - maincommand:
+      name: cp
+      synopsis: Copy files and directories to and from containers.
+      description: Copy files and directories to and from containers.
+      example: "  # !!!Important Note!!!\n  # Requires that the 'tar' binary is present
+        in your container\n  # image.  If 'tar' is not present, 'kubectl cp' will
+        fail.\n  \n  # Copy /tmp/foo_dir local directory to /tmp/bar_dir in a remote
+        pod in the default namespace\n  kubectl cp /tmp/foo_dir <some-pod>:/tmp/bar_dir\n
+        \ \n  # Copy /tmp/foo local file to /tmp/bar in a remote pod in a specific
+        container\n  kubectl cp /tmp/foo <some-pod>:/tmp/bar -c <specific-container>\n
+        \ \n  # Copy /tmp/foo local file to /tmp/bar in a remote pod in namespace
+        <some-namespace>\n  kubectl cp /tmp/foo <some-namespace>/<some-pod>:/tmp/bar\n
+        \ \n  # Copy /tmp/foo from a remote pod to /tmp/bar locally\n  kubectl cp
+        <some-namespace>/<some-pod>:/tmp/foo /tmp/bar"
+      usage: cp <file-spec-src> <file-spec-dest>
+  - maincommand:
+      name: create
+      synopsis: Create a resource by filename or stdin
+      description: "Create a resource by filename or stdin. \n\nJSON and YAML formats
+        are accepted."
+      example: "  # Create a pod using the data in pod.json.\n  kubectl create -f
+        ./pod.json\n  \n  # Create a pod based on the JSON passed into stdin.\n  cat
+        pod.json | kubectl create -f -\n  \n  # Edit the data in docker-registry.yaml
+        in JSON using the v1 API format then create the resource using the edited
+        data.\n  kubectl create -f docker-registry.yaml --edit --output-version=v1
+        -o json"
+      usage: create -f FILENAME
+    subcommands:
+    - name: clusterrolebinding
+      path: clusterrolebinding
+      synopsis: Create a ClusterRoleBinding for a particular ClusterRole
+      description: Create a ClusterRoleBinding for a particular ClusterRole.
+      example: |2-
+          # Create a ClusterRoleBinding for user1, user2, and group1 using the cluster-admin ClusterRole
+          kubectl create clusterrolebinding cluster-admin --clusterrole=cluster-admin --user=user1 --user=user2 --group=group1
+      usage: clusterrolebinding NAME --clusterrole=NAME [--user=username] [--group=groupname]
+        [--dry-run]
+    - name: configmap
+      path: configmap
+      synopsis: Create a configmap from a local file, directory or literal value
+      description: "Create a configmap based on a file, directory, or specified literal
+        value. \n\nA single configmap may package one or more key/value pairs. \n\nWhen
+        creating a configmap based on a file, the key will default to the basename
+        of the file, and the value will default to the file content.  If the basename
+        is an invalid key, you may specify an alternate key. \n\nWhen creating a configmap
+        based on a directory, each file whose basename is a valid key in the directory
+        will be packaged into the configmap.  Any directory entries except regular
+        files are ignored (e.g. subdirectories, symlinks, devices, pipes, etc)."
+      example: "  # Create a new configmap named my-config with keys for each file
+        in folder bar\n  kubectl create configmap my-config --from-file=path/to/bar\n
+        \ \n  # Create a new configmap named my-config with specified keys instead
+        of names on disk\n  kubectl create configmap my-config --from-file=key1=/path/to/bar/file1.txt
+        --from-file=key2=/path/to/bar/file2.txt\n  \n  # Create a new configmap named
+        my-config with key1=config1 and key2=config2\n  kubectl create configmap my-config
+        --from-literal=key1=config1 --from-literal=key2=config2"
+      usage: configmap NAME [--from-file=[key=]source] [--from-literal=key1=value1]
+        [--dry-run]
+    - name: deployment
+      path: deployment
+      synopsis: Create a deployment with the specified name.
+      description: Create a deployment with the specified name.
+      example: |2-
+          # Create a new deployment named my-dep that runs the busybox image.
+          kubectl create deployment my-dep --image=busybox
+      usage: deployment NAME --image=image [--dry-run]
+    - name: namespace
+      path: namespace
+      synopsis: Create a namespace with the specified name
+      description: Create a namespace with the specified name.
+      example: |2-
+          # Create a new namespace named my-namespace
+          kubectl create namespace my-namespace
+      usage: namespace NAME [--dry-run]
+    - name: poddisruptionbudget
+      path: poddisruptionbudget
+      synopsis: Create a pod disruption budget with the specified name.
+      description: Create a pod disruption budget with the specified name, selector,
+        and desired minimum available pods
+      example: "  # Create a pod disruption budget named my-pdb that will select all
+        pods with the app=rails label\n  # and require at least one of them being
+        available at any point in time.\n  kubectl create poddisruptionbudget my-pdb
+        --selector=app=rails --min-available=1\n  \n  # Create a pod disruption budget
+        named my-pdb that will select all pods with the app=nginx label\n  # and require
+        at least half of the pods selected to be available at any point in time.\n
+        \ kubectl create pdb my-pdb --selector=app=nginx --min-available=50%"
+      usage: poddisruptionbudget NAME --selector=SELECTOR --min-available=N [--dry-run]
+    - name: quota
+      path: quota
+      synopsis: Create a quota with the specified name.
+      description: Create a resourcequota with the specified name, hard limits and
+        optional scopes
+      example: "  # Create a new resourcequota named my-quota\n  kubectl create quota
+        my-quota --hard=cpu=1,memory=1G,pods=2,services=3,replicationcontrollers=2,resourcequotas=1,secrets=5,persistentvolumeclaims=10\n
+        \ \n  # Create a new resourcequota named best-effort\n  kubectl create quota
+        best-effort --hard=pods=100 --scopes=BestEffort"
+      usage: quota NAME [--hard=key1=value1,key2=value2] [--scopes=Scope1,Scope2]
+        [--dry-run=bool]
+    - name: secret
+      path: secret
+      synopsis: Create a secret using specified subcommand
+      description: Create a secret using specified subcommand.
+      usage: secret
+    - name: docker-registry
+      path: secret docker-registry
+      synopsis: Create a secret for use with a Docker registry
+      description: "Create a new secret for use with Docker registries. \n\nDockercfg
+        secrets are used to authenticate against Docker registries. \n\nWhen using
+        the Docker command line to push images, you can authenticate to a given registry
+        by running \n\n  $ docker login DOCKER_REGISTRY_SERVER --username=DOCKER_USER
+        --password=DOCKER_PASSWORD --email=DOCKER_EMAIL'.\n  \nThat produces a ~/.dockercfg
+        file that is used by subsequent 'docker push' and 'docker pull' commands to
+        authenticate to the registry. \n\nWhen creating applications, you may have
+        a Docker registry that requires authentication.  In order for the nodes to
+        pull images on your behalf, they have to have the credentials.  You can provide
+        this information by creating a dockercfg secret and attaching it to your service
+        account."
+      example: |2-
+          # If you don't already have a .dockercfg file, you can create a dockercfg secret directly by using:
+          kubectl create secret docker-registry my-secret --docker-server=DOCKER_REGISTRY_SERVER --docker-username=DOCKER_USER --docker-password=DOCKER_PASSWORD --docker-email=DOCKER_EMAIL
+      usage: docker-registry NAME --docker-username=user --docker-password=password
+        --docker-email=email [--docker-server=string] [--from-literal=key1=value1]
+        [--dry-run]
+    - name: generic
+      path: secret generic
+      synopsis: Create a secret from a local file, directory or literal value
+      description: "Create a secret based on a file, directory, or specified literal
+        value. \n\nA single secret may package one or more key/value pairs. \n\nWhen
+        creating a secret based on a file, the key will default to the basename of
+        the file, and the value will default to the file content.  If the basename
+        is an invalid key, you may specify an alternate key. \n\nWhen creating a secret
+        based on a directory, each file whose basename is a valid key in the directory
+        will be packaged into the secret.  Any directory entries except regular files
+        are ignored (e.g. subdirectories, symlinks, devices, pipes, etc)."
+      example: "  # Create a new secret named my-secret with keys for each file in
+        folder bar\n  kubectl create secret generic my-secret --from-file=path/to/bar\n
+        \ \n  # Create a new secret named my-secret with specified keys instead of
+        names on disk\n  kubectl create secret generic my-secret --from-file=ssh-privatekey=~/.ssh/id_rsa
+        --from-file=ssh-publickey=~/.ssh/id_rsa.pub\n  \n  # Create a new secret named
+        my-secret with key1=supersecret and key2=topsecret\n  kubectl create secret
+        generic my-secret --from-literal=key1=supersecret --from-literal=key2=topsecret"
+      usage: generic NAME [--type=string] [--from-file=[key=]source] [--from-literal=key1=value1]
+        [--dry-run]
+    - name: tls
+      path: secret tls
+      synopsis: Create a TLS secret
+      description: "Create a TLS secret from the given public/private key pair. \n\nThe
+        public/private key pair must exist before hand. The public key certificate
+        must be .PEM encoded and match the given private key."
+      example: |2-
+          # Create a new TLS secret named tls-secret with the given key pair:
+          kubectl create secret tls tls-secret --cert=path/to/tls.cert --key=path/to/tls.key
+      usage: tls NAME --cert=path/to/cert/file --key=path/to/key/file [--dry-run]
+    - name: service
+      path: service
+      synopsis: Create a service using specified subcommand.
+      description: Create a service using specified subcommand.
+      usage: service
+    - name: clusterip
+      path: service clusterip
+      synopsis: Create a clusterIP service.
+      description: Create a clusterIP service with the specified name.
+      example: "  # Create a new clusterIP service named my-cs\n  kubectl create service
+        clusterip my-cs --tcp=5678:8080\n  \n  # Create a new clusterIP service named
+        my-cs (in headless mode)\n  kubectl create service clusterip my-cs --clusterip=\"None\""
+      usage: clusterip NAME [--tcp=<port>:<targetPort>] [--dry-run]
+    - name: externalname
+      path: service externalname
+      synopsis: Create an ExternalName service.
+      description: "Create an ExternalName service with the specified name. \n\nExternalName
+        service references to an external DNS address instead of only pods, which
+        will allow application authors to reference services that exist off platform,
+        on other clusters, or locally."
+      example: |2-
+          # Create a new ExternalName service named my-ns
+          kubectl create service externalname my-ns --external-name bar.com
+      usage: externalname NAME --external-name external.name [--dry-run]
+    - name: loadbalancer
+      path: service loadbalancer
+      synopsis: Create a LoadBalancer service.
+      description: Create a LoadBalancer service with the specified name.
+      example: |2-
+          # Create a new LoadBalancer service named my-lbs
+          kubectl create service loadbalancer my-lbs --tcp=5678:8080
+      usage: loadbalancer NAME [--tcp=port:targetPort] [--dry-run]
+    - name: nodeport
+      path: service nodeport
+      synopsis: Create a NodePort service.
+      description: Create a nodeport service with the specified name.
+      example: |2-
+          # Create a new nodeport service named my-ns
+          kubectl create service nodeport my-ns --tcp=5678:8080
+      usage: nodeport NAME [--tcp=port:targetPort] [--dry-run]
+    - name: serviceaccount
+      path: serviceaccount
+      synopsis: Create a service account with the specified name
+      description: Create a service account with the specified name.
+      example: |2-
+          # Create a new service account named my-service-account
+          kubectl create serviceaccount my-service-account
+      usage: serviceaccount NAME [--dry-run]
+  - maincommand:
+      name: delete
+      synopsis: Delete resources by filenames, stdin, resources and names, or by resources
+        and label selector
+      description: "Delete resources by filenames, stdin, resources and names, or
+        by resources and label selector. \n\nJSON and YAML formats are accepted. Only
+        one type of the arguments may be specified: filenames, resources and names,
+        or resources and label selector. \n\nSome resources, such as pods, support
+        graceful deletion. These resources define a default period before they are
+        forcibly terminated (the grace period) but you may override that value with
+        the --grace-period flag, or pass --now to set a grace-period of 1. Because
+        these resources often represent entities in the cluster, deletion may not
+        be acknowledged immediately. If the node hosting a pod is down or cannot reach
+        the API server, termination may take significantly longer than the grace period.
+        To force delete a resource,  you must pass a grace   period of 0 and specify
+        the --force flag. \n\nIMPORTANT: Force deleting pods does not wait for confirmation
+        that the pod's processes have been terminated, which can leave those processes
+        running until the node detects the deletion and completes graceful deletion.
+        If your processes use shared storage or talk to a remote API and depend on
+        the name of the pod to identify themselves, force deleting those pods may
+        result in multiple processes running on different machines using the same
+        identification which may lead to data corruption or inconsistency. Only force
+        delete pods when you are sure the pod is terminated, or if your application
+        can tolerate multiple copies of the same pod running at once. Also, if you
+        force delete pods the scheduler may place new pods on those nodes before the
+        node has released those resources and causing those pods to be evicted immediately.
+        \n\nNote that the delete command does NOT do resource version checks, so if
+        someone submits an update to a resource right when you submit a delete, their
+        update will be lost along with the rest of the resource."
+      example: "  # Delete a pod using the type and name specified in pod.json.\n
+        \ kubectl delete -f ./pod.json\n  \n  # Delete a pod based on the type and
+        name in the JSON passed into stdin.\n  cat pod.json | kubectl delete -f -\n
+        \ \n  # Delete pods and services with same names \"baz\" and \"foo\"\n  kubectl
+        delete pod,service baz foo\n  \n  # Delete pods and services with label name=myLabel.\n
+        \ kubectl delete pods,services -l name=myLabel\n  \n  # Delete a pod with
+        minimal delay\n  kubectl delete pod foo --now\n  \n  # Force delete a pod
+        on a dead node\n  kubectl delete pod foo --grace-period=0 --force\n  \n  #
+        Delete a pod with UID 1234-56-7890-234234-456456.\n  kubectl delete pod 1234-56-7890-234234-456456\n
+        \ \n  # Delete all pods\n  kubectl delete pods --all"
+      usage: delete ([-f FILENAME] | TYPE [(NAME | -l label | --all)])
+  - maincommand:
+      name: describe
+      synopsis: Show details of a specific resource or group of resources
+      description: "Show details of a specific resource or group of resources. This
+        command joins many API calls together to form a detailed description of a
+        given resource or group of resources. \n\n  $ kubectl describe TYPE NAME_PREFIX\n
+        \ \nwill first check for an exact match on TYPE and NAME PREFIX. If no such
+        resource exists, it will output details for every resource that has a name
+        prefixed with NAME PREFIX. \n\nValid resource types include: \n\n  * all  \n
+        \ * clusters (valid only for federation apiservers)  \n  * clusterrolebindings
+        \ \n  * clusterroles  \n  * componentstatuses (aka 'cs')  \n  * configmaps
+        (aka 'cm')  \n  * daemonsets (aka 'ds')  \n  * deployments (aka 'deploy')
+        \ \n  * endpoints (aka 'ep')  \n  * events (aka 'ev')  \n  * horizontalpodautoscalers
+        (aka 'hpa')  \n  * ingresses (aka 'ing')  \n  * jobs  \n  * limitranges (aka
+        'limits')  \n  * namespaces (aka 'ns')  \n  * networkpolicies  \n  * nodes
+        (aka 'no')  \n  * persistentvolumeclaims (aka 'pvc')  \n  * persistentvolumes
+        (aka 'pv')  \n  * pods (aka 'po')  \n  * podsecuritypolicies (aka 'psp')  \n
+        \ * podtemplates  \n  * replicasets (aka 'rs')  \n  * replicationcontrollers
+        (aka 'rc')  \n  * resourcequotas (aka 'quota')  \n  * rolebindings  \n  *
+        roles  \n  * secrets  \n  * serviceaccounts (aka 'sa')  \n  * services (aka
+        'svc')  \n  * statefulsets  \n  * storageclasses  \n  * thirdpartyresources"
+      example: "  # Describe a node\n  kubectl describe nodes kubernetes-node-emt8.c.myproject.internal\n
+        \ \n  # Describe a pod\n  kubectl describe pods/nginx\n  \n  # Describe a
+        pod identified by type and name in \"pod.json\"\n  kubectl describe -f pod.json\n
+        \ \n  # Describe all pods\n  kubectl describe pods\n  \n  # Describe pods
+        by label name=myLabel\n  kubectl describe po -l name=myLabel\n  \n  # Describe
+        all pods managed by the 'frontend' replication controller (rc-created pods\n
+        \ # get the name of the rc as a prefix in the pod the name).\n  kubectl describe
+        pods frontend"
+      usage: describe (-f FILENAME | TYPE [NAME_PREFIX | -l label] | TYPE/NAME)
+  - maincommand:
+      name: drain
+      synopsis: Drain node in preparation for maintenance
+      description: "Drain node in preparation for maintenance. \n\nThe given node
+        will be marked unschedulable to prevent new pods from arriving. 'drain' evicts
+        the pods if the APIServer supports eviciton (http://kubernetes.io/docs/admin/disruptions/).
+        Otherwise, it will use normal DELETE to delete the pods. The 'drain' evicts
+        or deletes all pods except mirror pods (which cannot be deleted through the
+        API server).  If there are DaemonSet-managed pods, drain will not proceed
+        without --ignore-daemonsets, and regardless it will not delete any DaemonSet-managed
+        pods, because those pods would be immediately replaced by the DaemonSet controller,
+        which ignores unschedulable markings.  If there are any pods that are neither
+        mirror pods nor managed by ReplicationController, ReplicaSet, DaemonSet, StatefulSet
+        or Job, then drain will not delete any pods unless you use --force. \n\n'drain'
+        waits for graceful termination. You should not operate on the machine until
+        the command completes. \n\nWhen you are ready to put the node back into service,
+        use kubectl uncordon, which will make the node schedulable again. \n\n! http://kubernetes.io/images/docs/kubectl_drain.svg"
+      example: "  # Drain node \"foo\", even if there are pods not managed by a ReplicationController,
+        ReplicaSet, Job, DaemonSet or StatefulSet on it.\n  $ kubectl drain foo --force\n
+        \ \n  # As above, but abort if there are pods not managed by a ReplicationController,
+        ReplicaSet, Job, DaemonSet or StatefulSet, and use a grace period of 15 minutes.\n
+        \ $ kubectl drain foo --grace-period=900"
+      usage: drain NODE
+  - maincommand:
+      name: edit
+      synopsis: Edit a resource on the server
+      description: "Edit a resource from the default editor. \n\nThe edit command
+        allows you to directly edit any API resource you can retrieve via the command
+        line tools. It will open the editor defined by your KUBE _EDITOR, or EDITOR
+        environment variables, or fall back to 'vi' for Linux or 'notepad' for Windows.
+        You can edit multiple objects, although changes are applied one at a time.
+        The command accepts filenames as well as command line arguments, although
+        the files you point to must be previously saved versions of resources. \n\nThe
+        files to edit will be output in the default API version, or a version specified
+        by --output-version. The default format is YAML - if you would like to edit
+        in JSON pass -o json. The flag --windows-line-endings can be used to force
+        Windows line endings, otherwise the default for your operating system will
+        be used. \n\nIn the event an error occurs while updating, a temporary file
+        will be created on disk that contains your unapplied changes. The most common
+        error when updating a resource is another editor changing the resource on
+        the server. When this occurs, you will have to apply your changes to the newer
+        version of the resource, or update your temporary saved copy to include the
+        latest resource version."
+      example: "  # Edit the service named 'docker-registry':\n  kubectl edit svc/docker-registry\n
+        \ \n  # Use an alternative editor\n  KUBE_EDITOR=\"nano\" kubectl edit svc/docker-registry\n
+        \ \n  # Edit the service 'docker-registry' in JSON using the v1 API format:\n
+        \ kubectl edit svc/docker-registry --output-version=v1 -o json"
+      usage: edit (RESOURCE/NAME | -f FILENAME)
+  - maincommand:
+      name: exec
+      synopsis: Execute a command in a container
+      description: Execute a command in a container.
+      example: "  # Get output from running 'date' from pod 123456-7890, using the
+        first container by default\n  kubectl exec 123456-7890 date\n  \n  # Get output
+        from running 'date' in ruby-container from pod 123456-7890\n  kubectl exec
+        123456-7890 -c ruby-container date\n  \n  # Switch to raw terminal mode, sends
+        stdin to 'bash' in ruby-container from pod 123456-7890\n  # and sends stdout/stderr
+        from 'bash' back to the client\n  kubectl exec 123456-7890 -c ruby-container
+        -i -t -- bash -il"
+      usage: exec POD [-c CONTAINER] -- COMMAND [args...]
+  - maincommand:
+      name: explain
+      synopsis: Documentation of resources
+      description: "Documentation of resources. \n\nValid resource types include:
+        \n\n  * all  \n  * clusters (valid only for federation apiservers)  \n  *
+        clusterrolebindings  \n  * clusterroles  \n  * componentstatuses (aka 'cs')
+        \ \n  * configmaps (aka 'cm')  \n  * daemonsets (aka 'ds')  \n  * deployments
+        (aka 'deploy')  \n  * endpoints (aka 'ep')  \n  * events (aka 'ev')  \n  *
+        horizontalpodautoscalers (aka 'hpa')  \n  * ingresses (aka 'ing')  \n  * jobs
+        \ \n  * limitranges (aka 'limits')  \n  * namespaces (aka 'ns')  \n  * networkpolicies
+        \ \n  * nodes (aka 'no')  \n  * persistentvolumeclaims (aka 'pvc')  \n  *
+        persistentvolumes (aka 'pv')  \n  * pods (aka 'po')  \n  * podsecuritypolicies
+        (aka 'psp')  \n  * podtemplates  \n  * replicasets (aka 'rs')  \n  * replicationcontrollers
+        (aka 'rc')  \n  * resourcequotas (aka 'quota')  \n  * rolebindings  \n  *
+        roles  \n  * secrets  \n  * serviceaccounts (aka 'sa')  \n  * services (aka
+        'svc')  \n  * statefulsets  \n  * storageclasses  \n  * thirdpartyresources"
+      example: "  # Get the documentation of the resource and its fields\n  kubectl
+        explain pods\n  \n  # Get the documentation of a specific field of a resource\n
+        \ kubectl explain pods.spec.containers"
+      usage: explain RESOURCE
+  - maincommand:
+      name: expose
+      synopsis: Take a replication controller, service, deployment or pod and expose
+        it as a new Kubernetes Service
+      description: "Expose a resource as a new Kubernetes service. \n\nLooks up a
+        deployment, service, replica set, replication controller or pod by name and
+        uses the selector for that resource as the selector for a new service on the
+        specified port. A deployment or replica set will be exposed as a service only
+        if its selector is convertible to a selector that service supports, i.e. when
+        the selector contains only the matchLabels component. Note that if no port
+        is specified via --port and the exposed resource has multiple ports, all will
+        be re-used by the new service. Also if no labels are specified, the new service
+        will re-use the labels from the resource it exposes. \n\nPossible resources
+        include (case insensitive): \n\npod (po), service (svc), replicationcontroller
+        (rc), deployment (deploy), replicaset (rs)"
+      example: "  # Create a service for a replicated nginx, which serves on port
+        80 and connects to the containers on port 8000.\n  kubectl expose rc nginx
+        --port=80 --target-port=8000\n  \n  # Create a service for a replication controller
+        identified by type and name specified in \"nginx-controller.yaml\", which
+        serves on port 80 and connects to the containers on port 8000.\n  kubectl
+        expose -f nginx-controller.yaml --port=80 --target-port=8000\n  \n  # Create
+        a service for a pod valid-pod, which serves on port 444 with the name \"frontend\"\n
+        \ kubectl expose pod valid-pod --port=444 --name=frontend\n  \n  # Create
+        a second service based on the above service, exposing the container port 8443
+        as port 443 with the name \"nginx-https\"\n  kubectl expose service nginx
+        --port=443 --target-port=8443 --name=nginx-https\n  \n  # Create a service
+        for a replicated streaming application on port 4100 balancing UDP traffic
+        and named 'video-stream'.\n  kubectl expose rc streamer --port=4100 --protocol=udp
+        --name=video-stream\n  \n  # Create a service for a replicated nginx using
+        replica set, which serves on port 80 and connects to the containers on port
+        8000.\n  kubectl expose rs nginx --port=80 --target-port=8000\n  \n  # Create
+        a service for an nginx deployment, which serves on port 80 and connects to
+        the containers on port 8000.\n  kubectl expose deployment nginx --port=80
+        --target-port=8000"
+      usage: expose (-f FILENAME | TYPE NAME) [--port=port] [--protocol=TCP|UDP] [--target-port=number-or-name]
+        [--name=name] [--external-ip=external-ip-of-service] [--type=type]
+  - maincommand:
+      name: get
+      synopsis: Display one or many resources
+      description: "Display one or many resources. \n\nValid resource types include:
+        \n\n  * all  \n  * clusters (valid only for federation apiservers)  \n  *
+        clusterrolebindings  \n  * clusterroles  \n  * componentstatuses (aka 'cs')
+        \ \n  * configmaps (aka 'cm')  \n  * daemonsets (aka 'ds')  \n  * deployments
+        (aka 'deploy')  \n  * endpoints (aka 'ep')  \n  * events (aka 'ev')  \n  *
+        horizontalpodautoscalers (aka 'hpa')  \n  * ingresses (aka 'ing')  \n  * jobs
+        \ \n  * limitranges (aka 'limits')  \n  * namespaces (aka 'ns')  \n  * networkpolicies
+        \ \n  * nodes (aka 'no')  \n  * persistentvolumeclaims (aka 'pvc')  \n  *
+        persistentvolumes (aka 'pv')  \n  * pods (aka 'po')  \n  * podsecuritypolicies
+        (aka 'psp')  \n  * podtemplates  \n  * replicasets (aka 'rs')  \n  * replicationcontrollers
+        (aka 'rc')  \n  * resourcequotas (aka 'quota')  \n  * rolebindings  \n  *
+        roles  \n  * secrets  \n  * serviceaccounts (aka 'sa')  \n  * services (aka
+        'svc')  \n  * statefulsets  \n  * storageclasses  \n  * thirdpartyresources
+        \ \n\nThis command will hide resources that have completed. For instance,
+        pods that are in the Succeeded or Failed phases. You can see the full results
+        for any resource by providing the '--show-all' flag. \n\nBy specifying the
+        output as 'template' and providing a Go template as the value of the --template
+        flag, you can filter the attributes of the fetched resource(s)."
+      example: "  # List all pods in ps output format.\n  kubectl get pods\n  \n  #
+        List all pods in ps output format with more information (such as node name).\n
+        \ kubectl get pods -o wide\n  \n  # List a single replication controller with
+        specified NAME in ps output format.\n  kubectl get replicationcontroller web\n
+        \ \n  # List a single pod in JSON output format.\n  kubectl get -o json pod
+        web-pod-13je7\n  \n  # List a pod identified by type and name specified in
+        \"pod.yaml\" in JSON output format.\n  kubectl get -f pod.yaml -o json\n  \n
+        \ # Return only the phase value of the specified pod.\n  kubectl get -o template
+        pod/web-pod-13je7 --template={{.status.phase}}\n  \n  # List all replication
+        controllers and services together in ps output format.\n  kubectl get rc,services\n
+        \ \n  # List one or more resources by their type and names.\n  kubectl get
+        rc/web service/frontend pods/web-pod-13je7\n  \n  # List all resources with
+        different types.\n  kubectl get all"
+      usage: get [(-o|--output=)json|yaml|wide|custom-columns=...|custom-columns-file=...|go-template=...|go-template-file=...|jsonpath=...|jsonpath-file=...]
+        (TYPE [NAME | -l label] | TYPE/NAME ...) [flags]
+  - maincommand:
+      name: label
+      synopsis: Update the labels on a resource
+      description: "Update the labels on a resource. \n\n  * A label must begin with
+        a letter or number, and may contain letters, numbers, hyphens, dots, and underscores,
+        up to  63 characters.  \n  * If --overwrite is true, then existing labels
+        can be overwritten, otherwise attempting to overwrite a label will result
+        in an error.  \n  * If --resource-version is specified, then updates will
+        use this resource version, otherwise the existing resource-version will be
+        used."
+      example: "  # Update pod 'foo' with the label 'unhealthy' and the value 'true'.\n
+        \ kubectl label pods foo unhealthy=true\n  \n  # Update pod 'foo' with the
+        label 'status' and the value 'unhealthy', overwriting any existing value.\n
+        \ kubectl label --overwrite pods foo status=unhealthy\n  \n  # Update all
+        pods in the namespace\n  kubectl label pods --all status=unhealthy\n  \n  #
+        Update a pod identified by the type and name in \"pod.json\"\n  kubectl label
+        -f pod.json status=unhealthy\n  \n  # Update pod 'foo' only if the resource
+        is unchanged from version 1.\n  kubectl label pods foo status=unhealthy --resource-version=1\n
+        \ \n  # Update pod 'foo' by removing a label named 'bar' if it exists.\n  #
+        Does not require the --overwrite flag.\n  kubectl label pods foo bar-"
+      usage: label [--overwrite] (-f FILENAME | TYPE NAME) KEY_1=VAL_1 ... KEY_N=VAL_N
+        [--resource-version=version]
+  - maincommand:
+      name: logs
+      synopsis: Print the logs for a container in a pod
+      description: Print the logs for a container in a pod. If the pod has only one
+        container, the container name is optional.
+      example: "  # Return snapshot logs from pod nginx with only one container\n
+        \ kubectl logs nginx\n  \n  # Return snapshot logs for the pods defined by
+        label app=nginx\n  kubectl logs -lapp=nginx\n  \n  # Return snapshot of previous
+        terminated ruby container logs from pod web-1\n  kubectl logs -p -c ruby web-1\n
+        \ \n  # Begin streaming the logs of the ruby container in pod web-1\n  kubectl
+        logs -f -c ruby web-1\n  \n  # Display only the most recent 20 lines of output
+        in pod nginx\n  kubectl logs --tail=20 nginx\n  \n  # Show all logs from pod
+        nginx written in the last hour\n  kubectl logs --since=1h nginx"
+      usage: logs [-f] [-p] POD [-c CONTAINER]
+  - maincommand:
+      name: options
+      usage: options
+  - maincommand:
+      name: patch
+      synopsis: Update field(s) of a resource using strategic merge patch
+      description: "Update field(s) of a resource using strategic merge patch \n\nJSON
+        and YAML formats are accepted. \n\nPlease refer to the models in https://htmlpreview.github.io/?https://github.com/kubernetes/kubernetes/blob/HEAD/docs/api-reference/v1/definitions.html
+        to find if a field is mutable."
+      example: "  # Partially update a node using strategic merge patch\n  kubectl
+        patch node k8s-node-1 -p '{\"spec\":{\"unschedulable\":true}}'\n  \n  # Partially
+        update a node identified by the type and name specified in \"node.json\" using
+        strategic merge patch\n  kubectl patch -f node.json -p '{\"spec\":{\"unschedulable\":true}}'\n
+        \ \n  # Update a container's image; spec.containers[*].name is required because
+        it's a merge key\n  kubectl patch pod valid-pod -p '{\"spec\":{\"containers\":[{\"name\":\"kubernetes-serve-hostname\",\"image\":\"new
+        image\"}]}}'\n  \n  # Update a container's image using a json patch with positional
+        arrays\n  kubectl patch pod valid-pod --type='json' -p='[{\"op\": \"replace\",
+        \"path\": \"/spec/containers/0/image\", \"value\":\"new image\"}]'"
+      usage: patch (-f FILENAME | TYPE NAME) -p PATCH
+  - maincommand:
+      name: port-forward
+      synopsis: Forward one or more local ports to a pod
+      description: Forward one or more local ports to a pod.
+      example: "  # Listen on ports 5000 and 6000 locally, forwarding data to/from
+        ports 5000 and 6000 in the pod\n  kubectl port-forward mypod 5000 6000\n  \n
+        \ # Listen on port 8888 locally, forwarding to 5000 in the pod\n  kubectl
+        port-forward mypod 8888:5000\n  \n  # Listen on a random port locally, forwarding
+        to 5000 in the pod\n  kubectl port-forward mypod :5000\n  \n  # Listen on
+        a random port locally, forwarding to 5000 in the pod\n  kubectl port-forward
+        \ mypod 0:5000"
+      usage: port-forward POD [LOCAL_PORT:]REMOTE_PORT [...[LOCAL_PORT_N:]REMOTE_PORT_N]
+  - maincommand:
+      name: proxy
+      synopsis: Run a proxy to the Kubernetes API server
+      description: "To proxy all of the kubernetes api and nothing else, use: \n\n
+        \ $ kubectl proxy --api-prefix=/\n  \nTo proxy only part of the kubernetes
+        api and also some static files: \n\n  $ kubectl proxy --www=/my/files --www-prefix=/static/
+        --api-prefix=/api/\n  \nThe above lets you 'curl localhost:8001/api/v1/pods'.
+        \n\nTo proxy the entire kubernetes api at a different root, use: \n\n  $ kubectl
+        proxy --api-prefix=/custom/\n  \nThe above lets you 'curl localhost:8001/custom/api/v1/pods'"
+      example: "  # Run a proxy to kubernetes apiserver on port 8011, serving static
+        content from ./local/www/\n  kubectl proxy --port=8011 --www=./local/www/\n
+        \ \n  # Run a proxy to kubernetes apiserver on an arbitrary local port.\n
+        \ # The chosen port for the server will be output to stdout.\n  kubectl proxy
+        --port=0\n  \n  # Run a proxy to kubernetes apiserver, changing the api prefix
+        to k8s-api\n  # This makes e.g. the pods api available at localhost:8001/k8s-api/v1/pods/\n
+        \ kubectl proxy --api-prefix=/k8s-api"
+      usage: proxy [--port=PORT] [--www=static-dir] [--www-prefix=prefix] [--api-prefix=prefix]
+  - maincommand:
+      name: replace
+      synopsis: Replace a resource by filename or stdin
+      description: "Replace a resource by filename or stdin. \n\nJSON and YAML formats
+        are accepted. If replacing an existing resource, the complete resource spec
+        must be provided. This can be obtained by \n\n  $ kubectl get TYPE NAME -o
+        yaml\n  \nPlease refer to the models in https://htmlpreview.github.io/?https://github.com/kubernetes/kubernetes/blob/HEAD/docs/api-reference/v1/definitions.html
+        to find if a field is mutable."
+      example: "  # Replace a pod using the data in pod.json.\n  kubectl replace -f
+        ./pod.json\n  \n  # Replace a pod based on the JSON passed into stdin.\n  cat
+        pod.json | kubectl replace -f -\n  \n  # Update a single-container pod's image
+        version (tag) to v4\n  kubectl get pod mypod -o yaml | sed 's/\\(image: myimage\\):.*$/\\1:v4/'
+        | kubectl replace -f -\n  \n  # Force replace, delete and then re-create the
+        resource\n  kubectl replace --force -f ./pod.json"
+      usage: replace -f FILENAME
+  - maincommand:
+      name: rolling-update
+      synopsis: Perform a rolling update of the given ReplicationController
+      description: "Perform a rolling update of the given ReplicationController. \n\nReplaces
+        the specified replication controller with a new replication controller by
+        updating one pod at a time to use the new PodTemplate. The new-controller.json
+        must specify the same namespace as the existing replication controller and
+        overwrite at least one (common) label in its replicaSelector. \n\n! http://kubernetes.io/images/docs/kubectl_rollingupdate.svg"
+      example: "  # Update pods of frontend-v1 using new replication controller data
+        in frontend-v2.json.\n  kubectl rolling-update frontend-v1 -f frontend-v2.json\n
+        \ \n  # Update pods of frontend-v1 using JSON data passed into stdin.\n  cat
+        frontend-v2.json | kubectl rolling-update frontend-v1 -f -\n  \n  # Update
+        the pods of frontend-v1 to frontend-v2 by just changing the image, and switching
+        the\n  # name of the replication controller.\n  kubectl rolling-update frontend-v1
+        frontend-v2 --image=image:v2\n  \n  # Update the pods of frontend by just
+        changing the image, and keeping the old name.\n  kubectl rolling-update frontend
+        --image=image:v2\n  \n  # Abort and reverse an existing rollout in progress
+        (from frontend-v1 to frontend-v2).\n  kubectl rolling-update frontend-v1 frontend-v2
+        --rollback"
+      usage: rolling-update OLD_CONTROLLER_NAME ([NEW_CONTROLLER_NAME] --image=NEW_CONTAINER_IMAGE
+        | -f NEW_CONTROLLER_SPEC)
+  - maincommand:
+      name: rollout
+      synopsis: Manage a deployment rollout
+      description: Manage a deployment using subcommands like "kubectl rollout undo
+        deployment/abc"
+      example: |2-
+          # Rollback to the previous deployment
+          kubectl rollout undo deployment/abc
+      usage: rollout SUBCOMMAND
+    subcommands:
+    - name: history
+      path: history
+      synopsis: View rollout history
+      description: View previous rollout revisions and configurations.
+      example: "  # View the rollout history of a deployment\n  kubectl rollout history
+        deployment/abc\n  \n  # View the details of deployment revision 3\n  kubectl
+        rollout history deployment/abc --revision=3"
+      usage: history (TYPE NAME | TYPE/NAME) [flags]
+    - name: pause
+      path: pause
+      synopsis: Mark the provided resource as paused
+      description: "Mark the provided resource as paused \n\nPaused resources will
+        not be reconciled by a controller. Use \\\"kubectl rollout resume \\\" to
+        resume a paused resource. Currently only deployments support being paused."
+      example: |2-
+          # Mark the nginx deployment as paused. Any current state of
+          # the deployment will continue its function, new updates to the deployment will not
+          # have an effect as long as the deployment is paused.
+          kubectl rollout pause deployment/nginx
+      usage: pause RESOURCE
+    - name: resume
+      path: resume
+      synopsis: Resume a paused resource
+      description: "Resume a paused resource \n\nPaused resources will not be reconciled
+        by a controller. By resuming a resource, we allow it to be reconciled again.
+        Currently only deployments support being resumed."
+      example: |2-
+          # Resume an already paused deployment
+          kubectl rollout resume deployment/nginx
+      usage: resume RESOURCE
+    - name: status
+      path: status
+      synopsis: Show the status of the rollout
+      description: "Show the status of the rollout. \n\nBy default 'rollout status'
+        will watch the status of the latest rollout until it's done. If you don't
+        want to wait for the rollout to finish then you can use --watch=false. Note
+        that if a new rollout starts in-between, then 'rollout status' will continue
+        watching the latest revision. If you want to pin to a specific revision and
+        abort if it is rolled over by another revision, use --revision=N where N is
+        the revision you need to watch for."
+      example: |2-
+          # Watch the rollout status of a deployment
+          kubectl rollout status deployment/nginx
+      usage: status (TYPE NAME | TYPE/NAME) [flags]
+    - name: undo
+      path: undo
+      synopsis: Undo a previous rollout
+      description: Rollback to a previous rollout.
+      example: "  # Rollback to the previous deployment\n  kubectl rollout undo deployment/abc\n
+        \ \n  # Rollback to deployment revision 3\n  kubectl rollout undo deployment/abc
+        --to-revision=3\n  \n  # Rollback to the previous deployment with dry-run\n
+        \ kubectl rollout undo --dry-run=true deployment/abc"
+      usage: undo (TYPE NAME | TYPE/NAME) [flags]
+  - maincommand:
+      name: run
+      synopsis: Run a particular image on the cluster
+      description: "Create and run a particular image, possibly replicated. \n\nCreates
+        a deployment or job to manage the created container(s)."
+      example: "  # Start a single instance of nginx.\n  kubectl run nginx --image=nginx\n
+        \ \n  # Start a single instance of hazelcast and let the container expose
+        port 5701 .\n  kubectl run hazelcast --image=hazelcast --port=5701\n  \n  #
+        Start a single instance of hazelcast and set environment variables \"DNS_DOMAIN=cluster\"
+        and \"POD_NAMESPACE=default\" in the container.\n  kubectl run hazelcast --image=hazelcast
+        --env=\"DNS_DOMAIN=cluster\" --env=\"POD_NAMESPACE=default\"\n  \n  # Start
+        a replicated instance of nginx.\n  kubectl run nginx --image=nginx --replicas=5\n
+        \ \n  # Dry run. Print the corresponding API objects without creating them.\n
+        \ kubectl run nginx --image=nginx --dry-run\n  \n  # Start a single instance
+        of nginx, but overload the spec of the deployment with a partial set of values
+        parsed from JSON.\n  kubectl run nginx --image=nginx --overrides='{ \"apiVersion\":
+        \"v1\", \"spec\": { ... } }'\n  \n  # Start a pod of busybox and keep it in
+        the foreground, don't restart it if it exits.\n  kubectl run -i -t busybox
+        --image=busybox --restart=Never\n  \n  # Start the nginx container using the
+        default command, but use custom arguments (arg1 .. argN) for that command.\n
+        \ kubectl run nginx --image=nginx -- <arg1> <arg2> ... <argN>\n  \n  # Start
+        the nginx container using a different command and custom arguments.\n  kubectl
+        run nginx --image=nginx --command -- <cmd> <arg1> ... <argN>\n  \n  # Start
+        the perl container to compute π to 2000 places and print it out.\n  kubectl
+        run pi --image=perl --restart=OnFailure -- perl -Mbignum=bpi -wle 'print bpi(2000)'\n
+        \ \n  # Start the cron job to compute π to 2000 places and print it out every
+        5 minutes.\n  kubectl run pi --schedule=\"0/5 * * * ?\" --image=perl --restart=OnFailure
+        -- perl -Mbignum=bpi -wle 'print bpi(2000)'"
+      usage: run NAME --image=image [--env="key=value"] [--port=port] [--replicas=replicas]
+        [--dry-run=bool] [--overrides=inline-json] [--command] -- [COMMAND] [args...]
+  - maincommand:
+      name: scale
+      synopsis: Set a new size for a Deployment, ReplicaSet, Replication Controller,
+        or Job
+      description: "Set a new size for a Deployment, ReplicaSet, Replication Controller,
+        or Job. \n\nScale also allows users to specify one or more preconditions for
+        the scale action. \n\nIf --current-replicas or --resource-version is specified,
+        it is validated before the scale is attempted, and it is guaranteed that the
+        precondition holds true when the scale is sent to the server."
+      example: "  # Scale a replicaset named 'foo' to 3.\n  kubectl scale --replicas=3
+        rs/foo\n  \n  # Scale a resource identified by type and name specified in
+        \"foo.yaml\" to 3.\n  kubectl scale --replicas=3 -f foo.yaml\n  \n  # If the
+        deployment named mysql's current size is 2, scale mysql to 3.\n  kubectl scale
+        --current-replicas=2 --replicas=3 deployment/mysql\n  \n  # Scale multiple
+        replication controllers.\n  kubectl scale --replicas=5 rc/foo rc/bar rc/baz\n
+        \ \n  # Scale job named 'cron' to 3.\n  kubectl scale --replicas=3 job/cron"
+      usage: scale [--resource-version=version] [--current-replicas=count] --replicas=COUNT
+        (-f FILENAME | TYPE NAME)
+  - maincommand:
+      name: set
+      synopsis: Set specific features on objects
+      description: "Configure application resources \n\nThese commands help you make
+        changes to existing application resources."
+      usage: set SUBCOMMAND
+    subcommands:
+    - name: image
+      path: image
+      synopsis: Update image of a pod template
+      description: "Update existing container image(s) of resources. \n\nPossible
+        resources include (case insensitive): \n\n  pod (po), replicationcontroller
+        (rc), deployment (deploy), daemonset (ds), job, replicaset (rs)"
+      example: "  # Set a deployment's nginx container image to 'nginx:1.9.1', and
+        its busybox container image to 'busybox'.\n  kubectl set image deployment/nginx
+        busybox=busybox nginx=nginx:1.9.1\n  \n  # Update all deployments' and rc's
+        nginx container's image to 'nginx:1.9.1'\n  kubectl set image deployments,rc
+        nginx=nginx:1.9.1 --all\n  \n  # Update image of all containers of daemonset
+        abc to 'nginx:1.9.1'\n  kubectl set image daemonset abc *=nginx:1.9.1\n  \n
+        \ # Print result (in yaml format) of updating nginx container image from local
+        file, without hitting the server\n  kubectl set image -f path/to/file.yaml
+        nginx=nginx:1.9.1 --local -o yaml"
+      usage: image (-f FILENAME | TYPE NAME) CONTAINER_NAME_1=CONTAINER_IMAGE_1 ...
+        CONTAINER_NAME_N=CONTAINER_IMAGE_N
+    - name: resources
+      path: resources
+      synopsis: update resource requests/limits on objects with pod templates
+      description: "Specify compute resource requirements (cpu, memory) for any resource
+        that defines a pod template.  If a pod is successfully scheduled, it is guaranteed
+        the amount of resource requested, but may burst up to its specified limits.
+        \n\nfor each compute resource, if a limit is specified and a request is omitted,
+        the request will default to the limit. \n\nPossible resources include (case
+        insensitive): replicationcontroller, deployment, daemonset, job, replicaset."
+      example: "  # Set a deployments nginx container cpu limits to \"200m\" and memory
+        to \"512Mi\"\n  kubectl set resources deployment nginx -c=nginx --limits=cpu=200m,memory=512Mi\n
+        \ \n  # Set the resource request and limits for all containers in nginx\n
+        \ kubectl set resources deployment nginx --limits=cpu=200m,memory=512Mi --requests=cpu=100m,memory=256Mi\n
+        \ \n  # Remove the resource requests for resources on containers in nginx\n
+        \ kubectl set resources deployment nginx --limits=cpu=0,memory=0 --requests=cpu=0,memory=0\n
+        \ \n  # Print the result (in yaml format) of updating nginx container limits
+        from a local, without hitting the server\n  kubectl set resources -f path/to/file.yaml
+        --limits=cpu=200m,memory=512Mi --local -o yaml"
+      usage: resources (-f FILENAME | TYPE NAME)  ([--limits=LIMITS & --requests=REQUESTS]
+  - maincommand:
+      name: stop
+      synopsis: 'Deprecated: delete'
+      description: 'Deprecated: This command is deprecated, all its functionalities
+        are covered by "kubectl delete"'
+      example: "  # Shut down foo.\n  kubectl stop replicationcontroller foo\n  \n
+        \ # Stop pods and services with label name=myLabel.\n  kubectl stop pods,services
+        -l name=myLabel\n  \n  # Shut down the service defined in service.json\n  kubectl
+        stop -f service.json\n  \n  # Shut down all resources in the path/to/resources
+        directory\n  kubectl stop -f path/to/resources"
+      usage: stop (-f FILENAME | TYPE (NAME | -l label | --all))
+  - maincommand:
+      name: taint
+      synopsis: Update the taints on one or more nodes
+      description: "Update the taints on one or more nodes. \n\n  * A taint consists
+        of a key, value, and effect. As an argument here, it is expressed as key=value:effect.
+        \ \n  * The key must begin with a letter or number, and may contain letters,
+        numbers, hyphens, dots, and underscores, up to  253 characters.  \n  * The
+        value must begin with a letter or number, and may contain letters, numbers,
+        hyphens, dots, and underscores, up to  253 characters.  \n  * The effect must
+        be NoSchedule or PreferNoSchedule.  \n  * Currently taint can only apply to
+        node."
+      example: "  # Update node 'foo' with a taint with key 'dedicated' and value
+        'special-user' and effect 'NoSchedule'.\n  # If a taint with that key and
+        effect already exists, its value is replaced as specified.\n  kubectl taint
+        nodes foo dedicated=special-user:NoSchedule\n  \n  # Remove from node 'foo'
+        the taint with key 'dedicated' and effect 'NoSchedule' if one exists.\n  kubectl
+        taint nodes foo dedicated:NoSchedule-\n  \n  # Remove from node 'foo' all
+        the taints with key 'dedicated'\n  kubectl taint nodes foo dedicated-"
+      usage: taint NODE NAME KEY_1=VAL_1:TAINT_EFFECT_1 ... KEY_N=VAL_N:TAINT_EFFECT_N
+  - maincommand:
+      name: top
+      synopsis: Display Resource (CPU/Memory/Storage) usage
+      description: "Display Resource (CPU/Memory/Storage) usage. \n\nThe top command
+        allows you to see the resource consumption for nodes or pods."
+      usage: top
+    subcommands:
+    - name: node
+      path: node
+      synopsis: Display Resource (CPU/Memory/Storage) usage of nodes
+      description: "Display Resource (CPU/Memory/Storage) usage of nodes. \n\nThe
+        top-node command allows you to see the resource consumption of nodes."
+      example: "  # Show metrics for all nodes\n  kubectl top node\n  \n  # Show metrics
+        for a given node\n  kubectl top node NODE_NAME"
+      usage: node [NAME | -l label]
+    - name: pod
+      path: pod
+      synopsis: Display Resource (CPU/Memory/Storage) usage of pods
+      description: "Display Resource (CPU/Memory/Storage) usage of pods. \n\nThe 'top
+        pod' command allows you to see the resource consumption of pods. \n\nDue to
+        the metrics pipeline delay, they may be unavailable for a few minutes since
+        pod creation."
+      example: "  # Show metrics for all pods in the default namespace\n  kubectl
+        top pod\n  \n  # Show metrics for all pods in the given namespace\n  kubectl
+        top pod --namespace=NAMESPACE\n  \n  # Show metrics for a given pod and its
+        containers\n  kubectl top pod POD_NAME --containers\n  \n  # Show metrics
+        for the pods defined by label name=myLabel\n  kubectl top pod -l name=myLabel"
+      usage: pod [NAME | -l label]
+  - maincommand:
+      name: uncordon
+      synopsis: Mark node as schedulable
+      description: Mark node as schedulable.
+      example: |2-
+          # Mark node "foo" as schedulable.
+          $ kubectl uncordon foo
+      usage: uncordon NODE
+  - maincommand:
+      name: version
+      synopsis: Print the client and server version information
+      usage: version
