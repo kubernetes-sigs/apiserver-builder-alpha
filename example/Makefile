@@ -20,6 +20,8 @@ test: build
 	go test github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic/v1beta1
 	go test github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/innsmouth/v1
 	go test github.com/kubernetes-incubator/apiserver-builder/example/pkg/controller/university
+	go test github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/kingsport/v1
+	go test github.com/kubernetes-incubator/apiserver-builder/example/pkg/controller/festival
 	bash -c "find pkg/apis/ -name apiserver.local.config | xargs rm -rf"
 
 build: generate
