@@ -55,6 +55,7 @@ func main() {
 	boot.AddBuild(cmd)
 	boot.AddBuildContainer(cmd)
 	boot.AddBuildResourceConfig(cmd)
+	boot.AddRunInCluster(cmd)
 
 	if err := cmd.Execute(); err != nil {
 		log.Fatal(err)

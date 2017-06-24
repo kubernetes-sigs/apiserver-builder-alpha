@@ -31,8 +31,8 @@ import (
 
 var runCmd = &cobra.Command{
 	Use:   "run",
-	Short: "run an apiserver",
-	Long:  `run an apiserver`,
+	Short: "run the etcd, apiserver and controller-manager",
+	Long:  `run the etcd, apiserver and controller-manager`,
 	Run:   RunRun,
 }
 
@@ -41,6 +41,7 @@ var config string
 var printapiserver bool
 var printcontrollermanager bool
 var printetcd bool
+var buildBin bool
 
 func AddRunCmd(cmd *cobra.Command) {
 	runCmd.Flags().StringVar(&server, "apiserver", "", "path to apiserver binary to run")
@@ -52,10 +53,15 @@ func AddRunCmd(cmd *cobra.Command) {
 	runCmd.Flags().BoolVar(&printapiserver, "print-apiserver", true, "if true, pipe the apiserver stdout and stderr")
 	runCmd.Flags().BoolVar(&printcontrollermanager, "print-controller-manager", true, "if true, pipe the controller-manager stdout and stderr")
 	runCmd.Flags().BoolVar(&printetcd, "printetcd", false, "if true, pipe the etcd stdout and stderr")
+	runCmd.Flags().BoolVar(&buildBin, "build", true, "if true, build the binaries before running")
 	cmd.AddCommand(runCmd)
 }
 
 func RunRun(cmd *cobra.Command, args []string) {
+	if buildBin {
+		RunBuild(cmd, args)
+	}
+
 	WriteKubeConfig()
 
 	// Start etcd

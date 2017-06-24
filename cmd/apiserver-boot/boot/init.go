@@ -106,7 +106,7 @@ func createControllerManager(boilerplate string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	path := filepath.Join(dir, "cmd", "controller", "main.go")
+	path := filepath.Join(dir, "cmd", "controller-manager", "main.go")
 	writeIfNotFound(path, "main-template", controllerManagerTemplate, controllerManagerTemplateArguments{boilerplate, Repo})
 
 }

@@ -27,10 +27,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var generateForBuild bool
-var goos string
-var goarch string
-var outputdir string
+var generateForBuild bool = true
+var goos string = "linux"
+var goarch string = "amd64"
+var outputdir string = "bin"
 
 var createBuildCmd = &cobra.Command{
 	Use:   "build",
@@ -58,11 +58,14 @@ func RunBuild(cmd *cobra.Command, args []string) {
 	path := filepath.Join("cmd", "apiserver", "main.go")
 	c := exec.Command("go", "build", "-o", filepath.Join(outputdir, "apiserver"), path)
 	c.Env = append(os.Environ(), "CGO_ENABLED=0")
+	log.Printf("CGO_ENABLED=0")
 	if len(goos) > 0 {
 		c.Env = append(c.Env, fmt.Sprintf("GOOS=%s", goos))
+		log.Printf(fmt.Sprintf("GOOS=%s", goos))
 	}
 	if len(goarch) > 0 {
 		c.Env = append(c.Env, fmt.Sprintf("GOARCH=%s", goarch))
+		log.Printf(fmt.Sprintf("GOARCH=%s", goarch))
 	}
 
 	fmt.Printf("%s\n", strings.Join(c.Args, " "))

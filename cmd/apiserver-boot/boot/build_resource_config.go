@@ -32,6 +32,7 @@ import (
 
 var name, namespace string
 var versions []schema.GroupVersion
+var resourceConfigDir string
 
 var buildResourceConfigCmd = &cobra.Command{
 	Use:   "build-resource-config",
@@ -46,6 +47,7 @@ func AddBuildResourceConfig(cmd *cobra.Command) {
 	buildResourceConfigCmd.Flags().StringVar(&name, "name", "", "")
 	buildResourceConfigCmd.Flags().StringVar(&namespace, "namespace", "", "")
 	buildResourceConfigCmd.Flags().StringVar(&image, "image", "", "name of the apiserver image with tag")
+	buildResourceConfigCmd.Flags().StringVar(&resourceConfigDir, "output", "config", "directory to output resourceconfig")
 }
 
 func RunBuildResourceConfig(cmd *cobra.Command, args []string) {
@@ -80,13 +82,8 @@ func getBase64(file string) string {
 }
 
 func buildResourceConfig() {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	initVersionedApis()
-	log.Printf("versions %+v", versions)
+
 	a := resourceConfigTemplateArgs{
 		Name:       name,
 		Namespace:  namespace,
@@ -97,16 +94,9 @@ func buildResourceConfig() {
 		CACert:     getBase64(filepath.Join("bin", "certificates", "apiserver_ca.crt")),
 		ClientCert: getBase64(filepath.Join("bin", "certificates", "apiserver.crt")),
 	}
+	path := filepath.Join(resourceConfigDir, "apiserver.yaml")
 
-	root, err := os.Executable()
-	if err != nil {
-		log.Fatalf("error: %v", err)
-	}
-	root = filepath.Dir(root)
-
-	doCmd("mkdir", "-p", filepath.Join(dir, "config"))
-
-	path := filepath.Join(dir, "config", "apiserver.yaml")
+	doCmd("mkdir", "-p", resourceConfigDir)
 	created := writeIfNotFound(path, "config-template", resourceConfigTemplate, a)
 	if !created && !ignoreExists {
 		log.Fatalf("Resource config already exists.")
@@ -164,25 +154,25 @@ func createCerts() {
 }
 
 func initVersionedApis() {
-	if len(versionedAPIs) == 0 {
-		groups, err := ioutil.ReadDir(filepath.Join("pkg", "apis"))
-		if err != nil {
-			log.Fatalf("could not read pkg/apis directory to find api versions")
-		}
-		for _, g := range groups {
-			if g.IsDir() {
-				versionFiles, err := ioutil.ReadDir(filepath.Join("pkg", "apis", g.Name()))
-				if err != nil {
-					log.Fatalf("could not read pkg/apis/%s directory to find api versions", g.Name())
-				}
-				versionMatch := regexp.MustCompile("^v\\d+(alpha\\d+|beta\\d+)*$")
-				for _, v := range versionFiles {
-					if v.IsDir() && versionMatch.MatchString(v.Name()) {
-						versions = append(versions, schema.GroupVersion{
-							Group:   g.Name(),
-							Version: v.Name(),
-						})
-					}
+	groups, err := ioutil.ReadDir(filepath.Join("pkg", "apis"))
+	if err != nil {
+		log.Fatalf("could not read pkg/apis directory to find api versions")
+	}
+	log.Printf("Adding APIs:")
+	for _, g := range groups {
+		if g.IsDir() {
+			versionFiles, err := ioutil.ReadDir(filepath.Join("pkg", "apis", g.Name()))
+			if err != nil {
+				log.Fatalf("could not read pkg/apis/%s directory to find api versions", g.Name())
+			}
+			versionMatch := regexp.MustCompile("^v\\d+(alpha\\d+|beta\\d+)*$")
+			for _, v := range versionFiles {
+				if v.IsDir() && versionMatch.MatchString(v.Name()) {
+					log.Printf("\t%s.%s", g.Name(), v.Name())
+					versions = append(versions, schema.GroupVersion{
+						Group:   g.Name(),
+						Version: v.Name(),
+					})
 				}
 			}
 		}
@@ -275,7 +265,6 @@ spec:
         - "--etcd-servers=http://localhost:2379"
         - "--tls-cert-file=/apiserver.local.config/certificates/tls.crt"
         - "--tls-private-key-file=/apiserver.local.config/certificates/tls.key"
-        - "--print-bearer-token"
         - "--audit-log-path=-"
         - "--audit-log-maxage=0"
         - "--audit-log-maxbackup=0"
