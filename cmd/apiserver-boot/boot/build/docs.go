@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package boot
+package build
 
 import (
 	"fmt"
@@ -38,6 +38,7 @@ var docsCmd = &cobra.Command{
 }
 
 var operations bool
+var server string
 
 func AddDocs(cmd *cobra.Command) {
 	docsCmd.Flags().StringVar(&server, "server", "", "path to apiserver binary to run to get openapi.json")

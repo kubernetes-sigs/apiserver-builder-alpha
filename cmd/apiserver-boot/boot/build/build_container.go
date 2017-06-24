@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package boot
+package build
 
 import (
 	"fmt"
@@ -24,14 +24,15 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
 	"io/ioutil"
 )
 
-var image string
+var Image string
 
 var createBuildContainerCmd = &cobra.Command{
-	Use:   "build-container",
+	Use:   "container",
 	Short: "Builds an container with the apiserver and controller-manager binaries",
 	Long:  `Builds an container with the apiserver and controller-manager binaries`,
 	Run:   RunBuildContainer,
@@ -39,26 +40,29 @@ var createBuildContainerCmd = &cobra.Command{
 
 func AddBuildContainer(cmd *cobra.Command) {
 	cmd.AddCommand(createBuildContainerCmd)
+	AddBuildContainerFlags(createBuildContainerCmd)
+}
 
-	createBuildContainerCmd.Flags().StringVar(&image, "image", "", "name of the image with tag")
-	createBuildContainerCmd.Flags().BoolVar(&generateForBuild, "generate", true, "if true, generate code before building")
+func AddBuildContainerFlags(cmd *cobra.Command) {
+	cmd.Flags().StringVar(&Image, "Image", "", "Name of the Image with tag")
+	cmd.Flags().BoolVar(&GenerateForBuild, "generate", true, "if true, generate code before building")
 }
 
 func RunBuildContainer(cmd *cobra.Command, args []string) {
-	if len(image) == 0 {
-		log.Fatalf("Must specify image image using --image when building containers")
+	if len(Image) == 0 {
+		log.Fatalf("Must specify Image Image using --Image when building containers")
 	}
 
 	dir, err := ioutil.TempDir(os.TempDir(), "apiserver-boot-build-container")
 	if err != nil {
 		log.Fatalf("failed to create temp directory %s %v", dir, err)
 	}
-	log.Printf("Will build docker image from directory %s", dir)
+	log.Printf("Will build docker Image from directory %s", dir)
 
 	log.Printf("Writing the Dockerfile.")
 
 	path := filepath.Join(dir, "Dockerfile")
-	writeIfNotFound(path, "dockerfile-template", dockerfileTemplate, dockerfileTemplateArguments{})
+	util.WriteIfNotFound(path, "dockerfile-template", dockerfileTemplate, dockerfileTemplateArguments{})
 
 	log.Printf("Building binaries for linux amd64.")
 
@@ -68,9 +72,9 @@ func RunBuildContainer(cmd *cobra.Command, args []string) {
 	outputdir = dir
 	RunBuild(cmd, args)
 
-	log.Printf("Building the docker image.")
+	log.Printf("Building the docker Image.")
 
-	c := exec.Command("docker", "build", "-t", image, dir)
+	c := exec.Command("docker", "build", "-t", Image, dir)
 	fmt.Printf("%s\n", strings.Join(c.Args, " "))
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout

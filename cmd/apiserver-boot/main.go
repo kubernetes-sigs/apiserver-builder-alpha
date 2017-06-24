@@ -22,8 +22,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot"
 	"github.com/spf13/cobra"
+
+	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/build"
+	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/create"
+	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/init_repo"
+	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/run"
+	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 )
 
 func main() {
@@ -31,31 +36,28 @@ func main() {
 	if len(gopath) == 0 {
 		log.Fatal("GOPATH not defined")
 	}
-	boot.GoSrc = filepath.Join(gopath, "src")
+	util.GoSrc = filepath.Join(gopath, "src")
 
 	wd, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if !strings.HasPrefix(filepath.Dir(wd), boot.GoSrc) {
+	if !strings.HasPrefix(filepath.Dir(wd), util.GoSrc) {
 		log.Fatalf("apiserver-boot must be run from the directory containing the go package to "+
 			"bootstrap. This must be under $GOPATH/src/<package>. "+
 			"\nCurrent GOPATH=%s.  \nCurrent directory=%s", gopath, wd)
 	}
-	boot.Repo = strings.Replace(wd, boot.GoSrc+string(filepath.Separator), "", 1)
-	boot.AddCreateGroup(cmd)
-	boot.AddCreateResource(cmd)
-	boot.AddCreateVersion(cmd)
-	boot.AddDocs(cmd)
-	boot.AddGenerate(cmd)
-	boot.AddGlideInstallCmd(cmd)
-	boot.AddInit(cmd)
-	boot.AddRunCmd(cmd)
-	boot.AddBuild(cmd)
-	boot.AddBuildContainer(cmd)
-	boot.AddBuildResourceConfig(cmd)
-	boot.AddRunInCluster(cmd)
+	util.Repo = strings.Replace(wd, util.GoSrc+string(filepath.Separator), "", 1)
+
+	init_repo.AddInit(cmd)
+
+	create.AddCreate(cmd)
+
+	build.AddBuild(cmd)
+	build.AddGenerate(cmd)
+
+	run.AddRun(cmd)
 
 	if err := cmd.Execute(); err != nil {
 		log.Fatal(err)
@@ -64,9 +66,27 @@ func main() {
 
 var cmd = &cobra.Command{
 	Use:   "apiserver-boot",
-	Short: "apiserver-boot bootstraps building Kubernetes extensions",
-	Long:  `apiserver-boot bootstraps building Kubernetes extensions`,
-	Run:   RunMain,
+	Short: "apiserver-boot development kit for building Kubernetes extensions in go.",
+	Long:  `apiserver-boot development kit for building Kubernetes extensions in go.`,
+	Example: `# Initialize your repository with scaffolding directories and go files
+apiserver-boot init --domain example.com
+
+# Create new resource "Bee" in the "insect" group with version "v1beta"
+apiserver-boot create group version kind --group insect --version v1beta --kind Bee
+
+# Build the generated code, apiserver and controller-manager
+apiserver-boot build
+
+# Run the automatically created tests
+go test ./pkg/...
+
+# Run locally starting a local etcd, apiserver and controller-manager
+# Produces a kubeconfig to talk to the local server
+apiserver-boot run local
+
+# Run on a cluster in the default namespace
+apiserver-boot run in-cluster --name creatures --namespace default --image repo/name:tag`,
+	Run: RunMain,
 }
 
 func RunMain(cmd *cobra.Command, args []string) {

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package boot
+package create
 
 import (
 	"fmt"
@@ -24,25 +24,32 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/markbates/inflect"
 	"github.com/spf13/cobra"
 )
 
+var kindName string
+var resourceName string
+var nonNamespacedKind bool
+
 var createResourceCmd = &cobra.Command{
-	Use:   "create-resource",
-	Short: "Creates an API resource",
-	Long:  `Creates an API resource`,
-	Run:   RunCreateResource,
+	Use:   "resource",
+	Short: "Creates an API group, version and resource",
+	Long:  `Creates an API group, version and resource.  Will not recreate group or resource if they already exist.`,
+	Example: `# Create new resource "Bee" in the "insect" group with version "v1beta"
+# Will automatically the group and version if they do not exist
+apiserver-boot create group version kind --group insect --version v1beta --kind Bee`,
+	Run: RunCreateResource,
 }
 
 func AddCreateResource(cmd *cobra.Command) {
-	createResourceCmd.Flags().StringVar(&groupName, "group", "", "name of the API group")
-	createResourceCmd.Flags().StringVar(&versionName, "version", "", "name of the API version")
+	createResourceCmd.Flags().StringVar(&groupName, "group", "", "name of the API group to create")
+	createResourceCmd.Flags().StringVar(&versionName, "version", "", "name of the API version to create")
 	createResourceCmd.Flags().StringVar(&kindName, "kind", "", "name of the API kind to create")
 	createResourceCmd.Flags().StringVar(&resourceName, "resource", "", "optional name of the API resource to create, normally the plural name of the kind in lowercase")
-	createResourceCmd.Flags().StringVar(&copyright, "copyright", "", "path to copyright file.  defaults to boilerplate.go.txt")
-	createResourceCmd.Flags().StringVar(&domain, "domain", "", "domain the api group lives under")
 	createResourceCmd.Flags().BoolVar(&nonNamespacedKind, "non-namespaced", false, "if set, the API kind will be non namespaced")
+
 	cmd.AddCommand(createResourceCmd)
 }
 
@@ -51,17 +58,15 @@ func RunCreateResource(cmd *cobra.Command, args []string) {
 		log.Fatalf("could not find 'pkg' directory.  must run apiserver-boot init before creating resources")
 	}
 
-	if len(domain) == 0 {
-		domain = getDomain()
-	}
+	util.GetDomain()
 	if len(groupName) == 0 {
-		log.Fatal("apiserver-boot create-resource requires the --group flag")
+		log.Fatalf("Must specify --group")
 	}
 	if len(versionName) == 0 {
-		log.Fatal("apiserver-boot create-resource requires the --version flag")
+		log.Fatalf("Must specify --version")
 	}
 	if len(kindName) == 0 {
-		log.Fatal("apiserver-boot create-resource requires the --kind flag")
+		log.Fatal("Must specify --kind")
 	}
 	if len(resourceName) == 0 {
 		resourceName = inflect.NewDefaultRuleset().Pluralize(strings.ToLower(kindName))
@@ -80,13 +85,13 @@ func RunCreateResource(cmd *cobra.Command, args []string) {
 		log.Fatalf("--kind must start with uppercase letter was (%s)", kindName)
 	}
 
-	cr := getCopyright()
+	cr := util.GetCopyright(copyright)
 
-	ignoreExists = true
+	ignoreGroupExists = true
 	createGroup(cr)
+	ignoreVersionExists = true
 	createVersion(cr)
 
-	ignoreExists = false
 	createResource(cr)
 }
 
@@ -99,19 +104,19 @@ func createResource(boilerplate string) {
 	path := filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
 	a := resourceTemplateArgs{
 		boilerplate,
-		domain,
+		util.Domain,
 		groupName,
 		versionName,
 		kindName,
 		resourceName,
-		Repo,
+		util.Repo,
 		inflect.NewDefaultRuleset().Pluralize(kindName),
 		nonNamespacedKind,
 	}
 
 	found := false
 
-	created := writeIfNotFound(path, "resource-template", resourceTemplate, a)
+	created := util.WriteIfNotFound(path, "resource-template", resourceTemplate, a)
 	if !created {
 		if !found {
 			log.Printf("API group version kind %s/%s/%s already exists.",
@@ -123,11 +128,11 @@ func createResource(boilerplate string) {
 	// write the suite if it is missing
 	typesFileName = fmt.Sprintf("%s_suite_test.go", strings.ToLower(versionName))
 	path = filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
-	writeIfNotFound(path, "version-suite-test-template", resourceSuiteTestTemplate, a)
+	util.WriteIfNotFound(path, "version-suite-test-template", resourceSuiteTestTemplate, a)
 
 	typesFileName = fmt.Sprintf("%s_types_test.go", strings.ToLower(kindName))
 	path = filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
-	created = writeIfNotFound(path, "resource-test-template", resourceTestTemplate, a)
+	created = util.WriteIfNotFound(path, "resource-test-template", resourceTestTemplate, a)
 	if !created {
 		if !found {
 			log.Printf("API group version kind %s/%s/%s test already exists.",
@@ -137,7 +142,7 @@ func createResource(boilerplate string) {
 	}
 
 	path = filepath.Join(dir, "pkg", "controller", strings.ToLower(kindName), "controller.go")
-	created = writeIfNotFound(path, "resource-controller-template", resourceControllerTemplate, a)
+	created = util.WriteIfNotFound(path, "resource-controller-template", resourceControllerTemplate, a)
 	if !created {
 		if !found {
 			log.Printf("Controller for %s/%s/%s already exists.",
@@ -147,10 +152,10 @@ func createResource(boilerplate string) {
 	}
 
 	path = filepath.Join(dir, "pkg", "controller", strings.ToLower(kindName), fmt.Sprintf("%s_suite_test.go", strings.ToLower(kindName)))
-	writeIfNotFound(path, "resource-controller-suite-test-template", controllerSuiteTestTemplate, a)
+	util.WriteIfNotFound(path, "resource-controller-suite-test-template", controllerSuiteTestTemplate, a)
 
 	path = filepath.Join(dir, "pkg", "controller", strings.ToLower(kindName), "controller_test.go")
-	created = writeIfNotFound(path, "controller-test-template", controllerTestTemplate, a)
+	created = util.WriteIfNotFound(path, "controller-test-template", controllerTestTemplate, a)
 	if !created {
 		if !found {
 			log.Printf("Controller test for %s/%s/%s already exists.",

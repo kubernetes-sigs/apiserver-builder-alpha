@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package boot
+package build
 
 import (
 	"fmt"
@@ -26,18 +26,22 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
 	"regexp"
 )
 
 var versionedAPIs []string
 var unversionedAPIs []string
+var copyright string = "boilerplate.go.txt"
 
 var generateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Generates source code for a repo",
-	Long:  `Generates source code for a repo.  By default, automatically run with build`,
-	Run:   RunGenerate,
+	Long:  `Automatically run by most build commands.  Writes generated source code for a repo.`,
+	Example: `# Run code generators.
+apiserver-boot generate`,
+	Run: RunGenerate,
 }
 
 var genericAPI = strings.Join([]string{
@@ -72,8 +76,7 @@ var extraAPI = strings.Join([]string{
 
 func AddGenerate(cmd *cobra.Command) {
 	cmd.AddCommand(generateCmd)
-	generateCmd.Flags().StringVar(&copyright, "copyright", "boilerplate.go.txt", "path to copyright file.  defaults to boilerplate.go.txt")
-	generateCmd.Flags().StringArrayVar(&versionedAPIs, "api-versions", []string{}, "comma separated list of APIs versions.  e.g. foo/v1beta1,bar/v1  defaults to all directories under pkd/apis/group/version")
+	generateCmd.Flags().StringArrayVar(&versionedAPIs, "api-Versions", []string{}, "comma separated list of APIs Versions.  e.g. foo/v1beta1,bar/v1  defaults to all directories under pkd/apis/group/version")
 	generateCmd.AddCommand(generateCleanCmd)
 }
 
@@ -101,7 +104,7 @@ func RunCleanGenerate(cmd *cobra.Command, args []string) {
 func RunGenerate(cmd *cobra.Command, args []string) {
 	initApis()
 
-	getCopyright()
+	util.GetCopyright(copyright)
 
 	root, err := os.Executable()
 	if err != nil {
@@ -112,20 +115,20 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	all := []string{}
 	versioned := []string{}
 	for _, v := range versionedAPIs {
-		v = filepath.Join(Repo, "pkg", "apis", v)
+		v = filepath.Join(util.Repo, "pkg", "apis", v)
 		versioned = append(versioned, "--input-dirs", v)
 		all = append(all, "--input-dirs", v)
 	}
 	unversioned := []string{}
 	for _, u := range unversionedAPIs {
-		u = filepath.Join(Repo, "pkg", "apis", u)
+		u = filepath.Join(util.Repo, "pkg", "apis", u)
 		unversioned = append(unversioned, "--input-dirs", u)
 		all = append(all, "--input-dirs", u)
 	}
 
 	c := exec.Command(filepath.Join(root, "apiregister-gen"),
-		"--input-dirs", filepath.Join(Repo, "pkg", "apis", "..."),
-		"--input-dirs", filepath.Join(Repo, "pkg", "controller", "..."),
+		"--input-dirs", filepath.Join(util.Repo, "pkg", "apis", "..."),
+		"--input-dirs", filepath.Join(util.Repo, "pkg", "controller", "..."),
 	)
 	fmt.Printf("%s\n", strings.Join(c.Args, " "))
 	out, err := c.CombinedOutput()
@@ -135,7 +138,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 
 	c = exec.Command(filepath.Join(root, "conversion-gen"),
 		append(all,
-			"-o", GoSrc,
+			"-o", util.GoSrc,
 			"--go-header-file", copyright,
 			"-O", "zz_generated.conversion",
 			"--extra-peer-dirs", extraAPI)...,
@@ -148,7 +151,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 
 	c = exec.Command(filepath.Join(root, "deepcopy-gen"),
 		append(all,
-			"-o", GoSrc,
+			"-o", util.GoSrc,
 			"--go-header-file", copyright,
 			"-O", "zz_generated.deepcopy")...,
 	)
@@ -160,10 +163,10 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 
 	c = exec.Command(filepath.Join(root, "openapi-gen"),
 		append(all,
-			"-o", GoSrc,
+			"-o", util.GoSrc,
 			"--go-header-file", copyright,
 			"-i", genericAPI,
-			"--output-package", filepath.Join(Repo, "pkg", "openapi"))...,
+			"--output-package", filepath.Join(util.Repo, "pkg", "openapi"))...,
 	)
 	fmt.Printf("%s\n", strings.Join(c.Args, " "))
 	out, err = c.CombinedOutput()
@@ -173,7 +176,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 
 	c = exec.Command(filepath.Join(root, "defaulter-gen"),
 		append(all,
-			"-o", GoSrc,
+			"-o", util.GoSrc,
 			"--go-header-file", copyright,
 			"-O", "zz_generated.defaults",
 			"--extra-peer-dirs=", extraAPI)...,
@@ -185,12 +188,12 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	}
 
 	// Builder the versioned apis client
-	clientPkg := filepath.Join(Repo, "pkg", "client")
+	clientPkg := filepath.Join(util.Repo, "pkg", "client")
 	clientset := filepath.Join(clientPkg, "clientset_generated")
 	c = exec.Command(filepath.Join(root, "client-gen"),
-		"-o", GoSrc,
+		"-o", util.GoSrc,
 		"--go-header-file", copyright,
-		"--input-base", filepath.Join(Repo, "pkg", "apis"),
+		"--input-base", filepath.Join(util.Repo, "pkg", "apis"),
 		"--input", strings.Join(versionedAPIs, ","),
 		"--clientset-path", clientset,
 		"--clientset-name", "clientset",
@@ -202,9 +205,9 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	}
 
 	c = exec.Command(filepath.Join(root, "client-gen"),
-		"-o", GoSrc,
+		"-o", util.GoSrc,
 		"--go-header-file", copyright,
-		"--input-base", filepath.Join(Repo, "pkg", "apis"),
+		"--input-base", filepath.Join(util.Repo, "pkg", "apis"),
 		"--input", strings.Join(unversionedAPIs, ","),
 		"--clientset-path", clientset,
 		"--clientset-name", "internalclientset")
@@ -217,7 +220,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	listerPkg := filepath.Join(clientPkg, "listers_generated")
 	c = exec.Command(filepath.Join(root, "lister-gen"),
 		append(all,
-			"-o", GoSrc,
+			"-o", util.GoSrc,
 			"--go-header-file", copyright,
 			"--output-package", listerPkg)...,
 	)
@@ -230,7 +233,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	informerPkg := filepath.Join(clientPkg, "informers_generated")
 	c = exec.Command(filepath.Join(root, "informer-gen"),
 		append(all,
-			"-o", GoSrc,
+			"-o", util.GoSrc,
 			"--go-header-file", copyright,
 			"--output-package", informerPkg,
 			"--listers-package", listerPkg,
@@ -248,13 +251,13 @@ func initApis() {
 	if len(versionedAPIs) == 0 {
 		groups, err := ioutil.ReadDir(filepath.Join("pkg", "apis"))
 		if err != nil {
-			log.Fatalf("could not read pkg/apis directory to find api versions")
+			log.Fatalf("could not read pkg/apis directory to find api Versions")
 		}
 		for _, g := range groups {
 			if g.IsDir() {
 				versionFiles, err := ioutil.ReadDir(filepath.Join("pkg", "apis", g.Name()))
 				if err != nil {
-					log.Fatalf("could not read pkg/apis/%s directory to find api versions", g.Name())
+					log.Fatalf("could not read pkg/apis/%s directory to find api Versions", g.Name())
 				}
 				versionMatch := regexp.MustCompile("^v\\d+(alpha\\d+|beta\\d+)*$")
 				for _, v := range versionFiles {

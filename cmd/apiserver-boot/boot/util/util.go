@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package boot
+package util
 
 import (
 	"fmt"
@@ -30,21 +30,12 @@ import (
 	"github.com/markbates/inflect"
 )
 
-var server string
-var controllermanager string
-var groupName string
-var kindName string
-var resourceName string
-var versionName string
-var copyright string
-var domain string
+var Domain string
 var Repo string
 var GoSrc string
-var ignoreExists = false
-var nonNamespacedKind = false
 
 // writeIfNotFound returns true if the file was created and false if it already exists
-func writeIfNotFound(path, templateName, templateValue string, data interface{}) bool {
+func WriteIfNotFound(path, templateName, templateValue string, data interface{}) bool {
 	// Make sure the directory exists
 	exec.Command("mkdir", "-p", filepath.Dir(path)).CombinedOutput()
 
@@ -79,15 +70,15 @@ func writeIfNotFound(path, templateName, templateValue string, data interface{})
 	return true
 }
 
-func getCopyright() string {
-	if len(copyright) == 0 {
+func GetCopyright(file string) string {
+	if len(file) == 0 {
 		// default to boilerplate.go.txt
 		if _, err := os.Stat("boilerplate.go.txt"); err == nil {
 			// Set this because it is passed to generators
-			copyright = "boilerplate.go.txt"
-			cr, err := ioutil.ReadFile(copyright)
+			file = "boilerplate.go.txt"
+			cr, err := ioutil.ReadFile(file)
 			if err != nil {
-				log.Fatalf("could not read copyright file %s", copyright)
+				log.Fatalf("could not read Copyright file %s", file)
 			}
 			return string(cr)
 		}
@@ -95,21 +86,21 @@ func getCopyright() string {
 		log.Fatalf("apiserver-boot create-resource requires the --copyright flag if boilerplate.go.txt does not exist")
 	}
 
-	if _, err := os.Stat(copyright); err != nil {
+	if _, err := os.Stat(file); err != nil {
 		if !os.IsNotExist(err) {
-			log.Fatalf("Could not stat %s: %v", copyright, err)
+			log.Fatalf("Could not stat %s: %v", file, err)
 		}
 		return ""
 	} else {
-		cr, err := ioutil.ReadFile(copyright)
+		cr, err := ioutil.ReadFile(file)
 		if err != nil {
-			log.Fatalf("could not read copyright file %s", copyright)
+			log.Fatalf("could not read Copyright file %s", file)
 		}
 		return string(cr)
 	}
 }
 
-func getDomain() string {
+func GetDomain() string {
 	b, err := ioutil.ReadFile(filepath.Join("pkg", "apis", "doc.go"))
 	if err != nil {
 		log.Fatalf("Could not find pkg/apis/doc.go.  First run `apiserver-boot init --domain <domain>`.")
@@ -119,7 +110,8 @@ func getDomain() string {
 	if len(l) < 2 {
 		log.Fatalf("pkg/apis/doc.go does not contain the domain (// +domain=.*)", l)
 	}
-	return string(l[1])
+	Domain = string(l[1])
+	return Domain
 }
 
 func create(path string) {
@@ -131,7 +123,7 @@ func create(path string) {
 	defer f.Close()
 }
 
-func doCmd(cmd string, args ...string) {
+func DoCmd(cmd string, args ...string) {
 	c := exec.Command(cmd, args...)
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout

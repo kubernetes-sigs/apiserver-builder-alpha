@@ -14,49 +14,48 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package boot
+package run
 
 import (
 	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
+
+	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/build"
+	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 )
 
 var runInClusterCmd = &cobra.Command{
-	Use:   "run-in-cluster",
+	Use:   "in-cluster",
 	Short: "run the etcd, apiserver and the controller-manager as an aggegrated apiserver in a cluster",
 	Long:  `run the etcd, apiserver and the controller-manager as an aggegrated apiserver in a cluster`,
-	Run:   RunRunInCluster,
+	Run:   RunInCluster,
 }
 
 var buildImage bool
 
-func AddRunInCluster(cmd *cobra.Command) {
-	runInClusterCmd.Flags().StringVar(&name, "name", "", "")
-	runInClusterCmd.Flags().StringVar(&namespace, "namespace", "", "")
-	runInClusterCmd.Flags().StringVar(&image, "image", "", "name of the image to use")
-	runInClusterCmd.Flags().StringVar(&resourceConfigDir, "output", "config", "directory to output resourceconfig")
-
-	runInClusterCmd.Flags().BoolVar(&buildImage, "build-image", true, "if true, build and push the image")
-	runInClusterCmd.Flags().BoolVar(&generateForBuild, "generate", true, "if true, generate code before building image")
-
+func AddInCluster(cmd *cobra.Command) {
 	cmd.AddCommand(runInClusterCmd)
+
+	build.AddBuildResourceConfigFlags(runInClusterCmd)
+	runInClusterCmd.Flags().BoolVar(&build.GenerateForBuild, "generate", true, "if true, generate code before building the container image")
+	runInClusterCmd.Flags().BoolVar(&buildImage, "build-image", true, "if true, build the container image and push it to the image repo.")
 }
 
-func RunRunInCluster(cmd *cobra.Command, args []string) {
+func RunInCluster(cmd *cobra.Command, args []string) {
 	if buildImage {
 		// Build the container first
-		RunBuildContainer(cmd, args)
+		build.RunBuildContainer(cmd, args)
 
 		// Push the image
-		doCmd("docker", "push", image)
+		util.DoCmd("docker", "push", build.Image)
 	}
 
 	// Build the resource config
-	os.Remove(filepath.Join(resourceConfigDir, "apiserver.yaml"))
-	RunBuildResourceConfig(cmd, args)
+	os.Remove(filepath.Join(build.ResourceConfigDir, "apiserver.yaml"))
+	build.RunBuildResourceConfig(cmd, args)
 
 	// Apply the new config
-	doCmd("kubectl", "apply", "-f", filepath.Join(resourceConfigDir, "apiserver.yaml"))
+	util.DoCmd("kubectl", "apply", "-f", filepath.Join(build.ResourceConfigDir, "apiserver.yaml"))
 }

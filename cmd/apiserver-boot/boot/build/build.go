@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package boot
+package build
 
 import (
 	"fmt"
@@ -27,29 +27,37 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var generateForBuild bool = true
+var GenerateForBuild bool = true
 var goos string = "linux"
 var goarch string = "amd64"
 var outputdir string = "bin"
 
 var createBuildCmd = &cobra.Command{
 	Use:   "build",
-	Short: "Builds the source into executables",
-	Long:  `Builds the source into executables`,
-	Run:   RunBuild,
+	Short: "Builds the source into executables to run on the local machine",
+	Long:  `Builds the source into executables to run on the local machine`,
+	Example: `# Generate code and build the apiserver and controller
+	# binaries in the bin directory so they can be run locally.
+	apiserver-boot build
+	`,
+	Run: RunBuild,
 }
 
 func AddBuild(cmd *cobra.Command) {
 	cmd.AddCommand(createBuildCmd)
 
-	createBuildCmd.Flags().BoolVar(&generateForBuild, "generate", true, "if true, generate code before building")
+	createBuildCmd.Flags().BoolVar(&GenerateForBuild, "generate", true, "if true, generate code before building")
 	createBuildCmd.Flags().StringVar(&goos, "goos", "", "if set, use this GOOS")
 	createBuildCmd.Flags().StringVar(&goarch, "goarch", "", "if set, use this GOARCH")
 	createBuildCmd.Flags().StringVar(&outputdir, "outputdir", "bin", "if set, write the binary to this directory")
+
+	AddBuildContainer(createBuildCmd)
+	AddBuildResourceConfig(cmd)
+	AddDocs(createBuildCmd)
 }
 
 func RunBuild(cmd *cobra.Command, args []string) {
-	if generateForBuild {
+	if GenerateForBuild {
 		log.Printf("regenerating generated code.  To disable regeneration, run with --generate=false.")
 		RunGenerate(cmd, args)
 	}
