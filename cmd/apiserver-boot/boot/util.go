@@ -130,3 +130,14 @@ func create(path string) {
 	}
 	defer f.Close()
 }
+
+func doCmd(cmd string, args ...string) {
+	c := exec.Command(cmd, args...)
+	c.Stderr = os.Stderr
+	c.Stdout = os.Stdout
+	log.Printf("%s\n", strings.Join(c.Args, " "))
+	err := c.Run()
+	if err != nil {
+		log.Fatalf("command failed %v", err)
+	}
+}

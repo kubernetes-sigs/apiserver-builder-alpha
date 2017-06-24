@@ -28,7 +28,7 @@ import (
 	"io/ioutil"
 )
 
-var tag string
+var image string
 
 var createBuildContainerCmd = &cobra.Command{
 	Use:   "build-container",
@@ -40,13 +40,13 @@ var createBuildContainerCmd = &cobra.Command{
 func AddBuildContainer(cmd *cobra.Command) {
 	cmd.AddCommand(createBuildContainerCmd)
 
-	createBuildContainerCmd.Flags().StringVar(&tag, "tag", "", "use this tag for the image")
+	createBuildContainerCmd.Flags().StringVar(&image, "image", "", "name of the image with tag")
 	createBuildContainerCmd.Flags().BoolVar(&generateForBuild, "generate", true, "if true, generate code before building")
 }
 
 func RunBuildContainer(cmd *cobra.Command, args []string) {
-	if len(tag) == 0 {
-		log.Fatalf("Must specify image tag using --tag when building containers")
+	if len(image) == 0 {
+		log.Fatalf("Must specify image image using --image when building containers")
 	}
 
 	dir, err := ioutil.TempDir(os.TempDir(), "apiserver-boot-build-container")
@@ -70,7 +70,7 @@ func RunBuildContainer(cmd *cobra.Command, args []string) {
 
 	log.Printf("Building the docker image.")
 
-	c := exec.Command("docker", "build", "-t", tag, dir)
+	c := exec.Command("docker", "build", "-t", image, dir)
 	fmt.Printf("%s\n", strings.Join(c.Args, " "))
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout
