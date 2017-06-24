@@ -32,8 +32,6 @@ import (
 
 var targets = []string{}
 var output string
-var dobuild bool
-var dofetch bool
 var dovendor bool
 var test bool
 var version string
@@ -51,8 +49,6 @@ func main() {
 		"value name of the tar file to build")
 	buildCmd.Flags().StringVar(&version, "version", "", "version name")
 
-	buildCmd.Flags().BoolVar(&dobuild, "build", true, "if false, only build the go packages for the current os:arch")
-	buildCmd.Flags().BoolVar(&dofetch, "fetch", true, "if true, fetch the go packages")
 	buildCmd.Flags().BoolVar(&dovendor, "vendor", true, "if true, fetch packages to vendor")
 	buildCmd.Flags().BoolVar(&test, "test", true, "if true, run tests")
 	cmd.AddCommand(buildCmd)
@@ -112,7 +108,7 @@ func RunBuild(cmd *cobra.Command, args []string) {
 	if len(version) == 0 {
 		log.Fatal("must specify the --version flag")
 	}
-	if len(targets) == 0 && dobuild {
+	if len(targets) == 0 {
 		log.Fatal("must provide at least one --targets flag when building tools")
 	}
 
@@ -136,26 +132,26 @@ func RunBuild(cmd *cobra.Command, args []string) {
 		}
 		goos := parts[0]
 		goarch := parts[1]
-		if dobuild {
-			// Cleanup old binaries
-			os.RemoveAll(filepath.Join(dir, "bin"))
-			err := os.Mkdir(filepath.Join(dir, "bin"), 0700)
-			if err != nil {
-				log.Fatalf("failed to create directory %s %v", filepath.Join(dir, "bin"), err)
-			}
+		// Cleanup old binaries
+		os.RemoveAll(filepath.Join(dir, "bin"))
+		err := os.Mkdir(filepath.Join(dir, "bin"), 0700)
+		if err != nil {
+			log.Fatalf("failed to create directory %s %v", filepath.Join(dir, "bin"), err)
+		}
 
-			for _, pkg := range VendoredBuildPackages {
-				Build(filepath.Join("vendor", pkg, "main.go"),
-					filepath.Join(dir, "bin", filepath.Base(pkg)),
-					goos, goarch,
-				)
-			}
-			for _, pkg := range OwnedBuildPackages {
-				Build(filepath.Join(pkg, "main.go"),
-					filepath.Join(dir, "bin", filepath.Base(pkg)),
-					goos, goarch,
-				)
-			}
+		BuildVendorTar(dir)
+
+		for _, pkg := range VendoredBuildPackages {
+			Build(filepath.Join("vendor", pkg, "main.go"),
+				filepath.Join(dir, "bin", filepath.Base(pkg)),
+				goos, goarch,
+			)
+		}
+		for _, pkg := range OwnedBuildPackages {
+			Build(filepath.Join(pkg, "main.go"),
+				filepath.Join(dir, "bin", filepath.Base(pkg)),
+				goos, goarch,
+			)
 		}
 		PackageTar(goos, goarch, dir, vendor)
 	}
@@ -217,6 +213,32 @@ var OwnedBuildPackages = []string{
 	"cmd/apiserver-boot",
 }
 
+func BuildVendorTar(dir string) {
+	// create the new file
+	f := filepath.Join(dir, "bin", "glide.tar.gz")
+	fw, err := os.Create(f)
+	if err != nil {
+		log.Fatalf("failed to create vendor tar file %s %v", f, err)
+	}
+	defer fw.Close()
+
+	// setup gzip of tar
+	gw := gzip.NewWriter(fw)
+	defer gw.Close()
+
+	// setup tar writer
+	tw := tar.NewWriter(gw)
+	defer tw.Close()
+
+	srcdir := filepath.Join(dir)
+	filepath.Walk(srcdir, TarFile{
+		tw,
+		0555,
+		filepath.Join(srcdir, "src"),
+		"",
+	}.Do)
+}
+
 func PackageTar(goos, goarch, tooldir, vendordir string) {
 	// create the new file
 	fw, err := os.Create(fmt.Sprintf("%s-%s-%s-%s.tar.gz", output, version, goos, goarch))
@@ -234,23 +256,13 @@ func PackageTar(goos, goarch, tooldir, vendordir string) {
 	defer tw.Close()
 
 	// Add all of the bin files
+	// Add all of the bin files
 	filepath.Walk(filepath.Join(tooldir, "bin"), TarFile{
 		tw,
 		0555,
 		tooldir,
 		"",
 	}.Do)
-
-	// Add all of the src files
-	tf := TarFile{
-		tw,
-		0644,
-		vendordir,
-		"src",
-	}
-	filepath.Walk(filepath.Join(vendordir, "vendor"), tf.Do)
-	tf.Write(filepath.Join(vendordir, "glide.yaml"))
-	tf.Write(filepath.Join(vendordir, "glide.lock"))
 }
 
 type TarFile struct {
@@ -402,7 +414,7 @@ func BuildVendor(tooldir string) string {
 	RunCmd(cmd, vendordir)
 
 	// Copy the vendored libraries.  This will make it easier to debug if there is a test failure.
-	os.MkdirAll(filepath.Join(tooldir, "src", version), 0700)
+	os.MkdirAll(filepath.Join(tooldir, "src"), 0700)
 	c := exec.Command("cp", "-R", "-H",
 		filepath.Join(pkgDir, "vendor"),
 		filepath.Join(tooldir, "src", "vendor"))

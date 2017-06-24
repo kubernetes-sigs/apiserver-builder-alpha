@@ -81,9 +81,7 @@ func copyGlide() {
 		}
 	}
 
-	doCmd("cp", "-r", filepath.Join(e, "src", "vendor"), "vendor")
-	doCmd("cp", filepath.Join(e, "src", "glide.yaml"), "glide.yaml")
-	doCmd("cp", filepath.Join(e, "src", "glide.lock"), "glide.lock")
+	doCmd("tar", "-xzvf", filepath.Join(e, "bin", "glide.tar.gz"))
 }
 
 func RunGlideInstall(cmd *cobra.Command, args []string) {
