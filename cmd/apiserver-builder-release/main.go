@@ -38,7 +38,6 @@ var dovendor bool
 var test bool
 var version string
 
-var cachetooldir string
 var cachevendordir string
 
 var DefaultTargets = []string{"linux:amd64", "darwin:amd64", "windows:amd64"}
@@ -46,8 +45,6 @@ var DefaultTargets = []string{"linux:amd64", "darwin:amd64", "windows:amd64"}
 func main() {
 	buildCmd.Flags().StringSliceVar(&targets, "targets",
 		DefaultTargets, "GOOS:GOARCH pair.  maybe specified multiple times.")
-	buildCmd.Flags().StringVar(&cachetooldir, "tooldir", "",
-		"if specified, use this directory for building tools instead of creating a tmp directory.")
 	buildCmd.Flags().StringVar(&cachevendordir, "vendordir", "",
 		"if specified, use this directory for setting up vendor instead of creating a tmp directory.")
 	buildCmd.Flags().StringVar(&output, "output", "apiserver-builder",
@@ -58,8 +55,12 @@ func main() {
 	buildCmd.Flags().BoolVar(&dofetch, "fetch", true, "if true, fetch the go packages")
 	buildCmd.Flags().BoolVar(&dovendor, "vendor", true, "if true, fetch packages to vendor")
 	buildCmd.Flags().BoolVar(&test, "test", true, "if true, run tests")
-
 	cmd.AddCommand(buildCmd)
+
+	vendorCmd.Flags().StringVar(&version, "version", "", "version name")
+	vendorCmd.Flags().StringVar(&cachevendordir, "vendordir", "",
+		"if specified, use this directory for setting up vendor instead of creating a tmp directory.")
+	cmd.AddCommand(vendorCmd)
 
 	if err := cmd.Execute(); err != nil {
 		log.Fatal(err)
@@ -115,37 +116,15 @@ func RunBuild(cmd *cobra.Command, args []string) {
 		log.Fatal("must provide at least one --targets flag when building tools")
 	}
 
-	// Create a temporary build directory
-	tooldir := cachetooldir
-	if len(tooldir) == 0 {
-		tooldir = TmpDir()
-		fmt.Printf("to rerun with cached go fetch use `--tooldir %s`\n", tooldir)
-	} else {
-		// Make sure we aren't using a symlink, because when we create the tar file we don't
-		// copy symlinks
-		var err error
-		tooldir, err = filepath.EvalSymlinks(tooldir)
-		if err != nil {
-			log.Fatal(err)
-		}
+	dir, err := os.Getwd()
+	if err != nil {
+		panic(err)
 	}
+	dir = filepath.Join(dir, "release", version)
+	vendor := filepath.Join(dir, "src")
 
-	if dofetch {
-		for _, pkg := range BuildPackages {
-			Fetch(pkg, tooldir)
-		}
-	}
-
-	vendor := ""
-	if dovendor {
-		//Build binaries for the current platform
-		for _, pkg := range BuildPackages {
-			Build(filepath.Join("src", pkg, "main.go"),
-				filepath.Join("bin", filepath.Base(pkg)),
-				"", "", tooldir,
-			)
-		}
-		vendor = BuildVendor(tooldir)
+	if _, err := os.Stat(vendor); os.IsNotExist(err) {
+		log.Fatalf("must first run `apiserver-builder-release vendor`.  could not find %s", vendor)
 	}
 
 	// Build binaries for the targeted platforms in then tar
@@ -159,24 +138,31 @@ func RunBuild(cmd *cobra.Command, args []string) {
 		goarch := parts[1]
 		if dobuild {
 			// Cleanup old binaries
-			os.RemoveAll(filepath.Join(tooldir, "bin"))
-			err := os.Mkdir(filepath.Join(tooldir, "bin"), 0700)
+			os.RemoveAll(filepath.Join(dir, "bin"))
+			err := os.Mkdir(filepath.Join(dir, "bin"), 0700)
 			if err != nil {
-				log.Fatalf("failed to create directory %s %v", filepath.Join(tooldir, "bin"), err)
+				log.Fatalf("failed to create directory %s %v", filepath.Join(dir, "bin"), err)
 			}
 
-			for _, pkg := range BuildPackages {
-				Build(filepath.Join("src", pkg, "main.go"),
-					filepath.Join("bin", filepath.Base(pkg)),
-					goos, goarch, tooldir,
+			for _, pkg := range VendoredBuildPackages {
+				Build(filepath.Join("vendor", pkg, "main.go"),
+					filepath.Join(dir, "bin", filepath.Base(pkg)),
+					goos, goarch,
+				)
+			}
+			for _, pkg := range OwnedBuildPackages {
+				Build(filepath.Join(pkg, "main.go"),
+					filepath.Join(dir, "bin", filepath.Base(pkg)),
+					goos, goarch,
 				)
 			}
 		}
-		PackageTar(goos, goarch, tooldir, vendor)
+		PackageTar(goos, goarch, dir, vendor)
 	}
 }
 
 func RunCmd(cmd *exec.Cmd, gopath string) {
+	setgopath := len(gopath) > 0
 	gopath, err := filepath.Abs(gopath)
 	if err != nil {
 		log.Fatal(err)
@@ -185,11 +171,13 @@ func RunCmd(cmd *exec.Cmd, gopath string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	cmd.Env = append(cmd.Env, fmt.Sprintf("GOPATH=%s", gopath))
+	if setgopath {
+		cmd.Env = append(cmd.Env, fmt.Sprintf("GOPATH=%s", gopath))
+	}
 	cmd.Env = append(cmd.Env, os.Environ()...)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
-	if len(cmd.Dir) == 0 {
+	if len(cmd.Dir) == 0 && len(gopath) > 0 {
 		cmd.Dir = gopath
 	}
 	fmt.Printf("%s\n", strings.Join(cmd.Args, " "))
@@ -199,7 +187,7 @@ func RunCmd(cmd *exec.Cmd, gopath string) {
 	}
 }
 
-func Build(input, output, goos, goarch, dir string) {
+func Build(input, output, goos, goarch string) {
 	cmd := exec.Command("go", "build", "-o", output, input)
 
 	// CGO_ENABLED=0 for statically compile binaries
@@ -210,16 +198,10 @@ func Build(input, output, goos, goarch, dir string) {
 	if len(goarch) > 0 {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("GOARCH=%s", goarch))
 	}
-	RunCmd(cmd, dir)
+	RunCmd(cmd, "")
 }
 
-func Fetch(pkg, dir string) {
-	RunCmd(exec.Command("go", "get", "-d", pkg), dir)
-}
-
-var BuildPackages = []string{
-	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiregister-gen",
-	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot",
+var VendoredBuildPackages = []string{
 	"github.com/kubernetes-incubator/reference-docs/gen-apidocs",
 	"k8s.io/kubernetes/cmd/libs/go2idl/client-gen",
 	"k8s.io/kubernetes/cmd/libs/go2idl/conversion-gen",
@@ -228,6 +210,11 @@ var BuildPackages = []string{
 	"k8s.io/kubernetes/cmd/libs/go2idl/informer-gen",
 	"k8s.io/kubernetes/cmd/libs/go2idl/lister-gen",
 	"k8s.io/kubernetes/cmd/libs/go2idl/openapi-gen",
+}
+
+var OwnedBuildPackages = []string{
+	"cmd/apiregister-gen",
+	"cmd/apiserver-boot",
 }
 
 func PackageTar(goos, goarch, tooldir, vendordir string) {
@@ -333,6 +320,42 @@ func (t TarFile) Write(path string) error {
 	return nil
 }
 
+var vendorCmd = &cobra.Command{
+	Use:   "vendor",
+	Short: "create vendored libraries for release",
+	Long:  `create vendored libraries for release`,
+	Run:   RunVendor,
+}
+
+func RunVendor(cmd *cobra.Command, args []string) {
+	if len(version) == 0 {
+		log.Fatal("must specify the --version flag")
+	}
+
+	// Create the release directory
+	dir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	dir = filepath.Join(dir, "release", version)
+	os.MkdirAll(dir, 0700)
+
+	//Build binaries for the current platform so that we can use them
+	for _, pkg := range VendoredBuildPackages {
+		Build(filepath.Join("vendor", pkg, "main.go"),
+			filepath.Join(dir, "bin", filepath.Base(pkg)),
+			"", "",
+		)
+	}
+	for _, pkg := range OwnedBuildPackages {
+		Build(filepath.Join(pkg, "main.go"),
+			filepath.Join(dir, "bin", filepath.Base(pkg)),
+			"", "",
+		)
+	}
+	BuildVendor(dir)
+}
+
 func BuildVendor(tooldir string) string {
 	vendordir := cachevendordir
 	if len(vendordir) == 0 {
@@ -377,6 +400,21 @@ func BuildVendor(tooldir string) string {
 	cmd = exec.Command(bootBin, "glide-install", "--fetch")
 	cmd.Dir = pkgDir
 	RunCmd(cmd, vendordir)
+
+	// Copy the vendored libraries.  This will make it easier to debug if there is a test failure.
+	os.MkdirAll(filepath.Join(tooldir, "src", version), 0700)
+	c := exec.Command("cp", "-R", "-H",
+		filepath.Join(pkgDir, "vendor"),
+		filepath.Join(tooldir, "src", "vendor"))
+	RunCmd(c, "")
+	c = exec.Command("cp", "-R", "-H",
+		filepath.Join(pkgDir, "glide.yaml"),
+		filepath.Join(tooldir, "src", "glide.yaml"))
+	RunCmd(c, "")
+	c = exec.Command("cp", "-R", "-H",
+		filepath.Join(pkgDir, "glide.lock"),
+		filepath.Join(tooldir, "src", "glide.lock"))
+	RunCmd(c, "")
 
 	if test {
 		cmd = exec.Command(bootBin, "generate", "--api-versions", "misk/v1beta1")
