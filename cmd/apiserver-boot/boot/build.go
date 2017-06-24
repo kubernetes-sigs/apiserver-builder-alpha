@@ -74,7 +74,7 @@ func RunBuild(cmd *cobra.Command, args []string) {
 	}
 
 	// Build the controller manager
-	path = filepath.Join("cmd", "controller", "main.go")
+	path = filepath.Join("cmd", "controller-manager", "main.go")
 	c = exec.Command("go", "build", "-o", filepath.Join(outputdir, "controller-manager"), path)
 	c.Env = append(os.Environ(), "CGO_ENABLED=0")
 	if len(goos) > 0 {
