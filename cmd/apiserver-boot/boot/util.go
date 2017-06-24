@@ -23,8 +23,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"text/template"
+
 	"github.com/markbates/inflect"
 )
 
@@ -57,8 +59,8 @@ func writeIfNotFound(path, templateName, templateValue string, data interface{})
 
 	t := template.Must(template.New(templateName).Funcs(
 		template.FuncMap{
-			"title": strings.Title,
-			"lower": strings.ToLower,
+			"title":  strings.Title,
+			"lower":  strings.ToLower,
 			"plural": inflect.NewDefaultRuleset().Pluralize,
 		},
 	).Parse(templateValue))
@@ -105,6 +107,19 @@ func getCopyright() string {
 		}
 		return string(cr)
 	}
+}
+
+func getDomain() string {
+	b, err := ioutil.ReadFile(filepath.Join("pkg", "apis", "doc.go"))
+	if err != nil {
+		log.Fatalf("Could not find pkg/apis/doc.go.  First run `apiserver-boot init --domain <domain>`.")
+	}
+	r := regexp.MustCompile("\\+domain=(.*)")
+	l := r.FindSubmatch(b)
+	if len(l) < 2 {
+		log.Fatalf("pkg/apis/doc.go does not contain the domain (// +domain=.*)", l)
+	}
+	return string(l[1])
 }
 
 func create(path string) {
