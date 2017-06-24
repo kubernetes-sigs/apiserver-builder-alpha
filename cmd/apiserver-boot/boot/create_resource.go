@@ -52,7 +52,7 @@ func RunCreateResource(cmd *cobra.Command, args []string) {
 	}
 
 	if len(domain) == 0 {
-		log.Fatal("apiserver-boot create-resource requires the --domain flag")
+		domain = getDomain()
 	}
 	if len(groupName) == 0 {
 		log.Fatal("apiserver-boot create-resource requires the --group flag")
@@ -165,14 +165,14 @@ func createResource(boilerplate string) {
 }
 
 type resourceTemplateArgs struct {
-	BoilerPlate    string
-	Domain         string
-	Group          string
-	Version        string
-	Kind           string
-	Resource       string
-	Repo           string
-	PluralizedKind string
+	BoilerPlate       string
+	Domain            string
+	Group             string
+	Version           string
+	Kind              string
+	Resource          string
+	Repo              string
+	PluralizedKind    string
 	NonNamespacedKind bool
 }
 

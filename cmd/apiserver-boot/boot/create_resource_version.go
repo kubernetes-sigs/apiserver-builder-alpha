@@ -47,7 +47,7 @@ func RunCreateVersion(cmd *cobra.Command, args []string) {
 	}
 
 	if len(domain) == 0 {
-		log.Fatalf("apiserver-boot create-version requires the --domain flag")
+		domain = getDomain()
 	}
 	if len(groupName) == 0 {
 		log.Fatalf("apiserver-boot create-version requires the --group flag")

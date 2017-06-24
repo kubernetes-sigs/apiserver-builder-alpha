@@ -45,7 +45,7 @@ func RunCreateGroup(cmd *cobra.Command, args []string) {
 	}
 
 	if len(domain) == 0 {
-		log.Fatalf("apiserver-boot create-group requires the --domain flag")
+		domain = getDomain()
 	}
 	if len(groupName) == 0 {
 		log.Fatalf("apiserver-boot create-group requires the --groupName flag")
