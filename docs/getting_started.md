@@ -1,4 +1,4 @@
-# Getting started (v0.0-alpha.12)
+# Getting started (v0.1-alpha.0)
 
 This document covers building your first apiserver from scratch:
 
