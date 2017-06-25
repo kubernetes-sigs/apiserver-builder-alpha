@@ -33,9 +33,15 @@ var Image string
 
 var createBuildContainerCmd = &cobra.Command{
 	Use:   "container",
-	Short: "Builds an container with the apiserver and controller-manager binaries",
-	Long:  `Builds an container with the apiserver and controller-manager binaries`,
-	Run:   RunBuildContainer,
+	Short: "Builds a container with the apiserver and controller-manager binaries",
+	Long:  `Builds a container with the apiserver and controller-manager binaries`,
+	Example: `# Build an image containing the apiserver
+# and controller-manager binaries (built for linux:amd64)
+apiserver-boot build container --image gcr.io/myrepo/myimage:mytag
+
+# Push the newly built image to the image repo
+docker push gcr.io/myrepo/myimage:mytag`,
+	Run: RunBuildContainer,
 }
 
 func AddBuildContainer(cmd *cobra.Command) {
@@ -44,13 +50,13 @@ func AddBuildContainer(cmd *cobra.Command) {
 }
 
 func AddBuildContainerFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVar(&Image, "Image", "", "Name of the Image with tag")
+	cmd.Flags().StringVar(&Image, "image", "", "name of the image with tag")
 	cmd.Flags().BoolVar(&GenerateForBuild, "generate", true, "if true, generate code before building")
 }
 
 func RunBuildContainer(cmd *cobra.Command, args []string) {
 	if len(Image) == 0 {
-		log.Fatalf("Must specify Image Image using --Image when building containers")
+		log.Fatalf("Must specify --image")
 	}
 
 	dir, err := ioutil.TempDir(os.TempDir(), "apiserver-boot-build-container")
@@ -70,7 +76,7 @@ func RunBuildContainer(cmd *cobra.Command, args []string) {
 	goos = "linux"
 	goarch = "amd64"
 	outputdir = dir
-	RunBuild(cmd, args)
+	RunBuildExecutables(cmd, args)
 
 	log.Printf("Building the docker Image.")
 

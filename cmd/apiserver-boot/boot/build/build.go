@@ -17,89 +17,38 @@ limitations under the License.
 package build
 
 import (
-	"fmt"
-	"log"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"strings"
-
 	"github.com/spf13/cobra"
 )
 
-var GenerateForBuild bool = true
-var goos string = "linux"
-var goarch string = "amd64"
-var outputdir string = "bin"
-
-var createBuildCmd = &cobra.Command{
+var buildCmd = &cobra.Command{
 	Use:   "build",
-	Short: "Builds the source into executables to run on the local machine",
-	Long:  `Builds the source into executables to run on the local machine`,
-	Example: `# Generate code and build the apiserver and controller
-	# binaries in the bin directory so they can be run locally.
-	apiserver-boot build
+	Short: "Command group for building source into artifacts.",
+	Long:  `Command group for building source into artifacts.`,
+	Example: `# Generate code and build the apiserver and controller-manager binaries into bin/
+apiserver-boot build executables
+
+# Rebuild generated code
+apiserver-boot build generated
+
+# Build a container with the apiserver and controller-manager executables
+apiserver-boot build container --image gcr.io/myrepo/myimage:mytag
+
+# Build resource config for running an aggregated apiserver in cluster
+apiserver-boot build config --name nameofservice --namespace mysystemnamespace --image gcr.io/myrepo/myimage:mytag
 	`,
 	Run: RunBuild,
 }
 
 func AddBuild(cmd *cobra.Command) {
-	cmd.AddCommand(createBuildCmd)
+	cmd.AddCommand(buildCmd)
 
-	createBuildCmd.Flags().BoolVar(&GenerateForBuild, "generate", true, "if true, generate code before building")
-	createBuildCmd.Flags().StringVar(&goos, "goos", "", "if set, use this GOOS")
-	createBuildCmd.Flags().StringVar(&goarch, "goarch", "", "if set, use this GOARCH")
-	createBuildCmd.Flags().StringVar(&outputdir, "outputdir", "bin", "if set, write the binary to this directory")
-
-	AddBuildContainer(createBuildCmd)
-	AddBuildResourceConfig(cmd)
-	AddDocs(createBuildCmd)
+	AddBuildExecutables(buildCmd)
+	AddBuildContainer(buildCmd)
+	AddBuildResourceConfig(buildCmd)
+	AddDocs(buildCmd)
+	AddGenerate(buildCmd)
 }
 
 func RunBuild(cmd *cobra.Command, args []string) {
-	if GenerateForBuild {
-		log.Printf("regenerating generated code.  To disable regeneration, run with --generate=false.")
-		RunGenerate(cmd, args)
-	}
-
-	// Build the apiserver
-	path := filepath.Join("cmd", "apiserver", "main.go")
-	c := exec.Command("go", "build", "-o", filepath.Join(outputdir, "apiserver"), path)
-	c.Env = append(os.Environ(), "CGO_ENABLED=0")
-	log.Printf("CGO_ENABLED=0")
-	if len(goos) > 0 {
-		c.Env = append(c.Env, fmt.Sprintf("GOOS=%s", goos))
-		log.Printf(fmt.Sprintf("GOOS=%s", goos))
-	}
-	if len(goarch) > 0 {
-		c.Env = append(c.Env, fmt.Sprintf("GOARCH=%s", goarch))
-		log.Printf(fmt.Sprintf("GOARCH=%s", goarch))
-	}
-
-	fmt.Printf("%s\n", strings.Join(c.Args, " "))
-	c.Stderr = os.Stderr
-	c.Stdout = os.Stdout
-	err := c.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Build the controller manager
-	path = filepath.Join("cmd", "controller-manager", "main.go")
-	c = exec.Command("go", "build", "-o", filepath.Join(outputdir, "controller-manager"), path)
-	c.Env = append(os.Environ(), "CGO_ENABLED=0")
-	if len(goos) > 0 {
-		c.Env = append(c.Env, fmt.Sprintf("GOOS=%s", goos))
-	}
-	if len(goarch) > 0 {
-		c.Env = append(c.Env, fmt.Sprintf("GOARCH=%s", goarch))
-	}
-
-	fmt.Println(strings.Join(c.Args, " "))
-	c.Stderr = os.Stderr
-	c.Stdout = os.Stdout
-	err = c.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
+	cmd.Help()
 }

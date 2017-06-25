@@ -23,15 +23,21 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/spf13/cobra"
 	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
+	"github.com/spf13/cobra"
 )
 
 var glideInstallCmd = &cobra.Command{
 	Use:   "glide",
-	Short: "Bootstrap glide.yaml and glide.lock, then run glide install.",
-	Long:  `Bootstrap glide.yaml and glide.lock, then run glide install.`,
-	Run:   RunGlideInstall,
+	Short: "Install glide.yaml, glide.lock and vendor/.",
+	Long:  `Install glide.yaml, glide.lock and vendor/.`,
+	Example: `# Bootstrap vendor/ from the src packaged with apiserver-boot
+apiserver-boot init glide
+
+# Install vendor/ from using "glide install --strip-vendor"
+apiserver-boot init glide --fetch
+`,
+	Run: RunGlideInstall,
 }
 
 var fetch bool

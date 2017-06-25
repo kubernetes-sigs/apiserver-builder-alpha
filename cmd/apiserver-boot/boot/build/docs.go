@@ -51,7 +51,13 @@ var docsCleanCmd = &cobra.Command{
 	Use:   "clean",
 	Short: "Removes generated docs",
 	Long:  `Removes generated docs`,
-	Run:   RunCleanDocs,
+	Example: `# Run server to get openapi.json and generate docs.  Types only.
+apiserver-boot build docs --server bin/apiserver
+
+# Run server to get openapi.json and generate docs.  Include operations as well as types.
+apiserver-boot build docs --server bin/apiserver --operations=true
+`,
+	Run: RunCleanDocs,
 }
 
 func RunCleanDocs(cmd *cobra.Command, args []string) {

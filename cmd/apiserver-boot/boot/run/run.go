@@ -22,14 +22,22 @@ import (
 
 var runCmd = &cobra.Command{
 	Use:   "run",
-	Short: "contains run commands",
-	Long:  `contains run commands.`,
+	Short: "Command group for launching instances.",
+	Long:  `Command group for launching instances.`,
 	Example: `# Run a local etcd, apiserver and controller-manager.
 apiserver-boot run local
 
+# Check the api versions of the locally running server
+kubectl --kubeconfig kubeconfig api-versions
+
 # Run a etcd, apiserver and controller-manager remotely in a Kubernetes cluster as an aggregated apiserver
 apiserver-boot run in-cluster
-`,
+
+# Clear the discovery service cache
+rm -rf ~/.kube/cache/discovery/
+
+# Check the api versions of the remotely running server
+kubectl api-versions`,
 	Run: RunRun,
 }
 

@@ -39,7 +39,13 @@ var buildResourceConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Create kubernetes resource config files to launch the apiserver.",
 	Long:  `Create kubernetes resource config files to launch the apiserver.`,
-	Run:   RunBuildResourceConfig,
+	Example: `
+# Build yaml resource config into the config/ directory for running the apiserver and
+# controller-manager as an aggregated service in a Kubernetes cluster
+# Generates CA and apiserver certificates.
+apiserver-boot build config --name nameofservice --namespace mysystemnamespace --image gcr.io/myrepo/myimage:mytag
+`,
+	Run: RunBuildResourceConfig,
 }
 
 func AddBuildResourceConfig(cmd *cobra.Command) {

@@ -30,7 +30,16 @@ var runInClusterCmd = &cobra.Command{
 	Use:   "in-cluster",
 	Short: "run the etcd, apiserver and the controller-manager as an aggegrated apiserver in a cluster",
 	Long:  `run the etcd, apiserver and the controller-manager as an aggegrated apiserver in a cluster`,
-	Run:   RunInCluster,
+	Example: `
+# Build a new image and run the apiserver and controller-manager in the cluster
+apiserver-boot run in-cluster --name example --namespace default --image gcr.io/myrepo/myimage:mytag
+
+# Clear the discovery cache for kubectl
+rm -rf ~/.kube/cache/discovery/
+
+# Run kubectl and check for the new version
+kubectl api-versions`,
+	Run: RunInCluster,
 }
 
 var buildImage bool

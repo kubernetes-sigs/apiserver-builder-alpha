@@ -22,8 +22,8 @@ import (
 
 var createCmd = &cobra.Command{
 	Use:   "create",
-	Short: "contains creation commands",
-	Long:  `contains creation commands.`,
+	Short: "Command group for bootstrapping new resources.",
+	Long:  `Command group for bootstrapping new resources.`,
 	Example: `# Create new resource "Bee" in the "insect" group with version "v1beta"
 # Will automatically the group and version if they do not exist
 apiserver-boot create group version kind --group insect --version v1beta --kind Bee

@@ -36,11 +36,11 @@ var unversionedAPIs []string
 var copyright string = "boilerplate.go.txt"
 
 var generateCmd = &cobra.Command{
-	Use:   "generate",
-	Short: "Generates source code for a repo",
+	Use:   "generated",
+	Short: "Run code generators against repo.",
 	Long:  `Automatically run by most build commands.  Writes generated source code for a repo.`,
 	Example: `# Run code generators.
-apiserver-boot generate`,
+apiserver-boot build generated`,
 	Run: RunGenerate,
 }
 
@@ -76,7 +76,7 @@ var extraAPI = strings.Join([]string{
 
 func AddGenerate(cmd *cobra.Command) {
 	cmd.AddCommand(generateCmd)
-	generateCmd.Flags().StringArrayVar(&versionedAPIs, "api-Versions", []string{}, "comma separated list of APIs Versions.  e.g. foo/v1beta1,bar/v1  defaults to all directories under pkd/apis/group/version")
+	generateCmd.Flags().StringArrayVar(&versionedAPIs, "api-versions", []string{}, "comma separated list of APIs Versions.  e.g. foo/v1beta1,bar/v1  defaults to all directories under pkd/apis/group/version")
 	generateCmd.AddCommand(generateCleanCmd)
 }
 

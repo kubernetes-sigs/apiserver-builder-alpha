@@ -32,11 +32,18 @@ import (
 )
 
 var localCmd = &cobra.Command{
-	Use:     "local",
-	Short:   "run the etcd, apiserver and controller-manager",
-	Long:    `run the etcd, apiserver and controller-manager`,
-	Example: `apiserver-boot run local`,
-	Run:     RunLocal,
+	Use:   "local",
+	Short: "run the etcd, apiserver and controller-manager",
+	Long:  `run the etcd, apiserver and controller-manager`,
+	Example: `# Regenerate code and build binaries.  Then run them locally.
+apiserver-boot run local
+
+# Check the api versions of the locally running server
+kubectl --kubeconfig kubeconfig api-versions
+
+# Run locally without rebuilding
+apiserver-boot run local --build=false`,
+	Run: RunLocal,
 }
 
 var etcd string
@@ -66,7 +73,7 @@ func AddLocal(cmd *cobra.Command) {
 
 func RunLocal(cmd *cobra.Command, args []string) {
 	if buildBin {
-		build.RunBuild(cmd, args)
+		build.RunBuildExecutables(cmd, args)
 	}
 
 	WriteKubeConfig()
@@ -88,7 +95,7 @@ func RunLocal(cmd *cobra.Command, args []string) {
 	// Start controller manager
 	go RunControllerManager()
 
-	fmt.Printf("to test the server run `kubectl --kubeconfig %s version`\n", config)
+	fmt.Printf("to test the server run `kubectl --kubeconfig %s api-versions`\n", config)
 	select {} // wait forever
 }
 

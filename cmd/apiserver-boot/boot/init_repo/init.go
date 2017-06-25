@@ -17,214 +17,26 @@ limitations under the License.
 package init_repo
 
 import (
-	"log"
-	"os"
-	"os/exec"
-	"path/filepath"
-
-	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
 )
 
 var initCmd = &cobra.Command{
-	Use:   "init-repo",
-	Short: "Initialize a repo with the apiserver scaffolding and glide dependencies",
-	Long:  `Initialize a repo with the apiserver scaffolding and glide dependencies`,
-	Run:   RunInit,
+	Use:   "init",
+	Short: "Command group for bootstrapping new go projects.",
+	Long:  `Command group for bootstrapping new go projects.`,
+	Example: `
+# Bootstrap a new repo
+apiserver-boot init repo --domain example.com
+`,
+	Run: RunInit,
 }
-
-var installDeps bool
-var domain string
-var copyright string = "boilerplate.go.txt"
 
 func AddInit(cmd *cobra.Command) {
 	cmd.AddCommand(initCmd)
-	initCmd.Flags().StringVar(&domain, "domain", "", "domain the api groups live under")
-
-	// Hide this flag by default
-	initCmd.Flags().
-		BoolVar(&installDeps, "install-deps", true, "if true, install the vendored deps packaged with apiserver-boot.")
-	initCmd.Flags().MarkHidden("install-deps")
-
+	AddInitRepo(initCmd)
 	AddGlideInstallCmd(initCmd)
 }
 
 func RunInit(cmd *cobra.Command, args []string) {
-	if len(domain) == 0 {
-		log.Fatal("Must specify --domain")
-	}
-	cr := util.GetCopyright(copyright)
-
-	createApiserver(cr)
-	createControllerManager(cr)
-	createAPIs(cr)
-	createDocs()
-
-	createPackage(cr, filepath.Join("pkg"))
-	createPackage(cr, filepath.Join("pkg", "controller"))
-	createPackage(cr, filepath.Join("pkg", "controller", "sharedinformers"))
-	createPackage(cr, filepath.Join("pkg", "openapi"))
-
-	exec.Command("mkdir", "-p", filepath.Join("bin")).CombinedOutput()
-
-	if installDeps {
-		log.Printf("installing godeps.  To disable this, run with --install-deps=false.")
-		copyGlide()
-	}
-}
-
-type controllerManagerTemplateArguments struct {
-	BoilerPlate string
-	Repo        string
-}
-
-var controllerManagerTemplate = `
-{{.BoilerPlate}}
-
-package main
-
-import (
-	"flag"
-	"log"
-
-	controllerlib "github.com/kubernetes-incubator/apiserver-builder/pkg/controller"
-
-	"{{ .Repo }}/pkg/controller"
-)
-
-var kubeconfig = flag.String("kubeconfig", "", "path to kubeconfig")
-
-func main() {
-	flag.Parse()
-	config, err := controllerlib.GetConfig(*kubeconfig)
-	if err != nil {
-		log.Fatalf("Could not create Config for talking to the apiserver: %v", err)
-	}
-
-	controllers, _ := controller.GetAllControllers(config)
-	controllerlib.StartControllerManager(controllers...)
-
-	// Blockforever
-	select {}
-}
-`
-
-func createControllerManager(boilerplate string) {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-	path := filepath.Join(dir, "cmd", "controller-manager", "main.go")
-	util.WriteIfNotFound(path, "main-template", controllerManagerTemplate,
-		controllerManagerTemplateArguments{
-			boilerplate,
-			util.Repo,
-		})
-
-}
-
-type apiserverTemplateArguments struct {
-	Domain      string
-	BoilerPlate string
-	Repo        string
-}
-
-var apiserverTemplate = `
-{{.BoilerPlate}}
-
-package main
-
-import (
-	// Make sure glide gets these dependencies
-	_ "k8s.io/apimachinery/pkg/apis/meta/v1"
-	_ "github.com/go-openapi/loads"
-
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/cmd/server"
-	_ "k8s.io/client-go/plugin/pkg/client/auth" // Enable cloud provider auth
-
-	"{{.Repo}}/pkg/apis"
-	"{{.Repo}}/pkg/openapi"
-)
-
-func main() {
-	version := "v0"
-	server.StartApiServer("/registry/{{ .Domain }}", apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions, "Api", version)
-}
-`
-
-func createApiserver(boilerplate string) {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-	path := filepath.Join(dir, "cmd", "apiserver", "main.go")
-	util.WriteIfNotFound(path, "apiserver-template", apiserverTemplate,
-		apiserverTemplateArguments{
-			domain,
-			boilerplate,
-			util.Repo,
-		})
-
-}
-
-func createPackage(boilerplate, path string) {
-	pkg := filepath.Base(path)
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-	path = filepath.Join(dir, path, "doc.go")
-	util.WriteIfNotFound(path, "pkg-template", packageDocTemplate,
-		packageDocTemplateArguments{
-			boilerplate,
-			pkg,
-		})
-}
-
-type packageDocTemplateArguments struct {
-	BoilerPlate string
-	Package     string
-}
-
-var packageDocTemplate = `
-{{.BoilerPlate}}
-
-
-package {{.Package}}
-
-`
-
-func createAPIs(boilerplate string) {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-	path := filepath.Join(dir, "pkg", "apis", "doc.go")
-	util.WriteIfNotFound(path, "apis-template", apisDocTemplate,
-		apisDocTemplateArguments{
-			boilerplate,
-			domain,
-		})
-}
-
-type apisDocTemplateArguments struct {
-	BoilerPlate string
-	Domain      string
-}
-
-var apisDocTemplate = `
-{{.BoilerPlate}}
-
-
-//
-// +domain={{.Domain}}
-
-package apis
-
-`
-
-func createDocs() {
-	exec.Command("mkdir", "-p", filepath.Join("docs", "openapi-spec")).CombinedOutput()
-	exec.Command("mkdir", "-p", filepath.Join("docs", "static_includes")).CombinedOutput()
-	exec.Command("mkdir", "-p", filepath.Join("docs", "examples")).CombinedOutput()
+	cmd.Help()
 }
