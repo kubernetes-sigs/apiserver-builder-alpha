@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package boot
+package create
 
 import (
 	"log"
@@ -23,22 +23,26 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
 )
 
+var versionName string
+var ignoreVersionExists bool = false
+
 var createVersionCmd = &cobra.Command{
-	Use:   "create-version",
-	Short: "Creates an API version",
-	Long:  `Creates an API version.  Automatically run with create-resource.`,
+	Use:   "version",
+	Short: "Creates an API group and version",
+	Long:  `Creates an API group and version.  Will not recreate group if already exists.`,
 	Run:   RunCreateVersion,
 }
 
 func AddCreateVersion(cmd *cobra.Command) {
-	createVersionCmd.Flags().StringVar(&groupName, "group", "", "name of the API group")
+	createVersionCmd.Flags().StringVar(&groupName, "group", "", "name of the API group to create")
 	createVersionCmd.Flags().StringVar(&versionName, "version", "", "name of the API version to create")
-	createVersionCmd.Flags().StringVar(&copyright, "copyright", "", "path to copyright file. defaults to boilerplate.go.txt")
-	createVersionCmd.Flags().StringVar(&domain, "domain", "", "domain the api group lives under")
 	cmd.AddCommand(createVersionCmd)
+
+	AddCreateResource(createVersionCmd)
 }
 
 func RunCreateVersion(cmd *cobra.Command, args []string) {
@@ -46,14 +50,12 @@ func RunCreateVersion(cmd *cobra.Command, args []string) {
 		log.Fatalf("could not find 'pkg' directory.  must run apiserver-boot init before creating resources")
 	}
 
-	if len(domain) == 0 {
-		domain = getDomain()
-	}
+	util.GetDomain()
 	if len(groupName) == 0 {
-		log.Fatalf("apiserver-boot create-version requires the --group flag")
+		log.Fatalf("Must specify --group")
 	}
 	if len(versionName) == 0 {
-		log.Fatalf("apiserver-boot create-version requires the --version flag")
+		log.Fatalf("Must specify --version")
 	}
 
 	if strings.ToLower(groupName) != groupName {
@@ -66,12 +68,10 @@ func RunCreateVersion(cmd *cobra.Command, args []string) {
 				"e.g. v1alpha1,v1beta1,v1 was(%s)", versionName)
 	}
 
-	cr := getCopyright()
+	cr := util.GetCopyright(copyright)
 
-	ignoreExists = true
+	ignoreGroupExists = true
 	createGroup(cr)
-
-	ignoreExists = false
 	createVersion(cr)
 }
 
@@ -82,14 +82,14 @@ func createVersion(boilerplate string) {
 		os.Exit(-1)
 	}
 	path := filepath.Join(dir, "pkg", "apis", groupName, versionName, "doc.go")
-	created := writeIfNotFound(path, "version-template", versionTemplate, versionTemplateArgs{
+	created := util.WriteIfNotFound(path, "version-template", versionTemplate, versionTemplateArgs{
 		boilerplate,
-		domain,
+		util.Domain,
 		groupName,
 		versionName,
-		Repo,
+		util.Repo,
 	})
-	if !created && !ignoreExists {
+	if !created && ignoreVersionExists {
 		log.Fatalf("API group version %s/%s already exists.", groupName, versionName)
 	}
 }

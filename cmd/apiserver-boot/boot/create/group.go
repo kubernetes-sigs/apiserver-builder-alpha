@@ -14,29 +14,33 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package boot
+package create
 
 import (
 	"log"
 	"os"
 	"path/filepath"
 
+	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
 	"strings"
 )
 
 var createGroupCmd = &cobra.Command{
-	Use:   "create-group",
+	Use:   "group",
 	Short: "Creates an API group",
-	Long:  `Creates an API group.  Automatically run with create-version and create-resource.`,
+	Long:  `Creates an API group.`,
 	Run:   RunCreateGroup,
 }
 
+var groupName string
+var ignoreGroupExists bool = false
+
 func AddCreateGroup(cmd *cobra.Command) {
 	createGroupCmd.Flags().StringVar(&groupName, "group", "", "name of the API group to create")
-	createGroupCmd.Flags().StringVar(&copyright, "copyright", "boilerplate.go.txt", "path to copyright file. defaults to boilerplate.go.txt")
-	createGroupCmd.Flags().StringVar(&domain, "domain", "", "domain the api group lives under")
+
 	cmd.AddCommand(createGroupCmd)
+	AddCreateVersion(createGroupCmd)
 }
 
 func RunCreateGroup(cmd *cobra.Command, args []string) {
@@ -44,19 +48,16 @@ func RunCreateGroup(cmd *cobra.Command, args []string) {
 		log.Fatalf("could not find 'pkg' directory.  must run apiserver-boot init before creating resources")
 	}
 
-	if len(domain) == 0 {
-		domain = getDomain()
-	}
+	util.GetDomain()
 	if len(groupName) == 0 {
-		log.Fatalf("apiserver-boot create-group requires the --groupName flag")
+		log.Fatalf("Must specify --group")
 	}
 
 	if strings.ToLower(groupName) != groupName {
 		log.Fatalf("--group must be lowercase was (%s)", groupName)
 	}
 
-	cr := getCopyright()
-	createGroup(cr)
+	createGroup(util.GetCopyright(copyright))
 }
 
 func createGroup(boilerplate string) {
@@ -67,18 +68,16 @@ func createGroup(boilerplate string) {
 
 	a := groupTemplateArgs{
 		boilerplate,
-		domain,
+		util.Domain,
 		groupName,
 	}
 
 	path := filepath.Join(dir, "pkg", "apis", groupName, "doc.go")
-	created := writeIfNotFound(path, "group-template", groupTemplate, a)
-	if !created && !ignoreExists {
-	}
+	created := util.WriteIfNotFound(path, "group-template", groupTemplate, a)
 
 	path = filepath.Join(dir, "pkg", "apis", groupName, "install", "doc.go")
-	created = writeIfNotFound(path, "install-template", installTemplate, a)
-	if !created && !ignoreExists {
+	created = util.WriteIfNotFound(path, "install-template", installTemplate, a)
+	if !created && !ignoreGroupExists {
 		log.Fatalf("API group %s already exists.", groupName)
 	}
 }

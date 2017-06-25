@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package boot
+package build
 
 import (
 	"fmt"
@@ -27,29 +27,35 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var generateForBuild bool
-var goos string
-var goarch string
-var outputdir string
+var GenerateForBuild bool = true
+var goos string = "linux"
+var goarch string = "amd64"
+var outputdir string = "bin"
 
-var createBuildCmd = &cobra.Command{
-	Use:   "build",
-	Short: "Builds the source into executables",
-	Long:  `Builds the source into executables`,
-	Run:   RunBuild,
+var createBuildExecutablesCmd = &cobra.Command{
+	Use:   "executables",
+	Short: "Builds the source into executables to run on the local machine",
+	Long:  `Builds the source into executables to run on the local machine`,
+	Example: `# Generate code and build the apiserver and controller
+# binaries in the bin directory so they can be run locally.
+apiserver-boot build executables
+
+# Build binaries into the linux/ directory using the cross compiler for linux:amd64
+apiserver-boot build --goos linux --goarch amd64 --output linux/`,
+	Run: RunBuildExecutables,
 }
 
-func AddBuild(cmd *cobra.Command) {
-	cmd.AddCommand(createBuildCmd)
+func AddBuildExecutables(cmd *cobra.Command) {
+	cmd.AddCommand(createBuildExecutablesCmd)
 
-	createBuildCmd.Flags().BoolVar(&generateForBuild, "generate", true, "if true, generate code before building")
-	createBuildCmd.Flags().StringVar(&goos, "goos", "", "if set, use this GOOS")
-	createBuildCmd.Flags().StringVar(&goarch, "goarch", "", "if set, use this GOARCH")
-	createBuildCmd.Flags().StringVar(&outputdir, "outputdir", "bin", "if set, write the binary to this directory")
+	createBuildExecutablesCmd.Flags().BoolVar(&GenerateForBuild, "generate", true, "if true, generate code before building")
+	createBuildExecutablesCmd.Flags().StringVar(&goos, "goos", "", "if specified, set this GOOS")
+	createBuildExecutablesCmd.Flags().StringVar(&goarch, "goarch", "", "if specified, set this GOARCH")
+	createBuildExecutablesCmd.Flags().StringVar(&outputdir, "output", "bin", "if set, write the binaries to this directory")
 }
 
-func RunBuild(cmd *cobra.Command, args []string) {
-	if generateForBuild {
+func RunBuildExecutables(cmd *cobra.Command, args []string) {
+	if GenerateForBuild {
 		log.Printf("regenerating generated code.  To disable regeneration, run with --generate=false.")
 		RunGenerate(cmd, args)
 	}
@@ -58,11 +64,14 @@ func RunBuild(cmd *cobra.Command, args []string) {
 	path := filepath.Join("cmd", "apiserver", "main.go")
 	c := exec.Command("go", "build", "-o", filepath.Join(outputdir, "apiserver"), path)
 	c.Env = append(os.Environ(), "CGO_ENABLED=0")
+	log.Printf("CGO_ENABLED=0")
 	if len(goos) > 0 {
 		c.Env = append(c.Env, fmt.Sprintf("GOOS=%s", goos))
+		log.Printf(fmt.Sprintf("GOOS=%s", goos))
 	}
 	if len(goarch) > 0 {
 		c.Env = append(c.Env, fmt.Sprintf("GOARCH=%s", goarch))
+		log.Printf(fmt.Sprintf("GOARCH=%s", goarch))
 	}
 
 	fmt.Printf("%s\n", strings.Join(c.Args, " "))

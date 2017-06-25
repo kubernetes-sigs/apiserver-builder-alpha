@@ -14,26 +14,36 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package boot
+package run
 
 import (
 	"fmt"
 	"log"
 	"os"
-	"time"
-
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
+
+	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/build"
+	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 )
 
-var runCmd = &cobra.Command{
-	Use:   "run",
-	Short: "run an apiserver",
-	Long:  `run an apiserver`,
-	Run:   RunRun,
+var localCmd = &cobra.Command{
+	Use:   "local",
+	Short: "run the etcd, apiserver and controller-manager",
+	Long:  `run the etcd, apiserver and controller-manager`,
+	Example: `# Regenerate code and build binaries.  Then run them locally.
+apiserver-boot run local
+
+# Check the api versions of the locally running server
+kubectl --kubeconfig kubeconfig api-versions
+
+# Run locally without rebuilding
+apiserver-boot run local --build=false`,
+	Run: RunLocal,
 }
 
 var etcd string
@@ -41,21 +51,31 @@ var config string
 var printapiserver bool
 var printcontrollermanager bool
 var printetcd bool
+var buildBin bool
 
-func AddRunCmd(cmd *cobra.Command) {
-	runCmd.Flags().StringVar(&server, "apiserver", "", "path to apiserver binary to run")
-	runCmd.Flags().StringVar(&controllermanager, "controller-manager", "", "path to controller-manager binary to run")
-	runCmd.Flags().StringVar(&etcd, "etcd", "", "if non-empty, use this etcd instead of starting a new one")
+var server string
+var controllermanager string
 
-	runCmd.Flags().StringVar(&config, "config", "kubeconfig", "path to the kubeconfig to write for using kubectl")
+func AddLocal(cmd *cobra.Command) {
+	localCmd.Flags().StringVar(&server, "apiserver", "", "path to apiserver binary to run")
+	localCmd.Flags().StringVar(&controllermanager, "controller-manager", "", "path to controller-manager binary to run")
+	localCmd.Flags().StringVar(&etcd, "etcd", "", "if non-empty, use this etcd instead of starting a new one")
 
-	runCmd.Flags().BoolVar(&printapiserver, "print-apiserver", true, "if true, pipe the apiserver stdout and stderr")
-	runCmd.Flags().BoolVar(&printcontrollermanager, "print-controller-manager", true, "if true, pipe the controller-manager stdout and stderr")
-	runCmd.Flags().BoolVar(&printetcd, "printetcd", false, "if true, pipe the etcd stdout and stderr")
-	cmd.AddCommand(runCmd)
+	localCmd.Flags().StringVar(&config, "config", "kubeconfig", "path to the kubeconfig to write for using kubectl")
+
+	localCmd.Flags().BoolVar(&printapiserver, "print-apiserver", true, "if true, pipe the apiserver stdout and stderr")
+	localCmd.Flags().BoolVar(&printcontrollermanager, "print-controller-manager", true, "if true, pipe the controller-manager stdout and stderr")
+	localCmd.Flags().BoolVar(&printetcd, "printetcd", false, "if true, pipe the etcd stdout and stderr")
+	localCmd.Flags().BoolVar(&buildBin, "build", true, "if true, build the binaries before running")
+
+	cmd.AddCommand(localCmd)
 }
 
-func RunRun(cmd *cobra.Command, args []string) {
+func RunLocal(cmd *cobra.Command, args []string) {
+	if buildBin {
+		build.RunBuildExecutables(cmd, args)
+	}
+
 	WriteKubeConfig()
 
 	// Start etcd
@@ -75,7 +95,7 @@ func RunRun(cmd *cobra.Command, args []string) {
 	// Start controller manager
 	go RunControllerManager()
 
-	fmt.Printf("to test the server run `kubectl --kubeconfig %s version`\n", config)
+	fmt.Printf("to test the server run `kubectl --kubeconfig %s api-versions`\n", config)
 	select {} // wait forever
 }
 
@@ -153,7 +173,7 @@ func WriteKubeConfig() {
 		os.Exit(-1)
 	}
 	path := filepath.Join(dir, "apiserver.local.config", "certificates", "apiserver")
-	writeIfNotFound(config, "kubeconfig-template", configTemplate, path)
+	util.WriteIfNotFound(config, "kubeconfig-template", configTemplate, path)
 }
 
 var configTemplate = `

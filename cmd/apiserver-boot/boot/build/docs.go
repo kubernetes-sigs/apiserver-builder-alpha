@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package boot
+package build
 
 import (
 	"fmt"
@@ -38,6 +38,7 @@ var docsCmd = &cobra.Command{
 }
 
 var operations bool
+var server string
 
 func AddDocs(cmd *cobra.Command) {
 	docsCmd.Flags().StringVar(&server, "server", "", "path to apiserver binary to run to get openapi.json")
@@ -50,7 +51,13 @@ var docsCleanCmd = &cobra.Command{
 	Use:   "clean",
 	Short: "Removes generated docs",
 	Long:  `Removes generated docs`,
-	Run:   RunCleanDocs,
+	Example: `# Run server to get openapi.json and generate docs.  Types only.
+apiserver-boot build docs --server bin/apiserver
+
+# Run server to get openapi.json and generate docs.  Include operations as well as types.
+apiserver-boot build docs --server bin/apiserver --operations=true
+`,
+	Run: RunCleanDocs,
 }
 
 func RunCleanDocs(cmd *cobra.Command, args []string) {

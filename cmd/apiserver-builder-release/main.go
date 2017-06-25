@@ -393,23 +393,15 @@ func BuildVendor(tooldir string) string {
 	os.RemoveAll(filepath.Join(pkgDir, "docs"))
 	os.RemoveAll(filepath.Join(pkgDir, "main.go"))
 
-	cmd := exec.Command(bootBin, "init", "--domain", "k8s.io", "--install-deps=false")
+	cmd := exec.Command(bootBin, "init", "repo", "--domain", "k8s.io", "--install-deps=false")
 	cmd.Dir = pkgDir
 	RunCmd(cmd, vendordir)
 
-	cmd = exec.Command(bootBin, "create-group", "--domain", "k8s.io", "--group", "misk")
+	cmd = exec.Command(bootBin, "create", "group", "version", "resource", "--domain", "k8s.io", "--group", "misk", "--version", "v1beta1", "--kind", "Student")
 	cmd.Dir = pkgDir
 	RunCmd(cmd, vendordir)
 
-	cmd = exec.Command(bootBin, "create-version", "--domain", "k8s.io", "--group", "misk", "--version", "v1beta1")
-	cmd.Dir = pkgDir
-	RunCmd(cmd, vendordir)
-
-	cmd = exec.Command(bootBin, "create-resource", "--domain", "k8s.io", "--group", "misk", "--version", "v1beta1", "--kind", "Student")
-	cmd.Dir = pkgDir
-	RunCmd(cmd, vendordir)
-
-	cmd = exec.Command(bootBin, "glide-install", "--fetch")
+	cmd = exec.Command(bootBin, "init", "glide", "--fetch")
 	cmd.Dir = pkgDir
 	RunCmd(cmd, vendordir)
 
@@ -429,15 +421,7 @@ func BuildVendor(tooldir string) string {
 	RunCmd(c, "")
 
 	if test {
-		cmd = exec.Command(bootBin, "generate", "--api-versions", "misk/v1beta1")
-		cmd.Dir = pkgDir
-		RunCmd(cmd, vendordir)
-
-		cmd = exec.Command("go", "build", "cmd/apiserver/main.go")
-		cmd.Dir = pkgDir
-		RunCmd(cmd, vendordir)
-
-		cmd = exec.Command("go", "build", "cmd/controller/main.go")
+		cmd = exec.Command(bootBin, "build", "executables")
 		cmd.Dir = pkgDir
 		RunCmd(cmd, vendordir)
 

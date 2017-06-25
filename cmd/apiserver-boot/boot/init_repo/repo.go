@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package boot
+package init_repo
 
 import (
 	"log"
@@ -22,30 +22,37 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
 )
 
-var initCmd = &cobra.Command{
-	Use:   "init",
-	Short: "Initialize a directory",
-	Long:  `Initialize a directory`,
-	Run:   RunInit,
+var repoCmd = &cobra.Command{
+	Use:     "repo",
+	Short:   "Initialize a repo with the apiserver scaffolding and glide dependencies",
+	Long:    `Initialize a repo with the apiserver scaffolding and glide dependencies`,
+	Example: `apiserver-boot init repo --domain mydomain`,
+	Run:     RunInitRepo,
 }
 
 var installDeps bool
+var domain string
+var copyright string = "boilerplate.go.txt"
 
-func AddInit(cmd *cobra.Command) {
-	cmd.AddCommand(initCmd)
-	initCmd.Flags().StringVar(&domain, "domain", "", "domain the api groups live under")
-	initCmd.Flags().StringVar(&copyright, "copyright", "", "path to copyright file.  defaults to boilerplate.go.txt")
-	initCmd.Flags().BoolVar(&installDeps, "install-deps", true, "if true, install the vendored deps")
+func AddInitRepo(cmd *cobra.Command) {
+	cmd.AddCommand(repoCmd)
+	repoCmd.Flags().StringVar(&domain, "domain", "", "domain the api groups live under")
+
+	// Hide this flag by default
+	repoCmd.Flags().
+		BoolVar(&installDeps, "install-deps", true, "if true, install the vendored deps packaged with apiserver-boot.")
+	repoCmd.Flags().MarkHidden("install-deps")
 }
 
-func RunInit(cmd *cobra.Command, args []string) {
+func RunInitRepo(cmd *cobra.Command, args []string) {
 	if len(domain) == 0 {
-		log.Fatal("apiserver-boot init requires the --domain flag")
+		log.Fatal("Must specify --domain")
 	}
-	cr := getCopyright()
+	cr := util.GetCopyright(copyright)
 
 	createApiserver(cr)
 	createControllerManager(cr)
@@ -106,8 +113,12 @@ func createControllerManager(boilerplate string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	path := filepath.Join(dir, "cmd", "controller", "main.go")
-	writeIfNotFound(path, "main-template", controllerManagerTemplate, controllerManagerTemplateArguments{boilerplate, Repo})
+	path := filepath.Join(dir, "cmd", "controller-manager", "main.go")
+	util.WriteIfNotFound(path, "main-template", controllerManagerTemplate,
+		controllerManagerTemplateArguments{
+			boilerplate,
+			util.Repo,
+		})
 
 }
 
@@ -146,7 +157,12 @@ func createApiserver(boilerplate string) {
 		log.Fatal(err)
 	}
 	path := filepath.Join(dir, "cmd", "apiserver", "main.go")
-	writeIfNotFound(path, "apiserver-template", apiserverTemplate, apiserverTemplateArguments{domain, boilerplate, Repo})
+	util.WriteIfNotFound(path, "apiserver-template", apiserverTemplate,
+		apiserverTemplateArguments{
+			domain,
+			boilerplate,
+			util.Repo,
+		})
 
 }
 
@@ -157,7 +173,11 @@ func createPackage(boilerplate, path string) {
 		log.Fatal(err)
 	}
 	path = filepath.Join(dir, path, "doc.go")
-	writeIfNotFound(path, "pkg-template", packageDocTemplate, packageDocTemplateArguments{boilerplate, pkg})
+	util.WriteIfNotFound(path, "pkg-template", packageDocTemplate,
+		packageDocTemplateArguments{
+			boilerplate,
+			pkg,
+		})
 }
 
 type packageDocTemplateArguments struct {
@@ -179,7 +199,11 @@ func createAPIs(boilerplate string) {
 		log.Fatal(err)
 	}
 	path := filepath.Join(dir, "pkg", "apis", "doc.go")
-	writeIfNotFound(path, "apis-template", apisDocTemplate, apisDocTemplateArguments{boilerplate, domain})
+	util.WriteIfNotFound(path, "apis-template", apisDocTemplate,
+		apisDocTemplateArguments{
+			boilerplate,
+			domain,
+		})
 }
 
 type apisDocTemplateArguments struct {

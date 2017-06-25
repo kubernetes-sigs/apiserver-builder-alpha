@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package boot
+package init_repo
 
 import (
 	"log"
@@ -23,20 +23,27 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
 )
 
 var glideInstallCmd = &cobra.Command{
-	Use:   "glide-install",
-	Short: "Copy source deps distributed with apiserver-boot into a vendor dir",
-	Long:  `Copy source deps distributed with apiserver-boot into a vendor dir.  By default, automatically run with init.`,
-	Run:   RunGlideInstall,
+	Use:   "glide",
+	Short: "Install glide.yaml, glide.lock and vendor/.",
+	Long:  `Install glide.yaml, glide.lock and vendor/.`,
+	Example: `# Bootstrap vendor/ from the src packaged with apiserver-boot
+apiserver-boot init glide
+
+# Install vendor/ from using "glide install --strip-vendor"
+apiserver-boot init glide --fetch
+`,
+	Run: RunGlideInstall,
 }
 
 var fetch bool
 
 func AddGlideInstallCmd(cmd *cobra.Command) {
-	glideInstallCmd.Flags().BoolVar(&fetch, "fetch", false, "if true, fetch new glide deps instead of copying the ones packaged with the tools")
+	glideInstallCmd.Flags().BoolVar(&fetch, "fetch", true, "if true, fetch new glide deps instead of copying the ones packaged with the tools")
 	cmd.AddCommand(glideInstallCmd)
 }
 
@@ -136,5 +143,8 @@ func createGlide() {
 		log.Fatal(err)
 	}
 	path := filepath.Join(dir, "glide.yaml")
-	writeIfNotFound(path, "glide-template", glideTemplate, glideTemplateArguments{Repo})
+	util.WriteIfNotFound(path, "glide-template", glideTemplate,
+		glideTemplateArguments{
+			util.Repo,
+		})
 }

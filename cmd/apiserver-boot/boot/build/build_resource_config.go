@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package boot
+package build
 
 import (
 	"fmt"
@@ -25,42 +25,52 @@ import (
 	"path/filepath"
 	"regexp"
 
+	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"os/exec"
 )
 
-var name, namespace string
-var versions []schema.GroupVersion
+var Name, Namespace string
+var Versions []schema.GroupVersion
+var ResourceConfigDir string
 
 var buildResourceConfigCmd = &cobra.Command{
-	Use:   "build-resource-config",
+	Use:   "config",
 	Short: "Create kubernetes resource config files to launch the apiserver.",
 	Long:  `Create kubernetes resource config files to launch the apiserver.`,
-	Run:   RunBuildResourceConfig,
+	Example: `
+# Build yaml resource config into the config/ directory for running the apiserver and
+# controller-manager as an aggregated service in a Kubernetes cluster
+# Generates CA and apiserver certificates.
+apiserver-boot build config --name nameofservice --namespace mysystemnamespace --image gcr.io/myrepo/myimage:mytag
+`,
+	Run: RunBuildResourceConfig,
 }
 
 func AddBuildResourceConfig(cmd *cobra.Command) {
 	cmd.AddCommand(buildResourceConfigCmd)
-	buildResourceConfigCmd.Flags().StringVar(&domain, "domain", "", "api groups domain")
-	buildResourceConfigCmd.Flags().StringVar(&name, "name", "", "")
-	buildResourceConfigCmd.Flags().StringVar(&namespace, "namespace", "", "")
-	buildResourceConfigCmd.Flags().StringVar(&image, "image", "", "name of the apiserver image with tag")
+	AddBuildResourceConfigFlags(buildResourceConfigCmd)
+}
+
+func AddBuildResourceConfigFlags(cmd *cobra.Command) {
+	cmd.Flags().StringVar(&Name, "name", "", "")
+	cmd.Flags().StringVar(&Namespace, "namespace", "", "")
+	cmd.Flags().StringVar(&Image, "image", "", "name of the apiserver Image with tag")
+	cmd.Flags().StringVar(&ResourceConfigDir, "output", "config", "directory to output resourceconfig")
 }
 
 func RunBuildResourceConfig(cmd *cobra.Command, args []string) {
-	if len(name) == 0 {
+	if len(Name) == 0 {
 		log.Fatalf("must specify --name")
 	}
-	if len(namespace) == 0 {
+	if len(Namespace) == 0 {
 		log.Fatalf("must specify --namespace")
 	}
-	if len(image) == 0 {
+	if len(Image) == 0 {
 		log.Fatalf("Must specify --image")
 	}
-	if len(domain) == 0 {
-		domain = getDomain()
-	}
+	util.GetDomain()
 
 	if _, err := os.Stat("pkg"); err != nil {
 		log.Fatalf("could not find 'pkg' directory.  must run apiserver-boot init before generating config")
@@ -80,35 +90,23 @@ func getBase64(file string) string {
 }
 
 func buildResourceConfig() {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	initVersionedApis()
-	log.Printf("versions %+v", versions)
+
 	a := resourceConfigTemplateArgs{
-		Name:       name,
-		Namespace:  namespace,
-		Image:      image,
-		Domain:     domain,
-		Versions:   versions,
+		Name:       Name,
+		Namespace:  Namespace,
+		Image:      Image,
+		Domain:     util.Domain,
+		Versions:   Versions,
 		ClientKey:  getBase64(filepath.Join("bin", "certificates", "apiserver.key")),
 		CACert:     getBase64(filepath.Join("bin", "certificates", "apiserver_ca.crt")),
 		ClientCert: getBase64(filepath.Join("bin", "certificates", "apiserver.crt")),
 	}
+	path := filepath.Join(ResourceConfigDir, "apiserver.yaml")
 
-	root, err := os.Executable()
-	if err != nil {
-		log.Fatalf("error: %v", err)
-	}
-	root = filepath.Dir(root)
-
-	doCmd("mkdir", "-p", filepath.Join(dir, "config"))
-
-	path := filepath.Join(dir, "config", "apiserver.yaml")
-	created := writeIfNotFound(path, "config-template", resourceConfigTemplate, a)
-	if !created && !ignoreExists {
+	util.DoCmd("mkdir", "-p", ResourceConfigDir)
+	created := util.WriteIfNotFound(path, "config-template", resourceConfigTemplate, a)
+	if !created {
 		log.Fatalf("Resource config already exists.")
 	}
 }
@@ -120,37 +118,37 @@ func createCerts() {
 	}
 	dir = filepath.Join(dir, "bin", "certificates")
 
-	doCmd("mkdir", "-p", dir)
+	util.DoCmd("mkdir", "-p", dir)
 
 	if _, err := os.Stat(filepath.Join(dir, "apiserver_ca.crt")); os.IsNotExist(err) {
-		doCmd("openssl", "req", "-x509",
+		util.DoCmd("openssl", "req", "-x509",
 			"-newkey", "rsa:2048",
 			"-keyout", filepath.Join(dir, "apiserver_ca.key"),
 			"-out", filepath.Join(dir, "apiserver_ca.crt"),
 			"-days", "365",
 			"-nodes",
-			"-subj", fmt.Sprintf("/C=/ST=/L=/O=/OU=/CN=%s-certificate-authority", name),
+			"-subj", fmt.Sprintf("/C=/ST=/L=/O=/OU=/CN=%s-certificate-authority", Name),
 		)
 	} else {
 		log.Printf("Skipping generate CA cert.  File already exists.")
 	}
 
 	if _, err := os.Stat(filepath.Join(dir, "apiserver.csr")); os.IsNotExist(err) {
-		// Use <service-name>.<namespace>.svc as the domain name for the certificate
-		doCmd("openssl", "req",
+		// Use <service-Name>.<Namespace>.svc as the domain Name for the certificate
+		util.DoCmd("openssl", "req",
 			"-out", filepath.Join(dir, "apiserver.csr"),
 			"-new",
 			"-newkey", "rsa:2048",
 			"-nodes",
 			"-keyout", filepath.Join(dir, "apiserver.key"),
-			"-subj", fmt.Sprintf("/C=/ST=/L=/O=/OU=/CN=%s.%s.svc", name, namespace),
+			"-subj", fmt.Sprintf("/C=/ST=/L=/O=/OU=/CN=%s.%s.svc", Name, Namespace),
 		)
 	} else {
 		log.Printf("Skipping generate apiserver csr.  File already exists.")
 	}
 
 	if _, err := os.Stat(filepath.Join(dir, "apiserver.crt")); os.IsNotExist(err) {
-		doCmd("openssl", "x509", "-req",
+		util.DoCmd("openssl", "x509", "-req",
 			"-days", "365",
 			"-in", filepath.Join(dir, "apiserver.csr"),
 			"-CA", filepath.Join(dir, "apiserver_ca.crt"),
@@ -164,25 +162,25 @@ func createCerts() {
 }
 
 func initVersionedApis() {
-	if len(versionedAPIs) == 0 {
-		groups, err := ioutil.ReadDir(filepath.Join("pkg", "apis"))
-		if err != nil {
-			log.Fatalf("could not read pkg/apis directory to find api versions")
-		}
-		for _, g := range groups {
-			if g.IsDir() {
-				versionFiles, err := ioutil.ReadDir(filepath.Join("pkg", "apis", g.Name()))
-				if err != nil {
-					log.Fatalf("could not read pkg/apis/%s directory to find api versions", g.Name())
-				}
-				versionMatch := regexp.MustCompile("^v\\d+(alpha\\d+|beta\\d+)*$")
-				for _, v := range versionFiles {
-					if v.IsDir() && versionMatch.MatchString(v.Name()) {
-						versions = append(versions, schema.GroupVersion{
-							Group:   g.Name(),
-							Version: v.Name(),
-						})
-					}
+	groups, err := ioutil.ReadDir(filepath.Join("pkg", "apis"))
+	if err != nil {
+		log.Fatalf("could not read pkg/apis directory to find api Versions")
+	}
+	log.Printf("Adding APIs:")
+	for _, g := range groups {
+		if g.IsDir() {
+			versionFiles, err := ioutil.ReadDir(filepath.Join("pkg", "apis", g.Name()))
+			if err != nil {
+				log.Fatalf("could not read pkg/apis/%s directory to find api Versions", g.Name())
+			}
+			versionMatch := regexp.MustCompile("^v\\d+(alpha\\d+|beta\\d+)*$")
+			for _, v := range versionFiles {
+				if v.IsDir() && versionMatch.MatchString(v.Name()) {
+					log.Printf("\t%s.%s", g.Name(), v.Name())
+					Versions = append(Versions, schema.GroupVersion{
+						Group:   g.Name(),
+						Version: v.Name(),
+					})
 				}
 			}
 		}
@@ -275,7 +273,6 @@ spec:
         - "--etcd-servers=http://localhost:2379"
         - "--tls-cert-file=/apiserver.local.config/certificates/tls.crt"
         - "--tls-private-key-file=/apiserver.local.config/certificates/tls.key"
-        - "--print-bearer-token"
         - "--audit-log-path=-"
         - "--audit-log-maxage=0"
         - "--audit-log-maxbackup=0"

@@ -20,17 +20,12 @@ test: build
 	go test ./pkg/...
 	bash -c "find pkg/apis/ -name apiserver.local.config | xargs rm -rf"
 
-build: generate
-	go build -o bin/apiserver cmd/apiserver/main.go
-	go build -o bin/controller-manager cmd/controller-manager/main.go
-
-# Generate code
-generate: cmds cleangenerated
-	bin/apiserver-boot generate
+build: cmds
+	bin/apiserver-boot build executables
 
 # Build docs
 docs: cleandocs build
-	apiserver-boot docs --server bin/apiserver
+	bin/apiserver-boot build docs --server bin/apiserver
 
 # Build the tools
 # Note: These are available in the apiserver-builder release tar.gz
@@ -41,7 +36,7 @@ cmds:
 clean: cleangenerated cleandocs
 
 cleangenerated: cmds
-	bin/apiserver-boot generate clean
+	bin/apiserver-boot build generated clean
 
 cleandocs: cmds
-	bin/apiserver-boot docs clean
+	bin/apiserver-boot build docs clean
