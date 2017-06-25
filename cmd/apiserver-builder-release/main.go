@@ -397,7 +397,7 @@ func BuildVendor(tooldir string) string {
 	cmd.Dir = pkgDir
 	RunCmd(cmd, vendordir)
 
-	cmd = exec.Command(bootBin, "create", "group", "version", "resource", "--domain", "k8s.io", "--group", "misk", "--version", "v1beta1", "--kind", "Student")
+	cmd = exec.Command(bootBin, "create", "group", "version", "resource", "--group", "misk", "--version", "v1beta1", "--kind", "Student")
 	cmd.Dir = pkgDir
 	RunCmd(cmd, vendordir)
 

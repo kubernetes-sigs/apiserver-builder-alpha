@@ -1,6 +1,6 @@
 # Adding a validation to a resources schema
 
-**Note:** By default, when creating a resource with `apiserver-boot create-resource` a validation
+**Note:** By default, when creating a resource with `apiserver-boot create group version resource` a validation
 function will be created in the versioned `<kind>_types.go` file.
 
 To add server side validation for your resource override the `Validate` function
