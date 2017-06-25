@@ -171,7 +171,7 @@ func (r *ScaleBarREST) New() runtime.Object {
 
 Run the code generation command to generate the wiring for your subresource.
 
-`apiserver-boot generate`
+`apiserver-boot build generated`
 
 ## Invoke your subresource from a test
 
