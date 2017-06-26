@@ -57,7 +57,6 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 	createApiserver(cr)
 	createControllerManager(cr)
 	createAPIs(cr)
-	createDocs()
 
 	createPackage(cr, filepath.Join("pkg"))
 	createPackage(cr, filepath.Join("pkg", "controller"))
@@ -221,9 +220,3 @@ var apisDocTemplate = `
 package apis
 
 `
-
-func createDocs() {
-	exec.Command("mkdir", "-p", filepath.Join("docs", "openapi-spec")).CombinedOutput()
-	exec.Command("mkdir", "-p", filepath.Join("docs", "static_includes")).CombinedOutput()
-	exec.Command("mkdir", "-p", filepath.Join("docs", "examples")).CombinedOutput()
-}

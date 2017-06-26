@@ -32,34 +32,67 @@ import (
 
 var docsCmd = &cobra.Command{
 	Use:   "docs",
-	Short: "Generates docs for types",
-	Long:  `Generates docs for types`,
-	Run:   RunDocs,
+	Short: "Generate API reference docs from the openapi spec.",
+	Long:  `Generate API reference docs from the openapi spec.`,
+	Example: `# Start a new server, get the swagger.json, and generate docs from the swagger.json
+apiserver-boot build executables
+apiserver-boot build docs
+
+# Build docs and include operations.
+apiserver-boot build docs --operations=true
+
+# Use the swagger.json at docs/openapi-spec/swagger.json instead
+# of getting it from a server.
+apiserver-boot build docs --build-openapi=false
+
+# Use the server at my/bin/apiserver
+apiserver-boot build docs --server my/bin/apiserver
+
+# Instead of generating the table of contents, use the statically defined configuration
+# from docs/config.yaml
+# See an example config.yaml at in kubernetes-incubator/reference-docs
+apiserver-boot build docs --generate-toc=false
+
+# Add manual documentation to the generated docs
+# Edit docs/static_includes/*.md
+# e.g. docs/static_include/_overview.md
+
+	# <strong>API OVERVIEW</strong>
+	Add your markdown here
+
+# Add examples in the right-most column
+# Edit docs/examples/<type>/<type>.yaml
+# e.g. docs/examples/pod/pod.yaml
+
+	note: <Description of example>.
+	sample: |
+	  apiVersion: <version>
+	  kind: <type>
+	  metadata:
+	    name: <name>
+	  spec:
+	    <spec-contents>`,
+	Run: RunDocs,
 }
 
-var operations bool
+var operations, buildOpenapi, generateToc bool
 var server string
-var buildOpenapi bool
 
 func AddDocs(cmd *cobra.Command) {
 	docsCmd.Flags().StringVar(&server, "server", "bin/apiserver", "path to apiserver binary to run to get swagger.json")
 	docsCmd.Flags().BoolVar(&buildOpenapi, "build-openapi", true, "If true, run the server and get the new swagger.json")
 	docsCmd.Flags().BoolVar(&operations, "operations", false, "if true, include operations in docs.")
+	docsCmd.Flags().BoolVar(&generateToc, "generate-toc", true, "If true, generate the table of contents from the api groups instead of using a statically configured ToC.")
 	cmd.AddCommand(docsCmd)
 	docsCmd.AddCommand(docsCleanCmd)
 }
 
 var docsCleanCmd = &cobra.Command{
-	Use:   "clean",
-	Short: "Removes generated docs",
-	Long:  `Removes generated docs`,
-	Example: `# Run server to get openapi.json and generate docs
-apiserver-boot build docs --server bin/apiserver
-
-# Run server to get openapi.json and generate docs.  Include operations as well as types.
-apiserver-boot build docs --server bin/apiserver
-`,
-	Run: RunCleanDocs,
+	Use:     "clean",
+	Short:   "Removes generated docs",
+	Long:    `Removes generated docs`,
+	Example: ``,
+	Run:     RunCleanDocs,
 }
 
 func RunCleanDocs(cmd *cobra.Command, args []string) {
@@ -72,6 +105,10 @@ func RunDocs(cmd *cobra.Command, args []string) {
 	if len(server) == 0 && buildOpenapi {
 		log.Fatal("Must specifiy --server or --build-openapi=false")
 	}
+
+	exec.Command("mkdir", "-p", filepath.Join("docs", "openapi-spec")).CombinedOutput()
+	exec.Command("mkdir", "-p", filepath.Join("docs", "static_includes")).CombinedOutput()
+	exec.Command("mkdir", "-p", filepath.Join("docs", "examples")).CombinedOutput()
 
 	// Build the swagger.json
 	if buildOpenapi {
@@ -106,8 +143,8 @@ func RunDocs(cmd *cobra.Command, args []string) {
 	dir = filepath.Dir(dir)
 	c := exec.Command(filepath.Join(dir, "gen-apidocs"),
 		fmt.Sprintf("--build-operations=%v", operations),
+		fmt.Sprintf("--use-tags=%v", generateToc),
 		"--allow-errors",
-		"--use-tags",
 		"--config-dir=docs")
 	log.Printf("%s\n", strings.Join(c.Args, " "))
 	c.Stderr = os.Stderr
