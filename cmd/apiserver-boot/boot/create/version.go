@@ -89,7 +89,7 @@ func createVersion(boilerplate string) {
 		versionName,
 		util.Repo,
 	})
-	if !created && ignoreVersionExists {
+	if !created && !ignoreVersionExists {
 		log.Fatalf("API group version %s/%s already exists.", groupName, versionName)
 	}
 }
