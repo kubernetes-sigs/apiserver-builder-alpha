@@ -26,6 +26,10 @@ type Config struct {
 	OperationCategories []OperationCategory `yaml:"operation_categories,omitempty"`
 	ResourceCategories  []ResourceCategory  `yaml:"resource_categories,omitempty"`
 
+	// Used to map the group as the resource sees it to the group
+	// as the operation sees it
+	GroupMap            map[string]string
+
 	Definitions Definitions
 	Operations  Operations
 }

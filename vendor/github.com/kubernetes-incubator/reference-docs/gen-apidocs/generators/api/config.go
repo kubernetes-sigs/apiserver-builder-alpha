@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -36,40 +37,43 @@ var ConfigDir = flag.String("config-dir", "", "Directory contain api files.")
 var UseTags = flag.Bool("use-tags", false, "If true, use the openapi tags instead of the config yaml.")
 
 func (config *Config) genConfigFromTags(specs []*loads.Document) {
-	if *UseTags {
-		config.ExampleLocation = "examples"
-		// build the apis from the groups that are observed
-		groupsMap := map[ApiGroup][]*Definition{}
-		VisitDefinitions(specs, func(definition *Definition) {
-			if strings.HasSuffix(definition.Name, "List") {
-				return
-			}
-			if strings.HasSuffix(definition.Name, "Status") {
-				return
-			}
-			g := definition.Group
-			groupsMap[g] = append(groupsMap[g], definition)
-		})
-		groupsList := ApiGroups{}
-		for g := range groupsMap {
-			groupsList = append(groupsList, g)
+	log.Printf("Using openapi extension tags to configure.")
+
+	config.ExampleLocation = "examples"
+	// build the apis from the groups that are observed
+	groupsMap := map[ApiGroup]DefinitionList{}
+	for _, definition := range config.Definitions.GetAllDefinitions() {
+		if strings.HasSuffix(definition.Name, "List") {
+			continue
 		}
-		sort.Sort(groupsList)
-		for _, g := range groupsList {
-			groupName := strings.Title(string(g))
-			config.ApiGroups = append(config.ApiGroups, ApiGroup(groupName))
-			rc := ResourceCategory{}
-			rc.Include = string(g)
-			rc.Name = groupName
-			for _, d := range groupsMap[g] {
-				r := &Resource{}
-				r.Name = d.Name
-				r.Group = string(d.Group)
-				r.Version = string(d.Version)
-				rc.Resources = append(rc.Resources, r)
-			}
-			config.ResourceCategories = append(config.ResourceCategories, rc)
+		if strings.HasSuffix(definition.Name, "Status") {
+			continue
 		}
+		g := definition.Group
+		groupsMap[g] = append(groupsMap[g], definition)
+	}
+	groupsList := ApiGroups{}
+	for g := range groupsMap {
+		groupsList = append(groupsList, g)
+	}
+	sort.Sort(groupsList)
+	for _, g := range groupsList {
+		groupName := strings.Title(string(g))
+		config.ApiGroups = append(config.ApiGroups, ApiGroup(groupName))
+		rc := ResourceCategory{}
+		rc.Include = string(g)
+		rc.Name = groupName
+		defList := groupsMap[g]
+		sort.Sort(defList)
+		for _, d := range defList {
+			r := &Resource{}
+			r.Name = d.Name
+			r.Group = string(d.Group)
+			r.Version = string(d.Version)
+			r.Definition = d
+			rc.Resources = append(rc.Resources, r)
+		}
+		config.ResourceCategories = append(config.ResourceCategories, rc)
 	}
 }
 
@@ -77,33 +81,34 @@ func NewConfig() *Config {
 	config := loadYamlConfig()
 	specs := LoadOpenApiSpec()
 
-	if *UseTags {
-		config.genConfigFromTags(specs)
-	}
-
 	// Initialize all of the operations
 	config.Definitions = GetDefinitions(specs)
 
-	// Initialization for ToC resources only
-	vistToc := func(resource *Resource, definition *Definition) {
-		definition.InToc = true // Mark as in Toc
-		resource.Definition = definition
-		config.initDefExample(definition) // Init the example yaml
+	if *UseTags {
+		// Initialize the config and ToC from the tags on definitions
+		config.genConfigFromTags(specs)
+	} else {
+		// Initialization for ToC resources only
+		vistToc := func(resource *Resource, definition *Definition) {
+			definition.InToc = true // Mark as in Toc
+			resource.Definition = definition
+			config.initDefExample(definition) // Init the example yaml
+		}
+		config.VisitResourcesInToc(config.Definitions, vistToc)
 	}
-	config.VisitResourcesInToc(config.Definitions, vistToc)
 
 	// Get the map of operations appearing in the open-api spec keyed by id
 	config.InitOperations(specs)
 	config.CleanUp()
 
-	// Prune anything without operations
+	// Prune anything that shouldn't be in the ToC
 	if *UseTags {
 		categories := []ResourceCategory{}
 		for _, c := range config.ResourceCategories {
 			resources := Resources{}
 			for _, r := range c.Resources {
 				if d, f := config.Definitions.GetByVersionKind(r.Group, r.Version, r.Name); f {
-					if len(d.OperationCategories) > 1 {
+					if d.InToc {
 						resources = append(resources, r)
 					}
 				}
@@ -260,9 +265,29 @@ func (config *Config) initOperationsFromTags(specs []*loads.Document) {
 // GetOperations returns all Operations found in the Documents
 func (config *Config) InitOperations(specs []*loads.Document) {
 	o := Operations{}
+
+	config.GroupMap = map[string]string{}
 	VisitOperations(specs, func(operation Operation) {
-		//fmt.Printf("Operation: %s\n", operation.ID)
 		o[operation.ID] = &operation
+
+		// Build a map of the group names to the group name appearing in operation ids
+		// This is necessary because the group will appear without the domain
+		// in the resource, but with the domain in the operationID, and we
+		// will be unable to match the operationID to the resource because they
+		// don't agree on the name of the group.
+		// TODO: Fix this by getting the group-version-kind in the resource
+		if v, f := operation.op.Extensions[typeKey]; f {
+			gvk := v.(map[string]interface{})
+			group, ok := gvk["group"].(string)
+			if !ok {
+				log.Fatalf("group not type string %v", v)
+			}
+			groupId := ""
+			for _, s := range strings.Split(group, ".") {
+				groupId = groupId + strings.Title(s)
+			}
+			config.GroupMap[strings.Title(strings.Split(group, ".")[0])] = groupId
+		}
 	})
 	config.Operations = o
 
@@ -435,7 +460,12 @@ func (config *Config) initDefExample(d *Definition) {
 	}
 }
 
-func getOperationId(match string, group string, version ApiVersion, kind string) string {
+func (config *Config) getOperationId(match string, group string, version ApiVersion, kind string) string {
+	// Lookup the name of the group as the operation expects it (different than the resource)
+	if g, f := config.GroupMap[group]; f {
+		group = g
+	}
+
 	// Substitute the api definition group-version-kind into the operation template and look for a match
 	v, k := doScaleIdHack(string(version), kind, match)
 	match = strings.Replace(match, "${group}", string(group), -1)
@@ -459,6 +489,11 @@ func (config *Config) setOperation(match, namespaceRep string,
 		o.Definition = definition
 		oc.Operations = append(oc.Operations, o)
 		config.initOpExample(o)
+
+		// When using tags for the configuration, everything with an operation goes in the ToC
+		if *UseTags && !o.Definition.IsOldVersion {
+			o.Definition.InToc = true
+		}
 	}
 }
 
@@ -481,7 +516,7 @@ func (config *Config) mapOperationsToDefinitions() {
 				// Iterate through possible api groups since we don't know the api group of the definition
 				ot := oc.OperationTypes[j]
 
-				operationId := getOperationId(ot.Match, definition.GetOperationGroupName(), definition.Version, definition.Name)
+				operationId := config.getOperationId(ot.Match, definition.GetOperationGroupName(), definition.Version, definition.Name)
 				// Look for a matching operation and set on the definition if found
 				config.setOperation(operationId, "Namespaced", &ot, &oc, definition)
 				config.setOperation(operationId, "", &ot, &oc, definition)
