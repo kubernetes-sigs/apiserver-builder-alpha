@@ -49,6 +49,7 @@ func (config *Config) genConfigFromTags(specs []*loads.Document) {
 		if strings.HasSuffix(definition.Name, "Status") {
 			continue
 		}
+		config.initDefExample(definition) // Init the example yaml
 		g := definition.Group
 		groupsMap[g] = append(groupsMap[g], definition)
 	}
