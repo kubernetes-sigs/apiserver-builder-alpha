@@ -95,6 +95,7 @@ func (d *Definitions) InitializeFieldsForAll() {
 const patchStrategyKey = "x-kubernetes-patch-strategy"
 const patchMergeKeyKey = "x-kubernetes-patch-merge-key"
 const resourceNameKey = "x-kubernetes-resource"
+const typeKey = "x-kubernetes-group-version-kind"
 
 // Initializes the fields for a definition
 func (d *Definitions) InitializeFields(definition *Definition) {
@@ -125,6 +126,14 @@ func (d *Definitions) InitializeOtherVersions() {
 	for _, definition := range d.GetAllDefinitions() {
 		definition.OtherVersions = d.GetOtherVersions(definition)
 	}
+}
+
+type DefinitionList []*Definition
+
+func (a DefinitionList) Len() int      { return len(a) }
+func (a DefinitionList) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a DefinitionList) Less(i, j int) bool {
+	return strings.Compare(a[i].Name, a[j].Name) < 0
 }
 
 type Definition struct {
@@ -178,24 +187,15 @@ func (d *Definition) Key() string {
 }
 
 func (d *Definition) MdLink() string {
-	if *UseTags {
-		return fmt.Sprintf("[%s](#%s-%s)", d.Name, strings.ToLower(d.Name), d.Version)
-	}
 	return fmt.Sprintf("[%s](#%s-%s-%s)", d.Name, strings.ToLower(d.Name), d.Version, d.Group)
 
 }
 
 func (d *Definition) HrefLink() string {
-	if *UseTags {
-		return fmt.Sprintf("<a href=\"#%s-%s\">%s</a>", strings.ToLower(d.Name), d.Version, d.Name)
-	}
 	return fmt.Sprintf("<a href=\"#%s-%s-%s\">%s</a>", strings.ToLower(d.Name), d.Version, d.Group, d.Name)
 }
 
 func (d *Definition) VersionLink() string {
-	if *UseTags {
-		return fmt.Sprintf("<a href=\"#%s-%s\">%s</a>", strings.ToLower(d.Name), d.Version, d.Version)
-	}
 	return fmt.Sprintf("<a href=\"#%s-%s-%s\">%s</a>", strings.ToLower(d.Name), d.Version, d.Group, d.Version)
 }
 
@@ -244,7 +244,7 @@ func VisitDefinitions(specs []*loads.Document, fn func(definition *Definition)) 
 				Version:   ApiVersion(version),
 				Kind:      ApiKind(kind),
 				Group:     ApiGroup(group),
-				ShowGroup: !*UseTags,
+				ShowGroup: true,
 				Resource:  resource,
 			})
 		}
