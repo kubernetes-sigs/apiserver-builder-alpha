@@ -1,4 +1,4 @@
-example_location: "gen_open_api/examples"
+example_location: "examples"
 api_groups:
   - "Apps"
   - "Authentication"
@@ -99,6 +99,9 @@ resource_categories:
   - name: "Metadata Apis"
     include: "meta"
     resources:
+    - name: ControllerRevision
+      version: v1beta1
+      group: apps
     - name: Event
       version: v1
       group: core
