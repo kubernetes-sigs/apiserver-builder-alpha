@@ -30,7 +30,7 @@ copycli: cli
 	cp -r gen-kubectldocs/generators//build/* $(K8SIOROOT)/docs/user-guide/kubectl/v1.7/
 
 api: cleanapi
-	go run gen-apidocs/main.go --config-dir=gen-apidocs/generators
+	go run gen-apidocs/main.go --config-dir=gen-apidocs/generators --munge-groups=false
 	docker run -v $(shell pwd)/gen-apidocs/generators/includes:/source -v $(shell pwd)/gen-apidocs/generators/build:/build -v $(shell pwd)/gen-apidocs/generators/:/manifest pwittrock/brodocs
 
 # Build api docs
@@ -50,7 +50,7 @@ copyapi: api
 
 # Build resource docs
 resource: cleanapi
-	go run gen-apidocs/main.go --build-operations=false
+	go run gen-apidocs/main.go --build-operations=false --munge-groups=false
 	docker run -v $(shell pwd)/gen-apidocs/generators/includes:/source -v $(shell pwd)/gen-apidocs/generators/build:/build -v $(shell pwd)/gen-apidocs/generators/:/manifest pwittrock/brodocs
 
 copyresource: resource

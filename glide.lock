@@ -1,5 +1,5 @@
-hash: c82db8488aeedaa60287f686907a78f09bea4d3979d4301072f859647ae1bbc3
-updated: 2017-06-26T10:50:47.941924832-07:00
+hash: a87b96f9245075dd204a9eba558a74c76041211f89dde2866a4c1635dc6232ae
+updated: 2017-06-26T17:28:37.142700636-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -169,7 +169,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/kubernetes-incubator/reference-docs
-  version: 2dfbd12487e43ebd2c7ceb045a0be97a7e11208e
+  version: 96204a551e6fceeed37f844f8598ad1cb60d7eed
   subpackages:
   - gen-apidocs
 - name: github.com/mailru/easyjson

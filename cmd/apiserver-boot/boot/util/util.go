@@ -72,32 +72,13 @@ func WriteIfNotFound(path, templateName, templateValue string, data interface{})
 
 func GetCopyright(file string) string {
 	if len(file) == 0 {
-		// default to boilerplate.go.txt
-		if _, err := os.Stat("boilerplate.go.txt"); err == nil {
-			// Set this because it is passed to generators
-			file = "boilerplate.go.txt"
-			cr, err := ioutil.ReadFile(file)
-			if err != nil {
-				log.Fatalf("could not read Copyright file %s", file)
-			}
-			return string(cr)
-		}
-
-		log.Fatalf("apiserver-boot create-resource requires the --copyright flag if boilerplate.go.txt does not exist")
+		file = "boilerplate.go.txt"
 	}
-
-	if _, err := os.Stat(file); err != nil {
-		if !os.IsNotExist(err) {
-			log.Fatalf("Could not stat %s: %v", file, err)
-		}
-		return ""
-	} else {
-		cr, err := ioutil.ReadFile(file)
-		if err != nil {
-			log.Fatalf("could not read Copyright file %s", file)
-		}
-		return string(cr)
+	cr, err := ioutil.ReadFile(file)
+	if err != nil {
+		log.Fatalf("Must create boilerplate.go.txt file with copyright and file headers")
 	}
+	return string(cr)
 }
 
 func GetDomain() string {
