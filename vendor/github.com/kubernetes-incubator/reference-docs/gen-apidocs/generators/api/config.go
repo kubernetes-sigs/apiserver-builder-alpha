@@ -35,6 +35,7 @@ import (
 var AllowErrors = flag.Bool("allow-errors", false, "If true, don't fail on errors.")
 var ConfigDir = flag.String("config-dir", "", "Directory contain api files.")
 var UseTags = flag.Bool("use-tags", false, "If true, use the openapi tags instead of the config yaml.")
+var MungeGroups = flag.Bool("munge-groups", true, "If true, munge the group names for the operations to match.")
 
 func (config *Config) genConfigFromTags(specs []*loads.Document) {
 	log.Printf("Using openapi extension tags to configure.")
@@ -127,6 +128,7 @@ func NewConfig() *Config {
 
 func verifyBlacklisted(operation Operation) {
 	switch {
+	case strings.Contains(operation.ID, "connectCoreV1Patch"):
 	case strings.Contains(operation.ID, "NamespacedScheduledJob"):
 	case strings.Contains(operation.ID, "ScheduledJobForAllNamespaces"):
 	case strings.Contains(operation.ID, "ScheduledJobListForAllNamespaces"):
@@ -277,17 +279,19 @@ func (config *Config) InitOperations(specs []*loads.Document) {
 		// will be unable to match the operationID to the resource because they
 		// don't agree on the name of the group.
 		// TODO: Fix this by getting the group-version-kind in the resource
-		if v, f := operation.op.Extensions[typeKey]; f {
-			gvk := v.(map[string]interface{})
-			group, ok := gvk["group"].(string)
-			if !ok {
-				log.Fatalf("group not type string %v", v)
+		if *MungeGroups {
+			if v, f := operation.op.Extensions[typeKey]; f {
+				gvk := v.(map[string]interface{})
+				group, ok := gvk["group"].(string)
+				if !ok {
+					log.Fatalf("group not type string %v", v)
+				}
+				groupId := ""
+				for _, s := range strings.Split(group, ".") {
+					groupId = groupId + strings.Title(s)
+				}
+				config.GroupMap[strings.Title(strings.Split(group, ".")[0])] = groupId
 			}
-			groupId := ""
-			for _, s := range strings.Split(group, ".") {
-				groupId = groupId + strings.Title(s)
-			}
-			config.GroupMap[strings.Title(strings.Split(group, ".")[0])] = groupId
 		}
 	})
 	config.Operations = o

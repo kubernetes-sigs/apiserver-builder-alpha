@@ -108,9 +108,15 @@ resource_categories:
     - name: LimitRange
       version: v1
       group: core
+    - name: ExternalAdmissionHookConfiguration
+      version: v1alpha1
+      group: admissionregistration
     - name: HorizontalPodAutoscaler
       version: v1
       group: autoscaling
+    - name: InitializerConfiguration
+      version: v1alpha1
+      group: admissionregistration
     - name: PodTemplate
       version: v1
       group: core
@@ -130,6 +136,9 @@ resource_categories:
   - name: "Cluster Apis"
     include: "cluster"
     resources:
+    - name: APIService
+      version: v1beta1
+      group: apiregistration
     - name: Binding
       version: v1
       group: core
@@ -180,8 +189,8 @@ resource_categories:
       version: v1
       group: authentication
     - name: NetworkPolicy
-      version: v1beta1
-      group: extensions
+      version: v1
+      group: networking
 operation_categories:
   - name: "Proxy Operations"
     operation_types:
