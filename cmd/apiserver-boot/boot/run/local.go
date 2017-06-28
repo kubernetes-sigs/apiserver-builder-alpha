@@ -42,7 +42,12 @@ apiserver-boot run local
 kubectl --kubeconfig kubeconfig api-versions
 
 # Run locally without rebuilding
-apiserver-boot run local --build=false`,
+apiserver-boot run local --build=false
+
+# Create an instance and fetch it
+nano -w samples/<type>.yaml
+kubectl --kubeconfig kubeconfig apply -f samples/<type>.yaml
+kubectl --kubeconfig kubeconfig get <type>`,
 	Run: RunLocal,
 }
 

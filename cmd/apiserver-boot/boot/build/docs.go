@@ -34,7 +34,10 @@ var docsCmd = &cobra.Command{
 	Use:   "docs",
 	Short: "Generate API reference docs from the openapi spec.",
 	Long:  `Generate API reference docs from the openapi spec.`,
-	Example: `# Start a new server, get the swagger.json, and generate docs from the swagger.json
+	Example: `# Edit docs examples
+nano -w docs/examples/<kind>/<kind.yaml
+
+# Start a new server, get the swagger.json, and generate docs from the swagger.json
 apiserver-boot build executables
 apiserver-boot build docs
 
@@ -106,6 +109,7 @@ func RunDocs(cmd *cobra.Command, args []string) {
 		log.Fatal("Must specifiy --server or --build-openapi=false")
 	}
 
+	os.RemoveAll(filepath.Join("docs", "includes"))
 	exec.Command("mkdir", "-p", filepath.Join("docs", "openapi-spec")).CombinedOutput()
 	exec.Command("mkdir", "-p", filepath.Join("docs", "static_includes")).CombinedOutput()
 	exec.Command("mkdir", "-p", filepath.Join("docs", "examples")).CombinedOutput()
