@@ -40,6 +40,6 @@ import:
   subpackages:
   - cmd/libs/go2idl
 - package: github.com/kubernetes-incubator/reference-docs
-  version: 96204a551e6fceeed37f844f8598ad1cb60d7eed
+  version: 9000d782e8f8dbfd670b9c48bd4b47af8f6adb49
   subpackages:
   - gen-apidocs
