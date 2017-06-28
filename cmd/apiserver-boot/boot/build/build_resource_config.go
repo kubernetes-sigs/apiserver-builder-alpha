@@ -21,6 +21,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -28,7 +29,6 @@ import (
 	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"os/exec"
 )
 
 var Name, Namespace string
@@ -91,6 +91,7 @@ func getBase64(file string) string {
 
 func buildResourceConfig() {
 	initVersionedApis()
+	dir := filepath.Join(ResourceConfigDir, "certificates")
 
 	a := resourceConfigTemplateArgs{
 		Name:       Name,
@@ -98,13 +99,12 @@ func buildResourceConfig() {
 		Image:      Image,
 		Domain:     util.Domain,
 		Versions:   Versions,
-		ClientKey:  getBase64(filepath.Join("bin", "certificates", "apiserver.key")),
-		CACert:     getBase64(filepath.Join("bin", "certificates", "apiserver_ca.crt")),
-		ClientCert: getBase64(filepath.Join("bin", "certificates", "apiserver.crt")),
+		ClientKey:  getBase64(filepath.Join(dir, "apiserver.key")),
+		CACert:     getBase64(filepath.Join(dir, "apiserver_ca.crt")),
+		ClientCert: getBase64(filepath.Join(dir, "apiserver.crt")),
 	}
 	path := filepath.Join(ResourceConfigDir, "apiserver.yaml")
 
-	util.DoCmd("mkdir", "-p", ResourceConfigDir)
 	created := util.WriteIfNotFound(path, "config-template", resourceConfigTemplate, a)
 	if !created {
 		log.Fatalf("Resource config already exists.")
@@ -112,12 +112,7 @@ func buildResourceConfig() {
 }
 
 func createCerts() {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-	dir = filepath.Join(dir, "bin", "certificates")
-
+	dir := filepath.Join(ResourceConfigDir, "certificates")
 	util.DoCmd("mkdir", "-p", dir)
 
 	if _, err := os.Stat(filepath.Join(dir, "apiserver_ca.crt")); os.IsNotExist(err) {

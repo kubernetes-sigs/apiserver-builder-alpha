@@ -27,6 +27,7 @@ import (
 	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/markbates/inflect"
 	"github.com/spf13/cobra"
+	"os/exec"
 )
 
 var kindName string
@@ -121,6 +122,26 @@ func createResource(boilerplate string) {
 		if !found {
 			log.Printf("API group version kind %s/%s/%s already exists.",
 				groupName, versionName, kindName)
+			found = true
+		}
+	}
+
+	exec.Command("mkdir", "-p", filepath.Join("docs", "examples")).CombinedOutput()
+	docpath := filepath.Join("docs", "examples", strings.ToLower(kindName), fmt.Sprintf("%s.yaml", strings.ToLower(kindName)))
+	created = util.WriteIfNotFound(docpath, "example-template", exampleTemplate, a)
+	if !created {
+		if !found {
+			log.Printf("Example %s already exists.", docpath)
+			found = true
+		}
+	}
+
+	exec.Command("mkdir", "-p", filepath.Join("sample")).CombinedOutput()
+	samplepath := filepath.Join("sample", fmt.Sprintf("%s.yaml", strings.ToLower(kindName)))
+	created = util.WriteIfNotFound(samplepath, "sample-template", sampleTemplate, a)
+	if !created {
+		if !found {
+			log.Printf("Sample %s already exists.", docpath)
 			found = true
 		}
 	}
@@ -532,4 +553,20 @@ var _ = Describe("{{ .Kind }} controller", func() {
 		})
 	})
 })
+`
+
+var exampleTemplate = `note: {{ .Kind }} Example
+sample: |
+  apiVersion: {{ .Group }}.{{ .Domain }}/{{ .Version }}
+  kind: {{ .Kind }}
+  metadata:
+    name: {{ lower .Kind }}-example
+  spec:
+`
+
+var sampleTemplate = `apiVersion: {{ .Group }}.{{ .Domain }}/{{ .Version }}
+kind: {{ .Kind }}
+metadata:
+  name: {{ lower .Kind }}-example
+spec:
 `
