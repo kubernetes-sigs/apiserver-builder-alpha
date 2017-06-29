@@ -1,11 +1,10 @@
 # Getting started (using v0.1-alpha.3)
 
-This document covers building your first apiserver from scratch.  It
-is focused on getting a server up and running.
-After you have gone through the end-to-end flow of building and running
-a server, go back and explore editing your resource types.
+This document covers building an apiserver from scratch using `apiserver-boot`.  It
+is focused on how to use the tooling.  For information on the libraries, see
+the [libraries user guide](libraries_user_guide.md)
 
-Outline of steps:
+New server workflow:
 
 - Bootstrapping your go dependencies
 - Initialize your project directory structure and go packages
@@ -91,21 +90,17 @@ Running the `apiserver-boot create group version resource` command will create t
 Files created under GOPATH/src/github.com/my-org/my-project:
 
 - `pkg/apis/your-group/your-version/your-kind_types.go`
-  - [resource definition](adding_resources.md) - edit this to define your type
-  - [validation logic](adding_validation.md) - empty validation function created
-  - [defaulting logic](adding_defaulting.md) - empty defaulting function created
-  - *optional:* [subresources](adding_subresources.md) - add subresources
-  - *advanced*: [implement custom storage](adding_custom_rest.md)
+  - See the [libraries user guide](libraries_user_guide.md) for addtional information
 - `pkg/apis/your-group/your-version/your-kind_types_test.go`
-  - type integration test - basic storage test created
+  - type integration test - basic storage read / write test
 - `pkg/controller/your-kind/controller.go`
   - controller implementation - empty control loop created
 - `pkg/controller/your-kind/controller-test.go`
-  - controller integration test - basic test that control loop runs created
+  - controller integration test - basic control loop runs on create test
 - `docs/examples/your-kind/your-kind.yaml`
-  - example to show in the reference documentation - empty example created
+  - example to show in the reference documentation - empty example
 - `samples/your-kind.yaml`
-  - sample config to run in your cluster - empty sample created
+  - sample config for testing your resource in your cluster - empty sample
 
 Flags:
 
@@ -174,6 +169,8 @@ Create an instance of your API
 ```sh
 kubectl create -f sample/<type>.yaml
 ```
+
+More information available [here](running_locally.md)
 
 ## Run the apiserver + controller-manager in a cluster
 

@@ -2,66 +2,59 @@
 
 [![Build Status](https://travis-ci.org/kubernetes-incubator/apiserver-builder.svg?branch=master)](https://travis-ci.org/kubernetes-incubator/apiserver-builder "Travis")
 
+**Note**: This project is still only a proof of concept, and is not production ready.
+
 Apiserver Builder is a collection of libraries and tools to build native
 Kubernetes extensions using Kubernetes apiserver code.
 
 ## Motivation
 
-Standing up apiservers from scratch and adding apis requires non-trivial boilerplate
+*Addon apiservers* are a Kubernetes extension point allowing fully featured Kubernetes
+APIs to be developed on the same api-machinery used to build the core Kubernetes APIS,
+but distributed and installed into clusters.
+
+Building addon apiservers from using the raw api-machinery requires non-trivial
 code that must be maintained and rebased against master. The goal of this project is
 to make building apiservers in go simple and accessible to everyone in the
 Kubernetes community.
 
-The project aims to provide libraries, code generators, and tooling to make it possible to build
+The project provides libraries, code generators, and tooling to make it possible to build
 and run a basic apiserver in an afternoon, while providing all of the hooks to offer the
 same capabilities when building from scratch.
 
-## Installation
+## Guides
 
-Download the latest release and install on your PATH. Details [here](https://github.com/kubernetes-incubator/apiserver-builder/blob/master/docs/installing.md)
+#### Installation guide
 
-## Getting started guide
+Download the latest release and install on your PATH.
+
+[installation guide](docs/installing.md)
+
+#### Tools user guide
 
 **Note:** Go through this guide first.
 
-Instructions on how to bootstrap a new apiserver with a simple type
+Instructions on how to use the tools packaged with apiserver-builder to build a new apiserver
+containing a simple type.
 
-Details [here](https://github.com/kubernetes-incubator/apiserver-builder/blob/master/docs/getting_started.md)
+[tools guide](docs/tools_user_guide.md)
 
-## User guide
+#### Coding and libraries user guide
 
-### Adding a new resource with a controller
+Instructions for how to complete various tasks using the apiserver-builder libraries.
 
-Instructions on how to add a new resource
+[libraries guide](docs/libraries_user_guide.md)
 
-Details [here](https://github.com/kubernetes-incubator/apiserver-builder/blob/master/docs/adding_resources.md)
+#### Concept guides
 
-### Adding validation
+Conceptual information on how to run addon apiservers
 
-Instructions on how to add schema validation an existing resource
+[auth](docs/concepts/auth.md)
 
-Details [here](https://github.com/kubernetes-incubator/apiserver-builder/blob/master/docs/adding_validation.md)
 
-### Adding defaulting
+## Additional material
 
-Instructions on how to add field value defaulting to an existing resource
-
-Details [here](https://github.com/kubernetes-incubator/apiserver-builder/blob/master/docs/adding_defaulting.md)
-
-### Adding subresource
-
-Instructions on how to add a new subresource to an existing resource
-
-Details [here](https://github.com/kubernetes-incubator/apiserver-builder/blob/master/docs/adding_subresources.md)
-
-### Defining custom REST handlers
-
-Instructions on how to Overriding the default resource storage with
-custom REST handlers
-
-Details [here](https://github.com/kubernetes-incubator/apiserver-builder/blob/master/docs/adding_custom_rest.md)
-
-## Using delegated auth with minikube
+##### Using delegated auth with minikube
 
 Instructions on how to run an apiserver using delegated auth with a minikube cluster
 
