@@ -11,18 +11,22 @@ Kubernetes extensions using Kubernetes apiserver code.
 
 *Addon apiservers* are a Kubernetes extension point allowing fully featured Kubernetes
 APIs to be developed on the same api-machinery used to build the core Kubernetes APIS,
-but distributed and installed into clusters.
+but with the flexibility of being distributed and installed separately from
+the Kubernetes project.  This allows APIs to be developed outside of the
+Kubernetes repo and installed separately as a package.
 
-Building addon apiservers from using the raw api-machinery requires non-trivial
-code that must be maintained and rebased against master. The goal of this project is
-to make building apiservers in go simple and accessible to everyone in the
+Building addon apiservers directly on the raw api-machinery libraries requires non-trivial
+code that must be maintained and rebased as the raw libraries change. The goal of this project is
+to make building apiservers in *Go* simple and accessible to everyone in the
 Kubernetes community.
 
-The project provides libraries, code generators, and tooling to make it possible to build
+apiserver-builder provides libraries, code generators, and tooling to make it possible to build
 and run a basic apiserver in an afternoon, while providing all of the hooks to offer the
 same capabilities when building from scratch.
 
 ## Guides
+
+**Note:** The guides are presented roughly in the order of recommended progression.
 
 #### Installation guide
 
@@ -32,25 +36,21 @@ Download the latest release and install on your PATH.
 
 #### Tools user guide
 
-**Note:** Go through this guide first.
-
-Instructions on how to use the tools packaged with apiserver-builder to build a new apiserver
-containing a simple type.
+Instructions on how to use the tools packaged with apiserver-builder to build and run a new apiserver.
 
 [tools guide](docs/tools_user_guide.md)
 
 #### Coding and libraries user guide
 
-Instructions for how to complete various tasks using the apiserver-builder libraries.
+Instructions for how to implement custom APIs on top of the apiserver-builder libraries.
 
 [libraries guide](docs/libraries_user_guide.md)
 
 #### Concept guides
 
-Conceptual information on how to run addon apiservers
+Conceptual information on addon apiservers.
 
 [auth](docs/concepts/auth.md)
-
 
 ## Additional material
 
