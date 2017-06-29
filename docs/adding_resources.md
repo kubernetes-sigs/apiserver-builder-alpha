@@ -9,7 +9,7 @@ versions, and resources.
 Provide your domain + the api group and version + the resource Kind.
 The resource name will be the pluralized lowercased kind.
 
-`apiserver-boot create group --group <group> --version <version> --kind <Kind>`
+`apiserver-boot create group version resource --group <group> --version <version> --kind <Kind>`
 
 ## Anatomy of a resource
 

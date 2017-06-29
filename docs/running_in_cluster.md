@@ -3,7 +3,19 @@
 This document describes how to run an apiserver and controller-manager
 in cluster using API aggregation.
 
-## Build the container image
+For details on the underlying concepts applied by the commands,
+see the [auth concept page](concepts/auth.md).
+
+## TL;DR version
+
+Running the following command will automatically invoke each of the commands
+covered in the [long version](#long-version)
+
+`apiserver-boot build config --name <servicename> --namespace <namespace to run in> --image <image to run>`
+
+## Long version
+
+### Build the container image
 
 **Note:** If your apiserver and controller-manager were not created
 with the apiserver-builder framework, you made need to manually build
@@ -18,8 +30,7 @@ Push the image with:
 
 `docker push <image>`
 
-
-## Build the config
+### Build the config
 
 `apiserver-boot build config --name <servicename> --namespace <namespace to run in> --image <image to run>`
 
@@ -35,7 +46,7 @@ This will perform the following:
 present and runnable from "./".  You may need to manually edit the config if your
 container looks differently.
 
-## Run the apiserver
+### Run the apiserver
 
 `kubectl apply -f config/apiserver.yaml`
 
@@ -46,3 +57,7 @@ Clear the discovery cache:
 Look for your API:
 
 `kubectl api-versions`
+
+## Create an instance of your resource
+
+`kubectl apply -f sample/<type>.yaml`
