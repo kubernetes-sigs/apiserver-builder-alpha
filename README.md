@@ -48,9 +48,10 @@ Instructions for how to implement custom APIs on top of the apiserver-builder li
 
 #### Concept guides
 
-Conceptual information on addon apiservers.
+Conceptual information on addon apiservers, such as how auth works and how they interact
+with the main Kubernetes API server and API aggregator.
 
-[auth](docs/concepts/auth.md)
+[Concepts](docs/concepts/README.md)
 
 ## Additional material
 
