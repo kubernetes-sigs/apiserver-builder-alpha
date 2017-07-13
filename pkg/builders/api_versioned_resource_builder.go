@@ -61,15 +61,15 @@ func NewApiResourceWithStorage(
 	unversionedBuilder UnversionedResourceBuilder,
 	schemeFns SchemeFns,
 	new, newList func() runtime.Object,
-	storage rest.Storage) *versionedResourceBuilder {
+	RESTFunc func() rest.Storage) *versionedResourceBuilder {
 	v := &versionedResourceBuilder{
-		unversionedBuilder, schemeFns, new, newList, nil, storage, nil,
+		unversionedBuilder, schemeFns, new, newList, nil, RESTFunc, nil,
 	}
 	if new == nil {
 		panic(fmt.Errorf("Cannot call NewApiResourceWithStorage with nil new function."))
 	}
-	if storage == nil {
-		panic(fmt.Errorf("Cannot call NewApiResourceWithStorage with nil new storage."))
+	if RESTFunc == nil {
+		panic(fmt.Errorf("Cannot call NewApiResourceWithStorage with nil RESTFunc function."))
 	}
 	return v
 }
@@ -84,11 +84,11 @@ type versionedResourceBuilder struct {
 	// NewListFunc returns and empty unversioned instance of a resource List
 	NewListFunc func() runtime.Object
 
-	// Store is used to modify the default storage, mutually exclusive with RESTFunc
+	// StorageBuilder is used to modify the default storage, mutually exclusive with RESTFunc
 	StorageBuilder StorageBuilder
 
-	// REST a rest.Store implementation, mutually exclusive with StoreFunc
-	REST rest.Storage
+	// RESTFunc returns a rest.Storage implementation, mutually exclusive with StorageBuilder
+	RESTFunc func() rest.Storage
 
 	Storage rest.StandardStorage
 }
@@ -173,9 +173,9 @@ func (b *versionedResourceBuilder) registerEndpoints(
 		path = b.Unversioned.GetName()
 	}
 
-	if b.REST != nil {
+	if b.RESTFunc != nil {
 		// Use the REST implementation directly.
-		registry[path] = b.REST
+		registry[path] = b.RESTFunc()
 	} else {
 		// Create a new REST implementation wired to storage.
 		registry[path] = b.
