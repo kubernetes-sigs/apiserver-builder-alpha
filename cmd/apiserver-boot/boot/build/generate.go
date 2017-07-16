@@ -24,16 +24,18 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
-	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
-	"regexp"
+
+	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 )
 
 var versionedAPIs []string
 var unversionedAPIs []string
 var copyright string = "boilerplate.go.txt"
+var skipGenerators []string
 
 var generateCmd = &cobra.Command{
 	Use:   "generated",
@@ -77,6 +79,7 @@ var extraAPI = strings.Join([]string{
 func AddGenerate(cmd *cobra.Command) {
 	cmd.AddCommand(generateCmd)
 	generateCmd.Flags().StringArrayVar(&versionedAPIs, "api-versions", []string{}, "comma separated list of APIs Versions.  e.g. foo/v1beta1,bar/v1  defaults to all directories under pkd/apis/group/version")
+	generateCmd.Flags().StringArrayVar(&skipGenerators, "skip-generators", []string{}, "List of generators to skip.  If using apiserver-boot on a repo that does not use the apiserver-build code generation, specify --skip-generators=apiregister-gen")
 	generateCmd.AddCommand(generateCleanCmd)
 }
 
@@ -104,6 +107,23 @@ func RunCleanGenerate(cmd *cobra.Command, args []string) {
 func RunGenerate(cmd *cobra.Command, args []string) {
 	initApis()
 
+	skip := map[string]interface{}{}
+	for _, s := range skipGenerators {
+		skip[s] = nil
+	}
+
+	if _, f1 := skip["client-gen"]; f1 {
+		if _, f2 := skip["lister-gen"]; !f2 {
+			log.Fatalf("Must skip lister-gen if client-gen is skipped")
+		}
+	}
+
+	if _, f2 := skip["lister-gen"]; f2 {
+		if _, f3 := skip["informer-gen"]; !f3 {
+			log.Fatalf("Must skip informer-gen if lister-gen is skipped")
+		}
+	}
+
 	util.GetCopyright(copyright)
 
 	root, err := os.Executable()
@@ -126,124 +146,140 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 		all = append(all, "--input-dirs", u)
 	}
 
-	c := exec.Command(filepath.Join(root, "apiregister-gen"),
-		"--input-dirs", filepath.Join(util.Repo, "pkg", "apis", "..."),
-		"--input-dirs", filepath.Join(util.Repo, "pkg", "controller", "..."),
-	)
-	fmt.Printf("%s\n", strings.Join(c.Args, " "))
-	out, err := c.CombinedOutput()
-	if err != nil {
-		log.Fatalf("failed to run apiregister-gen %s %v", out, err)
+	if _, f := skip["apiregister-gen"]; !f {
+		c := exec.Command(filepath.Join(root, "apiregister-gen"),
+			"--input-dirs", filepath.Join(util.Repo, "pkg", "apis", "..."),
+			"--input-dirs", filepath.Join(util.Repo, "pkg", "controller", "..."),
+		)
+		fmt.Printf("%s\n", strings.Join(c.Args, " "))
+		out, err := c.CombinedOutput()
+		if err != nil {
+			log.Fatalf("failed to run apiregister-gen %s %v", out, err)
+		}
 	}
 
-	c = exec.Command(filepath.Join(root, "conversion-gen"),
-		append(all,
+	if _, f := skip["conversion-gen"]; !f {
+		c := exec.Command(filepath.Join(root, "conversion-gen"),
+			append(all,
+				"-o", util.GoSrc,
+				"--go-header-file", copyright,
+				"-O", "zz_generated.conversion",
+				"--extra-peer-dirs", extraAPI)...,
+		)
+		fmt.Printf("%s\n", strings.Join(c.Args, " "))
+		out, err := c.CombinedOutput()
+		if err != nil {
+			log.Fatalf("failed to run conversion-gen %s %v", out, err)
+		}
+	}
+
+	if _, f := skip["deepcopy-gen"]; !f {
+		c := exec.Command(filepath.Join(root, "deepcopy-gen"),
+			append(all,
+				"-o", util.GoSrc,
+				"--go-header-file", copyright,
+				"-O", "zz_generated.deepcopy")...,
+		)
+		fmt.Printf("%s\n", strings.Join(c.Args, " "))
+		out, err := c.CombinedOutput()
+		if err != nil {
+			log.Fatalf("failed to run deepcopy-gen %s %v", out, err)
+		}
+	}
+
+	if _, f := skip["openapi-gen"]; !f {
+		c := exec.Command(filepath.Join(root, "openapi-gen"),
+			append(all,
+				"-o", util.GoSrc,
+				"--go-header-file", copyright,
+				"-i", genericAPI,
+				"--output-package", filepath.Join(util.Repo, "pkg", "openapi"))...,
+		)
+		fmt.Printf("%s\n", strings.Join(c.Args, " "))
+		out, err := c.CombinedOutput()
+		if err != nil {
+			log.Fatalf("failed to run openapi-gen %s %v", out, err)
+		}
+	}
+
+	if _, f := skip["defaulter-gen"]; !f {
+		c := exec.Command(filepath.Join(root, "defaulter-gen"),
+			append(all,
+				"-o", util.GoSrc,
+				"--go-header-file", copyright,
+				"-O", "zz_generated.defaults",
+				"--extra-peer-dirs=", extraAPI)...,
+		)
+		fmt.Printf("%s\n", strings.Join(c.Args, " "))
+		out, err := c.CombinedOutput()
+		if err != nil {
+			log.Fatalf("failed to run defaulter-gen %s %v", out, err)
+		}
+	}
+
+	if _, f := skip["client-gen"]; !f {
+		// Builder the versioned apis client
+		clientPkg := filepath.Join(util.Repo, "pkg", "client")
+		clientset := filepath.Join(clientPkg, "clientset_generated")
+		c := exec.Command(filepath.Join(root, "client-gen"),
 			"-o", util.GoSrc,
 			"--go-header-file", copyright,
-			"-O", "zz_generated.conversion",
-			"--extra-peer-dirs", extraAPI)...,
-	)
-	fmt.Printf("%s\n", strings.Join(c.Args, " "))
-	out, err = c.CombinedOutput()
-	if err != nil {
-		log.Fatalf("failed to run conversion-gen %s %v", out, err)
-	}
+			"--input-base", filepath.Join(util.Repo, "pkg", "apis"),
+			"--input", strings.Join(versionedAPIs, ","),
+			"--clientset-path", clientset,
+			"--clientset-name", "clientset",
+		)
+		fmt.Printf("%s\n", strings.Join(c.Args, " "))
+		out, err := c.CombinedOutput()
+		if err != nil {
+			log.Fatalf("failed to run client-gen %s %v", out, err)
+		}
 
-	c = exec.Command(filepath.Join(root, "deepcopy-gen"),
-		append(all,
+		c = exec.Command(filepath.Join(root, "client-gen"),
 			"-o", util.GoSrc,
 			"--go-header-file", copyright,
-			"-O", "zz_generated.deepcopy")...,
-	)
-	fmt.Printf("%s\n", strings.Join(c.Args, " "))
-	out, err = c.CombinedOutput()
-	if err != nil {
-		log.Fatalf("failed to run deepcopy-gen %s %v", out, err)
-	}
+			"--input-base", filepath.Join(util.Repo, "pkg", "apis"),
+			"--input", strings.Join(unversionedAPIs, ","),
+			"--clientset-path", clientset,
+			"--clientset-name", "internalclientset")
+		fmt.Printf("%s\n", strings.Join(c.Args, " "))
+		out, err = c.CombinedOutput()
+		if err != nil {
+			log.Fatalf("failed to run client-gen for unversioned APIs %s %v", out, err)
+		}
 
-	c = exec.Command(filepath.Join(root, "openapi-gen"),
-		append(all,
-			"-o", util.GoSrc,
-			"--go-header-file", copyright,
-			"-i", genericAPI,
-			"--output-package", filepath.Join(util.Repo, "pkg", "openapi"))...,
-	)
-	fmt.Printf("%s\n", strings.Join(c.Args, " "))
-	out, err = c.CombinedOutput()
-	if err != nil {
-		log.Fatalf("failed to run openapi-gen %s %v", out, err)
-	}
+		if _, f := skip["lister-gen"]; !f {
+			listerPkg := filepath.Join(clientPkg, "listers_generated")
+			c = exec.Command(filepath.Join(root, "lister-gen"),
+				append(all,
+					"-o", util.GoSrc,
+					"--go-header-file", copyright,
+					"--output-package", listerPkg)...,
+			)
+			fmt.Printf("%s\n", strings.Join(c.Args, " "))
+			out, err = c.CombinedOutput()
+			if err != nil {
+				log.Fatalf("failed to run lister-gen %s %v", out, err)
+			}
 
-	c = exec.Command(filepath.Join(root, "defaulter-gen"),
-		append(all,
-			"-o", util.GoSrc,
-			"--go-header-file", copyright,
-			"-O", "zz_generated.defaults",
-			"--extra-peer-dirs=", extraAPI)...,
-	)
-	fmt.Printf("%s\n", strings.Join(c.Args, " "))
-	out, err = c.CombinedOutput()
-	if err != nil {
-		log.Fatalf("failed to run defaulter-gen %s %v", out, err)
-	}
-
-	// Builder the versioned apis client
-	clientPkg := filepath.Join(util.Repo, "pkg", "client")
-	clientset := filepath.Join(clientPkg, "clientset_generated")
-	c = exec.Command(filepath.Join(root, "client-gen"),
-		"-o", util.GoSrc,
-		"--go-header-file", copyright,
-		"--input-base", filepath.Join(util.Repo, "pkg", "apis"),
-		"--input", strings.Join(versionedAPIs, ","),
-		"--clientset-path", clientset,
-		"--clientset-name", "clientset",
-	)
-	fmt.Printf("%s\n", strings.Join(c.Args, " "))
-	out, err = c.CombinedOutput()
-	if err != nil {
-		log.Fatalf("failed to run client-gen %s %v", out, err)
-	}
-
-	c = exec.Command(filepath.Join(root, "client-gen"),
-		"-o", util.GoSrc,
-		"--go-header-file", copyright,
-		"--input-base", filepath.Join(util.Repo, "pkg", "apis"),
-		"--input", strings.Join(unversionedAPIs, ","),
-		"--clientset-path", clientset,
-		"--clientset-name", "internalclientset")
-	fmt.Printf("%s\n", strings.Join(c.Args, " "))
-	out, err = c.CombinedOutput()
-	if err != nil {
-		log.Fatalf("failed to run client-gen for unversioned APIs %s %v", out, err)
-	}
-
-	listerPkg := filepath.Join(clientPkg, "listers_generated")
-	c = exec.Command(filepath.Join(root, "lister-gen"),
-		append(all,
-			"-o", util.GoSrc,
-			"--go-header-file", copyright,
-			"--output-package", listerPkg)...,
-	)
-	fmt.Printf("%s\n", strings.Join(c.Args, " "))
-	out, err = c.CombinedOutput()
-	if err != nil {
-		log.Fatalf("failed to run lister-gen %s %v", out, err)
-	}
-
-	informerPkg := filepath.Join(clientPkg, "informers_generated")
-	c = exec.Command(filepath.Join(root, "informer-gen"),
-		append(all,
-			"-o", util.GoSrc,
-			"--go-header-file", copyright,
-			"--output-package", informerPkg,
-			"--listers-package", listerPkg,
-			"--versioned-clientset-package", filepath.Join(clientset, "clientset"),
-			"--internal-clientset-package", filepath.Join(clientset, "internalclientset"))...,
-	)
-	fmt.Printf("%s\n", strings.Join(c.Args, " "))
-	out, err = c.CombinedOutput()
-	if err != nil {
-		log.Fatalf("failed to run informer-gen %s %v", out, err)
+			if _, f := skip["informer-gen"]; !f {
+				informerPkg := filepath.Join(clientPkg, "informers_generated")
+				c = exec.Command(filepath.Join(root, "informer-gen"),
+					append(all,
+						"-o", util.GoSrc,
+						"--go-header-file", copyright,
+						"--output-package", informerPkg,
+						"--listers-package", listerPkg,
+						"--versioned-clientset-package", filepath.Join(clientset, "clientset"),
+						"--internal-clientset-package", filepath.Join(clientset, "internalclientset"))...,
+				)
+				fmt.Printf("%s\n", strings.Join(c.Args, " "))
+				out, err := c.CombinedOutput()
+				if err != nil {
+					log.Fatalf("failed to run informer-gen %s %v", out, err)
+				}
+			}
+		}
 	}
 }
 

@@ -131,7 +131,6 @@ func RunApiserver() *exec.Cmd {
 		"--delegated-auth=false",
 		fmt.Sprintf("--etcd-servers=%s", etcd),
 		"--secure-port=9443",
-		"--print-bearer-token",
 	)
 	fmt.Printf("%s\n", strings.Join(apiserverCmd.Args, " "))
 	if printapiserver {
