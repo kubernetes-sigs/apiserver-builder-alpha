@@ -70,8 +70,10 @@ type APIGroup struct {
 type Struct struct {
 	// Name is the name of the type
 	Name string
-	// IsResource
-	IsResource bool
+	// GenClient
+	GenClient bool
+
+	GenUnversioned bool
 	// Fields is the list of fields appearing in the struct
 	Fields []*Field
 }
@@ -282,7 +284,7 @@ func (b *APIsBuilder) ParseIndex() {
 		}
 
 		r := &APIResource{
-			Type: c,
+			Type:          c,
 			NonNamespaced: IsNonNamespaced(c),
 		}
 		r.Group = GetGroup(c)
@@ -487,7 +489,7 @@ func (b *APIsBuilder) GetResourceTag(c *types.Type) string {
 	return resource
 }
 
-func (b *APIsBuilder) IsResource(c *types.Type) bool {
+func (b *APIsBuilder) GenClient(c *types.Type) bool {
 	comments := Comments(c.CommentLines)
 	resource := comments.GetTag("resource", ":")
 	return len(resource) > 0
@@ -588,8 +590,8 @@ func (b *APIsBuilder) ParseStructs(apigroup *APIGroup) {
 		result, additionalTypes := apigroup.DoType(next)
 
 		// This is a resource, so generate the client
-		if b.IsResource(next) {
-			result.IsResource = true
+		if b.GenClient(next) {
+			result.GenClient = true
 		}
 		apigroup.Structs = append(apigroup.Structs, result)
 
@@ -600,10 +602,20 @@ func (b *APIsBuilder) ParseStructs(apigroup *APIGroup) {
 
 func (apigroup *APIGroup) DoType(t *types.Type) (*Struct, []*types.Type) {
 	remaining := []*types.Type{}
+
 	s := &Struct{
-		Name:       t.Name.Name,
-		IsResource: false,
+		Name:           t.Name.Name,
+		GenClient:      false,
+		GenUnversioned: true, // Generate unversioned structs by default
 	}
+
+	for _, c := range t.CommentLines {
+		if strings.Contains(c, "+genregister:unversioned=false") {
+			// Don't generate the unversioned struct
+			s.GenUnversioned = false
+		}
+	}
+
 	for _, member := range t.Members {
 		memberGroup := GetGroup(member.Type)
 		uType := member.Type.Name.Name

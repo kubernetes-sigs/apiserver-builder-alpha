@@ -122,14 +122,15 @@ func Resource(resource string) schema.GroupResource {
 }
 
 {{ range $s := .Structs -}}
-{{ if $s.IsResource }}// +genclient=true{{end}}
+{{ if $s.GenUnversioned -}}
+{{ if $s.GenClient }}// +genclient=true{{end}}
 
 type {{ $s.Name }} struct {
 {{ range $f := $s.Fields -}}
     {{ $f.Name }} {{ $f.UnversionedType }}
 {{ end -}}
 }
-
+{{ end -}}
 {{ end -}}
 
 {{ range $api := .UnversionedResources -}}
