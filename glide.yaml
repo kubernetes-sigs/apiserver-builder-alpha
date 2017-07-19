@@ -36,7 +36,7 @@ import:
 - package: github.com/onsi/gomega
   version: ~1.1.0
 - package: k8s.io/kubernetes
-  version: ~1.8.0-alpha.1
+  version: effcdda0cee4d4c8d1df832f17bb5fbd281c4bad
   subpackages:
   - cmd/libs/go2idl
 - package: github.com/kubernetes-incubator/reference-docs
