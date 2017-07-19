@@ -71,7 +71,8 @@ type Struct struct {
 	// Name is the name of the type
 	Name string
 	// GenClient
-	GenClient bool
+	GenClient   bool
+	GenDeepCopy bool
 
 	GenUnversioned bool
 	// Fields is the list of fields appearing in the struct
@@ -495,6 +496,11 @@ func (b *APIsBuilder) GenClient(c *types.Type) bool {
 	return len(resource) > 0
 }
 
+func (b *APIsBuilder) GenDeepCopy(c *types.Type) bool {
+	comments := Comments(c.CommentLines)
+	return comments.HasTag("subresource-request")
+}
+
 func (b *APIsBuilder) GetControllerTag(c *types.Type) string {
 	comments := Comments(c.CommentLines)
 	resource := comments.GetTag("controller", ":")
@@ -592,6 +598,11 @@ func (b *APIsBuilder) ParseStructs(apigroup *APIGroup) {
 		// This is a resource, so generate the client
 		if b.GenClient(next) {
 			result.GenClient = true
+			result.GenDeepCopy = true
+		}
+
+		if b.GenDeepCopy(next) {
+			result.GenDeepCopy = true
 		}
 		apigroup.Structs = append(apigroup.Structs, result)
 

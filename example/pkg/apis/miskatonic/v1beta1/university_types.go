@@ -25,7 +25,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/apiserver/pkg/endpoints/request"
 	"k8s.io/apiserver/pkg/registry/rest"
-	apiv1 "k8s.io/client-go/pkg/api/v1"
 	//extensionsv1beta1 "k8s.io/client-go/pkg/apis/extensions/v1beta1"
 )
 
@@ -33,6 +32,7 @@ import (
 // University.
 
 // +genclient=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +k8s:openapi-gen=true
 // +resource:path=universities,strategy=UniversityStrategy
@@ -129,13 +129,11 @@ func (UniversitySchemeFns) DefaultingFunction(o interface{}) {
 // GetConversionFunctions returns functions for converting resource versions to override the
 // conversion functions
 func (UniversitySchemeFns) GetConversionFunctions() []interface{} {
-	return []interface{}{
-		apiv1.Convert_api_PodSpec_To_v1_PodSpec,
-		apiv1.Convert_v1_PodSpec_To_api_PodSpec,
-	}
+	return []interface{}{}
 }
 
 // +genclient=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +subresource-request
 type Scale struct {
@@ -148,6 +146,7 @@ type Scale struct {
 var _ rest.CreaterUpdater = &ScaleUniversityREST{}
 var _ rest.Patcher = &ScaleUniversityREST{}
 
+// +k8s:deepcopy-gen=false
 type ScaleUniversityREST struct {
 	Registry miskatonic.UniversityRegistry
 }

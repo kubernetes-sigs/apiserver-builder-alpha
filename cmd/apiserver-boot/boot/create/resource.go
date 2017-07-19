@@ -220,6 +220,7 @@ import (
 )
 
 // +genclient=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 {{- if .NonNamespacedKind }}
 // +nonNamespaced=true{{ end }}
 
