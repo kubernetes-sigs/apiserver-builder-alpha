@@ -107,12 +107,14 @@ type glideTemplateArguments struct {
 var glideTemplate = `
 package: {{.Repo}}
 import:
+- package: k8s.io/api
+  version: c9fffff41e45e3c00186ac6b00d2cb585734d43e
 - package: k8s.io/apimachinery
-  version: cff8db64dd5b6fb0166dc2cf36e39c7ff4fe48c8
+  version: 7da60ba7ddca684051555f2c558eef2dfebc70d5
 - package: k8s.io/apiserver
-  version: 2e70bac0745c7f8e506f7f3e432d040c55d5718a
+  version: e24df9a2e58151a85874948908a454d511066460
 - package: k8s.io/client-go
-  version: 36b51953e6efc7779fe27c14258d78573de4e0de
+  version: 1be407b92aa39a2f63ddbb3d46104a1fd425fda0
 - package: github.com/go-openapi/analysis
   version: b44dc874b601d9e4e2f6e19140e794ba24bead3b
 - package: github.com/go-openapi/jsonpointer
