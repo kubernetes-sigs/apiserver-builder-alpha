@@ -285,7 +285,7 @@ func ListResource(r rest.Lister, rw rest.Watcher, scope RequestScope, forceWatch
 		}
 
 		// Watches for single objects are routed to this function.
-		// Treat a /name parameter the same as a field selector entry.
+		// Treat a name parameter the same as a field selector entry.
 		hasName := true
 		_, name, err := scope.Namer.Name(req)
 		if err != nil {
@@ -694,8 +694,8 @@ func patchResource(
 					return nil, err
 				}
 				// Capture the original object map and patch for possible retries.
-				originalMap := make(map[string]interface{})
-				if err := unstructured.DefaultConverter.ToUnstructured(currentVersionedObject, &originalMap); err != nil {
+				originalMap, err := unstructured.DefaultConverter.ToUnstructured(currentVersionedObject)
+				if err != nil {
 					return nil, err
 				}
 				if err := strategicPatchObject(codec, defaulter, currentVersionedObject, patchJS, versionedObjToUpdate, versionedObj); err != nil {
@@ -734,15 +734,14 @@ func patchResource(
 			// 3. ensure no conflicts between the two patches
 			// 4. apply the #1 patch to the currentJS object
 
-			currentObjMap := make(map[string]interface{})
-
 			// Since the patch is applied on versioned objects, we need to convert the
 			// current object to versioned representation first.
 			currentVersionedObject, err := unsafeConvertor.ConvertToVersion(currentObject, kind.GroupVersion())
 			if err != nil {
 				return nil, err
 			}
-			if err := unstructured.DefaultConverter.ToUnstructured(currentVersionedObject, &currentObjMap); err != nil {
+			currentObjMap, err := unstructured.DefaultConverter.ToUnstructured(currentVersionedObject)
+			if err != nil {
 				return nil, err
 			}
 
@@ -862,7 +861,8 @@ func UpdateResource(r rest.Updater, scope RequestScope, typer runtime.ObjectType
 		defaultGVK := scope.Kind
 		original := r.New()
 		trace.Step("About to convert to expected version")
-		obj, gvk, err := scope.Serializer.DecoderToVersion(s.Serializer, defaultGVK.GroupVersion()).Decode(body, &defaultGVK, original)
+		decoder := scope.Serializer.DecoderToVersion(s.Serializer, schema.GroupVersion{Group: defaultGVK.Group, Version: runtime.APIVersionInternal})
+		obj, gvk, err := decoder.Decode(body, &defaultGVK, original)
 		if err != nil {
 			err = transformDecodeError(typer, err, original, gvk, body)
 			scope.err(err, w, req)
@@ -991,7 +991,7 @@ func DeleteResource(r rest.GracefulDeleter, allowsOptions bool, scope RequestSco
 			}
 		}
 
-		trace.Step("About do delete object from database")
+		trace.Step("About to delete object from database")
 		wasDeleted := true
 		result, err := finishRequest(timeout, func() (runtime.Object, error) {
 			obj, deleted, err := r.Delete(ctx, name, options)

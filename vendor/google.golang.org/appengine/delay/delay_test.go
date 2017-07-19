@@ -82,6 +82,18 @@ var (
 		}
 		return errFuncErr
 	})
+
+	dupeWhich = 0
+	dupe1Func = Func("dupe", func(c context.Context) {
+		if dupeWhich == 0 {
+			dupeWhich = 1
+		}
+	})
+	dupe2Func = Func("dupe", func(c context.Context) {
+		if dupeWhich == 0 {
+			dupeWhich = 2
+		}
+	})
 )
 
 type fakeContext struct {
@@ -318,5 +330,46 @@ func TestErrorFunction(t *testing.T) {
 		if !reflect.DeepEqual(c.logging, wantLogging) {
 			t.Errorf("Incorrect logging: got %+v, want %+v", c.logging, wantLogging)
 		}
+	}
+}
+
+func TestDuplicateFunction(t *testing.T) {
+	c := newFakeContext()
+
+	// Fake out the adding of a task.
+	var task *taskqueue.Task
+	taskqueueAdder = func(_ context.Context, tk *taskqueue.Task, queue string) (*taskqueue.Task, error) {
+		if queue != "" {
+			t.Errorf(`Got queue %q, expected ""`, queue)
+		}
+		task = tk
+		return tk, nil
+	}
+
+	if err := dupe1Func.Call(c.ctx); err == nil {
+		t.Error("dupe1Func.Call did not return error")
+	}
+	if task != nil {
+		t.Error("dupe1Func.Call posted a task")
+	}
+	if err := dupe2Func.Call(c.ctx); err != nil {
+		t.Errorf("dupe2Func.Call error: %v", err)
+	}
+	if task == nil {
+		t.Fatalf("dupe2Func.Call did not post a task")
+	}
+
+	// Simulate the Task Queue service.
+	req, err := http.NewRequest("POST", path, bytes.NewBuffer(task.Payload))
+	if err != nil {
+		t.Fatalf("Failed making http.Request: %v", err)
+	}
+	rw := httptest.NewRecorder()
+	runFunc(c.ctx, rw, req)
+
+	if dupeWhich == 1 {
+		t.Error("dupe2Func.Call used old registered function")
+	} else if dupeWhich != 2 {
+		t.Errorf("dupeWhich = %d; want 2", dupeWhich)
 	}
 }
