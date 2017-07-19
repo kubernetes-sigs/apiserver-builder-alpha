@@ -47,12 +47,16 @@ import (
 	"k8s.io/apiserver/pkg/admission"
 	"k8s.io/apiserver/pkg/authentication/authenticator"
 	"k8s.io/apiserver/pkg/authorization/authorizer"
-	genericregistry "k8s.io/apiserver/pkg/registry/generic"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	"k8s.io/apiserver/pkg/server/filters"
 	"k8s.io/apiserver/pkg/server/options/encryptionconfig"
 	serverstorage "k8s.io/apiserver/pkg/server/storage"
+	aggregatorapiserver "k8s.io/kube-aggregator/pkg/apiserver"
+	//aggregatorinformers "k8s.io/kube-aggregator/pkg/client/informers/internalversion"
 
+	clientgoinformers "k8s.io/client-go/informers"
+	clientgoclientset "k8s.io/client-go/kubernetes"
+	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/cmd/kube-apiserver/app/options"
 	"k8s.io/kubernetes/cmd/kube-apiserver/app/preflight"
 	"k8s.io/kubernetes/pkg/api"
@@ -61,7 +65,6 @@ import (
 	"k8s.io/kubernetes/pkg/apis/extensions"
 	"k8s.io/kubernetes/pkg/apis/networking"
 	"k8s.io/kubernetes/pkg/capabilities"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 	"k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
 	informers "k8s.io/kubernetes/pkg/client/informers/informers_generated/internalversion"
 	"k8s.io/kubernetes/pkg/cloudprovider"
@@ -107,29 +110,39 @@ func Run(runOptions *options.ServerRunOptions, stopCh <-chan struct{}) error {
 	// To help debugging, immediately log version
 	glog.Infof("Version: %+v", version.Get())
 
-	nodeTunneler, proxyTransport, err := CreateNodeDialer(runOptions)
+	server, err := CreateServerChain(runOptions, stopCh)
 	if err != nil {
 		return err
 	}
-	kubeAPIServerConfig, sharedInformers, insecureServingOptions, err := CreateKubeAPIServerConfig(runOptions, nodeTunneler, proxyTransport)
+
+	return server.PrepareRun().Run(stopCh)
+}
+
+// CreateServerChain creates the apiservers connected via delegation.
+func CreateServerChain(runOptions *options.ServerRunOptions, stopCh <-chan struct{}) (*genericapiserver.GenericAPIServer, error) {
+	nodeTunneler, proxyTransport, err := CreateNodeDialer(runOptions)
 	if err != nil {
-		return err
+		return nil, err
+	}
+	kubeAPIServerConfig, sharedInformers, versionedInformers, insecureServingOptions, serviceResolver, err := CreateKubeAPIServerConfig(runOptions, nodeTunneler, proxyTransport)
+	if err != nil {
+		return nil, err
 	}
 
 	// TPRs are enabled and not yet beta, since this these are the successor, they fall under the same enablement rule
 	// If additional API servers are added, they should be gated.
 	apiExtensionsConfig, err := createAPIExtensionsConfig(*kubeAPIServerConfig.GenericConfig, runOptions)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	apiExtensionsServer, err := createAPIExtensionsServer(apiExtensionsConfig, genericapiserver.EmptyDelegate)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	kubeAPIServer, err := CreateKubeAPIServer(kubeAPIServerConfig, apiExtensionsServer.GenericAPIServer, sharedInformers, apiExtensionsConfig.CRDRESTOptionsGetter)
+	kubeAPIServer, err := CreateKubeAPIServer(kubeAPIServerConfig, apiExtensionsServer.GenericAPIServer, sharedInformers)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// if we're starting up a hacked up version of this API server for a weird test case,
@@ -138,11 +151,11 @@ func Run(runOptions *options.ServerRunOptions, stopCh <-chan struct{}) error {
 		if insecureServingOptions != nil {
 			insecureHandlerChain := kubeserver.BuildInsecureHandlerChain(kubeAPIServer.GenericAPIServer.UnprotectedHandler(), kubeAPIServerConfig.GenericConfig)
 			if err := kubeserver.NonBlockingRun(insecureServingOptions, insecureHandlerChain, stopCh); err != nil {
-				return err
+				return nil, err
 			}
 		}
 
-		return kubeAPIServer.GenericAPIServer.PrepareRun().Run(stopCh)
+		return kubeAPIServer.GenericAPIServer, nil
 	}
 
 	// otherwise go down the normal path of standing the aggregator up in front of the API server
@@ -150,29 +163,31 @@ func Run(runOptions *options.ServerRunOptions, stopCh <-chan struct{}) error {
 	kubeAPIServer.GenericAPIServer.PrepareRun()
 
 	// aggregator comes last in the chain
-	aggregatorConfig, err := createAggregatorConfig(*kubeAPIServerConfig.GenericConfig, runOptions, proxyTransport)
+	aggregatorConfig, err := createAggregatorConfig(*kubeAPIServerConfig.GenericConfig, runOptions, versionedInformers, serviceResolver, proxyTransport)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	aggregatorServer, err := createAggregatorServer(aggregatorConfig, kubeAPIServer.GenericAPIServer, sharedInformers, apiExtensionsServer.Informers)
+	aggregatorConfig.ProxyTransport = proxyTransport
+	aggregatorConfig.ServiceResolver = serviceResolver
+	aggregatorServer, err := createAggregatorServer(aggregatorConfig, kubeAPIServer.GenericAPIServer, apiExtensionsServer.Informers)
 	if err != nil {
 		// we don't need special handling for innerStopCh because the aggregator server doesn't create any go routines
-		return err
+		return nil, err
 	}
 
 	if insecureServingOptions != nil {
 		insecureHandlerChain := kubeserver.BuildInsecureHandlerChain(aggregatorServer.GenericAPIServer.UnprotectedHandler(), kubeAPIServerConfig.GenericConfig)
 		if err := kubeserver.NonBlockingRun(insecureServingOptions, insecureHandlerChain, stopCh); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return aggregatorServer.GenericAPIServer.PrepareRun().Run(stopCh)
+	return aggregatorServer.GenericAPIServer, nil
 }
 
 // CreateKubeAPIServer creates and wires a workable kube-apiserver
-func CreateKubeAPIServer(kubeAPIServerConfig *master.Config, delegateAPIServer genericapiserver.DelegationTarget, sharedInformers informers.SharedInformerFactory, crdRESTOptionsGetter genericregistry.RESTOptionsGetter) (*master.Master, error) {
-	kubeAPIServer, err := kubeAPIServerConfig.Complete().New(delegateAPIServer, crdRESTOptionsGetter)
+func CreateKubeAPIServer(kubeAPIServerConfig *master.Config, delegateAPIServer genericapiserver.DelegationTarget, sharedInformers informers.SharedInformerFactory) (*master.Master, error) {
+	kubeAPIServer, err := kubeAPIServerConfig.Complete().New(delegateAPIServer)
 	if err != nil {
 		return nil, err
 	}
@@ -230,27 +245,29 @@ func CreateNodeDialer(s *options.ServerRunOptions) (tunneler.Tunneler, *http.Tra
 }
 
 // CreateKubeAPIServerConfig creates all the resources for running the API server, but runs none of them
-func CreateKubeAPIServerConfig(s *options.ServerRunOptions, nodeTunneler tunneler.Tunneler, proxyTransport http.RoundTripper) (*master.Config, informers.SharedInformerFactory, *kubeserver.InsecureServingInfo, error) {
+func CreateKubeAPIServerConfig(s *options.ServerRunOptions, nodeTunneler tunneler.Tunneler, proxyTransport http.RoundTripper) (*master.Config, informers.SharedInformerFactory, clientgoinformers.SharedInformerFactory, *kubeserver.InsecureServingInfo, aggregatorapiserver.ServiceResolver, error) {
 	// register all admission plugins
 	registerAllAdmissionPlugins(s.Admission.Plugins)
 
 	// set defaults in the options before trying to create the generic config
 	if err := defaultOptions(s); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	// validate options
 	if errs := s.Validate(); len(errs) != 0 {
-		return nil, nil, nil, utilerrors.NewAggregate(errs)
+		return nil, nil, nil, nil, nil, utilerrors.NewAggregate(errs)
 	}
 
-	genericConfig, sharedInformers, insecureServingOptions, err := BuildGenericConfig(s)
+	genericConfig, sharedInformers, versionedInformers, insecureServingOptions, serviceResolver, err := BuildGenericConfig(s)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
-	if err := utilwait.PollImmediate(etcdRetryInterval, etcdRetryLimit*etcdRetryInterval, preflight.EtcdConnection{ServerList: s.Etcd.StorageConfig.ServerList}.CheckEtcdServers); err != nil {
-		return nil, nil, nil, fmt.Errorf("error waiting for etcd connection: %v", err)
+	if _, port, err := net.SplitHostPort(s.Etcd.StorageConfig.ServerList[0]); err == nil && port != "0" && len(port) != 0 {
+		if err := utilwait.PollImmediate(etcdRetryInterval, etcdRetryLimit*etcdRetryInterval, preflight.EtcdConnection{ServerList: s.Etcd.StorageConfig.ServerList}.CheckEtcdServers); err != nil {
+			return nil, nil, nil, nil, nil, fmt.Errorf("error waiting for etcd connection: %v", err)
+		}
 	}
 
 	capabilities.Initialize(capabilities.Capabilities{
@@ -266,21 +283,21 @@ func CreateKubeAPIServerConfig(s *options.ServerRunOptions, nodeTunneler tunnele
 
 	serviceIPRange, apiServerServiceIP, err := master.DefaultServiceIPRange(s.ServiceClusterIPRange)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	storageFactory, err := BuildStorageFactory(s)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	clientCA, err := readCAorNil(s.Authentication.ClientCert.ClientCA)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 	requestHeaderProxyCA, err := readCAorNil(s.Authentication.RequestHeader.ClientCAFile)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	config := &master.Config{
@@ -321,30 +338,30 @@ func CreateKubeAPIServerConfig(s *options.ServerRunOptions, nodeTunneler tunnele
 		config.KubeletClientConfig.Dial = nodeTunneler.Dial
 	}
 
-	return config, sharedInformers, insecureServingOptions, nil
+	return config, sharedInformers, versionedInformers, insecureServingOptions, serviceResolver, nil
 }
 
 // BuildGenericConfig takes the master server options and produces the genericapiserver.Config associated with it
-func BuildGenericConfig(s *options.ServerRunOptions) (*genericapiserver.Config, informers.SharedInformerFactory, *kubeserver.InsecureServingInfo, error) {
+func BuildGenericConfig(s *options.ServerRunOptions) (*genericapiserver.Config, informers.SharedInformerFactory, clientgoinformers.SharedInformerFactory, *kubeserver.InsecureServingInfo, aggregatorapiserver.ServiceResolver, error) {
 	genericConfig := genericapiserver.NewConfig(api.Codecs)
 	if err := s.GenericServerRunOptions.ApplyTo(genericConfig); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 	insecureServingOptions, err := s.InsecureServing.ApplyTo(genericConfig)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 	if err := s.SecureServing.ApplyTo(genericConfig); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 	if err := s.Authentication.ApplyTo(genericConfig); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 	if err := s.Audit.ApplyTo(genericConfig); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 	if err := s.Features.ApplyTo(genericConfig); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	genericConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(generatedopenapi.GetOpenAPIDefinitions, api.Scheme)
@@ -362,10 +379,10 @@ func BuildGenericConfig(s *options.ServerRunOptions) (*genericapiserver.Config, 
 
 	storageFactory, err := BuildStorageFactory(s)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 	if err := s.Etcd.ApplyWithStorageFactoryTo(storageFactory, genericConfig); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	// Use protobufs for self-communication.
@@ -378,7 +395,7 @@ func BuildGenericConfig(s *options.ServerRunOptions) (*genericapiserver.Config, 
 	if err != nil {
 		kubeAPIVersions := os.Getenv("KUBE_API_VERSIONS")
 		if len(kubeAPIVersions) == 0 {
-			return nil, nil, nil, fmt.Errorf("failed to create clientset: %v", err)
+			return nil, nil, nil, nil, nil, fmt.Errorf("failed to create clientset: %v", err)
 		}
 
 		// KUBE_API_VERSIONS is used in test-update-storage-objects.sh, disabling a number of API
@@ -389,18 +406,36 @@ func BuildGenericConfig(s *options.ServerRunOptions) (*genericapiserver.Config, 
 	}
 	externalClient, err := clientset.NewForConfig(genericConfig.LoopbackClientConfig)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to create external clientset: %v", err)
+		return nil, nil, nil, nil, nil, fmt.Errorf("failed to create external clientset: %v", err)
 	}
 	sharedInformers := informers.NewSharedInformerFactory(client, 10*time.Minute)
 
+	clientgoExternalClient, err := clientgoclientset.NewForConfig(genericConfig.LoopbackClientConfig)
+	if err != nil {
+		return nil, nil, nil, nil, nil, fmt.Errorf("failed to create real external clientset: %v", err)
+	}
+	versionedInformers := clientgoinformers.NewSharedInformerFactory(clientgoExternalClient, 10*time.Minute)
+
+	var serviceResolver aggregatorapiserver.ServiceResolver
+	if s.EnableAggregatorRouting {
+		serviceResolver = aggregatorapiserver.NewEndpointServiceResolver(
+			versionedInformers.Core().V1().Services().Lister(),
+			versionedInformers.Core().V1().Endpoints().Lister(),
+		)
+	} else {
+		serviceResolver = aggregatorapiserver.NewClusterIPServiceResolver(
+			versionedInformers.Core().V1().Services().Lister(),
+		)
+	}
+
 	genericConfig.Authenticator, genericConfig.OpenAPIConfig.SecurityDefinitions, err = BuildAuthenticator(s, storageFactory, client, sharedInformers)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("invalid authentication config: %v", err)
+		return nil, nil, nil, nil, nil, fmt.Errorf("invalid authentication config: %v", err)
 	}
 
 	genericConfig.Authorizer, err = BuildAuthorizer(s, sharedInformers)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("invalid authorization config: %v", err)
+		return nil, nil, nil, nil, nil, fmt.Errorf("invalid authorization config: %v", err)
 	}
 	if !sets.NewString(s.Authorization.Modes()...).Has(modes.ModeRBAC) {
 		genericConfig.DisabledPostStartHooks.Insert(rbacrest.PostStartHookName)
@@ -412,22 +447,23 @@ func BuildGenericConfig(s *options.ServerRunOptions) (*genericapiserver.Config, 
 		externalClient,
 		sharedInformers,
 		genericConfig.Authorizer,
+		serviceResolver,
 	)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to create admission plugin initializer: %v", err)
+		return nil, nil, nil, nil, nil, fmt.Errorf("failed to create admission plugin initializer: %v", err)
 	}
 
 	err = s.Admission.ApplyTo(
 		genericConfig,
 		pluginInitializer)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to initialize admission: %v", err)
+		return nil, nil, nil, nil, nil, fmt.Errorf("failed to initialize admission: %v", err)
 	}
-	return genericConfig, sharedInformers, insecureServingOptions, nil
+	return genericConfig, sharedInformers, versionedInformers, insecureServingOptions, serviceResolver, nil
 }
 
 // BuildAdmissionPluginInitializer constructs the admission plugin initializer
-func BuildAdmissionPluginInitializer(s *options.ServerRunOptions, client internalclientset.Interface, externalClient clientset.Interface, sharedInformers informers.SharedInformerFactory, apiAuthorizer authorizer.Authorizer) (admission.PluginInitializer, error) {
+func BuildAdmissionPluginInitializer(s *options.ServerRunOptions, client internalclientset.Interface, externalClient clientset.Interface, sharedInformers informers.SharedInformerFactory, apiAuthorizer authorizer.Authorizer, serviceResolver aggregatorapiserver.ServiceResolver) (admission.PluginInitializer, error) {
 	var cloudConfig []byte
 
 	if s.CloudProvider.CloudConfigFile != "" {
@@ -460,6 +496,8 @@ func BuildAdmissionPluginInitializer(s *options.ServerRunOptions, client interna
 		pluginInitializer = pluginInitializer.SetClientCert(certBytes, keyBytes)
 	}
 
+	pluginInitializer = pluginInitializer.SetServiceResolver(serviceResolver)
+
 	return pluginInitializer, nil
 }
 
@@ -469,11 +507,20 @@ func BuildAuthenticator(s *options.ServerRunOptions, storageFactory serverstorag
 	if s.Authentication.ServiceAccounts.Lookup {
 		// we have to go direct to storage because the clientsets fail when they're initialized with some API versions excluded
 		// we should stop trying to control them like that.
-		storageConfig, err := storageFactory.NewConfig(api.Resource("serviceaccounts"))
+		storageConfigServiceAccounts, err := storageFactory.NewConfig(api.Resource("serviceaccounts"))
 		if err != nil {
 			return nil, nil, fmt.Errorf("unable to get serviceaccounts storage: %v", err)
 		}
-		authenticatorConfig.ServiceAccountTokenGetter = serviceaccountcontroller.NewGetterFromStorageInterface(storageConfig, storageFactory.ResourcePrefix(api.Resource("serviceaccounts")), storageFactory.ResourcePrefix(api.Resource("secrets")))
+		storageConfigSecrets, err := storageFactory.NewConfig(api.Resource("secrets"))
+		if err != nil {
+			return nil, nil, fmt.Errorf("unable to get secrets storage: %v", err)
+		}
+		authenticatorConfig.ServiceAccountTokenGetter = serviceaccountcontroller.NewGetterFromStorageInterface(
+			storageConfigServiceAccounts,
+			storageFactory.ResourcePrefix(api.Resource("serviceaccounts")),
+			storageConfigSecrets,
+			storageFactory.ResourcePrefix(api.Resource("secrets")),
+		)
 	}
 	if client == nil || reflect.ValueOf(client).IsNil() {
 		// TODO: Remove check once client can never be nil.
@@ -556,6 +603,8 @@ func defaultOptions(s *options.ServerRunOptions) error {
 	if err != nil {
 		return fmt.Errorf("error determining service IP ranges: %v", err)
 	}
+	s.SecureServing.ForceLoopbackConfigUsage()
+
 	if err := s.SecureServing.MaybeDefaultWithSelfSignedCerts(s.GenericServerRunOptions.AdvertiseAddress.String(), []string{"kubernetes.default.svc", "kubernetes.default", "kubernetes"}, []net.IP{apiServerServiceIP}); err != nil {
 		return fmt.Errorf("error creating self-signed certificates: %v", err)
 	}

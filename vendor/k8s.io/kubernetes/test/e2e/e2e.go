@@ -32,20 +32,16 @@ import (
 	"github.com/onsi/gomega"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	runtimeutils "k8s.io/apimachinery/pkg/util/runtime"
-	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
-	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/api/v1"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
+	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/pkg/cloudprovider/providers/azure"
 	gcecloud "k8s.io/kubernetes/pkg/cloudprovider/providers/gce"
-	"k8s.io/kubernetes/pkg/metrics"
 	"k8s.io/kubernetes/pkg/util/logs"
 	commontest "k8s.io/kubernetes/test/e2e/common"
 	"k8s.io/kubernetes/test/e2e/framework"
 	"k8s.io/kubernetes/test/e2e/framework/ginkgowrapper"
-	"k8s.io/kubernetes/test/e2e/generated"
+	"k8s.io/kubernetes/test/e2e/manifest"
+	"k8s.io/kubernetes/test/e2e/metrics"
 	federationtest "k8s.io/kubernetes/test/e2e_federation"
 	testutils "k8s.io/kubernetes/test/utils"
 )
@@ -56,6 +52,9 @@ const (
 	// images within this time we simply log their output and carry on
 	// with the tests.
 	imagePrePullingTimeout = 5 * time.Minute
+
+	// TODO: Delete this once all the tests that depend upon it are moved out of test/e2e and into subdirs
+	podName = "pfpod"
 )
 
 var (
@@ -80,7 +79,8 @@ func setupProviderConfig() error {
 		if !framework.TestContext.CloudConfig.MultiZone {
 			managedZones = []string{zone}
 		}
-		cloudConfig.Provider, err = gcecloud.CreateGCECloud(framework.TestContext.CloudConfig.ProjectID,
+		cloudConfig.Provider, err = gcecloud.CreateGCECloud(framework.TestContext.CloudConfig.ApiEndpoint,
+			framework.TestContext.CloudConfig.ProjectID,
 			region, zone, managedZones, "" /* networkUrl */, "" /* subnetworkUrl */, nil, /* nodeTags */
 			"" /* nodeInstancePerfix */, nil /* tokenSource */, false /* useMetadataServer */)
 		if err != nil {
@@ -120,6 +120,11 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 
 	if err := setupProviderConfig(); err != nil {
 		framework.Failf("Failed to setup provider config: %v", err)
+	}
+
+	switch framework.TestContext.Provider {
+	case "gce", "gke":
+		framework.LogClusterImageSources()
 	}
 
 	c, err := framework.LoadClientset()
@@ -341,25 +346,12 @@ func RunE2ETests(t *testing.T) {
 	ginkgo.RunSpecsWithDefaultAndCustomReporters(t, "Kubernetes e2e suite", r)
 }
 
-func podFromManifest(filename string) (*v1.Pod, error) {
-	var pod v1.Pod
-	framework.Logf("Parsing pod from %v", filename)
-	data := generated.ReadOrDie(filename)
-	json, err := utilyaml.ToJSON(data)
-	if err != nil {
-		return nil, err
-	}
-	if err := runtime.DecodeInto(api.Codecs.UniversalDecoder(), json, &pod); err != nil {
-		return nil, err
-	}
-	return &pod, nil
-}
-
 // Run a test container to try and contact the Kubernetes api-server from a pod, wait for it
 // to flip to Ready, log its output and delete it.
 func runKubernetesServiceTestContainer(c clientset.Interface, ns string) {
 	path := "test/images/clusterapi-tester/pod.yaml"
-	p, err := podFromManifest(path)
+	framework.Logf("Parsing pod from %v", path)
+	p, err := manifest.PodFromManifest(path)
 	if err != nil {
 		framework.Logf("Failed to parse clusterapi-tester from manifest %v: %v", path, err)
 		return

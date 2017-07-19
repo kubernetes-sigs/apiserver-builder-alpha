@@ -15,11 +15,11 @@ go_library(
     ],
     tags = ["automanaged"],
     deps = [
-        "//pkg/client/clientset_generated/clientset:go_default_library",
-        "//pkg/client/clientset_generated/clientset/typed/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
+        "//vendor/k8s.io/client-go/kubernetes:go_default_library",
+        "//vendor/k8s.io/client-go/kubernetes/typed/core/v1:go_default_library",
     ],
 )
 
@@ -60,7 +60,6 @@ filegroup(
         "//test/integration/secrets:all-srcs",
         "//test/integration/serviceaccount:all-srcs",
         "//test/integration/storageclasses:all-srcs",
-        "//test/integration/thirdparty:all-srcs",
         "//test/integration/ttlcontroller:all-srcs",
         "//test/integration/volume:all-srcs",
     ],

@@ -572,6 +572,11 @@ EOF
 node_labels: '$(echo "${NODE_LABELS}" | sed -e "s/'/''/g")'
 EOF
     fi
+    if [ -n "${NODE_TAINTS:-}" ]; then
+      cat <<EOF >>/srv/salt-overlay/pillar/cluster-params.sls
+node_taints: '$(echo "${NODE_TAINTS}" | sed -e "s/'/''/g")'
+EOF
+    fi    
     if [ -n "${EVICTION_HARD:-}" ]; then
       cat <<EOF >>/srv/salt-overlay/pillar/cluster-params.sls
 eviction_hard: '$(echo "${EVICTION_HARD}" | sed -e "s/'/''/g")'
@@ -581,6 +586,7 @@ EOF
       cat <<EOF >>/srv/salt-overlay/pillar/cluster-params.sls
 enable_cluster_autoscaler: '$(echo "${ENABLE_CLUSTER_AUTOSCALER}" | sed -e "s/'/''/g")'
 autoscaler_mig_config: '$(echo "${AUTOSCALER_MIG_CONFIG}" | sed -e "s/'/''/g")'
+autoscaler_expander_config: '$(echo "${AUTOSCALER_EXPANDER_CONFIG}" | sed -e "s/'/''/g")'
 EOF
     fi
     if [ -n "${SCHEDULING_ALGORITHM_PROVIDER:-}" ]; then

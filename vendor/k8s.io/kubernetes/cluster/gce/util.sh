@@ -74,11 +74,11 @@ set-node-image
 
 # Verfiy cluster autoscaler configuration.
 if [[ "${ENABLE_CLUSTER_AUTOSCALER}" == "true" ]]; then
-  if [ -z $AUTOSCALER_MIN_NODES ]; then
+  if [[ -z $AUTOSCALER_MIN_NODES ]]; then
     echo "AUTOSCALER_MIN_NODES not set."
     exit 1
   fi
-  if [ -z $AUTOSCALER_MAX_NODES ]; then
+  if [[ -z $AUTOSCALER_MAX_NODES ]]; then
     echo "AUTOSCALER_MAX_NODES not set."
     exit 1
   fi
@@ -88,6 +88,8 @@ NODE_INSTANCE_PREFIX="${INSTANCE_PREFIX}-minion"
 NODE_TAGS="${NODE_TAG}"
 
 ALLOCATE_NODE_CIDRS=true
+PREEXISTING_NETWORK=false
+PREEXISTING_NETWORK_MODE=""
 
 KUBE_PROMPT_FOR_UPDATE=${KUBE_PROMPT_FOR_UPDATE:-"n"}
 # How long (in seconds) to wait for cluster initialization.
@@ -148,18 +150,49 @@ function detect-project() {
   fi
 }
 
+# Use gsutil to get the md5 hash for a particular tar
+function gsutil_get_tar_md5() {
+  # location_tar could be local or in the cloud
+  # local tar_location example ./_output/release-tars/kubernetes-server-linux-amd64.tar.gz
+  # cloud tar_location example gs://kubernetes-staging-PROJECT/kubernetes-devel/kubernetes-server-linux-amd64.tar.gz
+  local -r tar_location=$1
+  #parse the output and return the md5 hash
+  #the sed command at the end removes whitespace
+  local -r tar_md5=$(gsutil hash -h -m ${tar_location} 2>/dev/null | grep "Hash (md5):" | awk -F ':' '{print $2}' | sed 's/^[[:space:]]*//g')
+  echo "${tar_md5}"
+}
+
 # Copy a release tar and its accompanying hash.
 function copy-to-staging() {
   local -r staging_path=$1
   local -r gs_url=$2
   local -r tar=$3
   local -r hash=$4
+  local -r basename_tar=$(basename ${tar})
+
+  #check whether this tar alread exists and has the same hash
+  #if it matches, then don't bother uploading it again
+
+  #remote_tar_md5 checks the remote location for the existing tarball and its md5
+  #staging_path example gs://kubernetes-staging-PROJECT/kubernetes-devel
+  #basename_tar example kubernetes-server-linux-amd64.tar.gz
+  local -r remote_tar_md5=$(gsutil_get_tar_md5 "${staging_path}/${basename_tar}")
+  if [[ -n ${remote_tar_md5} ]]; then
+    #local_tar_md5 checks the remote location for the existing tarball and its md5 hash
+    #tar example ./_output/release-tars/kubernetes-server-linux-amd64.tar.gz
+    local -r local_tar_md5=$(gsutil_get_tar_md5 "${tar}")
+    if [[ "${remote_tar_md5}" == "${local_tar_md5}" ]]; then
+      echo "+++ ${basename_tar} uploaded earlier, cloud and local file md5 match (md5 = ${local_tar_md5})"
+      return 0
+    fi
+  fi
 
   echo "${hash}" > "${tar}.sha1"
   gsutil -m -q -h "Cache-Control:private, max-age=0" cp "${tar}" "${tar}.sha1" "${staging_path}"
   gsutil -m acl ch -g all:R "${gs_url}" "${gs_url}.sha1" >/dev/null 2>&1
-  echo "+++ $(basename ${tar}) uploaded (sha1 = ${hash})"
+  echo "+++ ${basename_tar} uploaded (sha1 = ${hash})"
 }
+
 
 # Given the cluster zone, return the list of regional GCS release
 # bucket suffixes for the release in preference order. GCS doesn't
@@ -312,6 +345,11 @@ function detect-node-names() {
         --format='value(instance)'))
     done
   fi
+  # Add heapster node name to the list too (if it exists).
+  if [[ -n "${HEAPSTER_MACHINE_TYPE:-}" ]]; then
+    NODE_NAMES+=("${NODE_INSTANCE_PREFIX}-heapster")
+  fi
+
   echo "INSTANCE_GROUPS=${INSTANCE_GROUPS[*]:-}" >&2
   echo "NODE_NAMES=${NODE_NAMES[*]:-}" >&2
 }
@@ -401,7 +439,7 @@ function create-static-ip() {
       while true; do
         now="$(date +%s)"
         # Timeout set to 15 minutes
-        if [ $((now - start)) -gt 900 ]; then
+        if [[ $((now - start)) -gt 900 ]]; then
           echo "Timeout while waiting for master IP visibility"
           exit 2
         fi
@@ -477,7 +515,11 @@ function make-gcloud-network-argument() {
     ret="${ret},aliases=pods-default:${alias_size}"
     ret="${ret} --no-can-ip-forward"
   else
-    ret="--network ${network}"
+    if [[ ${ENABLE_BIG_CLUSTER_SUBNETS} != "true" || (${PREEXISTING_NETWORK} = "true" && "${PREEXISTING_NETWORK_MODE}" != "custom") ]]; then
+      ret="--network ${network}"
+    else
+      ret="--subnet=${network}"
+    fi
     ret="${ret} --can-ip-forward"
     if [[ -n ${address:-} ]]; then
       ret="${ret} --address ${address}"
@@ -496,7 +538,7 @@ function get-template-name-from-version() {
 # Robustly try to create an instance template.
 # $1: The name of the instance template.
 # $2: The scopes flag.
-# $3 and others: Metadata entries (must all be from a file).
+# $3: String of comma-separated metadata entries (must all be from a file).
 function create-node-template() {
   detect-project
   local template_name="$1"
@@ -533,7 +575,7 @@ function create-node-template() {
   fi
 
   local local_ssds=""
-  if [ ! -z ${NODE_LOCAL_SSDS+x} ]; then
+  if [[ ! -z ${NODE_LOCAL_SSDS+x} ]]; then
       for i in $(seq ${NODE_LOCAL_SSDS}); do
           local_ssds="$local_ssds--local-ssd=interface=SCSI "
       done
@@ -563,7 +605,7 @@ function create-node-template() {
       ${network} \
       ${preemptible_minions} \
       $2 \
-      --metadata-from-file $(echo ${@:3} | tr ' ' ',') >&2; then
+      --metadata-from-file $3 >&2; then
         if (( attempt > 5 )); then
           echo -e "${color_red}Failed to create instance template $template_name ${color_norm}" >&2
           exit 2
@@ -689,7 +731,7 @@ function kube-up() {
 function check-existing() {
   local running_in_terminal=false
   # May be false if tty is not allocated (for example with ssh -T).
-  if [ -t 1 ]; then
+  if [[ -t 1 ]]; then
     running_in_terminal=true
   fi
 
@@ -715,6 +757,10 @@ function create-network() {
     # The network needs to be created synchronously or we have a race. The
     # firewalls can be added concurrent with instance creation.
     gcloud compute networks create --project "${PROJECT}" "${NETWORK}" --mode=auto
+  else
+    PREEXISTING_NETWORK=true
+    PREEXISTING_NETWORK_MODE="$(gcloud compute networks list ${NETWORK} --format='value(x_gcloud_mode)' || true)"
+    echo "Found existing network ${NETWORK} in ${PREEXISTING_NETWORK_MODE} mode."
   fi
 
   if ! gcloud compute firewall-rules --project "${PROJECT}" describe "${CLUSTER_NAME}-default-internal-master" &>/dev/null; then
@@ -744,10 +790,31 @@ function create-network() {
   fi
 }
 
+function expand-default-subnetwork() {
+  gcloud compute networks switch-mode "${NETWORK}" \
+    --mode custom \
+    --project "${PROJECT}" \
+    --quiet || true
+  gcloud compute networks subnets expand-ip-range "${NETWORK}" \
+    --region="${REGION}" \
+    --project "${PROJECT}" \
+    --prefix-length=19 \
+    --quiet
+}
+
 function create-subnetworks() {
   case ${ENABLE_IP_ALIASES} in
-    true) ;;
-    false) return;;
+    true) echo "IP aliases are enabled. Creating subnetworks.";;
+    false)
+      echo "IP aliases are disabled."
+      if [[ "${ENABLE_BIG_CLUSTER_SUBNETS}" = "true" ]]; then 
+        if [[  "${PREEXISTING_NETWORK}" != "true" ]]; then
+          expand-default-subnetwork
+        else
+          echo "${color_yellow}Using pre-existing network ${NETWORK}, subnets won't be expanded to /19!${color_norm}"
+        fi
+      fi
+      return;;
     *) echo "${color_red}Invalid argument to ENABLE_IP_ALIASES${color_norm}"
        exit 1;;
   esac
@@ -765,7 +832,7 @@ function create-subnetworks() {
       exit 1
     fi
 
-    if [ -z ${NODE_IP_RANGE:-} ]; then
+    if [[ -z ${NODE_IP_RANGE:-} ]]; then
       echo "${color_red}NODE_IP_RANGE must be specified{color_norm}"
       exit 1
     fi
@@ -836,6 +903,17 @@ function delete-network() {
 
 function delete-subnetworks() {
   if [[ ${ENABLE_IP_ALIASES:-} != "true" ]]; then
+    if [[ "${ENABLE_BIG_CLUSTER_SUBNETS}" = "true" ]]; then
+      # If running in custom mode network we need to delete subnets
+      mode="$(gcloud compute networks list ${NETWORK} --format='value(x_gcloud_mode)' || true)"
+      if [[ "${mode}" == "custom" ]]; then
+        echo "Deleting default subnets..."
+        # This value should be kept in sync with number of regions.
+        local parallelism=9
+        gcloud compute networks subnets list --network="${NETWORK}" --format='value(region.basename())' | \
+          xargs -i -P ${parallelism} gcloud --quiet compute networks subnets delete "${NETWORK}" --region="{}" || true
+      fi
+    fi
     return
   fi
 
@@ -1164,21 +1242,24 @@ function create-nodes-firewall() {
   }
 }
 
-function create-nodes-template() {
-  echo "Creating minions."
-
-  # TODO(zmerlynn): Refactor setting scope flags.
+function get-scope-flags() {
   local scope_flags=
-  if [ -n "${NODE_SCOPES}" ]; then
+  if [[ -n "${NODE_SCOPES}" ]]; then
     scope_flags="--scopes ${NODE_SCOPES}"
   else
     scope_flags="--no-scopes"
   fi
+  echo "${scope_flags}"
+}
+
+function create-nodes-template() {
+  echo "Creating nodes."
+
+  local scope_flags=$(get-scope-flags)
 
   write-node-env
 
   local template_name="${NODE_INSTANCE_PREFIX}-template"
-
   create-node-instance-template $template_name
 }
 
@@ -1206,7 +1287,13 @@ function set_num_migs() {
 function create-nodes() {
   local template_name="${NODE_INSTANCE_PREFIX}-template"
 
-  local instances_left=${NUM_NODES}
+  if [[ -z "${HEAPSTER_MACHINE_TYPE:-}" ]]; then
+    local -r nodes="${NUM_NODES}"
+  else
+    local -r nodes=$(( NUM_NODES - 1 ))
+  fi
+
+  local instances_left=${nodes}
 
   #TODO: parallelize this loop to speed up the process
   for ((i=1; i<=${NUM_MIGS}; i++)); do
@@ -1232,6 +1319,47 @@ function create-nodes() {
         --zone "${ZONE}" \
         --project "${PROJECT}" || true;
   done
+
+  if [[ -n "${HEAPSTER_MACHINE_TYPE:-}" ]]; then
+    echo "Creating a special node for heapster with machine-type ${HEAPSTER_MACHINE_TYPE}"
+    create-heapster-node
+  fi
+}
+
+# Assumes:
+# - NODE_INSTANCE_PREFIX
+# - PROJECT
+# - ZONE
+# - HEAPSTER_MACHINE_TYPE
+# - NODE_DISK_TYPE
+# - NODE_DISK_SIZE
+# - NODE_IMAGE_PROJECT
+# - NODE_IMAGE
+# - NODE_TAG
+# - NETWORK
+# - ENABLE_IP_ALIASES
+# - IP_ALIAS_SUBNETWORK
+# - IP_ALIAS_SIZE
+function create-heapster-node() {
+  local network=$(make-gcloud-network-argument \
+      "${NETWORK}" "" \
+      "${ENABLE_IP_ALIASES:-}" \
+      "${IP_ALIAS_SUBNETWORK:-}" \
+      "${IP_ALIAS_SIZE:-}")
+
+  gcloud compute instances \
+      create "${NODE_INSTANCE_PREFIX}-heapster" \
+      --project "${PROJECT}" \
+      --zone "${ZONE}" \
+      --machine-type="${HEAPSTER_MACHINE_TYPE}" \
+      --boot-disk-type "${NODE_DISK_TYPE}" \
+      --boot-disk-size "${NODE_DISK_SIZE}" \
+      --image-project="${NODE_IMAGE_PROJECT}" \
+      --image "${NODE_IMAGE}" \
+      --tags "${NODE_TAG}" \
+      ${network} \
+      $(get-scope-flags) \
+      --metadata-from-file "$(get-node-instance-metadata)"
 }
 
 # Assumes:
@@ -1298,7 +1426,7 @@ function create-autoscaler-config() {
   # Create autoscaler for nodes configuration if requested
   if [[ "${ENABLE_CLUSTER_AUTOSCALER}" == "true" ]]; then
     create-cluster-autoscaler-mig-config
-    echo "Using autoscaler config: ${AUTOSCALER_MIG_CONFIG}"
+    echo "Using autoscaler config: ${AUTOSCALER_MIG_CONFIG} ${AUTOSCALER_EXPANDER_CONFIG}"
   fi
 }
 
@@ -1432,6 +1560,20 @@ function kube-down() {
           "${template}"
       fi
     done
+
+    # Delete the special heapster node (if it exists).
+    if [[ -n "${HEAPSTER_MACHINE_TYPE:-}" ]]; then
+      local -r heapster_machine_name="${NODE_INSTANCE_PREFIX}-heapster"
+      if gcloud compute instances describe "${heapster_machine_name}" --zone "${ZONE}" --project "${PROJECT}" &>/dev/null; then
+        # Now we can safely delete the VM.
+        gcloud compute instances delete \
+          --project "${PROJECT}" \
+          --quiet \
+          --delete-disks all \
+          --zone "${ZONE}" \
+          "${heapster_machine_name}"
+      fi
+    fi
   fi
 
   local -r REPLICA_NAME="${KUBE_REPLICA_NAME:-$(get-replica-name)}"
@@ -1581,9 +1723,8 @@ function kube-down() {
       "${NETWORK}-default-ssh" \
       "${NETWORK}-default-internal"  # Pre-1.5 clusters
 
-    delete-subnetworks
-
     if [[ "${KUBE_DELETE_NETWORK}" == "true" ]]; then
+      delete-subnetworks || true
       delete-network || true  # might fail if there are leaked firewall rules
     fi
 
@@ -1803,13 +1944,7 @@ function prepare-push() {
   if [[ "${node}" == "true" ]]; then
     write-node-env
 
-    # TODO(zmerlynn): Refactor setting scope flags.
-    local scope_flags=
-    if [ -n "${NODE_SCOPES}" ]; then
-      scope_flags="--scopes ${NODE_SCOPES}"
-    else
-      scope_flags="--no-scopes"
-    fi
+    local scope_flags=$(get-scope-flags)
 
     # Ugly hack: Since it is not possible to delete instance-template that is currently
     # being used, create a temp one, then delete the old one and recreate it once again.

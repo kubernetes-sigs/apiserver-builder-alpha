@@ -20,14 +20,14 @@ import (
 	"fmt"
 	"time"
 
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/uuid"
-	"k8s.io/kubernetes/pkg/api/v1"
+	clientset "k8s.io/client-go/kubernetes"
 	podutil "k8s.io/kubernetes/pkg/api/v1/pod"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 	"k8s.io/kubernetes/test/e2e/common"
 	"k8s.io/kubernetes/test/e2e/framework"
 	testutils "k8s.io/kubernetes/test/utils"
@@ -53,7 +53,7 @@ type pausePodConfig struct {
 	NodeName                          string
 }
 
-var _ = framework.KubeDescribe("SchedulerPredicates [Serial]", func() {
+var _ = SIGDescribe("SchedulerPredicates [Serial]", func() {
 	var cs clientset.Interface
 	var nodeList *v1.NodeList
 	var systemPodsNo int
@@ -151,15 +151,15 @@ var _ = framework.KubeDescribe("SchedulerPredicates [Serial]", func() {
 	// It assumes that cluster add-on pods stay stable and cannot be run in parallel with any other test that touches Nodes or Pods.
 	// It is so because we need to have precise control on what's running in the cluster.
 	It("validates resource limits of pods that are allowed to run [Conformance]", func() {
-		nodeMaxCapacity := int64(0)
+		nodeMaxAllocatable := int64(0)
 
-		nodeToCapacityMap := make(map[string]int64)
+		nodeToAllocatableMap := make(map[string]int64)
 		for _, node := range nodeList.Items {
-			capacity, found := node.Status.Capacity["cpu"]
+			allocatable, found := node.Status.Allocatable["cpu"]
 			Expect(found).To(Equal(true))
-			nodeToCapacityMap[node.Name] = capacity.MilliValue()
-			if nodeMaxCapacity < capacity.MilliValue() {
-				nodeMaxCapacity = capacity.MilliValue()
+			nodeToAllocatableMap[node.Name] = allocatable.MilliValue()
+			if nodeMaxAllocatable < allocatable.MilliValue() {
+				nodeMaxAllocatable = allocatable.MilliValue()
 			}
 		}
 		framework.WaitForStableCluster(cs, masterNodes)
@@ -167,23 +167,23 @@ var _ = framework.KubeDescribe("SchedulerPredicates [Serial]", func() {
 		pods, err := cs.Core().Pods(metav1.NamespaceAll).List(metav1.ListOptions{})
 		framework.ExpectNoError(err)
 		for _, pod := range pods.Items {
-			_, found := nodeToCapacityMap[pod.Spec.NodeName]
+			_, found := nodeToAllocatableMap[pod.Spec.NodeName]
 			if found && pod.Status.Phase != v1.PodSucceeded && pod.Status.Phase != v1.PodFailed {
 				framework.Logf("Pod %v requesting resource cpu=%vm on Node %v", pod.Name, getRequestedCPU(pod), pod.Spec.NodeName)
-				nodeToCapacityMap[pod.Spec.NodeName] -= getRequestedCPU(pod)
+				nodeToAllocatableMap[pod.Spec.NodeName] -= getRequestedCPU(pod)
 			}
 		}
 
 		var podsNeededForSaturation int
 
-		milliCpuPerPod := nodeMaxCapacity / maxNumberOfPods
+		milliCpuPerPod := nodeMaxAllocatable / maxNumberOfPods
 		if milliCpuPerPod < minPodCPURequest {
 			milliCpuPerPod = minPodCPURequest
 		}
 		framework.Logf("Using pod capacity: %vm", milliCpuPerPod)
-		for name, leftCapacity := range nodeToCapacityMap {
-			framework.Logf("Node: %v has cpu capacity: %vm", name, leftCapacity)
-			podsNeededForSaturation += (int)(leftCapacity / milliCpuPerPod)
+		for name, leftAllocatable := range nodeToAllocatableMap {
+			framework.Logf("Node: %v has cpu allocatable: %vm", name, leftAllocatable)
+			podsNeededForSaturation += (int)(leftAllocatable / milliCpuPerPod)
 		}
 
 		By(fmt.Sprintf("Starting additional %v Pods to fully saturate the cluster CPU and trying to start another one", podsNeededForSaturation))
@@ -276,7 +276,7 @@ var _ = framework.KubeDescribe("SchedulerPredicates [Serial]", func() {
 
 		By("Trying to relaunch the pod, now with labels.")
 		labelPodName := "with-labels"
-		_ = createPausePod(f, pausePodConfig{
+		createPausePod(f, pausePodConfig{
 			Name: labelPodName,
 			NodeSelector: map[string]string{
 				"kubernetes.io/hostname": nodeName,
@@ -350,7 +350,7 @@ var _ = framework.KubeDescribe("SchedulerPredicates [Serial]", func() {
 
 		By("Trying to relaunch the pod, now with labels.")
 		labelPodName := "with-labels"
-		_ = createPausePod(f, pausePodConfig{
+		createPausePod(f, pausePodConfig{
 			Name: labelPodName,
 			Affinity: &v1.Affinity{
 				NodeAffinity: &v1.NodeAffinity{
@@ -463,7 +463,7 @@ var _ = framework.KubeDescribe("SchedulerPredicates [Serial]", func() {
 
 		By("Trying to launch the pod, now with podAffinity.")
 		labelPodName := "with-podaffinity-" + string(uuid.NewUUID())
-		_ = createPausePod(f, pausePodConfig{
+		createPausePod(f, pausePodConfig{
 			Name: labelPodName,
 			Affinity: &v1.Affinity{
 				PodAffinity: &v1.PodAffinity{
@@ -574,7 +574,7 @@ var _ = framework.KubeDescribe("SchedulerPredicates [Serial]", func() {
 
 		By("Trying to launch the pod, now with multiple pod affinities with diff LabelOperators.")
 		labelPodName := "with-podaffinity-" + string(uuid.NewUUID())
-		_ = createPausePod(f, pausePodConfig{
+		createPausePod(f, pausePodConfig{
 			Name: labelPodName,
 			Affinity: &v1.Affinity{
 				PodAffinity: &v1.PodAffinity{
@@ -689,7 +689,7 @@ var _ = framework.KubeDescribe("SchedulerPredicates [Serial]", func() {
 
 		By("Trying to relaunch the pod, now with tolerations.")
 		tolerationPodName := "with-tolerations"
-		_ = createPausePod(f, pausePodConfig{
+		createPausePod(f, pausePodConfig{
 			Name:         tolerationPodName,
 			Tolerations:  []v1.Toleration{{Key: testTaint.Key, Value: testTaint.Value, Effect: testTaint.Effect}},
 			NodeSelector: map[string]string{labelKey: labelValue},

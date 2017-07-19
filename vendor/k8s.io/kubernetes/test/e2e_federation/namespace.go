@@ -21,12 +21,13 @@ import (
 	"strings"
 	"time"
 
+	"k8s.io/api/core/v1"
+	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/kubernetes/federation/client/clientset_generated/federation_clientset/typed/core/v1"
-	"k8s.io/kubernetes/pkg/api/v1"
-	"k8s.io/kubernetes/pkg/apis/extensions/v1beta1"
+	k8s_api_v1 "k8s.io/kubernetes/pkg/api/v1"
 	"k8s.io/kubernetes/test/e2e/framework"
 	fedframework "k8s.io/kubernetes/test/e2e_federation/framework"
 
@@ -65,45 +66,12 @@ var _ = framework.KubeDescribe("Federation namespace [Feature:Federation]", func
 			}
 		})
 
-		It("should be created and deleted successfully", func() {
-			fedframework.SkipUnlessFederated(f.ClientSet)
-
-			nsName = createNamespace(f.FederationClientset.Core().Namespaces())
-
-			By(fmt.Sprintf("Deleting namespace %s", nsName))
-			deleteNamespace(nil, nsName,
-				f.FederationClientset.Core().Namespaces().Get,
-				f.FederationClientset.Core().Namespaces().Delete)
-			By(fmt.Sprintf("Verified that deletion succeeded"))
-		})
-
-		It("should be deleted from underlying clusters when OrphanDependents is false", func() {
-			fedframework.SkipUnlessFederated(f.ClientSet)
-			orphanDependents := false
-			nsName = verifyNsCascadingDeletion(f.FederationClientset.Core().Namespaces(), clusters, &orphanDependents)
-			By(fmt.Sprintf("Verified that namespaces were deleted from underlying clusters"))
-		})
-
-		It("should not be deleted from underlying clusters when OrphanDependents is true", func() {
-			fedframework.SkipUnlessFederated(f.ClientSet)
-			orphanDependents := true
-			nsName = verifyNsCascadingDeletion(f.FederationClientset.Core().Namespaces(), clusters, &orphanDependents)
-			By(fmt.Sprintf("Verified that namespaces were not deleted from underlying clusters"))
-		})
-
-		It("should not be deleted from underlying clusters when OrphanDependents is nil", func() {
-			fedframework.SkipUnlessFederated(f.ClientSet)
-
-			nsName = verifyNsCascadingDeletion(f.FederationClientset.Core().Namespaces(), clusters, nil)
-			By(fmt.Sprintf("Verified that namespaces were not deleted from underlying clusters"))
-		})
-
 		// See https://github.com/kubernetes/kubernetes/issues/38225
 		It("deletes replicasets in the namespace when the namespace is deleted", func() {
 			fedframework.SkipUnlessFederated(f.ClientSet)
 
 			nsName = createNamespace(f.FederationClientset.Core().Namespaces())
-			rsName := v1.SimpleNameGenerator.GenerateName(replicaSetNamePrefix)
+			rsName := k8s_api_v1.SimpleNameGenerator.GenerateName(replicaSetNamePrefix)
 			replicaCount := int32(2)
 			rs := &v1beta1.ReplicaSet{
 				ObjectMeta: metav1.ObjectMeta{
@@ -155,7 +123,7 @@ var _ = framework.KubeDescribe("Federation namespace [Feature:Federation]", func
 			// Create resources in the namespace.
 			event := v1.Event{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      v1.SimpleNameGenerator.GenerateName(eventNamePrefix),
+					Name:      k8s_api_v1.SimpleNameGenerator.GenerateName(eventNamePrefix),
 					Namespace: nsName,
 				},
 				InvolvedObject: v1.ObjectReference{
@@ -231,7 +199,7 @@ func verifyNsCascadingDeletion(nsClient clientset.NamespaceInterface, clusters f
 func createNamespace(nsClient clientset.NamespaceInterface) string {
 	ns := v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: v1.SimpleNameGenerator.GenerateName(namespacePrefix),
+			Name: k8s_api_v1.SimpleNameGenerator.GenerateName(namespacePrefix),
 		},
 	}
 	By(fmt.Sprintf("Creating namespace %s", ns.Name))

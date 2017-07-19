@@ -9,17 +9,19 @@ load(
 
 go_test(
     name = "go_default_test",
-    srcs = ["quota_test.go"],
+    size = "large",
+    srcs = [
+        "main_test.go",
+        "quota_test.go",
+    ],
     tags = [
         "automanaged",
         "integration",
     ],
     deps = [
         "//pkg/api:go_default_library",
-        "//pkg/api/v1:go_default_library",
-        "//pkg/client/clientset_generated/clientset:go_default_library",
+        "//pkg/api/testapi:go_default_library",
         "//pkg/client/clientset_generated/internalclientset:go_default_library",
-        "//pkg/client/informers/informers_generated/externalversions:go_default_library",
         "//pkg/client/informers/informers_generated/internalversion:go_default_library",
         "//pkg/controller:go_default_library",
         "//pkg/controller/replication:go_default_library",
@@ -29,6 +31,7 @@ go_test(
         "//plugin/pkg/admission/resourcequota:go_default_library",
         "//plugin/pkg/admission/resourcequota/apis/resourcequota:go_default_library",
         "//test/integration/framework:go_default_library",
+        "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/fields:go_default_library",
@@ -36,6 +39,8 @@ go_test(
         "//vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
+        "//vendor/k8s.io/client-go/informers:go_default_library",
+        "//vendor/k8s.io/client-go/kubernetes:go_default_library",
         "//vendor/k8s.io/client-go/rest:go_default_library",
         "//vendor/k8s.io/client-go/tools/record:go_default_library",
     ],

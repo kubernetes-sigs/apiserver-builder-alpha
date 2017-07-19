@@ -24,12 +24,12 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/diff"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/api/v1"
+	k8s_api_v1 "k8s.io/kubernetes/pkg/api/v1"
 	"k8s.io/kubernetes/pkg/apis/extensions"
 	"k8s.io/kubernetes/pkg/security/apparmor"
 	"k8s.io/kubernetes/pkg/security/podsecuritypolicy/seccomp"
@@ -134,7 +134,7 @@ func TestCreateContainerSecurityContextNonmutating(t *testing.T) {
 
 		// Create a PSP with strategies that will populate a blank security context
 		createPSP := func() *extensions.PodSecurityPolicy {
-			uid := types.UnixUserID(1)
+			uid := int64(1)
 			return &extensions.PodSecurityPolicy{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "psp-sa",
@@ -206,7 +206,7 @@ func TestValidatePodSecurityContextFailures(t *testing.T) {
 	failHostIPCPod.Spec.SecurityContext.HostIPC = true
 
 	failSupplementalGroupPod := defaultPod()
-	failSupplementalGroupPod.Spec.SecurityContext.SupplementalGroups = []types.UnixGroupID{999}
+	failSupplementalGroupPod.Spec.SecurityContext.SupplementalGroups = []int64{999}
 	failSupplementalGroupPSP := defaultPSP()
 	failSupplementalGroupPSP.Spec.SupplementalGroups = extensions.SupplementalGroupsStrategyOptions{
 		Rule: extensions.SupplementalGroupsStrategyMustRunAs,
@@ -216,7 +216,7 @@ func TestValidatePodSecurityContextFailures(t *testing.T) {
 	}
 
 	failFSGroupPod := defaultPod()
-	fsGroup := types.UnixGroupID(999)
+	fsGroup := int64(999)
 	failFSGroupPod.Spec.SecurityContext.FSGroup = &fsGroup
 	failFSGroupPSP := defaultPSP()
 	failFSGroupPSP.Spec.FSGroup = extensions.FSGroupStrategyOptions{
@@ -247,21 +247,6 @@ func TestValidatePodSecurityContextFailures(t *testing.T) {
 			},
 		},
 	}
-
-	failHostPathDirPod := defaultPod()
-	failHostPathDirPod.Spec.Volumes = []api.Volume{
-		{
-			Name: "bad volume",
-			VolumeSource: api.VolumeSource{
-				HostPath: &api.HostPathVolumeSource{
-					Path: "/fail",
-				},
-			},
-		},
-	}
-	failHostPathDirPSP := defaultPSP()
-	failHostPathDirPSP.Spec.Volumes = []extensions.FSType{extensions.HostPath}
-	failHostPathDirPSP.Spec.AllowedHostPaths = []string{"/foo/bar"}
 
 	failOtherSysctlsAllowedPSP := defaultPSP()
 	failOtherSysctlsAllowedPSP.Annotations[extensions.SysctlsPodSecurityPolicyAnnotationKey] = "bar,abc"
@@ -333,11 +318,6 @@ func TestValidatePodSecurityContextFailures(t *testing.T) {
 			psp:           defaultPSP(),
 			expectedError: "hostPath volumes are not allowed to be used",
 		},
-		"failHostPathDirPSP": {
-			pod:           failHostPathDirPod,
-			psp:           failHostPathDirPSP,
-			expectedError: "host path /fail is not allowed to be used. allowed host paths: [/foo/bar]",
-		},
 		"failSafeSysctlFooPod with failNoSysctlAllowedSCC": {
 			pod:           failSafeSysctlFooPod,
 			psp:           failNoSysctlAllowedPSP,
@@ -383,8 +363,8 @@ func TestValidatePodSecurityContextFailures(t *testing.T) {
 func TestValidateContainerSecurityContextFailures(t *testing.T) {
 	// fail user strat
 	failUserPSP := defaultPSP()
-	uid := types.UnixUserID(999)
-	badUID := types.UnixUserID(1)
+	uid := int64(999)
+	badUID := int64(1)
 	failUserPSP.Spec.RunAsUser = extensions.RunAsUserStrategyOptions{
 		Rule:   extensions.RunAsUserStrategyMustRunAs,
 		Ranges: []extensions.UserIDRange{{Min: uid, Max: uid}},
@@ -409,7 +389,7 @@ func TestValidateContainerSecurityContextFailures(t *testing.T) {
 	v1FailInvalidAppArmorPod := defaultV1Pod()
 	apparmor.SetProfileName(v1FailInvalidAppArmorPod, defaultContainerName, apparmor.ProfileNamePrefix+"foo")
 	failInvalidAppArmorPod := &api.Pod{}
-	v1.Convert_v1_Pod_To_api_Pod(v1FailInvalidAppArmorPod, failInvalidAppArmorPod, nil)
+	k8s_api_v1.Convert_v1_Pod_To_api_Pod(v1FailInvalidAppArmorPod, failInvalidAppArmorPod, nil)
 
 	failAppArmorPSP := defaultPSP()
 	failAppArmorPSP.Annotations = map[string]string{
@@ -483,7 +463,7 @@ func TestValidateContainerSecurityContextFailures(t *testing.T) {
 		"failHostPortPSP": {
 			pod:           failHostPortPod,
 			psp:           defaultPSP(),
-			expectedError: "Host port 1 is not allowed to be used.  Allowed ports: []",
+			expectedError: "Host port 1 is not allowed to be used. Allowed ports: []",
 		},
 		"failReadOnlyRootFS - nil": {
 			pod:           defaultPod(),
@@ -518,7 +498,7 @@ func TestValidateContainerSecurityContextFailures(t *testing.T) {
 			continue
 		}
 		if !strings.Contains(errs[0].Error(), v.expectedError) {
-			t.Errorf("%s received unexpected error %v", k, errs)
+			t.Errorf("%s received unexpected error %v\nexpected: %s", k, errs, v.expectedError)
 		}
 	}
 }
@@ -547,7 +527,7 @@ func TestValidatePodSecurityContextSuccess(t *testing.T) {
 		},
 	}
 	supGroupPod := defaultPod()
-	supGroupPod.Spec.SecurityContext.SupplementalGroups = []types.UnixGroupID{3}
+	supGroupPod.Spec.SecurityContext.SupplementalGroups = []int64{3}
 
 	fsGroupPSP := defaultPSP()
 	fsGroupPSP.Spec.FSGroup = extensions.FSGroupStrategyOptions{
@@ -557,7 +537,7 @@ func TestValidatePodSecurityContextSuccess(t *testing.T) {
 		},
 	}
 	fsGroupPod := defaultPod()
-	fsGroup := types.UnixGroupID(3)
+	fsGroup := int64(3)
 	fsGroupPod.Spec.SecurityContext.FSGroup = &fsGroup
 
 	seLinuxPod := defaultPod()
@@ -680,7 +660,7 @@ func TestValidateContainerSecurityContextSuccess(t *testing.T) {
 
 	// success user strat
 	userPSP := defaultPSP()
-	uid := types.UnixUserID(999)
+	uid := int64(999)
 	userPSP.Spec.RunAsUser = extensions.RunAsUserStrategyOptions{
 		Rule:   extensions.RunAsUserStrategyMustRunAs,
 		Ranges: []extensions.UserIDRange{{Min: uid, Max: uid}},
@@ -708,7 +688,7 @@ func TestValidateContainerSecurityContextSuccess(t *testing.T) {
 	v1AppArmorPod := defaultV1Pod()
 	apparmor.SetProfileName(v1AppArmorPod, defaultContainerName, apparmor.ProfileRuntimeDefault)
 	appArmorPod := &api.Pod{}
-	v1.Convert_v1_Pod_To_api_Pod(v1AppArmorPod, appArmorPod, nil)
+	k8s_api_v1.Convert_v1_Pod_To_api_Pod(v1AppArmorPod, appArmorPod, nil)
 
 	privPSP := defaultPSP()
 	privPSP.Spec.Privileged = true
@@ -736,27 +716,12 @@ func TestValidateContainerSecurityContextSuccess(t *testing.T) {
 	hostDirPod := defaultPod()
 	hostDirPod.Spec.Volumes = []api.Volume{
 		{
-			Name: "good volume",
+			Name: "bad volume",
 			VolumeSource: api.VolumeSource{
 				HostPath: &api.HostPathVolumeSource{},
 			},
 		},
 	}
-
-	hostPathDirPod := defaultPod()
-	hostPathDirPod.Spec.Volumes = []api.Volume{
-		{
-			Name: "good volume",
-			VolumeSource: api.VolumeSource{
-				HostPath: &api.HostPathVolumeSource{
-					Path: "/foo/bar/baz",
-				},
-			},
-		},
-	}
-	hostPathDirPSP := defaultPSP()
-	hostPathDirPSP.Spec.Volumes = []extensions.FSType{extensions.HostPath}
-	hostPathDirPSP.Spec.AllowedHostPaths = []string{"/foo/bar"}
 
 	hostPortPSP := defaultPSP()
 	hostPortPSP.Spec.HostPorts = []extensions.HostPortRange{{Min: 1, Max: 1}}
@@ -817,10 +782,6 @@ func TestValidateContainerSecurityContextSuccess(t *testing.T) {
 		"pass hostDir validating PSP": {
 			pod: hostDirPod,
 			psp: hostDirPSP,
-		},
-		"pass hostDir allowed directory validating PSP": {
-			pod: hostPathDirPod,
-			psp: hostPathDirPSP,
 		},
 		"pass hostPort validating PSP": {
 			pod: hostPortPod,

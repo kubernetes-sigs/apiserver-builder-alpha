@@ -27,25 +27,25 @@ import (
 
 	"github.com/golang/glog"
 
+	"k8s.io/api/core/v1"
+	clientv1 "k8s.io/api/core/v1"
+	extensions "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
+	coreinformers "k8s.io/client-go/informers/core/v1"
+	extensionsinformers "k8s.io/client-go/informers/extensions/v1beta1"
+	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
 	v1core "k8s.io/client-go/kubernetes/typed/core/v1"
-	clientv1 "k8s.io/client-go/pkg/api/v1"
+	corelisters "k8s.io/client-go/listers/core/v1"
+	extensionslisters "k8s.io/client-go/listers/extensions/v1beta1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
-	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/api/v1"
-	extensions "k8s.io/kubernetes/pkg/apis/extensions/v1beta1"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
-	coreinformers "k8s.io/kubernetes/pkg/client/informers/informers_generated/externalversions/core/v1"
-	extensionsinformers "k8s.io/kubernetes/pkg/client/informers/informers_generated/externalversions/extensions/v1beta1"
-	corelisters "k8s.io/kubernetes/pkg/client/listers/core/v1"
-	extensionslisters "k8s.io/kubernetes/pkg/client/listers/extensions/v1beta1"
 	"k8s.io/kubernetes/pkg/controller"
 	"k8s.io/kubernetes/pkg/controller/deployment/util"
 	"k8s.io/kubernetes/pkg/util/metrics"
@@ -109,7 +109,7 @@ func NewDeploymentController(dInformer extensionsinformers.DeploymentInformer, r
 	}
 	dc := &DeploymentController{
 		client:        client,
-		eventRecorder: eventBroadcaster.NewRecorder(api.Scheme, clientv1.EventSource{Component: "deployment-controller"}),
+		eventRecorder: eventBroadcaster.NewRecorder(scheme.Scheme, clientv1.EventSource{Component: "deployment-controller"}),
 		queue:         workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "deployment"),
 	}
 	dc.rsControl = controller.RealRSControl{
@@ -356,7 +356,7 @@ func (dc *DeploymentController) deletePod(obj interface{}) {
 	glog.V(4).Infof("Pod %s deleted.", pod.Name)
 	if d := dc.getDeploymentForPod(pod); d != nil && d.Spec.Strategy.Type == extensions.RecreateDeploymentStrategyType {
 		// Sync if this Deployment now has no more Pods.
-		rsList, err := dc.getReplicaSetsForDeployment(d)
+		rsList, err := util.ListReplicaSets(d, util.RsListFromClient(dc.client))
 		if err != nil {
 			return
 		}
@@ -594,20 +594,6 @@ func (dc *DeploymentController) syncDeployment(key string) error {
 		return nil
 	}
 
-	// This is the point at which we used to add/remove the overlap annotation.
-	// Now we always remove it if it exists, because it is obsolete as of 1.6.
-	// Although the server no longer adds or looks at the annotation,
-	// it's important to remove it from controllers created before the upgrade,
-	// so that old clients (e.g. kubectl reaper) know they can no longer assume
-	// the controller is blocked due to selector overlap and has no dependents.
-	if _, ok := d.Annotations[util.OverlapAnnotation]; ok {
-		delete(d.Annotations, util.OverlapAnnotation)
-		d, err = dc.client.ExtensionsV1beta1().Deployments(d.Namespace).UpdateStatus(d)
-		if err != nil {
-			return fmt.Errorf("couldn't remove obsolete overlap annotation from deployment %v: %v", key, err)
-		}
-	}
-
 	// List ReplicaSets owned by this Deployment, while reconciling ControllerRef
 	// through adoption/orphaning.
 	rsList, err := dc.getReplicaSetsForDeployment(d)
@@ -626,25 +612,6 @@ func (dc *DeploymentController) syncDeployment(key string) error {
 
 	if d.DeletionTimestamp != nil {
 		return dc.syncStatusOnly(d, rsList, podMap)
-	}
-
-	// Why run the cleanup policy only when there is no rollback request?
-	// The thing with the cleanup policy currently is that it is far from smart because it takes into account
-	// the latest replica sets while it should instead retain the latest *working* replica sets. This means that
-	// you can have a cleanup policy of 1 but your last known working replica set may be 2 or 3 versions back
-	// in the history.
-	// Eventually we will want to find a way to recognize replica sets that have worked at some point in time
-	// (and chances are higher that they will work again as opposed to others that didn't) for candidates to
-	// automatically roll back to (#23211) and the cleanup policy should help.
-	if d.Spec.RollbackTo == nil {
-		_, oldRSs, err := dc.getAllReplicaSetsAndSyncRevision(d, rsList, podMap, false)
-		if err != nil {
-			return err
-		}
-		// So far the cleanup policy was executed once a deployment was paused, scaled up/down, or it
-		// successfully completed deploying a replica set. Decouple it from the strategies and have it
-		// run almost unconditionally - cleanupDeployment is safe by default.
-		dc.cleanupDeployment(oldRSs, d)
 	}
 
 	// Update deployment conditions with an Unknown condition when pausing/resuming

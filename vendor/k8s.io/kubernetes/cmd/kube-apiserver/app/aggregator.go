@@ -34,18 +34,17 @@ import (
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	"k8s.io/apiserver/pkg/server/healthz"
 	genericoptions "k8s.io/apiserver/pkg/server/options"
-	kubeclientset "k8s.io/client-go/kubernetes"
+	kubeexternalinformers "k8s.io/client-go/informers"
 	"k8s.io/kube-aggregator/pkg/apis/apiregistration"
 	"k8s.io/kube-aggregator/pkg/apis/apiregistration/v1beta1"
 	aggregatorapiserver "k8s.io/kube-aggregator/pkg/apiserver"
 	apiregistrationclient "k8s.io/kube-aggregator/pkg/client/clientset_generated/internalclientset/typed/apiregistration/internalversion"
 	"k8s.io/kube-aggregator/pkg/controllers/autoregister"
 	"k8s.io/kubernetes/cmd/kube-apiserver/app/options"
-	informers "k8s.io/kubernetes/pkg/client/informers/informers_generated/internalversion"
-	"k8s.io/kubernetes/pkg/master/thirdparty"
+	"k8s.io/kubernetes/pkg/master/controller/crdregistration"
 )
 
-func createAggregatorConfig(kubeAPIServerConfig genericapiserver.Config, commandOptions *options.ServerRunOptions, proxyTransport *http.Transport) (*aggregatorapiserver.Config, error) {
+func createAggregatorConfig(kubeAPIServerConfig genericapiserver.Config, commandOptions *options.ServerRunOptions, externalInformers kubeexternalinformers.SharedInformerFactory, serviceResolver aggregatorapiserver.ServiceResolver, proxyTransport *http.Transport) (*aggregatorapiserver.Config, error) {
 	// make a shallow copy to let us twiddle a few things
 	// most of the config actually remains the same.  We only need to mess with a couple items related to the particulars of the aggregator
 	genericConfig := kubeAPIServerConfig
@@ -60,11 +59,7 @@ func createAggregatorConfig(kubeAPIServerConfig genericapiserver.Config, command
 	etcdOptions.StorageConfig.Copier = aggregatorapiserver.Scheme
 	genericConfig.RESTOptionsGetter = &genericoptions.SimpleRestOptionsFactory{Options: etcdOptions}
 
-	client, err := kubeclientset.NewForConfig(genericConfig.LoopbackClientConfig)
-	if err != nil {
-		return nil, err
-	}
-
+	var err error
 	var certBytes, keyBytes []byte
 	if len(commandOptions.ProxyClientCertFile) > 0 && len(commandOptions.ProxyClientKeyFile) > 0 {
 		certBytes, err = ioutil.ReadFile(commandOptions.ProxyClientCertFile)
@@ -78,18 +73,18 @@ func createAggregatorConfig(kubeAPIServerConfig genericapiserver.Config, command
 	}
 
 	aggregatorConfig := &aggregatorapiserver.Config{
-		GenericConfig:           &genericConfig,
-		CoreAPIServerClient:     client,
-		ProxyClientCert:         certBytes,
-		ProxyClientKey:          keyBytes,
-		ProxyTransport:          proxyTransport,
-		EnableAggregatorRouting: commandOptions.EnableAggregatorRouting,
+		GenericConfig:     &genericConfig,
+		CoreKubeInformers: externalInformers,
+		ProxyClientCert:   certBytes,
+		ProxyClientKey:    keyBytes,
+		ServiceResolver:   serviceResolver,
+		ProxyTransport:    proxyTransport,
 	}
 
 	return aggregatorConfig, nil
 }
 
-func createAggregatorServer(aggregatorConfig *aggregatorapiserver.Config, delegateAPIServer genericapiserver.DelegationTarget, kubeInformers informers.SharedInformerFactory, apiExtensionInformers apiextensionsinformers.SharedInformerFactory) (*aggregatorapiserver.APIAggregator, error) {
+func createAggregatorServer(aggregatorConfig *aggregatorapiserver.Config, delegateAPIServer genericapiserver.DelegationTarget, apiExtensionInformers apiextensionsinformers.SharedInformerFactory) (*aggregatorapiserver.APIAggregator, error) {
 	aggregatorServer, err := aggregatorConfig.Complete().NewWithDelegate(delegateAPIServer)
 	if err != nil {
 		return nil, err
@@ -102,14 +97,13 @@ func createAggregatorServer(aggregatorConfig *aggregatorapiserver.Config, delega
 	}
 	autoRegistrationController := autoregister.NewAutoRegisterController(aggregatorServer.APIRegistrationInformers.Apiregistration().InternalVersion().APIServices(), apiRegistrationClient)
 	apiServices := apiServicesToRegister(delegateAPIServer, autoRegistrationController)
-	tprRegistrationController := thirdparty.NewAutoRegistrationController(
-		kubeInformers.Extensions().InternalVersion().ThirdPartyResources(),
+	crdRegistrationController := crdregistration.NewAutoRegistrationController(
 		apiExtensionInformers.Apiextensions().InternalVersion().CustomResourceDefinitions(),
 		autoRegistrationController)
 
 	aggregatorServer.GenericAPIServer.AddPostStartHook("kube-apiserver-autoregistration", func(context genericapiserver.PostStartHookContext) error {
 		go autoRegistrationController.Run(5, context.StopCh)
-		go tprRegistrationController.Run(5, context.StopCh)
+		go crdRegistrationController.Run(5, context.StopCh)
 		return nil
 	})
 	aggregatorServer.GenericAPIServer.AddHealthzChecks(healthz.NamedCheck("autoregister-completion", func(r *http.Request) error {

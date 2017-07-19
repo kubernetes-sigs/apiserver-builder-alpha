@@ -21,10 +21,10 @@ import (
 	"os"
 
 	"github.com/golang/glog"
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/kubernetes/pkg/api/v1"
 	"k8s.io/kubernetes/pkg/util/exec"
 	"k8s.io/kubernetes/pkg/util/mount"
 	kstrings "k8s.io/kubernetes/pkg/util/strings"
@@ -259,14 +259,14 @@ func (b *portworxVolumeMounter) CanMount() error {
 }
 
 // SetUp attaches the disk and bind mounts to the volume path.
-func (b *portworxVolumeMounter) SetUp(fsGroup *types.UnixGroupID) error {
+func (b *portworxVolumeMounter) SetUp(fsGroup *int64) error {
 	return b.SetUpAt(b.GetPath(), fsGroup)
 }
 
 // SetUpAt attaches the disk and bind mounts to the volume path.
-func (b *portworxVolumeMounter) SetUpAt(dir string, fsGroup *types.UnixGroupID) error {
+func (b *portworxVolumeMounter) SetUpAt(dir string, fsGroup *int64) error {
 	notMnt, err := b.mounter.IsLikelyNotMountPoint(dir)
-	glog.V(4).Infof("Portworx Volume set up: %s %v %v", dir, !notMnt, err)
+	glog.Infof("Portworx Volume set up. Dir: %s %v %v", dir, !notMnt, err)
 	if err != nil && !os.IsNotExist(err) {
 		glog.Errorf("Cannot validate mountpoint: %s", dir)
 		return err
@@ -291,7 +291,7 @@ func (b *portworxVolumeMounter) SetUpAt(dir string, fsGroup *types.UnixGroupID) 
 	if !b.readOnly {
 		volume.SetVolumeOwnership(b, fsGroup)
 	}
-	glog.V(4).Infof("Portworx Volume %s mounted to %s", b.volumeID, dir)
+	glog.Infof("Portworx Volume %s setup at %s", b.volumeID, dir)
 	return nil
 }
 
@@ -314,8 +314,8 @@ func (c *portworxVolumeUnmounter) TearDown() error {
 // Unmounts the bind mount, and detaches the disk only if the PD
 // resource was the last reference to that disk on the kubelet.
 func (c *portworxVolumeUnmounter) TearDownAt(dir string) error {
-	glog.V(4).Infof("Portworx Volume TearDown of %s", dir)
-	// Call Portworx Unmount for Portworx's book-keeping.
+	glog.Infof("Portworx Volume TearDown of %s", dir)
+
 	if err := c.manager.UnmountVolume(c, dir); err != nil {
 		return err
 	}

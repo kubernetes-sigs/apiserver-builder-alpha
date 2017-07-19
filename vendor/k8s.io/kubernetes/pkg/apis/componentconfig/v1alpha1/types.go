@@ -17,8 +17,8 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/kubernetes/pkg/api/v1"
 )
 
 // ClientConnectionConfiguration contains details for constructing a client.
@@ -73,6 +73,8 @@ type KubeProxyConntrackConfiguration struct {
 	// table. (e.g. '60s'). Must be greater than 0 to set.
 	TCPCloseWaitTimeout metav1.Duration `json:"tcpCloseWaitTimeout"`
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // KubeProxyConfiguration contains everything necessary to configure the
 // Kubernetes proxy server.
@@ -143,6 +145,8 @@ const (
 	ProxyModeUserspace ProxyMode = "userspace"
 	ProxyModeIPTables  ProxyMode = "iptables"
 )
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 type KubeSchedulerConfiguration struct {
 	metav1.TypeMeta `json:",inline"`
@@ -240,6 +244,8 @@ type LeaderElectionConfiguration struct {
 	// during leader election cycles.
 	ResourceLock string `json:"resourceLock"`
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // A configuration field should go in KubeletFlags instead of KubeletConfiguration if any of these are true:
 // - its value will never, or cannot safely be changed during the lifetime of a node

@@ -19,13 +19,13 @@ package apiconfig
 import (
 	"fmt"
 
+	"k8s.io/api/core/v1"
+	rbac "k8s.io/api/rbac/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/pkg/api/v1"
-	rbac "k8s.io/client-go/pkg/apis/rbac/v1beta1"
 	kubeadmconstants "k8s.io/kubernetes/cmd/kubeadm/app/constants"
-	kubeadmutil "k8s.io/kubernetes/cmd/kubeadm/app/util"
+	rbachelper "k8s.io/kubernetes/pkg/apis/rbac/v1beta1"
 	bootstrapapi "k8s.io/kubernetes/pkg/bootstrap/api"
 	"k8s.io/kubernetes/pkg/util/version"
 )
@@ -45,8 +45,6 @@ const (
 	anonymousUser            = "system:anonymous"
 	nodeAutoApproveBootstrap = "kubeadm:node-autoapprove-bootstrap"
 )
-
-// TODO: Are there any unit tests that could be made for this file other than duplicating all values and logic in a separate file?
 
 // CreateServiceAccounts creates the necessary serviceaccounts that kubeadm uses/might use, if they don't already exist.
 func CreateServiceAccounts(clientset clientset.Interface) error {
@@ -105,7 +103,7 @@ func createRoles(clientset *clientset.Clientset) error {
 				Namespace: metav1.NamespacePublic,
 			},
 			Rules: []rbac.PolicyRule{
-				rbac.NewRule("get").Groups("").Resources("configmaps").RuleOrDie(),
+				rbachelper.NewRule("get").Groups("").Resources("configmaps").Names("cluster-info").RuleOrDie(),
 			},
 		},
 	}
@@ -165,7 +163,7 @@ func createClusterRoles(clientset *clientset.Clientset) error {
 				Name: nodeAutoApproveBootstrap,
 			},
 			Rules: []rbac.PolicyRule{
-				rbac.NewRule("create").Groups("certificates.k8s.io").Resources("certificatesigningrequests/nodeclient").RuleOrDie(),
+				rbachelper.NewRule("create").Groups("certificates.k8s.io").Resources("certificatesigningrequests/nodeclient").RuleOrDie(),
 			},
 		},
 	}
@@ -253,33 +251,28 @@ func createClusterRoleBindings(clientset *clientset.Clientset) error {
 
 func deletePermissiveNodesBindingWhenUsingNodeAuthorization(clientset *clientset.Clientset, k8sVersion *version.Version) error {
 
-	// If the server version is higher than the Node Authorizer's minimum, try to delete the Group=system:nodes->ClusterRole=system:node binding
-	// which is much more permissive than the Node Authorizer
-	if kubeadmutil.IsNodeAuthorizerSupported(k8sVersion) {
-
-		nodesRoleBinding, err := clientset.RbacV1beta1().ClusterRoleBindings().Get(kubeadmconstants.NodesClusterRoleBinding, metav1.GetOptions{})
-		if err != nil {
-			if apierrors.IsNotFound(err) {
-				// Nothing to do; the RoleBinding doesn't exist
-				return nil
-			}
-			return err
+	nodesRoleBinding, err := clientset.RbacV1beta1().ClusterRoleBindings().Get(kubeadmconstants.NodesClusterRoleBinding, metav1.GetOptions{})
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			// Nothing to do; the RoleBinding doesn't exist
+			return nil
 		}
+		return err
+	}
 
-		newSubjects := []rbac.Subject{}
-		for _, subject := range nodesRoleBinding.Subjects {
-			// Skip the subject that binds to the system:nodes group
-			if subject.Name == kubeadmconstants.NodesGroup && subject.Kind == "Group" {
-				continue
-			}
-			newSubjects = append(newSubjects, subject)
+	newSubjects := []rbac.Subject{}
+	for _, subject := range nodesRoleBinding.Subjects {
+		// Skip the subject that binds to the system:nodes group
+		if subject.Name == kubeadmconstants.NodesGroup && subject.Kind == "Group" {
+			continue
 		}
+		newSubjects = append(newSubjects, subject)
+	}
 
-		nodesRoleBinding.Subjects = newSubjects
+	nodesRoleBinding.Subjects = newSubjects
 
-		if _, err := clientset.RbacV1beta1().ClusterRoleBindings().Update(nodesRoleBinding); err != nil {
-			return err
-		}
+	if _, err := clientset.RbacV1beta1().ClusterRoleBindings().Update(nodesRoleBinding); err != nil {
+		return err
 	}
 
 	return nil

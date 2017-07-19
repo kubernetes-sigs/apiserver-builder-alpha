@@ -1,5 +1,5 @@
-hash: 3ef7fdd27f258df3c3eb48d0335ae1bbbf9b432e8b716db4b0bfcce7037eb7a2
-updated: 2017-06-28T12:18:13.132153406-07:00
+hash: c5c139b4ff4a9261d0db61ecf3023e8e650de5816b2ed0eb24d255da34a96d8e
+updated: 2017-07-19T08:45:37.708760692-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -594,7 +594,7 @@ imports:
   - util/jsonpath
   - util/workqueue
 - name: k8s.io/gengo
-  version: c79c13d131b0a8f42d05faa6491c12e94ccc6f30
+  version: 712a17394a0980fabbcf3d968972e185d80c0fa4
   subpackages:
   - args
   - generator
@@ -602,7 +602,7 @@ imports:
   - parser
   - types
 - name: k8s.io/kubernetes
-  version: 227f52e0cb142f5658598e3c981e0e637f8d9c08
+  version: effcdda0cee4d4c8d1df832f17bb5fbd281c4bad
   subpackages:
   - cmd/libs/go2idl
 testImports: []

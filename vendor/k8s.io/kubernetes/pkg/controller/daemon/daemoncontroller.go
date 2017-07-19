@@ -23,6 +23,10 @@ import (
 	"sync"
 	"time"
 
+	apps "k8s.io/api/apps/v1beta1"
+	"k8s.io/api/core/v1"
+	clientv1 "k8s.io/api/core/v1"
+	extensions "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -30,25 +34,21 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
+	appsinformers "k8s.io/client-go/informers/apps/v1beta1"
+	coreinformers "k8s.io/client-go/informers/core/v1"
+	extensionsinformers "k8s.io/client-go/informers/extensions/v1beta1"
+	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
 	v1core "k8s.io/client-go/kubernetes/typed/core/v1"
-	clientv1 "k8s.io/client-go/pkg/api/v1"
+	unversionedextensions "k8s.io/client-go/kubernetes/typed/extensions/v1beta1"
+	appslisters "k8s.io/client-go/listers/apps/v1beta1"
+	corelisters "k8s.io/client-go/listers/core/v1"
+	extensionslisters "k8s.io/client-go/listers/extensions/v1beta1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
-	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/api/v1"
 	v1helper "k8s.io/kubernetes/pkg/api/v1/helper"
 	podutil "k8s.io/kubernetes/pkg/api/v1/pod"
-	apps "k8s.io/kubernetes/pkg/apis/apps/v1beta1"
-	extensions "k8s.io/kubernetes/pkg/apis/extensions/v1beta1"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
-	unversionedextensions "k8s.io/kubernetes/pkg/client/clientset_generated/clientset/typed/extensions/v1beta1"
-	appsinformers "k8s.io/kubernetes/pkg/client/informers/informers_generated/externalversions/apps/v1beta1"
-	coreinformers "k8s.io/kubernetes/pkg/client/informers/informers_generated/externalversions/core/v1"
-	extensionsinformers "k8s.io/kubernetes/pkg/client/informers/informers_generated/externalversions/extensions/v1beta1"
-	appslisters "k8s.io/kubernetes/pkg/client/listers/apps/v1beta1"
-	corelisters "k8s.io/kubernetes/pkg/client/listers/core/v1"
-	extensionslisters "k8s.io/kubernetes/pkg/client/listers/extensions/v1beta1"
 	"k8s.io/kubernetes/pkg/controller"
 	"k8s.io/kubernetes/pkg/controller/daemon/util"
 	"k8s.io/kubernetes/pkg/features"
@@ -134,10 +134,10 @@ func NewDaemonSetsController(daemonSetInformer extensionsinformers.DaemonSetInfo
 	}
 	dsc := &DaemonSetsController{
 		kubeClient:    kubeClient,
-		eventRecorder: eventBroadcaster.NewRecorder(api.Scheme, clientv1.EventSource{Component: "daemonset-controller"}),
+		eventRecorder: eventBroadcaster.NewRecorder(scheme.Scheme, clientv1.EventSource{Component: "daemonset-controller"}),
 		podControl: controller.RealPodControl{
 			KubeClient: kubeClient,
-			Recorder:   eventBroadcaster.NewRecorder(api.Scheme, clientv1.EventSource{Component: "daemon-set"}),
+			Recorder:   eventBroadcaster.NewRecorder(scheme.Scheme, clientv1.EventSource{Component: "daemon-set"}),
 		},
 		crControl: controller.RealControllerRevisionControl{
 			KubeClient: kubeClient,
@@ -864,7 +864,7 @@ func storeDaemonSetStatus(dsClient unversionedextensions.DaemonSetInterface, ds 
 		return nil
 	}
 
-	clone, err := api.Scheme.DeepCopy(ds)
+	clone, err := scheme.Scheme.DeepCopy(ds)
 	if err != nil {
 		return err
 	}
@@ -1022,28 +1022,53 @@ func (dsc *DaemonSetsController) syncDaemonSet(key string) error {
 	return dsc.updateDaemonSetStatus(ds, hash)
 }
 
-// hasIntentionalPredicatesReasons checks if any of the given predicate failure reasons
-// is intentional.
-func hasIntentionalPredicatesReasons(reasons []algorithm.PredicateFailureReason) bool {
-	for _, r := range reasons {
-		switch reason := r.(type) {
-		case *predicates.PredicateFailureError:
-			switch reason {
-			// intentional
-			case
-				predicates.ErrNodeSelectorNotMatch,
-				predicates.ErrPodNotMatchHostName,
-				predicates.ErrNodeLabelPresenceViolated,
-				// this one is probably intentional since it's a workaround for not having
-				// pod hard anti affinity.
-				predicates.ErrPodNotFitsHostPorts,
-				// DaemonSet is expected to respect taints and tolerations
-				predicates.ErrTaintsTolerationsNotMatch:
-				return true
-			}
-		}
+func (dsc *DaemonSetsController) simulate(newPod *v1.Pod, node *v1.Node, ds *extensions.DaemonSet) ([]algorithm.PredicateFailureReason, *schedulercache.NodeInfo, error) {
+	// DaemonSet pods shouldn't be deleted by NodeController in case of node problems.
+	// Add infinite toleration for taint notReady:NoExecute here
+	// to survive taint-based eviction enforced by NodeController
+	// when node turns not ready.
+	v1helper.AddOrUpdateTolerationInPod(newPod, &v1.Toleration{
+		Key:      algorithm.TaintNodeNotReady,
+		Operator: v1.TolerationOpExists,
+		Effect:   v1.TaintEffectNoExecute,
+	})
+
+	// DaemonSet pods shouldn't be deleted by NodeController in case of node problems.
+	// Add infinite toleration for taint unreachable:NoExecute here
+	// to survive taint-based eviction enforced by NodeController
+	// when node turns unreachable.
+	v1helper.AddOrUpdateTolerationInPod(newPod, &v1.Toleration{
+		Key:      algorithm.TaintNodeUnreachable,
+		Operator: v1.TolerationOpExists,
+		Effect:   v1.TaintEffectNoExecute,
+	})
+
+	pods := []*v1.Pod{}
+
+	podList, err := dsc.podLister.List(labels.Everything())
+	if err != nil {
+		return nil, nil, err
 	}
-	return false
+	for _, pod := range podList {
+		if pod.Spec.NodeName != node.Name {
+			continue
+		}
+		if pod.Status.Phase == v1.PodSucceeded || pod.Status.Phase == v1.PodFailed {
+			continue
+		}
+		// ignore pods that belong to the daemonset when taking into account whether
+		// a daemonset should bind to a node.
+		if controllerRef := controller.GetControllerOf(pod); controllerRef != nil && controllerRef.UID == ds.UID {
+			continue
+		}
+		pods = append(pods, pod)
+	}
+
+	nodeInfo := schedulercache.NewNodeInfo(pods...)
+	nodeInfo.SetNode(node)
+
+	_, reasons, err := Predicates(newPod, nodeInfo)
+	return reasons, nodeInfo, err
 }
 
 // nodeShouldRunDaemonPod checks a set of preconditions against a (node,daemonset) and returns a
@@ -1086,71 +1111,43 @@ func (dsc *DaemonSetsController) nodeShouldRunDaemonPod(node *v1.Node, ds *exten
 		}
 	}
 
-	// DaemonSet pods shouldn't be deleted by NodeController in case of node problems.
-	// Add infinite toleration for taint notReady:NoExecute here
-	// to survive taint-based eviction enforced by NodeController
-	// when node turns not ready.
-	v1helper.AddOrUpdateTolerationInPod(newPod, &v1.Toleration{
-		Key:      algorithm.TaintNodeNotReady,
-		Operator: v1.TolerationOpExists,
-		Effect:   v1.TaintEffectNoExecute,
-	})
-
-	// DaemonSet pods shouldn't be deleted by NodeController in case of node problems.
-	// Add infinite toleration for taint unreachable:NoExecute here
-	// to survive taint-based eviction enforced by NodeController
-	// when node turns unreachable.
-	v1helper.AddOrUpdateTolerationInPod(newPod, &v1.Toleration{
-		Key:      algorithm.TaintNodeUnreachable,
-		Operator: v1.TolerationOpExists,
-		Effect:   v1.TaintEffectNoExecute,
-	})
-
-	pods := []*v1.Pod{}
-
-	podList, err := dsc.podLister.List(labels.Everything())
-	if err != nil {
-		return false, false, false, err
-	}
-	for _, pod := range podList {
-		if pod.Spec.NodeName != node.Name {
-			continue
-		}
-		if pod.Status.Phase == v1.PodSucceeded || pod.Status.Phase == v1.PodFailed {
-			continue
-		}
-		// ignore pods that belong to the daemonset when taking into account whether
-		// a daemonset should bind to a node.
-		if controllerRef := controller.GetControllerOf(pod); controllerRef != nil && controllerRef.UID == ds.UID {
-			continue
-		}
-		pods = append(pods, pod)
-	}
-
-	nodeInfo := schedulercache.NewNodeInfo(pods...)
-	nodeInfo.SetNode(node)
-	_, reasons, err := Predicates(newPod, nodeInfo)
+	reasons, nodeInfo, err := dsc.simulate(newPod, node, ds)
 	if err != nil {
 		glog.Warningf("DaemonSet Predicates failed on node %s for ds '%s/%s' due to unexpected error: %v", node.Name, ds.ObjectMeta.Namespace, ds.ObjectMeta.Name, err)
 		return false, false, false, err
 	}
 
-	// Return directly if there is any intentional predicate failure reason, so that daemonset controller skips
-	// checking other predicate failures, such as InsufficientResourceError and unintentional errors.
-	if hasIntentionalPredicatesReasons(reasons) {
-		return false, false, false, nil
-	}
+	var insufficientResourceErr error
 
 	for _, r := range reasons {
 		glog.V(4).Infof("DaemonSet Predicates failed on node %s for ds '%s/%s' for reason: %v", node.Name, ds.ObjectMeta.Namespace, ds.ObjectMeta.Name, r.GetReason())
 		switch reason := r.(type) {
 		case *predicates.InsufficientResourceError:
-			dsc.eventRecorder.Eventf(ds, v1.EventTypeWarning, FailedPlacementReason, "failed to place pod on %q: %s", node.ObjectMeta.Name, reason.Error())
-			shouldSchedule = false
+			insufficientResourceErr = reason
 		case *predicates.PredicateFailureError:
 			var emitEvent bool
+			// we try to partition predicates into two partitions here: intentional on the part of the operator and not.
 			switch reason {
-			// unintentional predicates reasons need to be fired out to event.
+			// intentional
+			case
+				predicates.ErrNodeSelectorNotMatch,
+				predicates.ErrPodNotMatchHostName,
+				predicates.ErrNodeLabelPresenceViolated,
+				// this one is probably intentional since it's a workaround for not having
+				// pod hard anti affinity.
+				predicates.ErrPodNotFitsHostPorts:
+				return false, false, false, nil
+			case predicates.ErrTaintsTolerationsNotMatch:
+				// DaemonSet is expected to respect taints and tolerations
+				fitsNoExecute, _, err := predicates.PodToleratesNodeNoExecuteTaints(newPod, nil, nodeInfo)
+				if err != nil {
+					return false, false, false, err
+				}
+				if !fitsNoExecute {
+					return false, false, false, nil
+				}
+				wantToRun, shouldSchedule = false, false
+			// unintentional
 			case
 				predicates.ErrDiskConflict,
 				predicates.ErrVolumeZoneConflict,
@@ -1177,6 +1174,12 @@ func (dsc *DaemonSetsController) nodeShouldRunDaemonPod(node *v1.Node, ds *exten
 				dsc.eventRecorder.Eventf(ds, v1.EventTypeWarning, FailedPlacementReason, "failed to place pod on %q: %s", node.ObjectMeta.Name, reason.GetReason())
 			}
 		}
+	}
+	// only emit this event if insufficient resource is the only thing
+	// preventing the daemon pod from scheduling
+	if shouldSchedule && insufficientResourceErr != nil {
+		dsc.eventRecorder.Eventf(ds, v1.EventTypeWarning, FailedPlacementReason, "failed to place pod on %q: %s", node.ObjectMeta.Name, insufficientResourceErr.Error())
+		shouldSchedule = false
 	}
 	return
 }

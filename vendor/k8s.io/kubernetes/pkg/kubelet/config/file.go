@@ -23,15 +23,16 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/golang/glog"
 
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/api/v1"
 	kubetypes "k8s.io/kubernetes/pkg/kubelet/types"
 )
 
@@ -44,6 +45,9 @@ type sourceFile struct {
 }
 
 func NewSourceFile(path string, nodeName types.NodeName, period time.Duration, updates chan<- interface{}) {
+	// "golang.org/x/exp/inotify" requires a path without trailing "/"
+	path = strings.TrimRight(path, string(os.PathSeparator))
+
 	config := new(path, nodeName, period, updates)
 	glog.V(1).Infof("Watching path %q", path)
 	go wait.Forever(config.run, period)

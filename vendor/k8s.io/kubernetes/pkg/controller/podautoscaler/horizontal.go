@@ -22,6 +22,11 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	autoscalingv1 "k8s.io/api/autoscaling/v1"
+	autoscalingv2 "k8s.io/api/autoscaling/v2alpha1"
+	"k8s.io/api/core/v1"
+	clientv1 "k8s.io/api/core/v1"
+	extensions "k8s.io/api/extensions/v1beta1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -31,20 +36,16 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
+	autoscalinginformers "k8s.io/client-go/informers/autoscaling/v1"
+	"k8s.io/client-go/kubernetes/scheme"
+	autoscalingclient "k8s.io/client-go/kubernetes/typed/autoscaling/v1"
 	v1core "k8s.io/client-go/kubernetes/typed/core/v1"
-	clientv1 "k8s.io/client-go/pkg/api/v1"
+	extensionsclient "k8s.io/client-go/kubernetes/typed/extensions/v1beta1"
+	autoscalinglisters "k8s.io/client-go/listers/autoscaling/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/api/v1"
-	autoscalingv1 "k8s.io/kubernetes/pkg/apis/autoscaling/v1"
-	autoscalingv2 "k8s.io/kubernetes/pkg/apis/autoscaling/v2alpha1"
-	extensions "k8s.io/kubernetes/pkg/apis/extensions/v1beta1"
-	autoscalingclient "k8s.io/kubernetes/pkg/client/clientset_generated/clientset/typed/autoscaling/v1"
-	extensionsclient "k8s.io/kubernetes/pkg/client/clientset_generated/clientset/typed/extensions/v1beta1"
-	autoscalinginformers "k8s.io/kubernetes/pkg/client/informers/informers_generated/externalversions/autoscaling/v1"
-	autoscalinglisters "k8s.io/kubernetes/pkg/client/listers/autoscaling/v1"
 	"k8s.io/kubernetes/pkg/controller"
 )
 
@@ -112,7 +113,7 @@ func NewHorizontalController(
 	broadcaster := record.NewBroadcaster()
 	// TODO: remove the wrapper when every clients have moved to use the clientset.
 	broadcaster.StartRecordingToSink(&v1core.EventSinkImpl{Interface: evtNamespacer.Events("")})
-	recorder := broadcaster.NewRecorder(api.Scheme, clientv1.EventSource{Component: "horizontal-pod-autoscaler"})
+	recorder := broadcaster.NewRecorder(scheme.Scheme, clientv1.EventSource{Component: "horizontal-pod-autoscaler"})
 
 	hpaController := &HorizontalController{
 		replicaCalc:              replicaCalc,
@@ -358,7 +359,7 @@ func (a *HorizontalController) reconcileKey(key string) error {
 
 func (a *HorizontalController) reconcileAutoscaler(hpav1Shared *autoscalingv1.HorizontalPodAutoscaler) error {
 	// make a copy so that we never mutate the shared informer cache (conversion can mutate the object)
-	hpav1Raw, err := api.Scheme.DeepCopy(hpav1Shared)
+	hpav1Raw, err := scheme.Scheme.DeepCopy(hpav1Shared)
 	if err != nil {
 		a.eventRecorder.Event(hpav1Shared, v1.EventTypeWarning, "FailedConvertHPA", err.Error())
 		return fmt.Errorf("failed to deep-copy the HPA: %v", err)
@@ -372,7 +373,7 @@ func (a *HorizontalController) reconcileAutoscaler(hpav1Shared *autoscalingv1.Ho
 		return fmt.Errorf("failed to convert the given HPA to %s: %v", autoscalingv2.SchemeGroupVersion.String(), err)
 	}
 	hpa := hpaRaw.(*autoscalingv2.HorizontalPodAutoscaler)
-	hpaStatusOriginalRaw, err := api.Scheme.DeepCopy(&hpa.Status)
+	hpaStatusOriginalRaw, err := scheme.Scheme.DeepCopy(&hpa.Status)
 	if err != nil {
 		a.eventRecorder.Event(hpav1Shared, v1.EventTypeWarning, "FailedConvertHPA", err.Error())
 		return fmt.Errorf("failed to deep-copy the HPA status: %v", err)
@@ -450,14 +451,14 @@ func (a *HorizontalController) reconcileAutoscaler(hpav1Shared *autoscalingv1.Ho
 		case desiredReplicas > scaleUpLimit:
 			setCondition(hpa, autoscalingv2.ScalingLimited, v1.ConditionTrue, "ScaleUpLimit", "the desired replica count is increasing faster than the maximum scale rate")
 			desiredReplicas = scaleUpLimit
-		case desiredReplicas == 0:
-			//  never scale down to 0, reserved for disabling autoscaling
-			setCondition(hpa, autoscalingv2.ScalingLimited, v1.ConditionTrue, "TooFewReplicas", "the desired replica count was zero")
-			desiredReplicas = 1
 		case hpa.Spec.MinReplicas != nil && desiredReplicas < *hpa.Spec.MinReplicas:
 			// make sure we aren't below our minimum
 			setCondition(hpa, autoscalingv2.ScalingLimited, v1.ConditionTrue, "TooFewReplicas", "the desired replica count was less than the minimum replica count")
 			desiredReplicas = *hpa.Spec.MinReplicas
+		case desiredReplicas == 0:
+			//  never scale down to 0, reserved for disabling autoscaling
+			setCondition(hpa, autoscalingv2.ScalingLimited, v1.ConditionTrue, "TooFewReplicas", "the desired replica count was zero")
+			desiredReplicas = 1
 		case desiredReplicas > hpa.Spec.MaxReplicas:
 			// make sure we aren't above our maximum
 			setCondition(hpa, autoscalingv2.ScalingLimited, v1.ConditionTrue, "TooManyReplicas", "the desired replica count was more than the maximum replica count")

@@ -24,22 +24,22 @@ import (
 	"testing"
 	"time"
 
+	autoscalingv1 "k8s.io/api/autoscaling/v1"
+	autoscalingv2 "k8s.io/api/autoscaling/v2alpha1"
+	"k8s.io/api/core/v1"
+	clientv1 "k8s.io/api/core/v1"
+	extensions "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/informers"
+	"k8s.io/client-go/kubernetes/fake"
 	clientfake "k8s.io/client-go/kubernetes/fake"
-	clientv1 "k8s.io/client-go/pkg/api/v1"
 	core "k8s.io/client-go/testing"
 	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/api/v1"
 	"k8s.io/kubernetes/pkg/apis/autoscaling"
-	autoscalingv1 "k8s.io/kubernetes/pkg/apis/autoscaling/v1"
-	autoscalingv2 "k8s.io/kubernetes/pkg/apis/autoscaling/v2alpha1"
-	extensions "k8s.io/kubernetes/pkg/apis/extensions/v1beta1"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset/fake"
-	informers "k8s.io/kubernetes/pkg/client/informers/informers_generated/externalversions"
 	"k8s.io/kubernetes/pkg/controller"
 	"k8s.io/kubernetes/pkg/controller/podautoscaler/metrics"
 	metricsfake "k8s.io/metrics/pkg/client/clientset_generated/clientset/fake"
@@ -983,6 +983,25 @@ func TestMinReplicas(t *testing.T) {
 		desiredReplicas:     2,
 		CPUTarget:           90,
 		reportedLevels:      []uint64{10, 95, 10},
+		reportedCPURequests: []resource.Quantity{resource.MustParse("0.9"), resource.MustParse("1.0"), resource.MustParse("1.1")},
+		useMetricsApi:       true,
+		expectedConditions: statusOkWithOverrides(autoscalingv2.HorizontalPodAutoscalerCondition{
+			Type:   autoscalingv2.ScalingLimited,
+			Status: v1.ConditionTrue,
+			Reason: "TooFewReplicas",
+		}),
+	}
+	tc.runTest(t)
+}
+
+func TestMinReplicasDesiredZero(t *testing.T) {
+	tc := testCase{
+		minReplicas:         2,
+		maxReplicas:         5,
+		initialReplicas:     3,
+		desiredReplicas:     2,
+		CPUTarget:           90,
+		reportedLevels:      []uint64{0, 0, 0},
 		reportedCPURequests: []resource.Quantity{resource.MustParse("0.9"), resource.MustParse("1.0"), resource.MustParse("1.1")},
 		useMetricsApi:       true,
 		expectedConditions: statusOkWithOverrides(autoscalingv2.HorizontalPodAutoscalerCondition{

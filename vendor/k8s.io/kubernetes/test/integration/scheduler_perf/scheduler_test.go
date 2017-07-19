@@ -19,9 +19,9 @@ package benchmark
 import (
 	"fmt"
 	"github.com/golang/glog"
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/kubernetes/pkg/api/v1"
 	"k8s.io/kubernetes/plugin/pkg/scheduler"
 	"k8s.io/kubernetes/test/integration/framework"
 	testutils "k8s.io/kubernetes/test/utils"
@@ -42,7 +42,7 @@ func TestSchedule100Node3KPods(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping because we want to run short tests")
 	}
-	config := getBaseConfig(1000, 30000)
+	config := getBaseConfig(100, 3000)
 	writePodAndNodeTopologyToConfig(config)
 	min := schedulePods(config)
 	if min < threshold3K {

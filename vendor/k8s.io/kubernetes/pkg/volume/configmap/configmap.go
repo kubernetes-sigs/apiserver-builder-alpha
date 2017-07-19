@@ -20,10 +20,10 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/kubernetes/pkg/api/v1"
 	ioutil "k8s.io/kubernetes/pkg/util/io"
 	"k8s.io/kubernetes/pkg/util/mount"
 	"k8s.io/kubernetes/pkg/util/strings"
@@ -179,11 +179,11 @@ func (b *configMapVolumeMounter) CanMount() error {
 	return nil
 }
 
-func (b *configMapVolumeMounter) SetUp(fsGroup *types.UnixGroupID) error {
+func (b *configMapVolumeMounter) SetUp(fsGroup *int64) error {
 	return b.SetUpAt(b.GetPath(), fsGroup)
 }
 
-func (b *configMapVolumeMounter) SetUpAt(dir string, fsGroup *types.UnixGroupID) error {
+func (b *configMapVolumeMounter) SetUpAt(dir string, fsGroup *int64) error {
 	glog.V(3).Infof("Setting up volume %v for pod %v at %v", b.volName, b.pod.UID, dir)
 
 	// Wrap EmptyDir, let it do the setup.
@@ -266,9 +266,7 @@ func MakePayload(mappings []v1.KeyToPath, configMap *v1.ConfigMap, defaultMode *
 				if optional {
 					continue
 				}
-				err_msg := "references non-existent config key"
-				glog.Errorf(err_msg)
-				return nil, fmt.Errorf(err_msg)
+				return nil, fmt.Errorf("configmap references non-existent config key: %s", ktp.Key)
 			}
 
 			fileProjection.Data = []byte(content)

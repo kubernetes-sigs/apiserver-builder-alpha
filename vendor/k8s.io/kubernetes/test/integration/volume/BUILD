@@ -9,8 +9,10 @@ load(
 
 go_test(
     name = "go_default_test",
+    size = "large",
     srcs = [
         "attach_detach_test.go",
+        "main_test.go",
         "persistent_volumes_test.go",
     ],
     tags = [
@@ -19,11 +21,8 @@ go_test(
     ],
     deps = [
         "//pkg/api:go_default_library",
-        "//pkg/api/v1:go_default_library",
+        "//pkg/api/testapi:go_default_library",
         "//pkg/api/v1/ref:go_default_library",
-        "//pkg/apis/storage/v1:go_default_library",
-        "//pkg/client/clientset_generated/clientset:go_default_library",
-        "//pkg/client/informers/informers_generated/externalversions:go_default_library",
         "//pkg/cloudprovider/providers/fake:go_default_library",
         "//pkg/controller/volume/attachdetach:go_default_library",
         "//pkg/controller/volume/attachdetach/cache:go_default_library",
@@ -33,10 +32,14 @@ go_test(
         "//pkg/volume/util/volumehelper:go_default_library",
         "//test/integration/framework:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
+        "//vendor/k8s.io/api/core/v1:go_default_library",
+        "//vendor/k8s.io/api/storage/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
+        "//vendor/k8s.io/client-go/informers:go_default_library",
+        "//vendor/k8s.io/client-go/kubernetes:go_default_library",
         "//vendor/k8s.io/client-go/rest:go_default_library",
         "//vendor/k8s.io/client-go/tools/cache:go_default_library",
     ],

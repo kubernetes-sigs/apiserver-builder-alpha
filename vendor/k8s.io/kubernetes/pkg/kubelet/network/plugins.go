@@ -23,13 +23,13 @@ import (
 	"sync"
 
 	"github.com/golang/glog"
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	utilsets "k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation"
-	"k8s.io/kubernetes/pkg/api/v1"
+	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/pkg/apis/componentconfig"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 	kubecontainer "k8s.io/kubernetes/pkg/kubelet/container"
 	"k8s.io/kubernetes/pkg/kubelet/network/hostport"
 	utilexec "k8s.io/kubernetes/pkg/util/exec"
@@ -42,12 +42,6 @@ const DefaultPluginName = "kubernetes.io/no-op"
 // controller manager's --allocate-node-cidrs=true option
 const NET_PLUGIN_EVENT_POD_CIDR_CHANGE = "pod-cidr-change"
 const NET_PLUGIN_EVENT_POD_CIDR_CHANGE_DETAIL_CIDR = "pod-cidr"
-
-// Plugin capabilities
-const (
-	// Indicates the plugin handles Kubernetes bandwidth shaping annotations internally
-	NET_PLUGIN_CAPABILITY_SHAPING int = 1
-)
 
 // Plugin is an interface to network plugins for the kubelet
 type NetworkPlugin interface {
@@ -83,6 +77,8 @@ type NetworkPlugin interface {
 	// Status returns error if the network plugin is in error state
 	Status() error
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // PodNetworkStatus stores the network status of a pod (currently just the primary IP address)
 // This struct represents version "v1beta1"

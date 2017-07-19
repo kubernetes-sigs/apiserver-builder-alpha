@@ -178,7 +178,8 @@ function kube::build::verify_prereqs() {
     fi
   fi
 
-  KUBE_ROOT_HASH=$(kube::build::short_hash "${HOSTNAME:-}:${KUBE_ROOT}")
+  KUBE_GIT_BRANCH=$(git symbolic-ref --short -q HEAD 2>/dev/null || true)
+  KUBE_ROOT_HASH=$(kube::build::short_hash "${HOSTNAME:-}:${KUBE_ROOT}:${KUBE_GIT_BRANCH}")
   KUBE_BUILD_IMAGE_TAG_BASE="build-${KUBE_ROOT_HASH}"
   KUBE_BUILD_IMAGE_TAG="${KUBE_BUILD_IMAGE_TAG_BASE}-${KUBE_BUILD_IMAGE_VERSION}"
   KUBE_BUILD_IMAGE="${KUBE_BUILD_IMAGE_REPO}:${KUBE_BUILD_IMAGE_TAG}"
@@ -383,7 +384,13 @@ function kube::build::short_hash() {
 # a workaround for bug https://github.com/docker/docker/issues/3968.
 function kube::build::destroy_container() {
   "${DOCKER[@]}" kill "$1" >/dev/null 2>&1 || true
-  "${DOCKER[@]}" wait "$1" >/dev/null 2>&1 || true
+  if [[ $("${DOCKER[@]}" version --format '{{.Server.Version}}') = 17.06.0* ]]; then
+    # Workaround https://github.com/moby/moby/issues/33948.
+    # TODO: remove when 17.06.0 is not relevant anymore
+    DOCKER_API_VERSION=v1.29 "${DOCKER[@]}" wait "$1" >/dev/null 2>&1 || true
+  else
+    "${DOCKER[@]}" wait "$1" >/dev/null 2>&1 || true
+  fi
   "${DOCKER[@]}" rm -f -v "$1" >/dev/null 2>&1 || true
 }
 

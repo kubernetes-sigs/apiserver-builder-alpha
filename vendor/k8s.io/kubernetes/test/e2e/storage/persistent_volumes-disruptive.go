@@ -23,11 +23,11 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/kubernetes/pkg/api/v1"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
+	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/test/e2e/framework"
 )
 
@@ -46,7 +46,7 @@ const (
 	kRestart         kubeletOpt = "restart"
 )
 
-var _ = framework.KubeDescribe("PersistentVolumes [Volume][Disruptive][Flaky]", func() {
+var _ = SIGDescribe("PersistentVolumes[Disruptive][Flaky]", func() {
 
 	f := framework.NewDefaultFramework("disruptive-pv")
 	var (

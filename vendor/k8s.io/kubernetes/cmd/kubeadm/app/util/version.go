@@ -22,14 +22,11 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
-
-	kubeadmconstants "k8s.io/kubernetes/cmd/kubeadm/app/constants"
-	"k8s.io/kubernetes/pkg/util/version"
 )
 
 var (
 	kubeReleaseBucketURL  = "https://storage.googleapis.com/kubernetes-release/release"
-	kubeReleaseRegex      = regexp.MustCompile(`^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)([-0-9a-zA-Z_\.+]*)?$`)
+	kubeReleaseRegex      = regexp.MustCompile(`^v?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)([-0-9a-zA-Z_\.+]*)?$`)
 	kubeReleaseLabelRegex = regexp.MustCompile(`^[[:lower:]]+(-[-\w_\.]+)?$`)
 )
 
@@ -52,7 +49,10 @@ var (
 //  latest-1.0  (and similarly 1.1, 1.2, 1.3, ...)
 func KubernetesReleaseVersion(version string) (string, error) {
 	if kubeReleaseRegex.MatchString(version) {
-		return version, nil
+		if strings.HasPrefix(version, "v") {
+			return version, nil
+		}
+		return "v" + version, nil
 	} else if kubeReleaseLabelRegex.MatchString(version) {
 		url := fmt.Sprintf("%s/%s.txt", kubeReleaseBucketURL, version)
 		resp, err := http.Get(url)
@@ -73,11 +73,13 @@ func KubernetesReleaseVersion(version string) (string, error) {
 	return "", fmt.Errorf("version %q doesn't match patterns for neither semantic version nor labels (stable, latest, ...)", version)
 }
 
-// IsNodeAuthorizerSupported returns true if the provided version of kubernetes is able to use the Node Authorizer feature.
-// There is a really nasty problem with the branching here and the timing of this feature implementation. When the release-1.7 branch was
-// cut, two new tags were made: v1.7.0-beta.0 and v1.8.0-alpha.0. The Node Authorizer feature merged _after those cuts_. This means the minimum
-// version we have to use is v1.7.0-beta.1. BUT since v1.8.0-alpha.0 sorts higher than v1.7.0-beta.1 (the actual version gate), we have to manually
-// exclude v1.8.0-alpha.0 from this condition. v1.8.0-alpha.1 will indeed contain the patch.
-func IsNodeAuthorizerSupported(k8sVersion *version.Version) bool {
-	return k8sVersion.AtLeast(kubeadmconstants.MinimumNodeAuthorizerVersion) && k8sVersion.String() != "1.8.0-alpha.0"
+// KubernetesVersionToImageTag is helper function that replaces all
+// non-allowed symbols in tag strings with underscores.
+// Image tag can only contain lowercase and uppercase letters, digits,
+// underscores, periods and dashes.
+// Current usage is for CI images where all of symbols except '+' are valid,
+// but function is for generic usage where input can't be always pre-validated.
+func KubernetesVersionToImageTag(version string) string {
+	allowed := regexp.MustCompile(`[^-a-zA-Z0-9_\.]`)
+	return allowed.ReplaceAllString(version, "_")
 }

@@ -22,13 +22,14 @@ import (
 
 	"github.com/golang/glog"
 
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/kubernetes/pkg/api/v1"
 	"k8s.io/kubernetes/pkg/util/mount"
 	"k8s.io/kubernetes/pkg/util/strings"
 	"k8s.io/kubernetes/pkg/volume"
 	"k8s.io/kubernetes/pkg/volume/util"
+	"k8s.io/kubernetes/pkg/volume/validation"
 )
 
 // This is the primary entrypoint for volume plugins.
@@ -181,18 +182,23 @@ func (m *localVolumeMounter) CanMount() error {
 }
 
 // SetUp bind mounts the directory to the volume path
-func (m *localVolumeMounter) SetUp(fsGroup *types.UnixGroupID) error {
+func (m *localVolumeMounter) SetUp(fsGroup *int64) error {
 	return m.SetUpAt(m.GetPath(), fsGroup)
 }
 
 // SetUpAt bind mounts the directory to the volume path and sets up volume ownership
-func (m *localVolumeMounter) SetUpAt(dir string, fsGroup *types.UnixGroupID) error {
+func (m *localVolumeMounter) SetUpAt(dir string, fsGroup *int64) error {
 	if m.globalPath == "" {
 		err := fmt.Errorf("LocalVolume volume %q path is empty", m.volName)
 		return err
 	}
 
-	notMnt, err := m.mounter.IsLikelyNotMountPoint(dir)
+	err := validation.ValidatePathNoBacksteps(m.globalPath)
+	if err != nil {
+		return fmt.Errorf("invalid path: %s %v", m.globalPath, err)
+	}
+
+	notMnt, err := m.mounter.IsNotMountPoint(dir)
 	glog.V(4).Infof("LocalVolume mount setup: PodDir(%s) VolDir(%s) Mounted(%t) Error(%v), ReadOnly(%t)", dir, m.globalPath, !notMnt, err, m.readOnly)
 	if err != nil && !os.IsNotExist(err) {
 		glog.Errorf("cannot validate mount point: %s %v", dir, err)
@@ -217,9 +223,9 @@ func (m *localVolumeMounter) SetUpAt(dir string, fsGroup *types.UnixGroupID) err
 	err = m.mounter.Mount(m.globalPath, dir, "", options)
 	if err != nil {
 		glog.Errorf("Mount of volume %s failed: %v", dir, err)
-		notMnt, mntErr := m.mounter.IsLikelyNotMountPoint(dir)
+		notMnt, mntErr := m.mounter.IsNotMountPoint(dir)
 		if mntErr != nil {
-			glog.Errorf("IsLikelyNotMountPoint check failed: %v", mntErr)
+			glog.Errorf("IsNotMountPoint check failed: %v", mntErr)
 			return err
 		}
 		if !notMnt {
@@ -227,9 +233,9 @@ func (m *localVolumeMounter) SetUpAt(dir string, fsGroup *types.UnixGroupID) err
 				glog.Errorf("Failed to unmount: %v", mntErr)
 				return err
 			}
-			notMnt, mntErr = m.mounter.IsLikelyNotMountPoint(dir)
+			notMnt, mntErr = m.mounter.IsNotMountPoint(dir)
 			if mntErr != nil {
-				glog.Errorf("IsLikelyNotMountPoint check failed: %v", mntErr)
+				glog.Errorf("IsNotMountPoint check failed: %v", mntErr)
 				return err
 			}
 			if !notMnt {
@@ -263,5 +269,5 @@ func (u *localVolumeUnmounter) TearDown() error {
 // TearDownAt unmounts the bind mount
 func (u *localVolumeUnmounter) TearDownAt(dir string) error {
 	glog.V(4).Infof("Unmounting volume %q at path %q\n", u.volName, dir)
-	return util.UnmountPath(dir, u.mounter)
+	return util.UnmountMountPoint(dir, u.mounter, true) /* extensiveMountPointCheck = true */
 }
