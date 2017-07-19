@@ -60,8 +60,13 @@ var buildBin bool
 
 var server string
 var controllermanager string
+var toRun []string
+var disableDelegatedAuth bool
 
 func AddLocal(cmd *cobra.Command) {
+	localCmd.Flags().StringSliceVar(&toRun, "run", []string{"etcd", "apiserver", "controller-manager"}, "path to apiserver binary to run")
+	localCmd.Flags().BoolVar(&disableDelegatedAuth, "disable-delegated-auth", true, "If true, disable delegated auth in the apiserver with --delegated-auth=false.")
+
 	localCmd.Flags().StringVar(&server, "apiserver", "", "path to apiserver binary to run")
 	localCmd.Flags().StringVar(&controllermanager, "controller-manager", "", "path to controller-manager binary to run")
 	localCmd.Flags().StringVar(&etcd, "etcd", "", "if non-empty, use this etcd instead of starting a new one")
@@ -83,22 +88,29 @@ func RunLocal(cmd *cobra.Command, args []string) {
 
 	WriteKubeConfig()
 
+	r := map[string]interface{}{}
+	for _, s := range toRun {
+		r[s] = nil
+	}
+
 	// Start etcd
-	if len(etcd) == 0 {
+	if _, f := r["etcd"]; f {
 		etcd = "http://localhost:2379"
 		etcdCmd := RunEtcd()
 		defer etcdCmd.Process.Kill()
+		time.Sleep(time.Second * 2)
 	}
 
-	time.Sleep(time.Second * 2)
-
 	// Start apiserver
-	go RunApiserver()
-
-	time.Sleep(time.Second * 2)
+	if _, f := r["apiserver"]; f {
+		go RunApiserver()
+		time.Sleep(time.Second * 2)
+	}
 
 	// Start controller manager
-	go RunControllerManager()
+	if _, f := r["controller-manager"]; f {
+		go RunControllerManager()
+	}
 
 	fmt.Printf("to test the server run `kubectl --kubeconfig %s api-versions`\n", config)
 	select {} // wait forever
@@ -127,10 +139,17 @@ func RunApiserver() *exec.Cmd {
 		server = "bin/apiserver"
 	}
 
-	apiserverCmd := exec.Command(server,
-		"--delegated-auth=false",
+	flags := []string{
 		fmt.Sprintf("--etcd-servers=%s", etcd),
 		"--secure-port=9443",
+	}
+
+	if disableDelegatedAuth {
+		flags = append(flags, "--delegated-auth=false")
+	}
+
+	apiserverCmd := exec.Command(server,
+		flags...,
 	)
 	fmt.Printf("%s\n", strings.Join(apiserverCmd.Args, " "))
 	if printapiserver {
