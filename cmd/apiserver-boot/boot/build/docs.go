@@ -80,12 +80,14 @@ apiserver-boot build docs --generate-toc=false
 
 var operations, buildOpenapi, generateToc bool
 var server string
+var disableDelegatedAuth bool
 
 func AddDocs(cmd *cobra.Command) {
 	docsCmd.Flags().StringVar(&server, "server", "bin/apiserver", "path to apiserver binary to run to get swagger.json")
 	docsCmd.Flags().BoolVar(&buildOpenapi, "build-openapi", true, "If true, run the server and get the new swagger.json")
 	docsCmd.Flags().BoolVar(&operations, "operations", false, "if true, include operations in docs.")
 	docsCmd.Flags().BoolVar(&generateToc, "generate-toc", true, "If true, generate the table of contents from the api groups instead of using a statically configured ToC.")
+	docsCmd.Flags().BoolVar(&disableDelegatedAuth, "disable-delegated-auth", true, "If true, disable delegated auth in the apiserver with --delegated-auth=false.")
 	cmd.AddCommand(docsCmd)
 	docsCmd.AddCommand(docsCleanCmd)
 }
@@ -116,11 +118,18 @@ func RunDocs(cmd *cobra.Command, args []string) {
 
 	// Build the swagger.json
 	if buildOpenapi {
-		c := exec.Command(server,
-			"--delegated-auth=false",
+		flags := []string{
 			"--etcd-servers=http://localhost:2379",
 			"--secure-port=9443",
 			"--print-openapi",
+		}
+
+		if disableDelegatedAuth {
+			flags = append(flags, "--delegated-auth=false")
+		}
+
+		c := exec.Command(server,
+			flags...,
 		)
 		log.Printf("%s\n", strings.Join(c.Args, " "))
 
