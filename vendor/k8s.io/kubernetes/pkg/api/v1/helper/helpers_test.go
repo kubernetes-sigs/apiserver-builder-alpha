@@ -20,10 +20,10 @@ import (
 	"reflect"
 	"testing"
 
+	"k8s.io/api/core/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/kubernetes/pkg/api/v1"
 )
 
 func TestAddToNodeAddresses(t *testing.T) {
@@ -439,63 +439,6 @@ func TestSysctlsFromPodAnnotation(t *testing.T) {
 			t.Errorf("[%v]did not expect error but got: %v", i, err)
 		} else if !reflect.DeepEqual(sysctls, test.expectValue) {
 			t.Errorf("[%v]expect value %v but got %v", i, test.expectValue, sysctls)
-		}
-	}
-}
-
-// TODO: remove when alpha support for affinity is removed
-func TestGetAffinityFromPodAnnotations(t *testing.T) {
-	testCases := []struct {
-		pod       *v1.Pod
-		expectErr bool
-	}{
-		{
-			pod:       &v1.Pod{},
-			expectErr: false,
-		},
-		{
-			pod: &v1.Pod{
-				ObjectMeta: metav1.ObjectMeta{
-					Annotations: map[string]string{
-						v1.AffinityAnnotationKey: `
-						{"nodeAffinity": { "requiredDuringSchedulingIgnoredDuringExecution": {
-							"nodeSelectorTerms": [{
-								"matchExpressions": [{
-									"key": "foo",
-									"operator": "In",
-									"values": ["value1", "value2"]
-								}]
-							}]
-						}}}`,
-					},
-				},
-			},
-			expectErr: false,
-		},
-		{
-			pod: &v1.Pod{
-				ObjectMeta: metav1.ObjectMeta{
-					Annotations: map[string]string{
-						v1.AffinityAnnotationKey: `
-						{"nodeAffinity": { "requiredDuringSchedulingIgnoredDuringExecution": {
-							"nodeSelectorTerms": [{
-								"matchExpressions": [{
-									"key": "foo",
-						`,
-					},
-				},
-			},
-			expectErr: true,
-		},
-	}
-
-	for i, tc := range testCases {
-		_, err := GetAffinityFromPodAnnotations(tc.pod.Annotations)
-		if err == nil && tc.expectErr {
-			t.Errorf("[%v]expected error but got none.", i)
-		}
-		if err != nil && !tc.expectErr {
-			t.Errorf("[%v]did not expect error but got: %v", i, err)
 		}
 	}
 }

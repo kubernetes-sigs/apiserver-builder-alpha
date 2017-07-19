@@ -138,6 +138,16 @@ func (c Comments) GetTag(name, sep string) string {
 	return ""
 }
 
+func (c Comments) HasTag(name string) bool {
+	for _, c := range c {
+		prefix := fmt.Sprintf("+%s", name)
+		if strings.HasPrefix(c, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
 // GetTags returns the value for all comments with a prefix and separator.  E.g. for "name" and "="
 // "+name=foo\n+name=bar" would return []string{"foo", "bar"}
 func (c Comments) GetTags(name, sep string) []string {

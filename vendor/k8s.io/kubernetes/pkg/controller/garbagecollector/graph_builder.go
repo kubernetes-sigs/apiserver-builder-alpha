@@ -32,9 +32,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/informers"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
-	informers "k8s.io/kubernetes/pkg/client/informers/informers_generated/externalversions"
 )
 
 type eventType int
@@ -259,7 +259,7 @@ func (gb *GraphBuilder) enqueueChanges(e *event) {
 // addDependentToOwners adds n to owners' dependents list. If the owner does not
 // exist in the gb.uidToNode yet, a "virtual" node will be created to represent
 // the owner. The "virtual" node will be enqueued to the attemptToDelete, so that
-// processItem() will verify if the owner exists according to the API server.
+// attemptToDeleteItem() will verify if the owner exists according to the API server.
 func (gb *GraphBuilder) addDependentToOwners(n *node, owners []metav1.OwnerReference) {
 	for _, owner := range owners {
 		ownerNode, ok := gb.uidToNode.Read(owner.UID)

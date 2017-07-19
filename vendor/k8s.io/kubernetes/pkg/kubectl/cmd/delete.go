@@ -137,7 +137,7 @@ func NewCmdDelete(f cmdutil.Factory, out, errOut io.Writer) *cobra.Command {
 				cmdutil.CheckErr(err)
 			}
 			if err := options.Validate(cmd); err != nil {
-				cmdutil.CheckErr(cmdutil.UsageError(cmd, err.Error()))
+				cmdutil.CheckErr(cmdutil.UsageErrorf(cmd, err.Error()))
 			}
 			if err := options.RunDelete(); err != nil {
 				cmdutil.CheckErr(err)
@@ -327,7 +327,7 @@ func deleteResource(info *resource.Info, out io.Writer, shortOutput bool, mapper
 	return nil
 }
 
-// objectDeletionWaitInterval is the interval to wait between checks for deletion. Exposed for testing.
+// objectDeletionWaitInterval is the interval to wait between checks for deletion.
 var objectDeletionWaitInterval = time.Second
 
 // waitForObjectDeletion refreshes the object, waiting until it is deleted, a timeout is reached, or

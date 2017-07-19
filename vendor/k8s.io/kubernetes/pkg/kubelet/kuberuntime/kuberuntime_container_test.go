@@ -24,8 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/kubernetes/pkg/api/v1"
+	"k8s.io/api/core/v1"
 	runtimeapi "k8s.io/kubernetes/pkg/kubelet/apis/cri/v1alpha1/runtime"
 	kubecontainer "k8s.io/kubernetes/pkg/kubelet/container"
 	containertest "k8s.io/kubernetes/pkg/kubelet/container/testing"
@@ -68,6 +67,41 @@ func TestRemoveContainer(t *testing.T) {
 	containers, err := fakeRuntime.ListContainers(&runtimeapi.ContainerFilter{Id: containerId})
 	assert.NoError(t, err)
 	assert.Empty(t, containers)
+}
+
+// TestKillContainer tests killing the container in a Pod.
+func TestKillContainer(t *testing.T) {
+	_, _, m, _ := createTestRuntimeManager()
+
+	tests := []struct {
+		caseName            string
+		pod                 *v1.Pod
+		containerID         kubecontainer.ContainerID
+		containerName       string
+		reason              string
+		gracePeriodOverride int64
+		succeed             bool
+	}{
+		{
+			caseName: "Failed to find container in pods, expect to return error",
+			pod: &v1.Pod{
+				ObjectMeta: metav1.ObjectMeta{UID: "pod1_id", Name: "pod1", Namespace: "default"},
+				Spec:       v1.PodSpec{Containers: []v1.Container{{Name: "empty_container"}}},
+			},
+			containerID:         kubecontainer.ContainerID{Type: "docker", ID: "not_exist_container_id"},
+			containerName:       "not_exist_container",
+			reason:              "unknown reason",
+			gracePeriodOverride: 0,
+			succeed:             false,
+		},
+	}
+
+	for _, test := range tests {
+		err := m.killContainer(test.pod, test.containerID, test.containerName, test.reason, &test.gracePeriodOverride)
+		if test.succeed != (err == nil) {
+			t.Errorf("%s: expected %v, got %v (%v)", test.caseName, test.succeed, (err == nil), err)
+		}
+	}
 }
 
 // TestToKubeContainerStatus tests the converting the CRI container status to
@@ -227,7 +261,7 @@ func TestGenerateContainerConfig(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectedConfig, containerConfig, "generate container config for kubelet runtime v1.")
 
-	runAsUser := types.UnixUserID(0)
+	runAsUser := int64(0)
 	runAsNonRootTrue := true
 	podWithContainerSecurityContext := &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -252,7 +286,6 @@ func TestGenerateContainerConfig(t *testing.T) {
 		},
 	}
 
-	expectedConfig = makeExpetectedConfig(m, podWithContainerSecurityContext, 0)
-	containerConfig, err = m.generateContainerConfig(&podWithContainerSecurityContext.Spec.Containers[0], podWithContainerSecurityContext, 0, "", podWithContainerSecurityContext.Spec.Containers[0].Image)
+	_, err = m.generateContainerConfig(&podWithContainerSecurityContext.Spec.Containers[0], podWithContainerSecurityContext, 0, "", podWithContainerSecurityContext.Spec.Containers[0].Image)
 	assert.Error(t, err)
 }

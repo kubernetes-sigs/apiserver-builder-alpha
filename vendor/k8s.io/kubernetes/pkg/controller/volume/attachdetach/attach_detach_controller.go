@@ -24,18 +24,18 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"k8s.io/api/core/v1"
+	clientv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/runtime"
+	coreinformers "k8s.io/client-go/informers/core/v1"
+	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
 	v1core "k8s.io/client-go/kubernetes/typed/core/v1"
-	clientv1 "k8s.io/client-go/pkg/api/v1"
+	corelisters "k8s.io/client-go/listers/core/v1"
 	kcache "k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
-	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/api/v1"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
-	coreinformers "k8s.io/kubernetes/pkg/client/informers/informers_generated/externalversions/core/v1"
-	corelisters "k8s.io/kubernetes/pkg/client/listers/core/v1"
 	"k8s.io/kubernetes/pkg/cloudprovider"
 	"k8s.io/kubernetes/pkg/controller"
 	"k8s.io/kubernetes/pkg/controller/volume/attachdetach/cache"
@@ -50,26 +50,38 @@ import (
 	"k8s.io/kubernetes/pkg/volume/util/volumehelper"
 )
 
-const (
-	// loopPeriod is the amount of time the reconciler loop waits between
-	// successive executions
-	reconcilerLoopPeriod time.Duration = 100 * time.Millisecond
+// TimerConfig contains configuration of internal attach/detach timers and
+// should be used only to speed up tests. DefaultTimerConfig is the suggested
+// timer configuration for production.
+type TimerConfig struct {
+	// ReconcilerLoopPeriod is the amount of time the reconciler loop waits
+	// between successive executions
+	ReconcilerLoopPeriod time.Duration
 
-	// reconcilerMaxWaitForUnmountDuration is the maximum amount of time the
+	// ReconcilerMaxWaitForUnmountDuration is the maximum amount of time the
 	// attach detach controller will wait for a volume to be safely unmounted
 	// from its node. Once this time has expired, the controller will assume the
 	// node or kubelet are unresponsive and will detach the volume anyway.
-	reconcilerMaxWaitForUnmountDuration time.Duration = 6 * time.Minute
+	ReconcilerMaxWaitForUnmountDuration time.Duration
 
-	// desiredStateOfWorldPopulatorLoopSleepPeriod is the amount of time the
+	// DesiredStateOfWorldPopulatorLoopSleepPeriod is the amount of time the
 	// DesiredStateOfWorldPopulator loop waits between successive executions
-	desiredStateOfWorldPopulatorLoopSleepPeriod time.Duration = 1 * time.Minute
+	DesiredStateOfWorldPopulatorLoopSleepPeriod time.Duration
 
-	// desiredStateOfWorldPopulatorListPodsRetryDuration is the amount of
+	// DesiredStateOfWorldPopulatorListPodsRetryDuration is the amount of
 	// time the DesiredStateOfWorldPopulator loop waits between list pods
 	// calls.
-	desiredStateOfWorldPopulatorListPodsRetryDuration time.Duration = 3 * time.Minute
-)
+	DesiredStateOfWorldPopulatorListPodsRetryDuration time.Duration
+}
+
+// DefaultTimerConfig is the default configuration of Attach/Detach controller
+// timers.
+var DefaultTimerConfig TimerConfig = TimerConfig{
+	ReconcilerLoopPeriod:                              100 * time.Millisecond,
+	ReconcilerMaxWaitForUnmountDuration:               6 * time.Minute,
+	DesiredStateOfWorldPopulatorLoopSleepPeriod:       1 * time.Minute,
+	DesiredStateOfWorldPopulatorListPodsRetryDuration: 3 * time.Minute,
+}
 
 // AttachDetachController defines the operations supported by this controller.
 type AttachDetachController interface {
@@ -87,7 +99,8 @@ func NewAttachDetachController(
 	cloud cloudprovider.Interface,
 	plugins []volume.VolumePlugin,
 	disableReconciliationSync bool,
-	reconcilerSyncDuration time.Duration) (AttachDetachController, error) {
+	reconcilerSyncDuration time.Duration,
+	timerConfig TimerConfig) (AttachDetachController, error) {
 	// TODO: The default resyncPeriod for shared informers is 12 hours, this is
 	// unacceptable for the attach/detach controller. For example, if a pod is
 	// skipped because the node it is scheduled to didn't set its annotation in
@@ -122,7 +135,7 @@ func NewAttachDetachController(
 	eventBroadcaster := record.NewBroadcaster()
 	eventBroadcaster.StartLogging(glog.Infof)
 	eventBroadcaster.StartRecordingToSink(&v1core.EventSinkImpl{Interface: v1core.New(kubeClient.Core().RESTClient()).Events("")})
-	recorder := eventBroadcaster.NewRecorder(api.Scheme, clientv1.EventSource{Component: "attachdetach"})
+	recorder := eventBroadcaster.NewRecorder(scheme.Scheme, clientv1.EventSource{Component: "attachdetach"})
 
 	adc.desiredStateOfWorld = cache.NewDesiredStateOfWorld(&adc.volumePluginMgr)
 	adc.actualStateOfWorld = cache.NewActualStateOfWorld(&adc.volumePluginMgr)
@@ -137,8 +150,8 @@ func NewAttachDetachController(
 
 	// Default these to values in options
 	adc.reconciler = reconciler.NewReconciler(
-		reconcilerLoopPeriod,
-		reconcilerMaxWaitForUnmountDuration,
+		timerConfig.ReconcilerLoopPeriod,
+		timerConfig.ReconcilerMaxWaitForUnmountDuration,
 		reconcilerSyncDuration,
 		disableReconciliationSync,
 		adc.desiredStateOfWorld,
@@ -148,8 +161,8 @@ func NewAttachDetachController(
 		recorder)
 
 	adc.desiredStateOfWorldPopulator = populator.NewDesiredStateOfWorldPopulator(
-		desiredStateOfWorldPopulatorLoopSleepPeriod,
-		desiredStateOfWorldPopulatorListPodsRetryDuration,
+		timerConfig.DesiredStateOfWorldPopulatorLoopSleepPeriod,
+		timerConfig.DesiredStateOfWorldPopulatorListPodsRetryDuration,
 		podInformer.Lister(),
 		adc.desiredStateOfWorld,
 		&adc.volumePluginMgr,
@@ -461,7 +474,8 @@ func (adc *attachDetachController) nodeDelete(obj interface{}) {
 
 	nodeName := types.NodeName(node.Name)
 	if err := adc.desiredStateOfWorld.DeleteNode(nodeName); err != nil {
-		glog.V(10).Infof("%v", err)
+		// This might happen during drain, but we still want it to appear in our logs
+		glog.Infof("error removing node %q from desired-state-of-world: %v", nodeName, err)
 	}
 
 	adc.processVolumesInUse(nodeName, node.Status.VolumesInUse, false /* forceUnmount */)

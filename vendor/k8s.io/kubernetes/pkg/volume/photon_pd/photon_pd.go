@@ -22,10 +22,10 @@ import (
 	"path"
 
 	"github.com/golang/glog"
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/kubernetes/pkg/api/v1"
 	"k8s.io/kubernetes/pkg/util/exec"
 	"k8s.io/kubernetes/pkg/util/mount"
 	utilstrings "k8s.io/kubernetes/pkg/util/strings"
@@ -195,12 +195,12 @@ func (b *photonPersistentDiskMounter) CanMount() error {
 }
 
 // SetUp attaches the disk and bind mounts to the volume path.
-func (b *photonPersistentDiskMounter) SetUp(fsGroup *types.UnixGroupID) error {
+func (b *photonPersistentDiskMounter) SetUp(fsGroup *int64) error {
 	return b.SetUpAt(b.GetPath(), fsGroup)
 }
 
 // SetUp attaches the disk and bind mounts to the volume path.
-func (b *photonPersistentDiskMounter) SetUpAt(dir string, fsGroup *types.UnixGroupID) error {
+func (b *photonPersistentDiskMounter) SetUpAt(dir string, fsGroup *int64) error {
 	glog.V(4).Infof("Photon Persistent Disk setup %s to %s", b.pdID, dir)
 
 	// TODO: handle failed mounts here.

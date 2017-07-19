@@ -24,9 +24,9 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/tools/record"
-	"k8s.io/kubernetes/pkg/api/v1"
 	"k8s.io/kubernetes/pkg/controller/volume/attachdetach/cache"
 	"k8s.io/kubernetes/pkg/controller/volume/attachdetach/statusupdater"
 	kevents "k8s.io/kubernetes/pkg/kubelet/events"
@@ -35,7 +35,7 @@ import (
 	"k8s.io/kubernetes/pkg/volume/util/operationexecutor"
 )
 
-// Reconciler runs a periodic loop to reconcile the desired state of the with
+// Reconciler runs a periodic loop to reconcile the desired state of the world with
 // the actual state of the world by triggering attach detach operations.
 // Note: This is distinct from the Reconciler implemented by the kubelet volume
 // manager. This reconciles state for the attach/detach controller. That
@@ -225,7 +225,7 @@ func (rc *reconciler) reconcile() {
 				if !timeout {
 					glog.Infof(attachedVolume.GenerateMsgDetailed("attacherDetacher.DetachVolume started", ""))
 				} else {
-					glog.Infof(attachedVolume.GenerateMsgDetailed("attacherDetacher.DetachVolume started", fmt.Sprintf("This volume is not safe to detach, but maxWaitForUnmountDuration %v expired, force detaching", rc.maxWaitForUnmountDuration)))
+					glog.Warningf(attachedVolume.GenerateMsgDetailed("attacherDetacher.DetachVolume started", fmt.Sprintf("This volume is not safe to detach, but maxWaitForUnmountDuration %v expired, force detaching", rc.maxWaitForUnmountDuration)))
 				}
 			}
 			if err != nil && !exponentialbackoff.IsExponentialBackoff(err) {
@@ -282,6 +282,6 @@ func (rc *reconciler) reconcile() {
 	// Update Node Status
 	err := rc.nodeStatusUpdater.UpdateNodeStatuses()
 	if err != nil {
-		glog.Infof("UpdateNodeStatuses failed with: %v", err)
+		glog.Warningf("UpdateNodeStatuses failed with: %v", err)
 	}
 }

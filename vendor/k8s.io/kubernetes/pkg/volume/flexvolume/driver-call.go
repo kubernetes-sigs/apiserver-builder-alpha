@@ -58,13 +58,13 @@ const (
 	optionKeyPodUID       = "kubernetes.io/pod.uid"
 
 	optionKeyServiceAccountName = "kubernetes.io/serviceAccount.name"
+
+	attachCapability = "attach"
 )
 
 const (
 	// StatusSuccess represents the successful completion of command.
 	StatusSuccess = "Success"
-	// StatusFailed represents that the command failed.
-	StatusFailure = "Failed"
 	// StatusNotSupported represents that the command is not supported.
 	StatusNotSupported = "Not supported"
 )
@@ -144,7 +144,7 @@ func (dc *DriverCall) Run() (*DriverStatus, error) {
 		if isCmdNotSupportedErr(err) {
 			dc.plugin.unsupported(dc.Command)
 		} else {
-			glog.Warningf("FlexVolume: driver call failed: executable: %s, args: %s, error: %s, output: %s", execPath, dc.args, execErr.Error(), output)
+			glog.Warningf("FlexVolume: driver call failed: executable: %s, args: %s, error: %s, output: %q", execPath, dc.args, execErr.Error(), output)
 		}
 		return nil, err
 	}
@@ -201,6 +201,10 @@ type DriverStatus struct {
 	VolumeName string `json:"volumeName,omitempty"`
 	// Represents volume is attached on the node
 	Attached bool `json:"attached,omitempty"`
+	// Returns capabilities of the driver.
+	// By default we assume all the capabilities are supported.
+	// If the plugin does not support a capability, it can return false for that capability.
+	Capabilities map[string]bool
 }
 
 // isCmdNotSupportedErr checks if the error corresponds to command not supported by
@@ -218,7 +222,7 @@ func isCmdNotSupportedErr(err error) bool {
 func handleCmdResponse(cmd string, output []byte) (*DriverStatus, error) {
 	var status DriverStatus
 	if err := json.Unmarshal(output, &status); err != nil {
-		glog.Errorf("Failed to unmarshal output for command: %s, output: %s, error: %s", cmd, string(output), err.Error())
+		glog.Errorf("Failed to unmarshal output for command: %s, output: %q, error: %s", cmd, string(output), err.Error())
 		return nil, err
 	} else if status.Status == StatusNotSupported {
 		glog.V(5).Infof("%s command is not supported by the driver", cmd)

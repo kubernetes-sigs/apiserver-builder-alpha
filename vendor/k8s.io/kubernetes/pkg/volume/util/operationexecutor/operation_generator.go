@@ -21,13 +21,13 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
+	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/record"
-	"k8s.io/kubernetes/pkg/api/v1"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 	"k8s.io/kubernetes/pkg/features"
 	kevents "k8s.io/kubernetes/pkg/kubelet/events"
 	"k8s.io/kubernetes/pkg/util/mount"
@@ -392,7 +392,7 @@ func (og *operationGenerator) GenerateMountVolumeFunc(
 		volumeAttacher, _ = attachableVolumePlugin.NewAttacher()
 	}
 
-	var fsGroup *types.UnixGroupID
+	var fsGroup *int64
 	if volumeToMount.Pod.Spec.SecurityContext != nil &&
 		volumeToMount.Pod.Spec.SecurityContext.FSGroup != nil {
 		fsGroup = volumeToMount.Pod.Spec.SecurityContext.FSGroup

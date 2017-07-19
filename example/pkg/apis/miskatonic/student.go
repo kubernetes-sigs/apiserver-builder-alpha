@@ -29,6 +29,7 @@ import (
 var _ rest.CreaterUpdater = &StudentREST{}
 var _ rest.Patcher = &StudentREST{}
 
+// +k8s:deepcopy-gen=false
 type StudentREST struct {
 	Registry StudentRegistry
 }

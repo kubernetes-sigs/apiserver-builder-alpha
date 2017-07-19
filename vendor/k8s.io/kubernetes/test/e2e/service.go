@@ -23,13 +23,13 @@ import (
 	"strings"
 	"time"
 
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/kubernetes/pkg/api/v1"
+	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/pkg/api/v1/service"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 	"k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
 	"k8s.io/kubernetes/pkg/cloudprovider"
 	"k8s.io/kubernetes/pkg/controller/endpoint"
@@ -57,7 +57,7 @@ var _ = framework.KubeDescribe("Services", func() {
 		}
 		for _, lb := range serviceLBNames {
 			framework.Logf("cleaning gce resource for %s", lb)
-			framework.CleanupServiceGCEResources(lb, framework.TestContext.CloudConfig.Zone)
+			framework.CleanupServiceGCEResources(cs, lb, framework.TestContext.CloudConfig.Zone)
 		}
 		//reset serviceLBNames
 		serviceLBNames = []string{}
@@ -789,6 +789,101 @@ var _ = framework.KubeDescribe("Services", func() {
 		}
 	})
 
+	It("should be able to change the type from ExternalName to ClusterIP", func() {
+		serviceName := "externalname-service"
+		ns := f.Namespace.Name
+		jig := framework.NewServiceTestJig(cs, serviceName)
+
+		By("creating a service " + serviceName + " with the type=ExternalName in namespace " + ns)
+		externalNameService := jig.CreateExternalNameServiceOrFail(ns, nil)
+		defer func() {
+			framework.Logf("Cleaning up the ExternalName to ClusterIP test service")
+			err := cs.Core().Services(ns).Delete(serviceName, nil)
+			Expect(err).NotTo(HaveOccurred())
+		}()
+		jig.SanityCheckService(externalNameService, v1.ServiceTypeExternalName)
+		By("changing the ExternalName service to type=ClusterIP")
+		clusterIPService := jig.UpdateServiceOrFail(ns, externalNameService.Name, func(s *v1.Service) {
+			s.Spec.Type = v1.ServiceTypeClusterIP
+			s.Spec.ExternalName = ""
+			s.Spec.Ports = []v1.ServicePort{
+				{Port: 80, Name: "http", Protocol: "TCP"},
+			}
+		})
+		jig.SanityCheckService(clusterIPService, v1.ServiceTypeClusterIP)
+	})
+
+	It("should be able to change the type from ExternalName to NodePort", func() {
+		serviceName := "externalname-service"
+		ns := f.Namespace.Name
+		jig := framework.NewServiceTestJig(cs, serviceName)
+
+		By("creating a service " + serviceName + " with the type=ExternalName in namespace " + ns)
+		externalNameService := jig.CreateExternalNameServiceOrFail(ns, nil)
+		defer func() {
+			framework.Logf("Cleaning up the ExternalName to NodePort test service")
+			err := cs.Core().Services(ns).Delete(serviceName, nil)
+			Expect(err).NotTo(HaveOccurred())
+		}()
+		jig.SanityCheckService(externalNameService, v1.ServiceTypeExternalName)
+		By("changing the ExternalName service to type=NodePort")
+		nodePortService := jig.UpdateServiceOrFail(ns, externalNameService.Name, func(s *v1.Service) {
+			s.Spec.Type = v1.ServiceTypeNodePort
+			s.Spec.ExternalName = ""
+			s.Spec.Ports = []v1.ServicePort{
+				{Port: 80, Name: "http", Protocol: "TCP"},
+			}
+		})
+		jig.SanityCheckService(nodePortService, v1.ServiceTypeNodePort)
+	})
+
+	It("should be able to change the type from ClusterIP to ExternalName", func() {
+		serviceName := "clusterip-service"
+		ns := f.Namespace.Name
+		jig := framework.NewServiceTestJig(cs, serviceName)
+
+		By("creating a service " + serviceName + " with the type=ClusterIP in namespace " + ns)
+		clusterIPService := jig.CreateTCPServiceOrFail(ns, nil)
+		defer func() {
+			framework.Logf("Cleaning up the ClusterIP to ExternalName test service")
+			err := cs.Core().Services(ns).Delete(serviceName, nil)
+			Expect(err).NotTo(HaveOccurred())
+		}()
+		jig.SanityCheckService(clusterIPService, v1.ServiceTypeClusterIP)
+		By("changing the ClusterIP service to type=ExternalName")
+		externalNameService := jig.UpdateServiceOrFail(ns, clusterIPService.Name, func(s *v1.Service) {
+			s.Spec.Type = v1.ServiceTypeExternalName
+			s.Spec.ExternalName = "foo.example.com"
+			s.Spec.ClusterIP = ""
+		})
+		jig.SanityCheckService(externalNameService, v1.ServiceTypeExternalName)
+	})
+
+	It("should be able to change the type from NodePort to ExternalName", func() {
+		serviceName := "nodeport-service"
+		ns := f.Namespace.Name
+		jig := framework.NewServiceTestJig(cs, serviceName)
+
+		By("creating a service " + serviceName + " with the type=NodePort in namespace " + ns)
+		nodePortService := jig.CreateTCPServiceOrFail(ns, func(svc *v1.Service) {
+			svc.Spec.Type = v1.ServiceTypeNodePort
+		})
+		defer func() {
+			framework.Logf("Cleaning up the NodePort to ExternalName test service")
+			err := cs.Core().Services(ns).Delete(serviceName, nil)
+			Expect(err).NotTo(HaveOccurred())
+		}()
+		jig.SanityCheckService(nodePortService, v1.ServiceTypeNodePort)
+		By("changing the NodePort service to type=ExternalName")
+		externalNameService := jig.UpdateServiceOrFail(ns, nodePortService.Name, func(s *v1.Service) {
+			s.Spec.Type = v1.ServiceTypeExternalName
+			s.Spec.ExternalName = "foo.example.com"
+			s.Spec.ClusterIP = ""
+			s.Spec.Ports[0].NodePort = 0
+		})
+		jig.SanityCheckService(externalNameService, v1.ServiceTypeExternalName)
+	})
+
 	It("should use same NodePort with same port but different protocols", func() {
 		serviceName := "nodeports"
 		ns := f.Namespace.Name
@@ -866,7 +961,7 @@ var _ = framework.KubeDescribe("Services", func() {
 		}
 		port := result.Spec.Ports[0]
 		if port.NodePort == 0 {
-			framework.Failf("got unexpected Spec.Ports[0].nodePort for new service: %v", result)
+			framework.Failf("got unexpected Spec.Ports[0].NodePort for new service: %v", result)
 		}
 
 		By("creating service " + serviceName2 + " with conflicting NodePort")
@@ -1241,6 +1336,77 @@ var _ = framework.KubeDescribe("Services", func() {
 		framework.CheckReachabilityFromPod(true, normalReachabilityTimeout, namespace, acceptPodName, svcIP)
 		framework.CheckReachabilityFromPod(true, normalReachabilityTimeout, namespace, dropPodName, svcIP)
 	})
+
+	It("should be able to create an internal type load balancer on Azure [Slow]", func() {
+		framework.SkipUnlessProviderIs("azure")
+
+		createTimeout := framework.LoadBalancerCreateTimeoutDefault
+		pollInterval := framework.Poll * 10
+
+		serviceAnnotationLoadBalancerInternal := "service.beta.kubernetes.io/azure-load-balancer-internal"
+		namespace := f.Namespace.Name
+		serviceName := "lb-internal"
+		jig := framework.NewServiceTestJig(cs, serviceName)
+
+		isInternalEndpoint := func(lbIngress *v1.LoadBalancerIngress) bool {
+			ingressEndpoint := framework.GetIngressPoint(lbIngress)
+			// Needs update for providers using hostname as endpoint.
+			return strings.HasPrefix(ingressEndpoint, "10.")
+		}
+
+		By("creating a service with type LoadBalancer and LoadBalancerInternal annotation set to true")
+		svc := jig.CreateTCPServiceOrFail(namespace, func(svc *v1.Service) {
+			svc.Spec.Type = v1.ServiceTypeLoadBalancer
+			svc.ObjectMeta.Annotations = map[string]string{
+				serviceAnnotationLoadBalancerInternal: "true",
+			}
+		})
+		svc = jig.WaitForLoadBalancerOrFail(namespace, serviceName, createTimeout)
+		jig.SanityCheckService(svc, v1.ServiceTypeLoadBalancer)
+		lbIngress := &svc.Status.LoadBalancer.Ingress[0]
+		// should have an internal IP.
+		Expect(isInternalEndpoint(lbIngress)).To(BeTrue())
+
+		By("switiching to external type LoadBalancer")
+		svc = jig.UpdateServiceOrFail(namespace, serviceName, func(svc *v1.Service) {
+			svc.ObjectMeta.Annotations[serviceAnnotationLoadBalancerInternal] = "false"
+		})
+		framework.Logf("Waiting up to %v for service %q to have an external LoadBalancer", createTimeout, serviceName)
+		if pollErr := wait.PollImmediate(pollInterval, createTimeout, func() (bool, error) {
+			svc, err := jig.Client.Core().Services(namespace).Get(serviceName, metav1.GetOptions{})
+			if err != nil {
+				return false, err
+			}
+			lbIngress = &svc.Status.LoadBalancer.Ingress[0]
+			return !isInternalEndpoint(lbIngress), nil
+		}); pollErr != nil {
+			framework.Failf("Loadbalancer IP not changed to external.")
+		}
+		// should have an external IP.
+		jig.SanityCheckService(svc, v1.ServiceTypeLoadBalancer)
+		Expect(isInternalEndpoint(lbIngress)).To(BeFalse())
+
+		By("switiching back to interal type LoadBalancer, with static IP specified.")
+		internalStaticIP := "10.240.11.11"
+		svc = jig.UpdateServiceOrFail(namespace, serviceName, func(svc *v1.Service) {
+			svc.Spec.LoadBalancerIP = internalStaticIP
+			svc.ObjectMeta.Annotations[serviceAnnotationLoadBalancerInternal] = "true"
+		})
+		framework.Logf("Waiting up to %v for service %q to have an internal LoadBalancer", createTimeout, serviceName)
+		if pollErr := wait.PollImmediate(pollInterval, createTimeout, func() (bool, error) {
+			svc, err := jig.Client.Core().Services(namespace).Get(serviceName, metav1.GetOptions{})
+			if err != nil {
+				return false, err
+			}
+			lbIngress = &svc.Status.LoadBalancer.Ingress[0]
+			return isInternalEndpoint(lbIngress), nil
+		}); pollErr != nil {
+			framework.Failf("Loadbalancer IP not changed to internal.")
+		}
+		// should have the given static internal IP.
+		jig.SanityCheckService(svc, v1.ServiceTypeLoadBalancer)
+		Expect(framework.GetIngressPoint(lbIngress)).To(Equal(internalStaticIP))
+	})
 })
 
 var _ = framework.KubeDescribe("ESIPP [Slow]", func() {
@@ -1266,7 +1432,7 @@ var _ = framework.KubeDescribe("ESIPP [Slow]", func() {
 		}
 		for _, lb := range serviceLBNames {
 			framework.Logf("cleaning gce resource for %s", lb)
-			framework.CleanupServiceGCEResources(lb, framework.TestContext.CloudConfig.Zone)
+			framework.CleanupServiceGCEResources(cs, lb, framework.TestContext.CloudConfig.Zone)
 		}
 		//reset serviceLBNames
 		serviceLBNames = []string{}
@@ -1340,7 +1506,16 @@ var _ = framework.KubeDescribe("ESIPP [Slow]", func() {
 		jig := framework.NewServiceTestJig(cs, serviceName)
 		nodes := jig.GetNodes(framework.MaxNodesForEndpointsTests)
 
-		svc := jig.CreateOnlyLocalLoadBalancerService(namespace, serviceName, loadBalancerCreateTimeout, false, nil)
+		svc := jig.CreateOnlyLocalLoadBalancerService(namespace, serviceName, loadBalancerCreateTimeout, false,
+			func(svc *v1.Service) {
+				// Change service port to avoid collision with opened hostPorts
+				// in other tests that run in parallel.
+				if len(svc.Spec.Ports) != 0 {
+					svc.Spec.Ports[0].TargetPort = intstr.FromInt(int(svc.Spec.Ports[0].Port))
+					svc.Spec.Ports[0].Port = 8081
+				}
+
+			})
 		serviceLBNames = append(serviceLBNames, cloudprovider.GetLoadBalancerName(svc))
 		defer func() {
 			jig.ChangeServiceType(svc.Namespace, svc.Name, v1.ServiceTypeClusterIP, loadBalancerCreateTimeout)

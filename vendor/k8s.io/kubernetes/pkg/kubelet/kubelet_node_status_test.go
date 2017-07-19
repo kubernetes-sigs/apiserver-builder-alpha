@@ -30,6 +30,7 @@ import (
 
 	cadvisorapi "github.com/google/cadvisor/info/v1"
 	cadvisorapiv2 "github.com/google/cadvisor/info/v2"
+	"k8s.io/api/core/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -40,9 +41,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/kubernetes/fake"
 	core "k8s.io/client-go/testing"
-	"k8s.io/kubernetes/pkg/api/v1"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset/fake"
 	"k8s.io/kubernetes/pkg/kubelet/cm"
 	kubecontainer "k8s.io/kubernetes/pkg/kubelet/container"
 	"k8s.io/kubernetes/pkg/kubelet/util/sliceutils"
@@ -115,10 +115,15 @@ func applyNodeStatusPatch(originalNode *v1.Node, patch []byte) (*v1.Node, error)
 type localCM struct {
 	cm.ContainerManager
 	allocatable v1.ResourceList
+	capacity    v1.ResourceList
 }
 
 func (lcm *localCM) GetNodeAllocatableReservation() v1.ResourceList {
 	return lcm.allocatable
+}
+
+func (lcm *localCM) GetCapacity() v1.ResourceList {
+	return lcm.capacity
 }
 
 func TestUpdateNewNodeStatus(t *testing.T) {
@@ -133,6 +138,10 @@ func TestUpdateNewNodeStatus(t *testing.T) {
 		allocatable: v1.ResourceList{
 			v1.ResourceCPU:    *resource.NewMilliQuantity(200, resource.DecimalSI),
 			v1.ResourceMemory: *resource.NewQuantity(100E6, resource.BinarySI),
+		},
+		capacity: v1.ResourceList{
+			v1.ResourceCPU:    *resource.NewMilliQuantity(2000, resource.DecimalSI),
+			v1.ResourceMemory: *resource.NewQuantity(10E9, resource.BinarySI),
 		},
 	}
 	kubeClient := testKubelet.fakeKubeClient
@@ -208,16 +217,14 @@ func TestUpdateNewNodeStatus(t *testing.T) {
 				KubeProxyVersion:        version.Get().String(),
 			},
 			Capacity: v1.ResourceList{
-				v1.ResourceCPU:     *resource.NewMilliQuantity(2000, resource.DecimalSI),
-				v1.ResourceMemory:  *resource.NewQuantity(10E9, resource.BinarySI),
-				v1.ResourceStorage: *resource.NewQuantity(500*mb, resource.BinarySI),
-				v1.ResourcePods:    *resource.NewQuantity(0, resource.DecimalSI),
+				v1.ResourceCPU:    *resource.NewMilliQuantity(2000, resource.DecimalSI),
+				v1.ResourceMemory: *resource.NewQuantity(10E9, resource.BinarySI),
+				v1.ResourcePods:   *resource.NewQuantity(0, resource.DecimalSI),
 			},
 			Allocatable: v1.ResourceList{
-				v1.ResourceCPU:     *resource.NewMilliQuantity(1800, resource.DecimalSI),
-				v1.ResourceMemory:  *resource.NewQuantity(9900E6, resource.BinarySI),
-				v1.ResourceStorage: *resource.NewQuantity(500*mb, resource.BinarySI),
-				v1.ResourcePods:    *resource.NewQuantity(0, resource.DecimalSI),
+				v1.ResourceCPU:    *resource.NewMilliQuantity(1800, resource.DecimalSI),
+				v1.ResourceMemory: *resource.NewQuantity(9900E6, resource.BinarySI),
+				v1.ResourcePods:   *resource.NewQuantity(0, resource.DecimalSI),
 			},
 			Addresses: []v1.NodeAddress{
 				{Type: v1.NodeInternalIP, Address: "127.0.0.1"},
@@ -253,6 +260,18 @@ func TestUpdateNewNodeOutOfDiskStatusWithTransitionFrequency(t *testing.T) {
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
 	kubelet := testKubelet.kubelet
+	kubelet.containerManager = &localCM{
+		ContainerManager: cm.NewStubContainerManager(),
+		allocatable: v1.ResourceList{
+			v1.ResourceCPU:    *resource.NewMilliQuantity(200, resource.DecimalSI),
+			v1.ResourceMemory: *resource.NewQuantity(100E6, resource.BinarySI),
+		},
+		capacity: v1.ResourceList{
+			v1.ResourceCPU:    *resource.NewMilliQuantity(2000, resource.DecimalSI),
+			v1.ResourceMemory: *resource.NewQuantity(20E9, resource.BinarySI),
+		},
+	}
+
 	kubeClient := testKubelet.fakeKubeClient
 	existingNode := v1.Node{ObjectMeta: metav1.ObjectMeta{Name: testKubeletHostname}}
 	kubeClient.ReactionChain = fake.NewSimpleClientset(&v1.NodeList{Items: []v1.Node{existingNode}}).ReactionChain
@@ -321,6 +340,10 @@ func TestUpdateExistingNodeStatus(t *testing.T) {
 			v1.ResourceCPU:    *resource.NewMilliQuantity(200, resource.DecimalSI),
 			v1.ResourceMemory: *resource.NewQuantity(100E6, resource.BinarySI),
 		},
+		capacity: v1.ResourceList{
+			v1.ResourceCPU:    *resource.NewMilliQuantity(2000, resource.DecimalSI),
+			v1.ResourceMemory: *resource.NewQuantity(20E9, resource.BinarySI),
+		},
 	}
 
 	kubeClient := testKubelet.fakeKubeClient
@@ -363,16 +386,14 @@ func TestUpdateExistingNodeStatus(t *testing.T) {
 				},
 			},
 			Capacity: v1.ResourceList{
-				v1.ResourceCPU:     *resource.NewMilliQuantity(3000, resource.DecimalSI),
-				v1.ResourceMemory:  *resource.NewQuantity(20E9, resource.BinarySI),
-				v1.ResourceStorage: *resource.NewQuantity(500*mb, resource.BinarySI),
-				v1.ResourcePods:    *resource.NewQuantity(0, resource.DecimalSI),
+				v1.ResourceCPU:    *resource.NewMilliQuantity(3000, resource.DecimalSI),
+				v1.ResourceMemory: *resource.NewQuantity(20E9, resource.BinarySI),
+				v1.ResourcePods:   *resource.NewQuantity(0, resource.DecimalSI),
 			},
 			Allocatable: v1.ResourceList{
-				v1.ResourceCPU:     *resource.NewMilliQuantity(2800, resource.DecimalSI),
-				v1.ResourceMemory:  *resource.NewQuantity(19900E6, resource.BinarySI),
-				v1.ResourceStorage: *resource.NewQuantity(500*mb, resource.BinarySI),
-				v1.ResourcePods:    *resource.NewQuantity(0, resource.DecimalSI),
+				v1.ResourceCPU:    *resource.NewMilliQuantity(2800, resource.DecimalSI),
+				v1.ResourceMemory: *resource.NewQuantity(19900E6, resource.BinarySI),
+				v1.ResourcePods:   *resource.NewQuantity(0, resource.DecimalSI),
 			},
 		},
 	}
@@ -448,16 +469,14 @@ func TestUpdateExistingNodeStatus(t *testing.T) {
 				KubeProxyVersion:        version.Get().String(),
 			},
 			Capacity: v1.ResourceList{
-				v1.ResourceCPU:     *resource.NewMilliQuantity(2000, resource.DecimalSI),
-				v1.ResourceMemory:  *resource.NewQuantity(20E9, resource.BinarySI),
-				v1.ResourceStorage: *resource.NewQuantity(500*mb, resource.BinarySI),
-				v1.ResourcePods:    *resource.NewQuantity(0, resource.DecimalSI),
+				v1.ResourceCPU:    *resource.NewMilliQuantity(2000, resource.DecimalSI),
+				v1.ResourceMemory: *resource.NewQuantity(20E9, resource.BinarySI),
+				v1.ResourcePods:   *resource.NewQuantity(0, resource.DecimalSI),
 			},
 			Allocatable: v1.ResourceList{
-				v1.ResourceCPU:     *resource.NewMilliQuantity(1800, resource.DecimalSI),
-				v1.ResourceMemory:  *resource.NewQuantity(19900E6, resource.BinarySI),
-				v1.ResourceStorage: *resource.NewQuantity(500*mb, resource.BinarySI),
-				v1.ResourcePods:    *resource.NewQuantity(0, resource.DecimalSI),
+				v1.ResourceCPU:    *resource.NewMilliQuantity(1800, resource.DecimalSI),
+				v1.ResourceMemory: *resource.NewQuantity(19900E6, resource.BinarySI),
+				v1.ResourcePods:   *resource.NewQuantity(0, resource.DecimalSI),
 			},
 			Addresses: []v1.NodeAddress{
 				{Type: v1.NodeInternalIP, Address: "127.0.0.1"},
@@ -509,6 +528,18 @@ func TestUpdateExistingNodeOutOfDiskStatusWithTransitionFrequency(t *testing.T) 
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
 	kubelet := testKubelet.kubelet
+	kubelet.containerManager = &localCM{
+		ContainerManager: cm.NewStubContainerManager(),
+		allocatable: v1.ResourceList{
+			v1.ResourceCPU:    *resource.NewMilliQuantity(200, resource.DecimalSI),
+			v1.ResourceMemory: *resource.NewQuantity(100E6, resource.BinarySI),
+		},
+		capacity: v1.ResourceList{
+			v1.ResourceCPU:    *resource.NewMilliQuantity(2000, resource.DecimalSI),
+			v1.ResourceMemory: *resource.NewQuantity(20E9, resource.BinarySI),
+		},
+	}
+
 	clock := testKubelet.fakeClock
 	// Do not set nano second, because apiserver function doesn't support nano second. (Only support
 	// RFC3339).
@@ -661,9 +692,12 @@ func TestUpdateNodeStatusWithRuntimeStateError(t *testing.T) {
 	kubelet.containerManager = &localCM{
 		ContainerManager: cm.NewStubContainerManager(),
 		allocatable: v1.ResourceList{
-			v1.ResourceCPU:     *resource.NewMilliQuantity(200, resource.DecimalSI),
-			v1.ResourceMemory:  *resource.NewQuantity(100E6, resource.BinarySI),
-			v1.ResourceStorage: *resource.NewQuantity(200*mb, resource.BinarySI),
+			v1.ResourceCPU:    *resource.NewMilliQuantity(200, resource.DecimalSI),
+			v1.ResourceMemory: *resource.NewQuantity(100E6, resource.BinarySI),
+		},
+		capacity: v1.ResourceList{
+			v1.ResourceCPU:    *resource.NewMilliQuantity(2000, resource.DecimalSI),
+			v1.ResourceMemory: *resource.NewQuantity(10E9, resource.BinarySI),
 		},
 	}
 
@@ -734,16 +768,14 @@ func TestUpdateNodeStatusWithRuntimeStateError(t *testing.T) {
 				KubeProxyVersion:        version.Get().String(),
 			},
 			Capacity: v1.ResourceList{
-				v1.ResourceCPU:     *resource.NewMilliQuantity(2000, resource.DecimalSI),
-				v1.ResourceMemory:  *resource.NewQuantity(10E9, resource.BinarySI),
-				v1.ResourceStorage: *resource.NewQuantity(500*mb, resource.BinarySI),
-				v1.ResourcePods:    *resource.NewQuantity(0, resource.DecimalSI),
+				v1.ResourceCPU:    *resource.NewMilliQuantity(2000, resource.DecimalSI),
+				v1.ResourceMemory: *resource.NewQuantity(10E9, resource.BinarySI),
+				v1.ResourcePods:   *resource.NewQuantity(0, resource.DecimalSI),
 			},
 			Allocatable: v1.ResourceList{
-				v1.ResourceCPU:     *resource.NewMilliQuantity(1800, resource.DecimalSI),
-				v1.ResourceMemory:  *resource.NewQuantity(9900E6, resource.BinarySI),
-				v1.ResourceStorage: *resource.NewQuantity(300*mb, resource.BinarySI),
-				v1.ResourcePods:    *resource.NewQuantity(0, resource.DecimalSI),
+				v1.ResourceCPU:    *resource.NewMilliQuantity(1800, resource.DecimalSI),
+				v1.ResourceMemory: *resource.NewQuantity(9900E6, resource.BinarySI),
+				v1.ResourcePods:   *resource.NewQuantity(0, resource.DecimalSI),
 			},
 			Addresses: []v1.NodeAddress{
 				{Type: v1.NodeInternalIP, Address: "127.0.0.1"},
@@ -1122,6 +1154,10 @@ func TestUpdateNewNodeStatusTooLargeReservation(t *testing.T) {
 		allocatable: v1.ResourceList{
 			v1.ResourceCPU: *resource.NewMilliQuantity(40000, resource.DecimalSI),
 		},
+		capacity: v1.ResourceList{
+			v1.ResourceCPU:    *resource.NewMilliQuantity(2000, resource.DecimalSI),
+			v1.ResourceMemory: *resource.NewQuantity(10E9, resource.BinarySI),
+		},
 	}
 	kubeClient := testKubelet.fakeKubeClient
 	existingNode := v1.Node{ObjectMeta: metav1.ObjectMeta{Name: testKubeletHostname}}
@@ -1150,16 +1186,14 @@ func TestUpdateNewNodeStatusTooLargeReservation(t *testing.T) {
 		Spec:       v1.NodeSpec{},
 		Status: v1.NodeStatus{
 			Capacity: v1.ResourceList{
-				v1.ResourceCPU:     *resource.NewMilliQuantity(2000, resource.DecimalSI),
-				v1.ResourceMemory:  *resource.NewQuantity(10E9, resource.BinarySI),
-				v1.ResourceStorage: *resource.NewQuantity(500*mb, resource.BinarySI),
-				v1.ResourcePods:    *resource.NewQuantity(0, resource.DecimalSI),
+				v1.ResourceCPU:    *resource.NewMilliQuantity(2000, resource.DecimalSI),
+				v1.ResourceMemory: *resource.NewQuantity(10E9, resource.BinarySI),
+				v1.ResourcePods:   *resource.NewQuantity(0, resource.DecimalSI),
 			},
 			Allocatable: v1.ResourceList{
-				v1.ResourceCPU:     *resource.NewMilliQuantity(0, resource.DecimalSI),
-				v1.ResourceMemory:  *resource.NewQuantity(10E9, resource.BinarySI),
-				v1.ResourceStorage: *resource.NewQuantity(500*mb, resource.BinarySI),
-				v1.ResourcePods:    *resource.NewQuantity(0, resource.DecimalSI),
+				v1.ResourceCPU:    *resource.NewMilliQuantity(0, resource.DecimalSI),
+				v1.ResourceMemory: *resource.NewQuantity(10E9, resource.BinarySI),
+				v1.ResourcePods:   *resource.NewQuantity(0, resource.DecimalSI),
 			},
 		},
 	}

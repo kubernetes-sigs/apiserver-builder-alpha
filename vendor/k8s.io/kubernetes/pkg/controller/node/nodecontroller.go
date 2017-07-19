@@ -32,21 +32,21 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 
+	clientv1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/kubernetes/scheme"
 	v1core "k8s.io/client-go/kubernetes/typed/core/v1"
-	clientv1 "k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/flowcontrol"
 
-	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/api/v1"
+	"k8s.io/api/core/v1"
+	coreinformers "k8s.io/client-go/informers/core/v1"
+	extensionsinformers "k8s.io/client-go/informers/extensions/v1beta1"
+	clientset "k8s.io/client-go/kubernetes"
+	corelisters "k8s.io/client-go/listers/core/v1"
+	extensionslisters "k8s.io/client-go/listers/extensions/v1beta1"
 	v1helper "k8s.io/kubernetes/pkg/api/v1/helper"
-	nodeutil "k8s.io/kubernetes/pkg/api/v1/node"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
-	coreinformers "k8s.io/kubernetes/pkg/client/informers/informers_generated/externalversions/core/v1"
-	extensionsinformers "k8s.io/kubernetes/pkg/client/informers/informers_generated/externalversions/extensions/v1beta1"
-	corelisters "k8s.io/kubernetes/pkg/client/listers/core/v1"
-	extensionslisters "k8s.io/kubernetes/pkg/client/listers/extensions/v1beta1"
+	v1node "k8s.io/kubernetes/pkg/api/v1/node"
 	"k8s.io/kubernetes/pkg/cloudprovider"
 	"k8s.io/kubernetes/pkg/controller"
 	"k8s.io/kubernetes/pkg/util/metrics"
@@ -218,7 +218,7 @@ func NewNodeController(
 	runTaintManager bool,
 	useTaintBasedEvictions bool) (*NodeController, error) {
 	eventBroadcaster := record.NewBroadcaster()
-	recorder := eventBroadcaster.NewRecorder(api.Scheme, clientv1.EventSource{Component: "controllermanager"})
+	recorder := eventBroadcaster.NewRecorder(scheme.Scheme, clientv1.EventSource{Component: "controllermanager"})
 	eventBroadcaster.StartLogging(glog.Infof)
 	if kubeClient != nil {
 		glog.V(0).Infof("Sending events to api server.")
@@ -453,7 +453,7 @@ func (nc *NodeController) doTaintingPass() {
 				zone := utilnode.GetZoneKey(node)
 				EvictionsNumber.WithLabelValues(zone).Inc()
 			}
-			_, condition := nodeutil.GetNodeCondition(&node.Status, v1.NodeReady)
+			_, condition := v1node.GetNodeCondition(&node.Status, v1.NodeReady)
 			// Because we want to mimic NodeStatus.Condition["Ready"] we make "unreachable" and "not ready" taints mutually exclusive.
 			taintToAdd := v1.Taint{}
 			oppositeTaint := v1.Taint{}
@@ -510,6 +510,26 @@ func (nc *NodeController) Run(stopCh <-chan struct{}) {
 	<-stopCh
 }
 
+// addPodEvictorForNewZone checks if new zone appeared, and if so add new evictor.
+func (nc *NodeController) addPodEvictorForNewZone(node *v1.Node) {
+	zone := utilnode.GetZoneKey(node)
+	if _, found := nc.zoneStates[zone]; !found {
+		nc.zoneStates[zone] = stateInitial
+		if !nc.useTaintBasedEvictions {
+			nc.zonePodEvictor[zone] =
+				NewRateLimitedTimedQueue(
+					flowcontrol.NewTokenBucketRateLimiter(nc.evictionLimiterQPS, evictionRateLimiterBurst))
+		} else {
+			nc.zoneNotReadyOrUnreachableTainer[zone] =
+				NewRateLimitedTimedQueue(
+					flowcontrol.NewTokenBucketRateLimiter(nc.evictionLimiterQPS, evictionRateLimiterBurst))
+		}
+		// Init the metric for the new zone.
+		glog.Infof("Initializing eviction metric for zone: %v", zone)
+		EvictionsNumber.WithLabelValues(zone).Add(0)
+	}
+}
+
 // monitorNodeStatus verifies node status are constantly updated by kubelet, and if not,
 // post "NodeReady==ConditionUnknown". It also evicts all pods if node is not ready or
 // not reachable for a long period of time.
@@ -520,28 +540,17 @@ func (nc *NodeController) monitorNodeStatus() error {
 	if err != nil {
 		return err
 	}
-	added, deleted := nc.checkForNodeAddedDeleted(nodes)
+	added, deleted, newZoneRepresentatives := nc.classifyNodes(nodes)
+
+	for i := range newZoneRepresentatives {
+		nc.addPodEvictorForNewZone(newZoneRepresentatives[i])
+	}
+
 	for i := range added {
 		glog.V(1).Infof("NodeController observed a new Node: %#v", added[i].Name)
 		recordNodeEvent(nc.recorder, added[i].Name, string(added[i].UID), v1.EventTypeNormal, "RegisteredNode", fmt.Sprintf("Registered Node %v in NodeController", added[i].Name))
 		nc.knownNodeSet[added[i].Name] = added[i]
-		// When adding new Nodes we need to check if new zone appeared, and if so add new evictor.
-		zone := utilnode.GetZoneKey(added[i])
-		if _, found := nc.zoneStates[zone]; !found {
-			nc.zoneStates[zone] = stateInitial
-			if !nc.useTaintBasedEvictions {
-				nc.zonePodEvictor[zone] =
-					NewRateLimitedTimedQueue(
-						flowcontrol.NewTokenBucketRateLimiter(nc.evictionLimiterQPS, evictionRateLimiterBurst))
-			} else {
-				nc.zoneNotReadyOrUnreachableTainer[zone] =
-					NewRateLimitedTimedQueue(
-						flowcontrol.NewTokenBucketRateLimiter(nc.evictionLimiterQPS, evictionRateLimiterBurst))
-			}
-			// Init the metric for the new zone.
-			glog.Infof("Initializing eviction metric for zone: %v", zone)
-			EvictionsNumber.WithLabelValues(zone).Add(0)
-		}
+		nc.addPodEvictorForNewZone(added[i])
 		if nc.useTaintBasedEvictions {
 			nc.markNodeAsHealthy(added[i])
 		} else {
@@ -560,7 +569,7 @@ func (nc *NodeController) monitorNodeStatus() error {
 		var gracePeriod time.Duration
 		var observedReadyCondition v1.NodeCondition
 		var currentReadyCondition *v1.NodeCondition
-		nodeCopy, err := api.Scheme.DeepCopy(nodes[i])
+		nodeCopy, err := scheme.Scheme.DeepCopy(nodes[i])
 		if err != nil {
 			utilruntime.HandleError(err)
 			continue
@@ -824,13 +833,13 @@ func (nc *NodeController) setLimiterInZone(zone string, zoneSize int, state zone
 	}
 }
 
-// For a given node checks its conditions and tries to update it. Returns grace period to which given node
-// is entitled, state of current and last observed Ready Condition, and an error if it occurred.
+// tryUpdateNodeStatus checks a given node's conditions and tries to update it. Returns grace period to
+// which given node is entitled, state of current and last observed Ready Condition, and an error if it occurred.
 func (nc *NodeController) tryUpdateNodeStatus(node *v1.Node) (time.Duration, v1.NodeCondition, *v1.NodeCondition, error) {
 	var err error
 	var gracePeriod time.Duration
 	var observedReadyCondition v1.NodeCondition
-	_, currentReadyCondition := nodeutil.GetNodeCondition(&node.Status, v1.NodeReady)
+	_, currentReadyCondition := v1node.GetNodeCondition(&node.Status, v1.NodeReady)
 	if currentReadyCondition == nil {
 		// If ready condition is nil, then kubelet (or nodecontroller) never posted node status.
 		// A fake ready condition is created, where LastProbeTime and LastTransitionTime is set
@@ -870,9 +879,9 @@ func (nc *NodeController) tryUpdateNodeStatus(node *v1.Node) (time.Duration, v1.
 	//     if that's the case, but it does not seem necessary.
 	var savedCondition *v1.NodeCondition
 	if found {
-		_, savedCondition = nodeutil.GetNodeCondition(&savedNodeStatus.status, v1.NodeReady)
+		_, savedCondition = v1node.GetNodeCondition(&savedNodeStatus.status, v1.NodeReady)
 	}
-	_, observedCondition := nodeutil.GetNodeCondition(&node.Status, v1.NodeReady)
+	_, observedCondition := v1node.GetNodeCondition(&node.Status, v1.NodeReady)
 	if !found {
 		glog.Warningf("Missing timestamp for Node %s. Assuming now as a timestamp.", node.Name)
 		savedNodeStatus = nodeStatusData{
@@ -901,7 +910,6 @@ func (nc *NodeController) tryUpdateNodeStatus(node *v1.Node) (time.Duration, v1.
 		// otherwise we leave it as it is.
 		if savedCondition.LastTransitionTime != observedCondition.LastTransitionTime {
 			glog.V(3).Infof("ReadyCondition for Node %s transitioned from %v to %v", node.Name, savedCondition.Status, observedCondition)
-
 			transitionTime = nc.now()
 		} else {
 			transitionTime = savedNodeStatus.readyTransitionTimestamp
@@ -946,10 +954,19 @@ func (nc *NodeController) tryUpdateNodeStatus(node *v1.Node) (time.Duration, v1.
 		}
 
 		// remaining node conditions should also be set to Unknown
-		remainingNodeConditionTypes := []v1.NodeConditionType{v1.NodeOutOfDisk, v1.NodeMemoryPressure, v1.NodeDiskPressure}
+		remainingNodeConditionTypes := []v1.NodeConditionType{
+			v1.NodeOutOfDisk,
+			v1.NodeMemoryPressure,
+			v1.NodeDiskPressure,
+			// We don't change 'NodeInodePressure' condition, as it'll be removed in future.
+			// v1.NodeInodePressure,
+			// We don't change 'NodeNetworkUnavailable' condition, as it's managed on a control plane level.
+			// v1.NodeNetworkUnavailable,
+		}
+
 		nowTimestamp := nc.now()
 		for _, nodeConditionType := range remainingNodeConditionTypes {
-			_, currentCondition := nodeutil.GetNodeCondition(&node.Status, nodeConditionType)
+			_, currentCondition := v1node.GetNodeCondition(&node.Status, nodeConditionType)
 			if currentCondition == nil {
 				glog.V(2).Infof("Condition %v of node %v was never updated by kubelet", nodeConditionType, node.Name)
 				node.Status.Conditions = append(node.Status.Conditions, v1.NodeCondition{
@@ -972,7 +989,7 @@ func (nc *NodeController) tryUpdateNodeStatus(node *v1.Node) (time.Duration, v1.
 			}
 		}
 
-		_, currentCondition := nodeutil.GetNodeCondition(&node.Status, v1.NodeReady)
+		_, currentCondition := v1node.GetNodeCondition(&node.Status, v1.NodeReady)
 		if !apiequality.Semantic.DeepEqual(currentCondition, &observedReadyCondition) {
 			if _, err = nc.kubeClient.Core().Nodes().UpdateStatus(node); err != nil {
 				glog.Errorf("Error updating node %s: %v", node.Name, err)
@@ -991,21 +1008,32 @@ func (nc *NodeController) tryUpdateNodeStatus(node *v1.Node) (time.Duration, v1.
 	return gracePeriod, observedReadyCondition, currentReadyCondition, err
 }
 
-func (nc *NodeController) checkForNodeAddedDeleted(nodes []*v1.Node) (added, deleted []*v1.Node) {
-	for i := range nodes {
-		if _, has := nc.knownNodeSet[nodes[i].Name]; !has {
-			added = append(added, nodes[i])
+// classifyNodes classifies the allNodes to three categories:
+//   1. added: the nodes that in 'allNodes', but not in 'knownNodeSet'
+//   2. deleted: the nodes that in 'knownNodeSet', but not in 'allNodes'
+//   3. newZoneRepresentatives: the nodes that in both 'knownNodeSet' and 'allNodes', but no zone states
+func (nc *NodeController) classifyNodes(allNodes []*v1.Node) (added, deleted, newZoneRepresentatives []*v1.Node) {
+	for i := range allNodes {
+		if _, has := nc.knownNodeSet[allNodes[i].Name]; !has {
+			added = append(added, allNodes[i])
+		} else {
+			// Currently, we only consider new zone as updated.
+			zone := utilnode.GetZoneKey(allNodes[i])
+			if _, found := nc.zoneStates[zone]; !found {
+				newZoneRepresentatives = append(newZoneRepresentatives, allNodes[i])
+			}
 		}
 	}
+
 	// If there's a difference between lengths of known Nodes and observed nodes
 	// we must have removed some Node.
-	if len(nc.knownNodeSet)+len(added) != len(nodes) {
+	if len(nc.knownNodeSet)+len(added) != len(allNodes) {
 		knowSetCopy := map[string]*v1.Node{}
 		for k, v := range nc.knownNodeSet {
 			knowSetCopy[k] = v
 		}
-		for i := range nodes {
-			delete(knowSetCopy, nodes[i].Name)
+		for i := range allNodes {
+			delete(knowSetCopy, allNodes[i].Name)
 		}
 		for i := range knowSetCopy {
 			deleted = append(deleted, knowSetCopy[i])
@@ -1071,7 +1099,7 @@ func (nc *NodeController) ReducedQPSFunc(nodeNum int) float32 {
 	return 0
 }
 
-// This function is expected to get a slice of NodeReadyConditions for all Nodes in a given zone.
+// ComputeZoneState returns a slice of NodeReadyConditions for all Nodes in a given zone.
 // The zone is considered:
 // - fullyDisrupted if there're no Ready Nodes,
 // - partiallyDisrupted if at least than nc.unhealthyZoneThreshold percent of Nodes are not Ready,

@@ -26,11 +26,11 @@ import (
 
 	"github.com/golang/glog"
 
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/kubernetes/pkg/api/v1"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
+	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/pkg/util/exec"
 	"k8s.io/kubernetes/pkg/util/mount"
 	kstrings "k8s.io/kubernetes/pkg/util/strings"
@@ -333,7 +333,7 @@ func (b *storageosMounter) CanMount() error {
 }
 
 // SetUp attaches the disk and bind mounts to the volume path.
-func (b *storageosMounter) SetUp(fsGroup *types.UnixGroupID) error {
+func (b *storageosMounter) SetUp(fsGroup *int64) error {
 	// Need a namespace to find the volume, try pod's namespace if not set.
 	if b.volNamespace == "" {
 		glog.V(2).Infof("Setting StorageOS volume namespace to pod namespace: %s", b.podNamespace)
@@ -360,7 +360,7 @@ func (b *storageosMounter) SetUp(fsGroup *types.UnixGroupID) error {
 }
 
 // SetUp bind mounts the disk global mount to the give volume path.
-func (b *storageosMounter) SetUpAt(dir string, fsGroup *types.UnixGroupID) error {
+func (b *storageosMounter) SetUpAt(dir string, fsGroup *int64) error {
 	notMnt, err := b.mounter.IsLikelyNotMountPoint(dir)
 	glog.V(4).Infof("StorageOS volume set up: %s %v %v", dir, !notMnt, err)
 	if err != nil && !os.IsNotExist(err) {

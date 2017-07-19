@@ -23,15 +23,15 @@ import (
 
 	cadvisorapi "github.com/google/cadvisor/info/v1"
 	cadvisorapiv2 "github.com/google/cadvisor/info/v2"
+	"k8s.io/api/core/v1"
+	clientv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/clock"
-	clientv1 "k8s.io/client-go/pkg/api/v1"
+	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/record"
 	utiltesting "k8s.io/client-go/util/testing"
-	"k8s.io/kubernetes/pkg/api/v1"
 	"k8s.io/kubernetes/pkg/apis/componentconfig"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset/fake"
 	cadvisortest "k8s.io/kubernetes/pkg/kubelet/cadvisor/testing"
 	"k8s.io/kubernetes/pkg/kubelet/cm"
 	"k8s.io/kubernetes/pkg/kubelet/configmap"
@@ -99,7 +99,7 @@ func TestRunOnce(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to initialize VolumePluginMgr: %v", err)
 	}
-	kb.volumeManager, err = volumemanager.NewVolumeManager(
+	kb.volumeManager = volumemanager.NewVolumeManager(
 		true,
 		kb.nodeName,
 		kb.podManager,

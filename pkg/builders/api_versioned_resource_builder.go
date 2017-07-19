@@ -24,7 +24,6 @@ import (
 	"k8s.io/apiserver/pkg/registry/generic"
 	"k8s.io/apiserver/pkg/registry/generic/registry"
 	"k8s.io/apiserver/pkg/registry/rest"
-	"k8s.io/client-go/pkg/api"
 )
 
 //
@@ -122,7 +121,7 @@ func (b *versionedResourceBuilder) Build(
 	// Set a default strategy
 	wcs := 1000
 	store := &StorageWrapper{registry.Store{
-		Copier:            api.Scheme,
+		Copier:            Scheme,
 		NewFunc:           b.Unversioned.New,     // Use the unversioned type
 		NewListFunc:       b.Unversioned.NewList, // Use the unversioned type
 		QualifiedResource: b.getGroupResource(group),

@@ -38,7 +38,6 @@ import (
 	"k8s.io/apimachinery/pkg/openapi"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apiserver/pkg/util/logs"
-	"k8s.io/client-go/pkg/api"
 )
 
 var GetOpenApiDefinition openapi.GetOpenAPIDefinitions
@@ -74,15 +73,15 @@ func StartApiServer(etcdPath string, apis []*builders.APIGroupBuilder, openapide
 	}
 }
 
-func NewServerOptions(etcdPath string, out, errOut io.Writer, builders []*builders.APIGroupBuilder) *ServerOptions {
+func NewServerOptions(etcdPath string, out, errOut io.Writer, b []*builders.APIGroupBuilder) *ServerOptions {
 	versions := []schema.GroupVersion{}
-	for _, b := range builders {
+	for _, b := range b {
 		versions = append(versions, b.GetLegacyCodec()...)
 	}
 
 	o := &ServerOptions{
-		RecommendedOptions: genericoptions.NewRecommendedOptions(etcdPath, api.Scheme, api.Codecs.LegacyCodec(versions...)),
-		APIBuilders:        builders,
+		RecommendedOptions: genericoptions.NewRecommendedOptions(etcdPath, builders.Scheme, builders.Codecs.LegacyCodec(versions...)),
+		APIBuilders:        b,
 		RunDelegatedAuth:   true,
 	}
 	o.RecommendedOptions.SecureServing.BindPort = 443
@@ -149,7 +148,7 @@ func (o ServerOptions) Config() (*apiserver.Config, error) {
 		return nil, fmt.Errorf("error creating self-signed certificates: %v", err)
 	}
 
-	serverConfig := genericapiserver.NewConfig(api.Codecs)
+	serverConfig := genericapiserver.NewConfig(builders.Codecs)
 
 	err := applyOptions(
 		serverConfig,
@@ -183,7 +182,7 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string)
 		return err
 	}
 
-	config.GenericConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(GetOpenApiDefinition, api.Scheme)
+	config.GenericConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(GetOpenApiDefinition, builders.Scheme)
 	config.GenericConfig.OpenAPIConfig.Info.Title = title
 	config.GenericConfig.OpenAPIConfig.Info.Version = version
 

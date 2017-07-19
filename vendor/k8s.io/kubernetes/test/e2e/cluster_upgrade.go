@@ -21,6 +21,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -30,6 +32,7 @@ import (
 	"k8s.io/kubernetes/test/e2e/framework"
 	"k8s.io/kubernetes/test/e2e/framework/ginkgowrapper"
 	"k8s.io/kubernetes/test/e2e/upgrades"
+	apps "k8s.io/kubernetes/test/e2e/upgrades/apps"
 	"k8s.io/kubernetes/test/utils/junit"
 
 	. "github.com/onsi/ginkgo"
@@ -38,13 +41,13 @@ import (
 var upgradeTests = []upgrades.Test{
 	&upgrades.ServiceUpgradeTest{},
 	&upgrades.SecretUpgradeTest{},
-	&upgrades.StatefulSetUpgradeTest{},
-	&upgrades.DeploymentUpgradeTest{},
-	&upgrades.JobUpgradeTest{},
+	&apps.StatefulSetUpgradeTest{},
+	&apps.DeploymentUpgradeTest{},
+	&apps.JobUpgradeTest{},
 	&upgrades.ConfigMapUpgradeTest{},
 	&upgrades.HPAUpgradeTest{},
 	&upgrades.PersistentVolumeUpgradeTest{},
-	&upgrades.DaemonSetUpgradeTest{},
+	&apps.DaemonSetUpgradeTest{},
 	&upgrades.IngressUpgradeTest{},
 	&upgrades.AppArmorUpgradeTest{},
 }
@@ -121,10 +124,7 @@ var _ = framework.KubeDescribe("Downgrade [Feature:Downgrade]", func() {
 
 	// Create the frameworks here because we can only create them
 	// in a "Describe".
-	testFrameworks := map[string]*framework.Framework{}
-	for _, t := range upgradeTests {
-		testFrameworks[t.Name()] = framework.NewDefaultFramework(t.Name())
-	}
+	testFrameworks := createUpgradeFrameworks()
 
 	framework.KubeDescribe("cluster downgrade", func() {
 		It("should maintain a functioning cluster [Feature:ClusterDowngrade]", func() {
@@ -235,9 +235,12 @@ func finalizeUpgradeTest(start time.Time, tc *junit.TestCase) {
 }
 
 func createUpgradeFrameworks() map[string]*framework.Framework {
+	nsFilter := regexp.MustCompile("[^[:word:]-]+") // match anything that's not a word character or hyphen
 	testFrameworks := map[string]*framework.Framework{}
 	for _, t := range upgradeTests {
-		testFrameworks[t.Name()] = framework.NewDefaultFramework(t.Name())
+		ns := nsFilter.ReplaceAllString(t.Name(), "-") // and replace with a single hyphen
+		ns = strings.Trim(ns, "-")
+		testFrameworks[t.Name()] = framework.NewDefaultFramework(ns)
 	}
 	return testFrameworks
 }

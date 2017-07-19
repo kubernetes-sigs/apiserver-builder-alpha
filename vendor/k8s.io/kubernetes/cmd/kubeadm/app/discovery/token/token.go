@@ -20,9 +20,9 @@ import (
 	"fmt"
 	"sync"
 
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"k8s.io/kubernetes/cmd/kubeadm/app/constants"
@@ -58,7 +58,7 @@ func RetrieveValidatedClusterInfo(discoveryToken string, tokenAPIServers []strin
 		fmt.Printf("[discovery] Created cluster-info discovery client, requesting info from %q\n", bootstrapConfig.Clusters[clusterName].Server)
 
 		var clusterinfo *v1.ConfigMap
-		wait.PollInfinite(constants.DiscoveryRetryInterval, func() (bool, error) {
+		wait.PollImmediateInfinite(constants.DiscoveryRetryInterval, func() (bool, error) {
 			var err error
 			clusterinfo, err = client.CoreV1().ConfigMaps(metav1.NamespacePublic).Get(bootstrapapi.ConfigMapClusterInfo, metav1.GetOptions{})
 			if err != nil {

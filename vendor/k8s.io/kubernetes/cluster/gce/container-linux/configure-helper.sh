@@ -66,10 +66,6 @@ function get-calico-typha-replicas {
   if [[ "${NUM_NODES}" -gt "500" ]]; then
     typha_count=5
   fi
-  if [[ "${NETWORK_POLICY_PROVIDER:-}" != "calico" ]]; then
-    # We're not configured to use Calico, so don't start any Typhas.
-    typha_count=0
-  fi
   echo "${typha_count}"
 }
 
@@ -228,6 +224,11 @@ function create-master-auth {
   cat <<EOF >/etc/gce.conf
 [global]
 EOF
+  if [[ -n "${GCE_API_ENDPOINT:-}" ]]; then
+    cat <<EOF >>/etc/gce.conf
+api-endpoint = ${GCE_API_ENDPOINT}
+EOF
+  fi
   if [[ -n "${PROJECT_ID:-}" && -n "${TOKEN_URL:-}" && -n "${TOKEN_BODY:-}" && -n "${NODE_NETWORK:-}" ]]; then
     use_cloud_config="true"
     cat <<EOF >>/etc/gce.conf
@@ -236,6 +237,11 @@ token-body = ${TOKEN_BODY}
 project-id = ${PROJECT_ID}
 network-name = ${NODE_NETWORK}
 EOF
+    if [[ -n "${NETWORK_PROJECT_ID:-}" ]]; then
+      cat <<EOF >>/etc/gce.conf
+network-project-id = ${NETWORK_PROJECT_ID}
+EOF
+    fi
     if [[ -n "${NODE_SUBNETWORK:-}" ]]; then
       cat <<EOF >>/etc/gce.conf
 subnetwork-name = ${NODE_SUBNETWORK}
@@ -602,6 +608,9 @@ function start-kubelet {
   fi
   if [[ -n "${NODE_LABELS:-}" ]]; then
     flags+=" --node-labels=${NODE_LABELS}"
+  fi
+  if [[ -n "${NODE_TAINTS:-}" ]]; then
+    flags+=" --register-with-taints=${NODE_TAINTS}"
   fi
   if [[ -n "${EVICTION_HARD:-}" ]]; then
     flags+=" --eviction-hard=${EVICTION_HARD}"
@@ -984,7 +993,16 @@ function start-kube-apiserver {
 
   local container_env=""
   if [[ -n "${ENABLE_CACHE_MUTATION_DETECTOR:-}" ]]; then
-    container_env="\"env\":[{\"name\": \"KUBE_CACHE_MUTATION_DETECTOR\", \"value\": \"${ENABLE_CACHE_MUTATION_DETECTOR}\"}],"
+    container_env="\"name\": \"KUBE_CACHE_MUTATION_DETECTOR\", \"value\": \"${ENABLE_CACHE_MUTATION_DETECTOR}\""
+  fi
+  if [[ -n "${ENABLE_PATCH_CONVERSION_DETECTOR:-}" ]]; then
+    if [[ -n "${container_env}" ]]; then
+      container_env="${container_env}, "
+    fi
+    container_env="\"name\": \"KUBE_PATCH_CONVERSION_DETECTOR\", \"value\": \"${ENABLE_PATCH_CONVERSION_DETECTOR}\""
+  fi
+  if [[ -n "${container_env}" ]]; then
+    container_env="\"env\":[{${container_env}}],"
   fi
 
   src_file="${src_dir}/kube-apiserver.manifest"
@@ -1130,7 +1148,7 @@ function start-cluster-autoscaler {
     local -r src_file="${KUBE_HOME}/kube-manifests/kubernetes/gci-trusty/cluster-autoscaler.manifest"
     remove-salt-config-comments "${src_file}"
 
-    local params="${AUTOSCALER_MIG_CONFIG} ${CLOUD_CONFIG_OPT}"
+    local params="${AUTOSCALER_MIG_CONFIG} ${CLOUD_CONFIG_OPT} ${AUTOSCALER_EXPANDER_CONFIG:-}"
     sed -i -e "s@{{params}}@${params}@g" "${src_file}"
     sed -i -e "s@{{cloud_config_mount}}@${CLOUD_CONFIG_MOUNT}@g" "${src_file}"
     sed -i -e "s@{{cloud_config_volume}}@${CLOUD_CONFIG_VOLUME}@g" "${src_file}"
@@ -1169,6 +1187,8 @@ function setup-addon-manifests {
 }
 
 # Prepares the manifests of k8s addons, and starts the addon manager.
+# Vars assumed:
+#   CLUSTER_NAME
 function start-kube-addons {
   echo "Prepare kube-addons manifests and start kube addon manager"
   local -r src_dir="${KUBE_HOME}/kube-manifests/kubernetes/gci-trusty"
@@ -1206,6 +1226,7 @@ function start-kube-addons {
       controller_yaml="${controller_yaml}/heapster-controller.yaml"
     fi
     remove-salt-config-comments "${controller_yaml}"
+    sed -i -e "s@{{ cluster_name }}@${CLUSTER_NAME}@g" "${controller_yaml}"
     sed -i -e "s@{{ *base_metrics_memory *}}@${base_metrics_memory}@g" "${controller_yaml}"
     sed -i -e "s@{{ *base_metrics_cpu *}}@${base_metrics_cpu}@g" "${controller_yaml}"
     sed -i -e "s@{{ *base_eventer_memory *}}@${base_eventer_memory}@g" "${controller_yaml}"
@@ -1268,6 +1289,13 @@ function start-kube-addons {
     sed -i -e "s@__CALICO_NODE_CPU__@$(get-calico-node-cpu)@g" "${ds_file}"
     sed -i -e "s@__CALICO_TYPHA_CPU__@$(get-calico-typha-cpu)@g" "${typha_dep_file}"
     sed -i -e "s@__CALICO_TYPHA_REPLICAS__@$(get-calico-typha-replicas)@g" "${typha_dep_file}"
+  else
+    # If not configured to use Calico, the set the typha replica count to 0, but only if the 
+    # addon is present.
+    local -r typha_dep_file="${dst_dir}/calico-policy-controller/typha-deployment.yaml"
+    if [[ -e $typha_dep_file ]]; then
+      sed -i -e "s@__CALICO_TYPHA_REPLICAS__@0@g" "${typha_dep_file}"
+    fi
   fi
   if [[ "${ENABLE_DEFAULT_STORAGE_CLASS:-}" == "true" ]]; then
     setup-addon-manifests "addons" "storage-class/gce"

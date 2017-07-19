@@ -23,11 +23,11 @@ import (
 	"reflect"
 
 	"github.com/golang/glog"
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/kubernetes/pkg/api/v1"
+	v1core "k8s.io/client-go/kubernetes/typed/core/v1"
 	podutil "k8s.io/kubernetes/pkg/api/v1/pod"
-	v1core "k8s.io/kubernetes/pkg/client/clientset_generated/clientset/typed/core/v1"
 )
 
 // updateReplicationControllerStatus attempts to update the Status.Replicas of the given controller, with a single GET/PUT retry.

@@ -14,10 +14,9 @@ go_library(
     tags = ["automanaged"],
     deps = [
         "//pkg/api:go_default_library",
-        "//pkg/apis/admissionregistration/v1alpha1:go_default_library",
-        "//pkg/client/clientset_generated/clientset:go_default_library",
         "//pkg/kubeapiserver/admission/configuration:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
+        "//vendor/k8s.io/api/admissionregistration/v1alpha1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/meta:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/validation:go_default_library",
@@ -27,6 +26,7 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/admission:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/authorization/authorizer:go_default_library",
+        "//vendor/k8s.io/client-go/kubernetes:go_default_library",
     ],
 )
 
@@ -49,7 +49,7 @@ go_test(
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//pkg/apis/admissionregistration/v1alpha1:go_default_library",
+        "//vendor/k8s.io/api/admissionregistration/v1alpha1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
     ],
 )

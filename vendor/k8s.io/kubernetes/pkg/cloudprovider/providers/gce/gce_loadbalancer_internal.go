@@ -23,9 +23,9 @@ import (
 
 	"github.com/golang/glog"
 	compute "google.golang.org/api/compute/v1"
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/sets"
-	"k8s.io/kubernetes/pkg/api/v1"
 	v1_service "k8s.io/kubernetes/pkg/api/v1/service"
 	"k8s.io/kubernetes/pkg/cloudprovider"
 )
@@ -624,7 +624,7 @@ func getPortsAndProtocol(svcPorts []v1.ServicePort) (ports []string, protocol v1
 }
 
 func (gce *GCECloud) getBackendServiceLink(name string) string {
-	return fmt.Sprintf("https://www.googleapis.com/compute/v1/projects/%s/regions/%s/backendServices/%s", gce.projectID, gce.region, name)
+	return gce.service.BasePath + strings.Join([]string{gce.projectID, "regions", gce.region, "backendServices", name}, "/")
 }
 
 func getNameFromLink(link string) string {

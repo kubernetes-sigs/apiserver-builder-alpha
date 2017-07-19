@@ -20,12 +20,12 @@ import (
 	"fmt"
 	"time"
 
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/kubernetes/pkg/api/v1"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
+	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/pkg/quota/evaluator/core"
 	"k8s.io/kubernetes/test/e2e/framework"
 
@@ -282,7 +282,7 @@ var _ = framework.KubeDescribe("ResourceQuota", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	It("should create a ResourceQuota and capture the life of a persistent volume claim. [Volume]", func() {
+	It("should create a ResourceQuota and capture the life of a persistent volume claim. [sig-storage]", func() {
 		By("Creating a ResourceQuota")
 		quotaName := "test-quota"
 		resourceQuota := newTestResourceQuota(quotaName)
@@ -320,7 +320,7 @@ var _ = framework.KubeDescribe("ResourceQuota", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	It("should create a ResourceQuota and capture the life of a persistent volume claim with a storage class. [Volume]", func() {
+	It("should create a ResourceQuota and capture the life of a persistent volume claim with a storage class. [sig-storage]", func() {
 		By("Creating a ResourceQuota")
 		quotaName := "test-quota"
 		resourceQuota := newTestResourceQuota(quotaName)

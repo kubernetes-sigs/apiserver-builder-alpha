@@ -138,29 +138,36 @@ func Resource(resource string) schema.GroupResource {
 //
 // {{.Kind}} Functions and Structs
 //
+// +k8s:deepcopy-gen=false
 type {{.Kind}}SchemeFns struct {
 	builders.DefaultSchemeFns
 }
 
+// +k8s:deepcopy-gen=false
 type {{.Kind}}Strategy struct {
 	builders.DefaultStorageStrategy
 }
 
+// +k8s:deepcopy-gen=false
 type {{$api.Kind}}StatusStrategy struct {
 	builders.DefaultStatusStorageStrategy
 }
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 type {{$api.Kind}}List struct {
 	metav1.TypeMeta ` + "`json:\",inline\"`" + `
 	metav1.ListMeta ` + "`json:\"metadata,omitempty\"`" + `
 	Items           []{{$api.Kind}} ` + "`json:\"items\"`" + `
 }
+
 {{ range $subresource := $api.Subresources -}}
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 type {{$subresource.Request}}List struct {
 	metav1.TypeMeta ` + "`json:\",inline\"`" + `
 	metav1.ListMeta ` + "`json:\"metadata,omitempty\"`" + `
 	Items           []{{$subresource.Request}} ` + "`json:\"items\"`" + `
 }
-{{ end -}}{{ end -}}
+{{ end }}{{ end -}}
 `

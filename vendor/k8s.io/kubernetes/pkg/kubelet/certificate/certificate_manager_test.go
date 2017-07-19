@@ -26,10 +26,10 @@ import (
 	"testing"
 	"time"
 
+	certificates "k8s.io/api/certificates/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	watch "k8s.io/apimachinery/pkg/watch"
-	certificates "k8s.io/kubernetes/pkg/apis/certificates/v1beta1"
-	certificatesclient "k8s.io/kubernetes/pkg/client/clientset_generated/clientset/typed/certificates/v1beta1"
+	certificatesclient "k8s.io/client-go/kubernetes/typed/certificates/v1beta1"
 )
 
 type certificateData struct {
@@ -202,21 +202,22 @@ func TestSetRotationDeadline(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		for i := 0; i < 1000; i++ {
-			t.Run(tc.name, func(t *testing.T) {
-				m := manager{
-					cert: &tls.Certificate{
-						Leaf: &x509.Certificate{
-							NotBefore: tc.notBefore,
-							NotAfter:  tc.notAfter,
-						},
+		t.Run(tc.name, func(t *testing.T) {
+			m := manager{
+				cert: &tls.Certificate{
+					Leaf: &x509.Certificate{
+						NotBefore: tc.notBefore,
+						NotAfter:  tc.notAfter,
 					},
-					template: &x509.CertificateRequest{},
-					usages:   []certificates.KeyUsage{},
-				}
+				},
+				template: &x509.CertificateRequest{},
+				usages:   []certificates.KeyUsage{},
+			}
+			lowerBound := tc.notBefore.Add(time.Duration(float64(tc.notAfter.Sub(tc.notBefore)) * 0.7))
+			upperBound := tc.notBefore.Add(time.Duration(float64(tc.notAfter.Sub(tc.notBefore)) * 0.9))
+			for i := 0; i < 1000; i++ {
+				// setRotationDeadline includes jitter, so this needs to run many times for validation.
 				m.setRotationDeadline()
-				lowerBound := tc.notBefore.Add(time.Duration(float64(tc.notAfter.Sub(tc.notBefore)) * 0.7))
-				upperBound := tc.notBefore.Add(time.Duration(float64(tc.notAfter.Sub(tc.notBefore)) * 0.9))
 				if m.rotationDeadline.Before(lowerBound) || m.rotationDeadline.After(upperBound) {
 					t.Errorf("For notBefore %v, notAfter %v, the rotationDeadline %v should be between %v and %v.",
 						tc.notBefore,
@@ -225,8 +226,8 @@ func TestSetRotationDeadline(t *testing.T) {
 						lowerBound,
 						upperBound)
 				}
-			})
-		}
+			}
+		})
 	}
 }
 

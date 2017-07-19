@@ -22,8 +22,6 @@ import (
 	"path"
 	"strings"
 	"testing"
-
-	"k8s.io/kubernetes/pkg/util/version"
 )
 
 func TestEmptyVersion(t *testing.T) {
@@ -47,6 +45,7 @@ func TestValidVersion(t *testing.T) {
 		"v1.6.0-alpha.0.536+d60d9f3269288f",
 		"v1.5.0-alpha.0.1078+1044b6822497da-pull",
 		"v1.5.0-alpha.1.822+49b9e32fad9f32-pull-gke-gci",
+		"v1.6.1_coreos.0",
 	}
 	for _, s := range validVersions {
 		ver, err := KubernetesReleaseVersion(s)
@@ -63,8 +62,9 @@ func TestValidVersion(t *testing.T) {
 func TestInvalidVersion(t *testing.T) {
 	invalidVersions := []string{
 		"v1.3",
-		"1.4.0",
-		"1.4.5+git",
+		"1.4",
+		"b1.4.0",
+		"c1.4.5+git",
 		"something1.2",
 	}
 	for _, s := range invalidVersions {
@@ -75,6 +75,24 @@ func TestInvalidVersion(t *testing.T) {
 		}
 		if ver != "" {
 			t.Errorf("KubernetesReleaseVersion should return empty string in case of error. Returned %q for version %q", ver, s)
+		}
+	}
+}
+
+func TestValidConvenientForUserVersion(t *testing.T) {
+	validVersions := []string{
+		"1.4.0",
+		"1.4.5+git",
+		"1.6.1_coreos.0",
+	}
+	for _, s := range validVersions {
+		ver, err := KubernetesReleaseVersion(s)
+		t.Log("Valid: ", s, ver, err)
+		if err != nil {
+			t.Errorf("KubernetesReleaseVersion unexpected error for version %q: %v", s, err)
+		}
+		if ver != "v"+s {
+			t.Errorf("KubernetesReleaseVersion should return semantic version string. %q vs. %q", s, ver)
 		}
 	}
 }
@@ -123,37 +141,27 @@ func TestVersionFromNetwork(t *testing.T) {
 	}
 }
 
-func TestIsNodeAuthorizerSupported(t *testing.T) {
-	versionsSupported := map[string]bool{
-		"v1.6.0":         false,
-		"v1.6.9":         false,
-		"v1.7.0-alpha.1": false,
-		"v1.7.0-alpha.2": false,
-		"v1.7.0-alpha.3": false,
-		"v1.7.0-alpha.4": false,
-		"v1.7.0-beta.0":  false,
-		"v1.7.0-beta.1":  true, // BREAKPOINT!
-		"v1.7.0-beta.2":  true,
-		"v1.7.0-rc.0":    true,
-		"v1.7.0":         true,
-		"v1.7.3":         true,
-		"v1.8.0-alpha.0": false, // EXCEPTION!
-		"v1.8.0-alpha.1": true,
-		"v1.8.0-alpha.2": true,
-		"v1.8.0-beta.0":  true,
-		"v1.8.0-beta.1":  true,
-		"v1.8.0-rc.0":    true,
-		"v1.8.0":         true,
-		"v1.8.6":         true,
+func TestVersionToTag(t *testing.T) {
+	type T struct {
+		input    string
+		expected string
 	}
-	for ver, expected := range versionsSupported {
+	cases := []T{
+		// NOP
+		{"", ""},
+		// Official releases
+		{"v1.0.0", "v1.0.0"},
+		// CI or custom builds
+		{"v10.1.2-alpha.1.100+0123456789abcdef+SOMETHING", "v10.1.2-alpha.1.100_0123456789abcdef_SOMETHING"},
+		// random and invalid input: should return safe value
+		{"v1,0!0+üñµ", "v1_0_0____"},
+	}
 
-		parsedVersion, err := version.ParseSemantic(ver)
-		if err != nil {
-			t.Fatalf("version %s must parse", ver)
-		}
-		if actual := IsNodeAuthorizerSupported(parsedVersion); actual != expected {
-			t.Errorf("IsNodeAuthorizerSupported: unexpected result for version %s, expected %t but got %t", ver, expected, actual)
+	for _, tc := range cases {
+		tag := KubernetesVersionToImageTag(tc.input)
+		t.Logf("KubernetesVersionToImageTag: Input: %q. Result: %q. Expected: %q", tc.input, tag, tc.expected)
+		if tag != tc.expected {
+			t.Errorf("failed KubernetesVersionToImageTag: Input: %q. Result: %q. Expected: %q", tc.input, tag, tc.expected)
 		}
 	}
 }

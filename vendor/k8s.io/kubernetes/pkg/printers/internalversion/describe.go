@@ -26,6 +26,7 @@ import (
 	"net/url"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 	"time"
@@ -33,6 +34,7 @@ import (
 	"github.com/golang/glog"
 
 	"github.com/fatih/camelcase"
+	versionedextension "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -44,6 +46,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/dynamic"
+	versionedclientset "k8s.io/client-go/kubernetes"
+	coreclientset "k8s.io/client-go/kubernetes/typed/core/v1"
+	extensionsclientset "k8s.io/client-go/kubernetes/typed/extensions/v1beta1"
 	"k8s.io/kubernetes/federation/apis/federation"
 	fedclientset "k8s.io/kubernetes/federation/client/clientset_generated/federation_internalclientset"
 	"k8s.io/kubernetes/pkg/api"
@@ -57,15 +62,11 @@ import (
 	"k8s.io/kubernetes/pkg/apis/batch"
 	"k8s.io/kubernetes/pkg/apis/certificates"
 	"k8s.io/kubernetes/pkg/apis/extensions"
-	versionedextension "k8s.io/kubernetes/pkg/apis/extensions/v1beta1"
 	"k8s.io/kubernetes/pkg/apis/networking"
 	"k8s.io/kubernetes/pkg/apis/policy"
 	"k8s.io/kubernetes/pkg/apis/rbac"
 	"k8s.io/kubernetes/pkg/apis/storage"
 	storageutil "k8s.io/kubernetes/pkg/apis/storage/util"
-	versionedclientset "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
-	coreclientset "k8s.io/kubernetes/pkg/client/clientset_generated/clientset/typed/core/v1"
-	extensionsclientset "k8s.io/kubernetes/pkg/client/clientset_generated/clientset/typed/extensions/v1beta1"
 	clientset "k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
 	coreclient "k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset/typed/core/internalversion"
 	"k8s.io/kubernetes/pkg/controller"
@@ -231,7 +232,7 @@ func printUnstructuredContent(w PrefixWriter, level int, content map[string]inte
 			if slice.ContainsString(skip, skipExpr, nil) {
 				continue
 			}
-			w.Write(level, fmt.Sprintf("%s:\n", smartLabelFor(field)))
+			w.Write(level, "%s:\n", smartLabelFor(field))
 			printUnstructuredContent(w, level+1, typedValue, skipExpr, skip...)
 
 		case []interface{}:
@@ -239,13 +240,13 @@ func printUnstructuredContent(w PrefixWriter, level int, content map[string]inte
 			if slice.ContainsString(skip, skipExpr, nil) {
 				continue
 			}
-			w.Write(level, fmt.Sprintf("%s:\n", smartLabelFor(field)))
+			w.Write(level, "%s:\n", smartLabelFor(field))
 			for _, child := range typedValue {
 				switch typedChild := child.(type) {
 				case map[string]interface{}:
 					printUnstructuredContent(w, level+1, typedChild, skipExpr, skip...)
 				default:
-					w.Write(level+1, fmt.Sprintf("%v\n", typedChild))
+					w.Write(level+1, "%v\n", typedChild)
 				}
 			}
 
@@ -254,7 +255,7 @@ func printUnstructuredContent(w PrefixWriter, level int, content map[string]inte
 			if slice.ContainsString(skip, skipExpr, nil) {
 				continue
 			}
-			w.Write(level, fmt.Sprintf("%s:\t%v\n", smartLabelFor(field), typedValue))
+			w.Write(level, "%s:\t%v\n", smartLabelFor(field), typedValue)
 		}
 	}
 }
@@ -744,6 +745,8 @@ func describeVolumes(volumes []api.Volume, w PrefixWriter, space string) {
 			printCephFSVolumeSource(volume.VolumeSource.CephFS, w)
 		case volume.VolumeSource.StorageOS != nil:
 			printStorageOSVolumeSource(volume.VolumeSource.StorageOS, w)
+		case volume.VolumeSource.FC != nil:
+			printFCVolumeSource(volume.VolumeSource.FC, w)
 		default:
 			w.Write(LEVEL_1, "<unknown>\n")
 		}
@@ -960,6 +963,19 @@ func printStorageOSPersistentVolumeSource(storageos *api.StorageOSPersistentVolu
 		storageos.VolumeName, storageos.VolumeNamespace, storageos.FSType, storageos.ReadOnly)
 }
 
+func printFCVolumeSource(fc *api.FCVolumeSource, w PrefixWriter) {
+	lun := "<none>"
+	if fc.Lun != nil {
+		lun = strconv.Itoa(int(*fc.Lun))
+	}
+	w.Write(LEVEL_2, "Type:\tFC (a Fibre Channel disk)\n"+
+		"    TargetWWNs:\t%v\n"+
+		"    LUN:\t%v\n"+
+		"    FSType:\t%v\n"+
+		"    ReadOnly:\t%v\n",
+		strings.Join(fc.TargetWWNs, ", "), lun, fc.FSType, fc.ReadOnly)
+}
+
 type PersistentVolumeDescriber struct {
 	clientset.Interface
 }
@@ -1035,6 +1051,8 @@ func describePersistentVolume(pv *api.PersistentVolume, events *api.EventList) (
 			printCephFSVolumeSource(pv.Spec.CephFS, w)
 		case pv.Spec.StorageOS != nil:
 			printStorageOSPersistentVolumeSource(pv.Spec.StorageOS, w)
+		case pv.Spec.FC != nil:
+			printFCVolumeSource(pv.Spec.FC, w)
 		}
 
 		if events != nil {
@@ -1382,7 +1400,7 @@ func describeVolumeClaimTemplates(templates []api.PersistentVolumeClaim, w Prefi
 		printLabelsMultilineWithIndent(w, "  ", "Labels", "\t", pvc.Labels, sets.NewString())
 		printLabelsMultilineWithIndent(w, "  ", "Annotations", "\t", pvc.Annotations, sets.NewString())
 		if capacity, ok := pvc.Spec.Resources.Requests[api.ResourceStorage]; ok {
-			w.Write(LEVEL_1, "Capacity:\t%s\n", capacity)
+			w.Write(LEVEL_1, "Capacity:\t%s\n", capacity.String())
 		} else {
 			w.Write(LEVEL_1, "Capacity:\t%s\n", "<default>")
 		}
@@ -1421,7 +1439,7 @@ func (d *ReplicationControllerDescriber) Describe(namespace, name string, descri
 		return "", err
 	}
 
-	running, waiting, succeeded, failed, err := getPodStatusForController(pc, labels.SelectorFromSet(controller.Spec.Selector))
+	running, waiting, succeeded, failed, err := getPodStatusForController(pc, labels.SelectorFromSet(controller.Spec.Selector), controller.UID)
 	if err != nil {
 		return "", err
 	}
@@ -1498,7 +1516,7 @@ func (d *ReplicaSetDescriber) Describe(namespace, name string, describerSettings
 		return "", err
 	}
 
-	running, waiting, succeeded, failed, getPodErr := getPodStatusForController(pc, selector)
+	running, waiting, succeeded, failed, getPodErr := getPodStatusForController(pc, selector, rs.UID)
 
 	var events *api.EventList
 	if describerSettings.ShowEvents {
@@ -1698,7 +1716,7 @@ func (d *DaemonSetDescriber) Describe(namespace, name string, describerSettings 
 	if err != nil {
 		return "", err
 	}
-	running, waiting, succeeded, failed, err := getPodStatusForController(pc, selector)
+	running, waiting, succeeded, failed, err := getPodStatusForController(pc, selector, daemon.UID)
 	if err != nil {
 		return "", err
 	}
@@ -2360,7 +2378,6 @@ func describeNode(node *api.Node, nodeNonTerminatedPodsList *api.PodList, events
 	return tabbedString(func(out io.Writer) error {
 		w := NewPrefixWriter(out)
 		w.Write(LEVEL_0, "Name:\t%s\n", node.Name)
-		w.Write(LEVEL_0, "Role:\t%s\n", findNodeRole(node))
 		printLabelsMultiline(w, "Labels", node.Labels)
 		printAnnotationsMultiline(w, "Annotations", node.Annotations)
 		printNodeTaintsMultiline(w, "Taints", node.Spec.Taints)
@@ -2453,7 +2470,7 @@ func (p *StatefulSetDescriber) Describe(namespace, name string, describerSetting
 		return "", err
 	}
 
-	running, waiting, succeeded, failed, err := getPodStatusForController(pc, selector)
+	running, waiting, succeeded, failed, err := getPodStatusForController(pc, selector, ps.UID)
 	if err != nil {
 		return "", err
 	}
@@ -2816,10 +2833,6 @@ func describeDeployment(d *versionedextension.Deployment, selector labels.Select
 			}
 			w.Write(LEVEL_0, "NewReplicaSet:\t%s\n", printReplicaSetsByLabels(newRSs))
 		}
-		overlapWith := d.Annotations[deploymentutil.OverlapAnnotation]
-		if len(overlapWith) > 0 {
-			w.Write(LEVEL_0, "!!!WARNING!!! This deployment has overlapping label selector with deployment %q and won't behave as expected. Please fix it before continuing.\n", overlapWith)
-		}
 		if events != nil {
 			DescribeEvents(events, w)
 		}
@@ -2842,13 +2855,18 @@ func printReplicaSetsByLabels(matchingRSs []*versionedextension.ReplicaSet) stri
 	return list
 }
 
-func getPodStatusForController(c coreclient.PodInterface, selector labels.Selector) (running, waiting, succeeded, failed int, err error) {
+func getPodStatusForController(c coreclient.PodInterface, selector labels.Selector, uid types.UID) (running, waiting, succeeded, failed int, err error) {
 	options := metav1.ListOptions{LabelSelector: selector.String()}
 	rcPods, err := c.List(options)
 	if err != nil {
 		return
 	}
 	for _, pod := range rcPods.Items {
+		controllerRef := controller.GetControllerOf(&pod)
+		// Skip pods that are orphans or owned by other controllers.
+		if controllerRef == nil || controllerRef.UID != uid {
+			continue
+		}
 		switch pod.Status.Phase {
 		case api.PodRunning:
 			running++
@@ -3321,9 +3339,9 @@ func printTolerationsMultilineWithIndent(w PrefixWriter, initialIndent, title, i
 					w.Write(LEVEL_0, "%s", initialIndent)
 					w.Write(LEVEL_0, "%s", innerIndent)
 				}
-				w.Write(LEVEL_0, "%s=%s", toleration.Key, toleration.Value)
-				if len(toleration.Operator) != 0 {
-					w.Write(LEVEL_0, ":%s", toleration.Operator)
+				w.Write(LEVEL_0, "%s", toleration.Key)
+				if len(toleration.Value) != 0 {
+					w.Write(LEVEL_0, "=%s", toleration.Value)
 				}
 				if len(toleration.Effect) != 0 {
 					w.Write(LEVEL_0, ":%s", toleration.Effect)

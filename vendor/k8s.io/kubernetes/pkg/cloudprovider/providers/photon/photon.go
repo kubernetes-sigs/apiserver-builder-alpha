@@ -37,8 +37,8 @@ import (
 	"github.com/golang/glog"
 	"github.com/vmware/photon-controller-go-sdk/photon"
 	"gopkg.in/gcfg.v1"
+	"k8s.io/api/core/v1"
 	k8stypes "k8s.io/apimachinery/pkg/types"
-	"k8s.io/kubernetes/pkg/api/v1"
 	v1helper "k8s.io/kubernetes/pkg/api/v1/helper"
 	"k8s.io/kubernetes/pkg/cloudprovider"
 	"k8s.io/kubernetes/pkg/controller"
@@ -187,7 +187,7 @@ func getVMIDbyIP(pc *PCCloud, IPAddress string) (string, error) {
 		} else {
 			task, err = photonClient.Tasks.Wait(task.ID)
 			if err != nil {
-				glog.Warning("Photon Cloud Provider: Wait task for GetNetworks failed for vm.ID %s, error [%v]", vm.ID, err)
+				glog.Warningf("Photon Cloud Provider: Wait task for GetNetworks failed for vm.ID %s, error [%v]", vm.ID, err)
 			} else {
 				networkConnections := task.ResourceProperties.(map[string]interface{})
 				networks := networkConnections["networkConnections"].([]interface{})
@@ -258,7 +258,7 @@ func getPhotonClient(pc *PCCloud) (*photon.Client, error) {
 		glog.Errorf("Photon Cloud Provider: new client creation failed. Error[%v]", err)
 		return nil, err
 	}
-	glog.V(2).Info("Photon Cloud Provider: Status of the new photon controller client: %v", status)
+	glog.V(2).Infof("Photon Cloud Provider: Status of the new photon controller client: %v", status)
 
 	return pc.photonClient, nil
 }

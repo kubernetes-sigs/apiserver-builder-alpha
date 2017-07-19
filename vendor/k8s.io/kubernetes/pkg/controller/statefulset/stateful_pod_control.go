@@ -20,16 +20,16 @@ import (
 	"fmt"
 	"strings"
 
+	apps "k8s.io/api/apps/v1beta1"
+	"k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	errorutils "k8s.io/apimachinery/pkg/util/errors"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
+	appslisters "k8s.io/client-go/listers/apps/v1beta1"
+	corelisters "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/record"
-	"k8s.io/kubernetes/pkg/api/v1"
-	apps "k8s.io/kubernetes/pkg/apis/apps/v1beta1"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
-	appslisters "k8s.io/kubernetes/pkg/client/listers/apps/v1beta1"
-	corelisters "k8s.io/kubernetes/pkg/client/listers/core/v1"
 	"k8s.io/kubernetes/pkg/client/retry"
 )
 

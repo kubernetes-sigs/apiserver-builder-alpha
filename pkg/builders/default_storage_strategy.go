@@ -29,7 +29,6 @@ import (
 	"k8s.io/apiserver/pkg/registry/rest"
 	"k8s.io/apiserver/pkg/storage"
 	"k8s.io/apiserver/pkg/storage/names"
-	"k8s.io/client-go/pkg/api"
 )
 
 var _ rest.RESTCreateStrategy = &DefaultStorageStrategy{}
@@ -37,7 +36,7 @@ var _ rest.RESTDeleteStrategy = &DefaultStorageStrategy{}
 var _ rest.RESTUpdateStrategy = &DefaultStorageStrategy{}
 
 var StorageStrategySingleton = DefaultStorageStrategy{
-	api.Scheme,
+	Scheme,
 	names.SimpleNameGenerator,
 }
 

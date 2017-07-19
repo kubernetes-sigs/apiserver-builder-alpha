@@ -23,18 +23,18 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
+	coreinformers "k8s.io/client-go/informers/core/v1"
+	clientset "k8s.io/client-go/kubernetes"
+	corelisters "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
-	"k8s.io/kubernetes/pkg/api/v1"
 	v1node "k8s.io/kubernetes/pkg/api/v1/node"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
-	coreinformers "k8s.io/kubernetes/pkg/client/informers/informers_generated/externalversions/core/v1"
-	corelisters "k8s.io/kubernetes/pkg/client/listers/core/v1"
 	"k8s.io/kubernetes/pkg/cloudprovider"
 	"k8s.io/kubernetes/pkg/controller"
 	"k8s.io/kubernetes/pkg/util/metrics"
@@ -64,6 +64,11 @@ func New(routes cloudprovider.Routes, kubeClient clientset.Interface, nodeInform
 	if kubeClient != nil && kubeClient.Core().RESTClient().GetRateLimiter() != nil {
 		metrics.RegisterMetricAndTrackRateLimiterUsage("route_controller", kubeClient.Core().RESTClient().GetRateLimiter())
 	}
+
+	if clusterCIDR == nil {
+		glog.Fatal("RouteController: Must specify clusterCIDR.")
+	}
+
 	rc := &RouteController{
 		routes:           routes,
 		kubeClient:       kubeClient,
@@ -118,7 +123,9 @@ func (rc *RouteController) reconcile(nodes []*v1.Node, routes []*cloudprovider.R
 	// routeMap maps routeTargetNode->route
 	routeMap := make(map[types.NodeName]*cloudprovider.Route)
 	for _, route := range routes {
-		routeMap[route.TargetNode] = route
+		if route.TargetNode != "" {
+			routeMap[route.TargetNode] = route
+		}
 	}
 
 	wg := sync.WaitGroup{}
@@ -171,8 +178,8 @@ func (rc *RouteController) reconcile(nodes []*v1.Node, routes []*cloudprovider.R
 	}
 	for _, route := range routes {
 		if rc.isResponsibleForRoute(route) {
-			// Check if this route applies to a node we know about & has correct CIDR.
-			if nodeCIDRs[route.TargetNode] != route.DestinationCIDR {
+			// Check if this route is a blackhole, or applies to a node we know about & has an incorrect CIDR.
+			if route.Blackhole || (nodeCIDRs[route.TargetNode] != route.DestinationCIDR) {
 				wg.Add(1)
 				// Delete the route.
 				go func(route *cloudprovider.Route, startTime time.Time) {

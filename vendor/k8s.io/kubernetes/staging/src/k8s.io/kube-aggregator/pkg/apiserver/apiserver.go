@@ -20,7 +20,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"net/url"
 	"sync"
 	"time"
 
@@ -34,10 +33,7 @@ import (
 	genericapirequest "k8s.io/apiserver/pkg/endpoints/request"
 	"k8s.io/apiserver/pkg/registry/rest"
 	genericapiserver "k8s.io/apiserver/pkg/server"
-	"k8s.io/apiserver/pkg/util/proxy"
 	kubeinformers "k8s.io/client-go/informers"
-	kubeclientset "k8s.io/client-go/kubernetes"
-	listersv1 "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/pkg/version"
 
 	"bytes"
@@ -89,31 +85,23 @@ func init() {
 // legacyAPIServiceName is the fixed name of the only non-groupified API version
 const legacyAPIServiceName = "v1."
 
-type ServiceResolver interface {
-	ResolveEndpoint(namespace, name string) (*url.URL, error)
-}
-
-type aggregatorEndpointRouting struct {
-	services  listersv1.ServiceLister
-	endpoints listersv1.EndpointsLister
-}
-
-type aggregatorClusterRouting struct {
-	services listersv1.ServiceLister
-}
-
 type Config struct {
-	GenericConfig       *genericapiserver.Config
-	CoreAPIServerClient kubeclientset.Interface
+	GenericConfig *genericapiserver.Config
+
+	// CoreKubeInformers is used to watch kube resources
+	CoreKubeInformers kubeinformers.SharedInformerFactory
 
 	// ProxyClientCert/Key are the client cert used to identify this proxy. Backing APIServices use
 	// this to confirm the proxy's identity
 	ProxyClientCert []byte
 	ProxyClientKey  []byte
-	ProxyTransport  *http.Transport
 
-	// Indicates if the Aggregator should send to the cluster IP (false) or route to the endpoints IP (true)
-	EnableAggregatorRouting bool
+	// If present, the Dial method will be used for dialing out to delegate
+	// apiservers.
+	ProxyTransport *http.Transport
+
+	// Mechanism by which the Aggregator will resolve services. Required.
+	ServiceResolver ServiceResolver
 }
 
 // APIAggregator contains state for a Kubernetes cluster master/api server.
@@ -161,7 +149,7 @@ type APIAggregator struct {
 	APIRegistrationInformers informers.SharedInformerFactory
 
 	// Information needed to determine routing for the aggregator
-	routing ServiceResolver
+	serviceResolver ServiceResolver
 }
 
 type completedConfig struct {
@@ -186,14 +174,6 @@ func (c *Config) SkipComplete() completedConfig {
 	return completedConfig{c}
 }
 
-func (r *aggregatorEndpointRouting) ResolveEndpoint(namespace, name string) (*url.URL, error) {
-	return proxy.ResolveEndpoint(r.services, r.endpoints, namespace, name)
-}
-
-func (r *aggregatorClusterRouting) ResolveEndpoint(namespace, name string) (*url.URL, error) {
-	return proxy.ResolveCluster(r.services, namespace, name)
-}
-
 // New returns a new instance of APIAggregator from the given config.
 func (c completedConfig) NewWithDelegate(delegationTarget genericapiserver.DelegationTarget) (*APIAggregator, error) {
 	genericServer, err := c.Config.GenericConfig.SkipComplete().New("kube-aggregator", delegationTarget) // completion is done in Complete, no need for a second time
@@ -209,19 +189,6 @@ func (c completedConfig) NewWithDelegate(delegationTarget genericapiserver.Deleg
 		apiregistrationClient,
 		5*time.Minute, // this is effectively used as a refresh interval right now.  Might want to do something nicer later on.
 	)
-	kubeInformers := kubeinformers.NewSharedInformerFactory(c.CoreAPIServerClient, 5*time.Minute)
-
-	var routing ServiceResolver
-	if c.EnableAggregatorRouting {
-		routing = &aggregatorEndpointRouting{
-			services:  kubeInformers.Core().V1().Services().Lister(),
-			endpoints: kubeInformers.Core().V1().Endpoints().Lister(),
-		}
-	} else {
-		routing = &aggregatorClusterRouting{
-			services: kubeInformers.Core().V1().Services().Lister(),
-		}
-	}
 
 	s := &APIAggregator{
 		GenericAPIServer: genericServer,
@@ -237,7 +204,7 @@ func (c completedConfig) NewWithDelegate(delegationTarget genericapiserver.Deleg
 		handledGroups:    sets.String{},
 		lister:           informerFactory.Apiregistration().InternalVersion().APIServices().Lister(),
 		APIRegistrationInformers: informerFactory,
-		routing:                  routing,
+		serviceResolver:          c.ServiceResolver,
 	}
 
 	apiGroupInfo := genericapiserver.NewDefaultAPIGroupInfo(apiregistration.GroupName, registry, Scheme, metav1.ParameterCodec, Codecs)
@@ -260,17 +227,17 @@ func (c completedConfig) NewWithDelegate(delegationTarget genericapiserver.Deleg
 	s.GenericAPIServer.Handler.NonGoRestfulMux.Handle("/apis", apisHandler)
 	s.GenericAPIServer.Handler.NonGoRestfulMux.UnlistedHandle("/apis/", apisHandler)
 
-	apiserviceRegistrationController := NewAPIServiceRegistrationController(informerFactory.Apiregistration().InternalVersion().APIServices(), kubeInformers.Core().V1().Services(), s)
+	apiserviceRegistrationController := NewAPIServiceRegistrationController(informerFactory.Apiregistration().InternalVersion().APIServices(), c.CoreKubeInformers.Core().V1().Services(), s)
 	availableController := statuscontrollers.NewAvailableConditionController(
 		informerFactory.Apiregistration().InternalVersion().APIServices(),
-		kubeInformers.Core().V1().Services(),
-		kubeInformers.Core().V1().Endpoints(),
+		c.CoreKubeInformers.Core().V1().Services(),
+		c.CoreKubeInformers.Core().V1().Endpoints(),
 		apiregistrationClient.Apiregistration(),
 	)
 
 	s.GenericAPIServer.AddPostStartHook("start-kube-aggregator-informers", func(context genericapiserver.PostStartHookContext) error {
 		informerFactory.Start(context.StopCh)
-		kubeInformers.Start(context.StopCh)
+		c.CoreKubeInformers.Start(context.StopCh)
 		return nil
 	})
 	s.GenericAPIServer.AddPostStartHook("apiservice-registration-controller", func(context genericapiserver.PostStartHookContext) error {
@@ -322,7 +289,7 @@ func (s *APIAggregator) AddAPIService(apiService *apiregistration.APIService) {
 		proxyClientCert: s.proxyClientCert,
 		proxyClientKey:  s.proxyClientKey,
 		proxyTransport:  s.proxyTransport,
-		routing:         s.routing,
+		serviceResolver: s.serviceResolver,
 	}
 	proxyHandler.updateAPIService(apiService)
 	s.proxyHandlers[apiService.Name] = proxyHandler
@@ -399,7 +366,7 @@ func (_ *APIAggregator) loadOpenAPISpec(p *proxyHandler, r *http.Request) (*spec
 	if handlingInfo.local {
 		return nil, nil
 	}
-	loc, err := p.routing.ResolveEndpoint(handlingInfo.serviceNamespace, handlingInfo.serviceName)
+	loc, err := p.serviceResolver.ResolveEndpoint(handlingInfo.serviceNamespace, handlingInfo.serviceName)
 	if err != nil {
 		return nil, fmt.Errorf("missing route")
 	}

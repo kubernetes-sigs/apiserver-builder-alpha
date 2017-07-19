@@ -80,12 +80,16 @@ apiserver-boot build docs --generate-toc=false
 
 var operations, buildOpenapi, generateToc bool
 var server string
+var disableDelegatedAuth bool
+var outputDir string
 
 func AddDocs(cmd *cobra.Command) {
 	docsCmd.Flags().StringVar(&server, "server", "bin/apiserver", "path to apiserver binary to run to get swagger.json")
 	docsCmd.Flags().BoolVar(&buildOpenapi, "build-openapi", true, "If true, run the server and get the new swagger.json")
 	docsCmd.Flags().BoolVar(&operations, "operations", false, "if true, include operations in docs.")
 	docsCmd.Flags().BoolVar(&generateToc, "generate-toc", true, "If true, generate the table of contents from the api groups instead of using a statically configured ToC.")
+	docsCmd.Flags().BoolVar(&disableDelegatedAuth, "disable-delegated-auth", true, "If true, disable delegated auth in the apiserver with --delegated-auth=false.")
+	docsCmd.Flags().StringVar(&outputDir, "output-dir", "docs", "Build docs into this directory")
 	cmd.AddCommand(docsCmd)
 	docsCmd.AddCommand(docsCleanCmd)
 }
@@ -99,9 +103,9 @@ var docsCleanCmd = &cobra.Command{
 }
 
 func RunCleanDocs(cmd *cobra.Command, args []string) {
-	os.RemoveAll(filepath.Join("docs", "build"))
-	os.RemoveAll(filepath.Join("docs", "includes"))
-	os.Remove(filepath.Join("docs", "manifest.json"))
+	os.RemoveAll(filepath.Join(outputDir, "build"))
+	os.RemoveAll(filepath.Join(outputDir, "includes"))
+	os.Remove(filepath.Join(outputDir, "manifest.json"))
 }
 
 func RunDocs(cmd *cobra.Command, args []string) {
@@ -109,18 +113,25 @@ func RunDocs(cmd *cobra.Command, args []string) {
 		log.Fatal("Must specifiy --server or --build-openapi=false")
 	}
 
-	os.RemoveAll(filepath.Join("docs", "includes"))
-	exec.Command("mkdir", "-p", filepath.Join("docs", "openapi-spec")).CombinedOutput()
-	exec.Command("mkdir", "-p", filepath.Join("docs", "static_includes")).CombinedOutput()
-	exec.Command("mkdir", "-p", filepath.Join("docs", "examples")).CombinedOutput()
+	os.RemoveAll(filepath.Join(outputDir, "includes"))
+	exec.Command("mkdir", "-p", filepath.Join(outputDir, "openapi-spec")).CombinedOutput()
+	exec.Command("mkdir", "-p", filepath.Join(outputDir, "static_includes")).CombinedOutput()
+	exec.Command("mkdir", "-p", filepath.Join(outputDir, "examples")).CombinedOutput()
 
 	// Build the swagger.json
 	if buildOpenapi {
-		c := exec.Command(server,
-			"--delegated-auth=false",
+		flags := []string{
 			"--etcd-servers=http://localhost:2379",
 			"--secure-port=9443",
 			"--print-openapi",
+		}
+
+		if disableDelegatedAuth {
+			flags = append(flags, "--delegated-auth=false")
+		}
+
+		c := exec.Command(server,
+			flags...,
 		)
 		log.Printf("%s\n", strings.Join(c.Args, " "))
 
@@ -133,7 +144,7 @@ func RunDocs(cmd *cobra.Command, args []string) {
 			log.Fatalf("error: %v\n", err)
 		}
 
-		err = ioutil.WriteFile(filepath.Join("docs", "openapi-spec", "swagger.json"), b.Bytes(), 0644)
+		err = ioutil.WriteFile(filepath.Join(outputDir, "openapi-spec", "swagger.json"), b.Bytes(), 0644)
 		if err != nil {
 			log.Fatalf("error: %v\n", err)
 		}
@@ -149,7 +160,7 @@ func RunDocs(cmd *cobra.Command, args []string) {
 		fmt.Sprintf("--build-operations=%v", operations),
 		fmt.Sprintf("--use-tags=%v", generateToc),
 		"--allow-errors",
-		"--config-dir=docs")
+		"--config-dir="+outputDir)
 	log.Printf("%s\n", strings.Join(c.Args, " "))
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout
@@ -165,10 +176,10 @@ func RunDocs(cmd *cobra.Command, args []string) {
 
 	// Run the docker command to build the docs
 	c = exec.Command("docker", "run",
-		"-v", fmt.Sprintf("%s:%s", filepath.Join(wd, "docs", "includes"), "/source"),
-		"-v", fmt.Sprintf("%s:%s", filepath.Join(wd, "docs", "build"), "/build"),
-		"-v", fmt.Sprintf("%s:%s", filepath.Join(wd, "docs", "build"), "/build"),
-		"-v", fmt.Sprintf("%s:%s", filepath.Join(wd, "docs"), "/manifest"),
+		"-v", fmt.Sprintf("%s:%s", filepath.Join(wd, outputDir, "includes"), "/source"),
+		"-v", fmt.Sprintf("%s:%s", filepath.Join(wd, outputDir, "build"), "/build"),
+		"-v", fmt.Sprintf("%s:%s", filepath.Join(wd, outputDir, "build"), "/build"),
+		"-v", fmt.Sprintf("%s:%s", filepath.Join(wd, outputDir), "/manifest"),
 		"pwittrock/brodocs",
 	)
 	log.Println(strings.Join(c.Args, " "))

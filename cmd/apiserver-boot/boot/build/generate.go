@@ -27,15 +27,16 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/spf13/cobra"
-
 	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
+	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 var versionedAPIs []string
 var unversionedAPIs []string
+var codegenerators []string
 var copyright string = "boilerplate.go.txt"
-var skipGenerators []string
+var generators = sets.String{}
 
 var generateCmd = &cobra.Command{
 	Use:   "generated",
@@ -47,24 +48,24 @@ apiserver-boot build generated`,
 }
 
 var genericAPI = strings.Join([]string{
-	"k8s.io/client-go/pkg/api/v1",
-	"k8s.io/client-go/pkg/apis/apps/v1beta1",
-	"k8s.io/client-go/pkg/apis/authentication/v1",
-	"k8s.io/client-go/pkg/apis/authentication/v1beta1",
-	"k8s.io/client-go/pkg/apis/authorization/v1",
-	"k8s.io/client-go/pkg/apis/authorization/v1beta1",
-	"k8s.io/client-go/pkg/apis/autoscaling/v1",
-	"k8s.io/client-go/pkg/apis/autoscaling/v2alpha1",
-	"k8s.io/client-go/pkg/apis/batch/v1",
-	"k8s.io/client-go/pkg/apis/batch/v2alpha1",
-	"k8s.io/client-go/pkg/apis/certificates/v1beta1",
-	"k8s.io/client-go/pkg/apis/extensions/v1beta1",
-	"k8s.io/client-go/pkg/apis/policy/v1beta1",
-	"k8s.io/client-go/pkg/apis/rbac/v1alpha1",
-	"k8s.io/client-go/pkg/apis/rbac/v1beta1",
-	"k8s.io/client-go/pkg/apis/settings/v1alpha1",
-	"k8s.io/client-go/pkg/apis/storage/v1",
-	"k8s.io/client-go/pkg/apis/storage/v1beta1",
+	"k8s.io/api/core/v1",
+	"k8s.io/api/apps/v1beta1",
+	"k8s.io/api/authentication/v1",
+	"k8s.io/api/authentication/v1beta1",
+	"k8s.io/api/authorization/v1",
+	"k8s.io/api/authorization/v1beta1",
+	"k8s.io/api/autoscaling/v1",
+	"k8s.io/api/autoscaling/v2alpha1",
+	"k8s.io/api/batch/v1",
+	"k8s.io/api/batch/v2alpha1",
+	"k8s.io/api/certificates/v1beta1",
+	"k8s.io/api/extensions/v1beta1",
+	"k8s.io/api/policy/v1beta1",
+	"k8s.io/api/rbac/v1alpha1",
+	"k8s.io/api/rbac/v1beta1",
+	"k8s.io/api/settings/v1alpha1",
+	"k8s.io/api/storage/v1",
+	"k8s.io/api/storage/v1beta1",
 	"k8s.io/apimachinery/pkg/apis/meta/v1",
 	"k8s.io/apimachinery/pkg/api/resource",
 	"k8s.io/apimachinery/pkg/version",
@@ -78,8 +79,8 @@ var extraAPI = strings.Join([]string{
 
 func AddGenerate(cmd *cobra.Command) {
 	cmd.AddCommand(generateCmd)
-	generateCmd.Flags().StringArrayVar(&versionedAPIs, "api-versions", []string{}, "comma separated list of APIs Versions.  e.g. foo/v1beta1,bar/v1  defaults to all directories under pkd/apis/group/version")
-	generateCmd.Flags().StringArrayVar(&skipGenerators, "skip-generators", []string{}, "List of generators to skip.  If using apiserver-boot on a repo that does not use the apiserver-build code generation, specify --skip-generators=apiregister-gen")
+	generateCmd.Flags().StringArrayVar(&versionedAPIs, "api-versions", []string{}, "API version to generate code for.  Can be specified multiple times.  e.g. --api-versions foo/v1beta1 --api-versions bar/v1  defaults to all versions found under directories pkg/apis/<group>/<version>")
+	generateCmd.Flags().StringArrayVar(&codegenerators, "generator", []string{}, "list of generators to run.  e.g. --generator apiregister --generator conversion Valid values: [apiregister,conversion,client,deepcopy,defaulter,openapi]")
 	generateCmd.AddCommand(generateCleanCmd)
 }
 
@@ -104,24 +105,16 @@ func RunCleanGenerate(cmd *cobra.Command, args []string) {
 	})
 }
 
+func doGen(g string) bool {
+	g = strings.Replace(g, "-gen", "", -1)
+	return generators.Has(g) || generators.Len() == 0
+}
+
 func RunGenerate(cmd *cobra.Command, args []string) {
 	initApis()
 
-	skip := map[string]interface{}{}
-	for _, s := range skipGenerators {
-		skip[s] = nil
-	}
-
-	if _, f1 := skip["client-gen"]; f1 {
-		if _, f2 := skip["lister-gen"]; !f2 {
-			log.Fatalf("Must skip lister-gen if client-gen is skipped")
-		}
-	}
-
-	if _, f2 := skip["lister-gen"]; f2 {
-		if _, f3 := skip["informer-gen"]; !f3 {
-			log.Fatalf("Must skip informer-gen if lister-gen is skipped")
-		}
+	for _, g := range codegenerators {
+		generators.Insert(strings.Replace(g, "-gen", "", -1))
 	}
 
 	util.GetCopyright(copyright)
@@ -146,7 +139,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 		all = append(all, "--input-dirs", u)
 	}
 
-	if _, f := skip["apiregister-gen"]; !f {
+	if doGen("apiregister-gen") {
 		c := exec.Command(filepath.Join(root, "apiregister-gen"),
 			"--input-dirs", filepath.Join(util.Repo, "pkg", "apis", "..."),
 			"--input-dirs", filepath.Join(util.Repo, "pkg", "controller", "..."),
@@ -158,7 +151,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	if _, f := skip["conversion-gen"]; !f {
+	if doGen("conversion-gen") {
 		c := exec.Command(filepath.Join(root, "conversion-gen"),
 			append(all,
 				"-o", util.GoSrc,
@@ -173,7 +166,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	if _, f := skip["deepcopy-gen"]; !f {
+	if doGen("deepcopy-gen") {
 		c := exec.Command(filepath.Join(root, "deepcopy-gen"),
 			append(all,
 				"-o", util.GoSrc,
@@ -187,7 +180,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	if _, f := skip["openapi-gen"]; !f {
+	if doGen("openapi-gen") {
 		c := exec.Command(filepath.Join(root, "openapi-gen"),
 			append(all,
 				"-o", util.GoSrc,
@@ -202,7 +195,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	if _, f := skip["defaulter-gen"]; !f {
+	if doGen("defaulter-gen") {
 		c := exec.Command(filepath.Join(root, "defaulter-gen"),
 			append(all,
 				"-o", util.GoSrc,
@@ -217,7 +210,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	if _, f := skip["client-gen"]; !f {
+	if doGen("client-gen") {
 		// Builder the versioned apis client
 		clientPkg := filepath.Join(util.Repo, "pkg", "client")
 		clientset := filepath.Join(clientPkg, "clientset_generated")
@@ -248,37 +241,33 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 			log.Fatalf("failed to run client-gen for unversioned APIs %s %v", out, err)
 		}
 
-		if _, f := skip["lister-gen"]; !f {
-			listerPkg := filepath.Join(clientPkg, "listers_generated")
-			c = exec.Command(filepath.Join(root, "lister-gen"),
-				append(all,
-					"-o", util.GoSrc,
-					"--go-header-file", copyright,
-					"--output-package", listerPkg)...,
-			)
-			fmt.Printf("%s\n", strings.Join(c.Args, " "))
-			out, err = c.CombinedOutput()
-			if err != nil {
-				log.Fatalf("failed to run lister-gen %s %v", out, err)
-			}
+		listerPkg := filepath.Join(clientPkg, "listers_generated")
+		c = exec.Command(filepath.Join(root, "lister-gen"),
+			append(all,
+				"-o", util.GoSrc,
+				"--go-header-file", copyright,
+				"--output-package", listerPkg)...,
+		)
+		fmt.Printf("%s\n", strings.Join(c.Args, " "))
+		out, err = c.CombinedOutput()
+		if err != nil {
+			log.Fatalf("failed to run lister-gen %s %v", out, err)
+		}
 
-			if _, f := skip["informer-gen"]; !f {
-				informerPkg := filepath.Join(clientPkg, "informers_generated")
-				c = exec.Command(filepath.Join(root, "informer-gen"),
-					append(all,
-						"-o", util.GoSrc,
-						"--go-header-file", copyright,
-						"--output-package", informerPkg,
-						"--listers-package", listerPkg,
-						"--versioned-clientset-package", filepath.Join(clientset, "clientset"),
-						"--internal-clientset-package", filepath.Join(clientset, "internalclientset"))...,
-				)
-				fmt.Printf("%s\n", strings.Join(c.Args, " "))
-				out, err := c.CombinedOutput()
-				if err != nil {
-					log.Fatalf("failed to run informer-gen %s %v", out, err)
-				}
-			}
+		informerPkg := filepath.Join(clientPkg, "informers_generated")
+		c = exec.Command(filepath.Join(root, "informer-gen"),
+			append(all,
+				"-o", util.GoSrc,
+				"--go-header-file", copyright,
+				"--output-package", informerPkg,
+				"--listers-package", listerPkg,
+				"--versioned-clientset-package", filepath.Join(clientset, "clientset"),
+				"--internal-clientset-package", filepath.Join(clientset, "internalclientset"))...,
+		)
+		fmt.Printf("%s\n", strings.Join(c.Args, " "))
+		out, err = c.CombinedOutput()
+		if err != nil {
+			log.Fatalf("failed to run informer-gen %s %v", out, err)
 		}
 	}
 }

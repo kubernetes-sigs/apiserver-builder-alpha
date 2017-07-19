@@ -65,12 +65,13 @@ function print_forbidden_imports () {
 }
 
 RC=0
-print_forbidden_imports apimachinery || RC=1
-print_forbidden_imports client-go k8s.io/apimachinery || RC=1
-print_forbidden_imports apiserver k8s.io/apimachinery k8s.io/client-go || RC=1
-print_forbidden_imports kube-aggregator k8s.io/apimachinery k8s.io/client-go k8s.io/apiserver || RC=1
-print_forbidden_imports sample-apiserver k8s.io/apimachinery k8s.io/client-go k8s.io/apiserver || RC=1
-print_forbidden_imports apiextensions-apiserver k8s.io/apimachinery k8s.io/client-go k8s.io/apiserver || RC=1
+print_forbidden_imports apimachinery should_be_leaf || RC=1
+print_forbidden_imports api k8s.io/apimachinery || RC=1
+print_forbidden_imports client-go k8s.io/apimachinery k8s.io/api || RC=1
+print_forbidden_imports apiserver k8s.io/apimachinery k8s.io/client-go k8s.io/api || RC=1
+print_forbidden_imports kube-aggregator k8s.io/apimachinery k8s.io/client-go k8s.io/apiserver k8s.io/api || RC=1
+print_forbidden_imports sample-apiserver k8s.io/apimachinery k8s.io/client-go k8s.io/apiserver k8s.io/api || RC=1
+print_forbidden_imports apiextensions-apiserver k8s.io/apimachinery k8s.io/client-go k8s.io/apiserver k8s.io/api || RC=1
 if [ ${RC} != 0 ]; then
     exit ${RC}
 fi
@@ -80,7 +81,7 @@ if grep -rq '// import "k8s.io/kubernetes/' 'staging/'; then
 	exit 1
 fi
 
-for EXAMPLE in vendor/k8s.io/client-go/examples/{in-cluster-client-configuration,out-of-cluster-client-configuration,third-party-resources-deprecated} vendor/k8s.io/apiextensions-apiserver/examples ; do
+for EXAMPLE in vendor/k8s.io/client-go/examples/{in-cluster-client-configuration,out-of-cluster-client-configuration} vendor/k8s.io/apiextensions-apiserver/examples ; do
 	test -d "${EXAMPLE}" # make sure example is still there
 	if go list -f '{{ join .Deps "\n" }}' "./${EXAMPLE}/..." | sort | uniq | grep -q k8s.io/client-go/plugin; then
 		echo "${EXAMPLE} imports client-go plugins by default, but shouldn't."

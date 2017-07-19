@@ -1,5 +1,5 @@
-hash: 3ef7fdd27f258df3c3eb48d0335ae1bbbf9b432e8b716db4b0bfcce7037eb7a2
-updated: 2017-06-28T12:18:13.132153406-07:00
+hash: 5e8b3cbb88a8e709f68cf0ace2436a8b746d2e7b2cc0907111eec9564f384e3e
+updated: 2017-07-19T13:13:58.211237229-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -9,9 +9,10 @@ imports:
   - compute/metadata
   - internal
 - name: github.com/Azure/go-autorest
-  version: d7c034a8af24eda120dd6460bfcd6d9ed14e43ca
+  version: 58f6f26e200fa5dfb40c9cd1c83f3e2c860d779d
   subpackages:
   - autorest
+  - autorest/adal
   - autorest/azure
   - autorest/date
 - name: github.com/beorn7/perks
@@ -90,16 +91,11 @@ imports:
   - httputil
   - timeutil
 - name: github.com/davecgh/go-spew
-  version: 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
+  version: 782f4967f2dc4564575ca782fe2d04090b5faca8
   subpackages:
   - spew
 - name: github.com/dgrijalva/jwt-go
   version: 01aeca54ebda6e0fbfafd0a524d234159c05ec20
-- name: github.com/docker/distribution
-  version: cd27f179f2c10c5d300e6d09025b538c475b0d51
-  subpackages:
-  - digest
-  - reference
 - name: github.com/elazarl/go-bindata-assetfs
   version: 3dcc96556217539f50599357fb481ac0dc7439b9
 - name: github.com/emicklei/go-restful
@@ -184,6 +180,12 @@ imports:
   version: fc2b8d3a73c4867e51861bbdd5ae3c1f0869dd6a
   subpackages:
   - pbutil
+- name: github.com/mxk/go-flowrate
+  version: cca7078d478f8520f85629ad7c68962d31ed7682
+  subpackages:
+  - flowrate
+- name: github.com/NYTimes/gziphandler
+  version: 56545f4a5d46df9a6648819d1664c3a03a13ffdb
 - name: github.com/onsi/ginkgo
   version: 77a8c1e5c40d6bb6c5eb4dd4bdce9763564f6298
   subpackages:
@@ -300,7 +302,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/appengine
-  version: 12d5545dc1cfa6047a286d5e853841b6471f4c19
+  version: ad2570cd3913654e00c5f0183b39d2f998e54046
   subpackages:
   - internal
   - internal/app_identity
@@ -328,8 +330,31 @@ imports:
   version: 20b71e5b60d756d3d2f80def009790325acc2b23
 - name: gopkg.in/yaml.v2
   version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
+- name: k8s.io/api
+  version: c9fffff41e45e3c00186ac6b00d2cb585734d43e
+  subpackages:
+  - admissionregistration/v1alpha1
+  - apps/v1beta1
+  - authentication/v1
+  - authentication/v1beta1
+  - authorization/v1
+  - authorization/v1beta1
+  - autoscaling/v1
+  - autoscaling/v2alpha1
+  - batch/v1
+  - batch/v2alpha1
+  - certificates/v1beta1
+  - core/v1
+  - extensions/v1beta1
+  - networking/v1
+  - policy/v1beta1
+  - rbac/v1alpha1
+  - rbac/v1beta1
+  - settings/v1alpha1
+  - storage/v1
+  - storage/v1beta1
 - name: k8s.io/apimachinery
-  version: cff8db64dd5b6fb0166dc2cf36e39c7ff4fe48c8
+  version: 7da60ba7ddca684051555f2c558eef2dfebc70d5
   subpackages:
   - pkg/api/equality
   - pkg/api/errors
@@ -371,6 +396,7 @@ imports:
   - pkg/util/json
   - pkg/util/mergepatch
   - pkg/util/net
+  - pkg/util/proxy
   - pkg/util/rand
   - pkg/util/runtime
   - pkg/util/sets
@@ -386,7 +412,7 @@ imports:
   - third_party/forked/golang/netutil
   - third_party/forked/golang/reflect
 - name: k8s.io/apiserver
-  version: 2e70bac0745c7f8e506f7f3e432d040c55d5718a
+  version: e24df9a2e58151a85874948908a454d511066460
   subpackages:
   - pkg/admission
   - pkg/admission/initializer
@@ -407,6 +433,7 @@ imports:
   - pkg/authentication/request/bearertoken
   - pkg/authentication/request/headerrequest
   - pkg/authentication/request/union
+  - pkg/authentication/request/websocket
   - pkg/authentication/request/x509
   - pkg/authentication/serviceaccount
   - pkg/authentication/token/tokenfile
@@ -451,7 +478,6 @@ imports:
   - pkg/util/flag
   - pkg/util/flushwriter
   - pkg/util/logs
-  - pkg/util/proxy
   - pkg/util/trace
   - pkg/util/trie
   - pkg/util/webhook
@@ -461,7 +487,7 @@ imports:
   - plugin/pkg/authenticator/token/webhook
   - plugin/pkg/authorizer/webhook
 - name: k8s.io/client-go
-  version: 36b51953e6efc7779fe27c14258d78573de4e0de
+  version: 1be407b92aa39a2f63ddbb3d46104a1fd425fda0
   subpackages:
   - discovery
   - discovery/fake
@@ -536,40 +562,6 @@ imports:
   - pkg/api
   - pkg/api/v1
   - pkg/api/v1/ref
-  - pkg/apis/admissionregistration
-  - pkg/apis/admissionregistration/v1alpha1
-  - pkg/apis/apps
-  - pkg/apis/apps/v1beta1
-  - pkg/apis/authentication
-  - pkg/apis/authentication/v1
-  - pkg/apis/authentication/v1beta1
-  - pkg/apis/authorization
-  - pkg/apis/authorization/v1
-  - pkg/apis/authorization/v1beta1
-  - pkg/apis/autoscaling
-  - pkg/apis/autoscaling/v1
-  - pkg/apis/autoscaling/v2alpha1
-  - pkg/apis/batch
-  - pkg/apis/batch/v1
-  - pkg/apis/batch/v2alpha1
-  - pkg/apis/certificates
-  - pkg/apis/certificates/v1beta1
-  - pkg/apis/extensions
-  - pkg/apis/extensions/v1beta1
-  - pkg/apis/networking
-  - pkg/apis/networking/v1
-  - pkg/apis/policy
-  - pkg/apis/policy/v1beta1
-  - pkg/apis/rbac
-  - pkg/apis/rbac/v1alpha1
-  - pkg/apis/rbac/v1beta1
-  - pkg/apis/settings
-  - pkg/apis/settings/v1alpha1
-  - pkg/apis/storage
-  - pkg/apis/storage/v1
-  - pkg/apis/storage/v1beta1
-  - pkg/util
-  - pkg/util/parsers
   - pkg/version
   - plugin/pkg/client/auth
   - plugin/pkg/client/auth/azure
@@ -594,7 +586,7 @@ imports:
   - util/jsonpath
   - util/workqueue
 - name: k8s.io/gengo
-  version: c79c13d131b0a8f42d05faa6491c12e94ccc6f30
+  version: 712a17394a0980fabbcf3d968972e185d80c0fa4
   subpackages:
   - args
   - generator
@@ -602,7 +594,7 @@ imports:
   - parser
   - types
 - name: k8s.io/kubernetes
-  version: 227f52e0cb142f5658598e3c981e0e637f8d9c08
+  version: effcdda0cee4d4c8d1df832f17bb5fbd281c4bad
   subpackages:
   - cmd/libs/go2idl
 testImports: []

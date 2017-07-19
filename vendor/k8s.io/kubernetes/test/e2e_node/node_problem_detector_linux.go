@@ -25,15 +25,15 @@ import (
 	"syscall"
 	"time"
 
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/uuid"
-	"k8s.io/kubernetes/pkg/api/v1"
+	clientset "k8s.io/client-go/kubernetes"
+	coreclientset "k8s.io/client-go/kubernetes/typed/core/v1"
 	nodeutil "k8s.io/kubernetes/pkg/api/v1/node"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
-	coreclientset "k8s.io/kubernetes/pkg/client/clientset_generated/clientset/typed/core/v1"
 	"k8s.io/kubernetes/test/e2e/framework"
 
 	. "github.com/onsi/ginkgo"
@@ -45,7 +45,7 @@ var _ = framework.KubeDescribe("NodeProblemDetector", func() {
 		pollInterval   = 1 * time.Second
 		pollConsistent = 5 * time.Second
 		pollTimeout    = 1 * time.Minute
-		image          = "gcr.io/google_containers/node-problem-detector:v0.4.0"
+		image          = "gcr.io/google_containers/node-problem-detector:v0.4.1"
 	)
 	f := framework.NewDefaultFramework("node-problem-detector")
 	var c clientset.Interface

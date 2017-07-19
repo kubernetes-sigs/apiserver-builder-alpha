@@ -30,6 +30,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	apiv1 "k8s.io/api/core/v1"
+	extensionsapiv1beta1 "k8s.io/api/extensions/v1beta1"
 	apimachineryopenapi "k8s.io/apimachinery/pkg/openapi"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
@@ -37,12 +39,10 @@ import (
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	"k8s.io/apiserver/pkg/server/filters"
 	serverstorage "k8s.io/apiserver/pkg/server/storage"
+	clientset "k8s.io/client-go/kubernetes"
 	federationv1beta1 "k8s.io/kubernetes/federation/apis/federation/v1beta1"
 	"k8s.io/kubernetes/federation/cmd/federation-apiserver/app/options"
 	"k8s.io/kubernetes/pkg/api"
-	apiv1 "k8s.io/kubernetes/pkg/api/v1"
-	extensionsapiv1beta1 "k8s.io/kubernetes/pkg/apis/extensions/v1beta1"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 	"k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
 	informers "k8s.io/kubernetes/pkg/client/informers/informers_generated/internalversion"
 	"k8s.io/kubernetes/pkg/generated/openapi"
@@ -102,6 +102,7 @@ func NonBlockingRun(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
 	if err := s.CloudProvider.DefaultExternalHost(s.GenericServerRunOptions); err != nil {
 		return fmt.Errorf("error setting the external host value: %v", err)
 	}
+	s.SecureServing.ForceLoopbackConfigUsage()
 
 	s.Authentication.ApplyAuthorization(s.Authorization)
 

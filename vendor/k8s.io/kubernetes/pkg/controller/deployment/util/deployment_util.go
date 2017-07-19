@@ -25,6 +25,8 @@ import (
 
 	"github.com/golang/glog"
 
+	"k8s.io/api/core/v1"
+	extensions "k8s.io/api/extensions/v1beta1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,14 +35,12 @@ import (
 	"k8s.io/apimachinery/pkg/util/errors"
 	intstrutil "k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
+	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
+	corelisters "k8s.io/client-go/listers/core/v1"
+	extensionslisters "k8s.io/client-go/listers/extensions/v1beta1"
 	"k8s.io/client-go/util/integer"
-	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/api/v1"
 	internalextensions "k8s.io/kubernetes/pkg/apis/extensions"
-	extensions "k8s.io/kubernetes/pkg/apis/extensions/v1beta1"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
-	corelisters "k8s.io/kubernetes/pkg/client/listers/core/v1"
-	extensionslisters "k8s.io/kubernetes/pkg/client/listers/extensions/v1beta1"
 	"k8s.io/kubernetes/pkg/controller"
 	labelsutil "k8s.io/kubernetes/pkg/util/labels"
 )
@@ -65,11 +65,6 @@ const (
 	RollbackTemplateUnchanged = "DeploymentRollbackTemplateUnchanged"
 	// RollbackDone is the done rollback event reason
 	RollbackDone = "DeploymentRollback"
-	// OverlapAnnotation marks deployments with overlapping selector with other deployments
-	// TODO: Delete this annotation when we no longer need to support a client
-	//       talking to a server older than v1.6.
-	OverlapAnnotation = "deployment.kubernetes.io/error-selector-overlapping-with"
-
 	// Reasons for deployment conditions
 	//
 	// Progressing:
@@ -289,7 +284,6 @@ var annotationsToSkip = map[string]bool{
 	RevisionHistoryAnnotation:      true,
 	DesiredReplicasAnnotation:      true,
 	MaxReplicasAnnotation:          true,
-	OverlapAnnotation:              true,
 }
 
 // skipCopyAnnotation returns true if we should skip copying the annotation with the given annotation key
@@ -489,7 +483,7 @@ func getReplicaSetFraction(rs extensions.ReplicaSet, d extensions.Deployment) in
 // Note that the first set of old replica sets doesn't include the ones with no pods, and the second set of old replica sets include all old replica sets.
 // The third returned value is the new replica set, and it may be nil if it doesn't exist yet.
 func GetAllReplicaSets(deployment *extensions.Deployment, c clientset.Interface) ([]*extensions.ReplicaSet, []*extensions.ReplicaSet, *extensions.ReplicaSet, error) {
-	rsList, err := ListReplicaSets(deployment, rsListFromClient(c))
+	rsList, err := ListReplicaSets(deployment, RsListFromClient(c))
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -507,7 +501,7 @@ func GetAllReplicaSets(deployment *extensions.Deployment, c clientset.Interface)
 // GetOldReplicaSets returns the old replica sets targeted by the given Deployment; get PodList and ReplicaSetList from client interface.
 // Note that the first set of old replica sets doesn't include the ones with no pods, and the second set of old replica sets include all old replica sets.
 func GetOldReplicaSets(deployment *extensions.Deployment, c clientset.Interface) ([]*extensions.ReplicaSet, []*extensions.ReplicaSet, error) {
-	rsList, err := ListReplicaSets(deployment, rsListFromClient(c))
+	rsList, err := ListReplicaSets(deployment, RsListFromClient(c))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -517,15 +511,15 @@ func GetOldReplicaSets(deployment *extensions.Deployment, c clientset.Interface)
 // GetNewReplicaSet returns a replica set that matches the intent of the given deployment; get ReplicaSetList from client interface.
 // Returns nil if the new replica set doesn't exist yet.
 func GetNewReplicaSet(deployment *extensions.Deployment, c clientset.Interface) (*extensions.ReplicaSet, error) {
-	rsList, err := ListReplicaSets(deployment, rsListFromClient(c))
+	rsList, err := ListReplicaSets(deployment, RsListFromClient(c))
 	if err != nil {
 		return nil, err
 	}
 	return FindNewReplicaSet(deployment, rsList)
 }
 
-// rsListFromClient returns an rsListFunc that wraps the given client.
-func rsListFromClient(c clientset.Interface) rsListFunc {
+// RsListFromClient returns an rsListFunc that wraps the given client.
+func RsListFromClient(c clientset.Interface) RsListFunc {
 	return func(namespace string, options metav1.ListOptions) ([]*extensions.ReplicaSet, error) {
 		rsList, err := c.Extensions().ReplicaSets(namespace).List(options)
 		if err != nil {
@@ -547,14 +541,14 @@ func podListFromClient(c clientset.Interface) podListFunc {
 }
 
 // TODO: switch this to full namespacers
-type rsListFunc func(string, metav1.ListOptions) ([]*extensions.ReplicaSet, error)
+type RsListFunc func(string, metav1.ListOptions) ([]*extensions.ReplicaSet, error)
 type podListFunc func(string, metav1.ListOptions) (*v1.PodList, error)
 
 // ListReplicaSets returns a slice of RSes the given deployment targets.
 // Note that this does NOT attempt to reconcile ControllerRef (adopt/orphan),
 // because only the controller itself should do that.
 // However, it does filter out anything whose ControllerRef doesn't match.
-func ListReplicaSets(deployment *extensions.Deployment, getRSList rsListFunc) ([]*extensions.ReplicaSet, error) {
+func ListReplicaSets(deployment *extensions.Deployment, getRSList RsListFunc) ([]*extensions.ReplicaSet, error) {
 	// TODO: Right now we list replica sets by their labels. We should list them by selector, i.e. the replica set's selector
 	//       should be a superset of the deployment's selector, see https://github.com/kubernetes/kubernetes/issues/19830.
 	namespace := deployment.Namespace
@@ -641,12 +635,12 @@ func ListPods(deployment *extensions.Deployment, rsList []*extensions.ReplicaSet
 // (e.g. the addition of a new field will cause the hash code to change)
 // Note that we assume input podTemplateSpecs contain non-empty labels
 func EqualIgnoreHash(template1, template2 *v1.PodTemplateSpec) (bool, error) {
-	cp, err := api.Scheme.DeepCopy(template1)
+	cp, err := scheme.Scheme.DeepCopy(template1)
 	if err != nil {
 		return false, err
 	}
 	t1Copy := cp.(*v1.PodTemplateSpec)
-	cp, err = api.Scheme.DeepCopy(template2)
+	cp, err = scheme.Scheme.DeepCopy(template2)
 	if err != nil {
 		return false, err
 	}
@@ -984,7 +978,7 @@ func ResolveFenceposts(maxSurge, maxUnavailable *intstrutil.IntOrString, desired
 }
 
 func DeploymentDeepCopy(deployment *extensions.Deployment) (*extensions.Deployment, error) {
-	objCopy, err := api.Scheme.DeepCopy(deployment)
+	objCopy, err := scheme.Scheme.DeepCopy(deployment)
 	if err != nil {
 		return nil, err
 	}

@@ -43,7 +43,7 @@ const (
 // data for the test into the file with the specified prefix.
 func dumpDataToFile(data interface{}, labels map[string]string, prefix string) {
 	testName := labels["test"]
-	fileName := path.Join(framework.TestContext.ReportDir, fmt.Sprintf("%s-%s.json", prefix, testName))
+	fileName := path.Join(framework.TestContext.ReportDir, fmt.Sprintf("%s-%s-%s.json", prefix, framework.TestContext.ReportPrefix, testName))
 	labels["timestamp"] = strconv.FormatInt(time.Now().UTC().Unix(), 10)
 	framework.Logf("Dumping perf data for test %q to %q.", testName, fileName)
 	if err := ioutil.WriteFile(fileName, []byte(framework.PrettyPrintJSON(data)), 0644); err != nil {
@@ -176,10 +176,14 @@ func getTestNodeInfo(f *framework.Framework, testName, testDesc string) map[stri
 		framework.Failf("Fail to fetch Memory capacity value as Int64.")
 	}
 
+	image := node.Status.NodeInfo.OSImage
+	if framework.TestContext.ImageDescription != "" {
+		image = fmt.Sprintf("%s (%s)", image, framework.TestContext.ImageDescription)
+	}
 	return map[string]string{
 		"node":    nodeName,
 		"test":    testName,
-		"image":   node.Status.NodeInfo.OSImage,
+		"image":   image,
 		"machine": fmt.Sprintf("cpu:%dcore,memory:%.1fGB", cpuValue, float32(memoryValue)/(1024*1024*1024)),
 		"desc":    testDesc,
 	}

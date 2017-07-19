@@ -21,17 +21,17 @@ import (
 	"net"
 	"runtime"
 
+	"k8s.io/api/core/v1"
+	extensions "k8s.io/api/extensions/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kuberuntime "k8s.io/apimachinery/pkg/runtime"
 	clientset "k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/pkg/api/v1"
-	extensions "k8s.io/client-go/pkg/apis/extensions/v1beta1"
 	kubeadmapi "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
 	kubeadmconstants "k8s.io/kubernetes/cmd/kubeadm/app/constants"
-	"k8s.io/kubernetes/cmd/kubeadm/app/images"
 	kubeadmutil "k8s.io/kubernetes/cmd/kubeadm/app/util"
 	"k8s.io/kubernetes/pkg/api"
+	"k8s.io/kubernetes/plugin/pkg/scheduler/algorithm"
 )
 
 // CreateEssentialAddons creates the kube-proxy and kube-dns addons
@@ -44,17 +44,21 @@ func CreateEssentialAddons(cfg *kubeadmapi.MasterConfiguration, client *clientse
 		return fmt.Errorf("error when parsing kube-proxy configmap template: %v", err)
 	}
 
-	proxyDaemonSetBytes, err := kubeadmutil.ParseTemplate(KubeProxyDaemonSet, struct{ Image, ClusterCIDR, MasterTaintKey string }{
-		Image:          images.GetCoreImage("proxy", cfg, kubeadmapi.GlobalEnvParams.HyperkubeImage),
-		ClusterCIDR:    getClusterCIDR(cfg.Networking.PodSubnet),
-		MasterTaintKey: kubeadmconstants.LabelNodeRoleMaster,
+	proxyDaemonSetBytes, err := kubeadmutil.ParseTemplate(KubeProxyDaemonSet, struct{ ImageRepository, Arch, Version, ImageOverride, ClusterCIDR, MasterTaintKey, CloudTaintKey string }{
+		ImageRepository: cfg.ImageRepository,
+		Arch:            runtime.GOARCH,
+		Version:         kubeadmutil.KubernetesVersionToImageTag(cfg.KubernetesVersion),
+		ImageOverride:   cfg.UnifiedControlPlaneImage,
+		ClusterCIDR:     getClusterCIDR(cfg.Networking.PodSubnet),
+		MasterTaintKey:  kubeadmconstants.LabelNodeRoleMaster,
+		CloudTaintKey:   algorithm.TaintExternalCloudProvider,
 	})
 	if err != nil {
 		return fmt.Errorf("error when parsing kube-proxy daemonset template: %v", err)
 	}
 
 	dnsDeploymentBytes, err := kubeadmutil.ParseTemplate(KubeDNSDeployment, struct{ ImageRepository, Arch, Version, DNSDomain, MasterTaintKey string }{
-		ImageRepository: kubeadmapi.GlobalEnvParams.RepositoryPrefix,
+		ImageRepository: cfg.ImageRepository,
 		Arch:            runtime.GOARCH,
 		Version:         KubeDNSVersion,
 		DNSDomain:       cfg.Networking.DNSDomain,
@@ -110,7 +114,6 @@ func CreateKubeProxyAddon(configMapBytes, daemonSetbytes []byte, client *clients
 	if err := kuberuntime.DecodeInto(api.Codecs.UniversalDecoder(), daemonSetbytes, kubeproxyDaemonSet); err != nil {
 		return fmt.Errorf("unable to decode kube-proxy daemonset %v", err)
 	}
-	kubeproxyDaemonSet.Spec.Template.Spec.Tolerations = []v1.Toleration{kubeadmconstants.MasterToleration}
 
 	if _, err := client.ExtensionsV1beta1().DaemonSets(metav1.NamespaceSystem).Create(kubeproxyDaemonSet); err != nil {
 		if !apierrors.IsAlreadyExists(err) {
@@ -128,13 +131,6 @@ func CreateKubeDNSAddon(deploymentBytes, serviceBytes []byte, client *clientset.
 	kubednsDeployment := &extensions.Deployment{}
 	if err := kuberuntime.DecodeInto(api.Codecs.UniversalDecoder(), deploymentBytes, kubednsDeployment); err != nil {
 		return fmt.Errorf("unable to decode kube-dns deployment %v", err)
-	}
-	kubednsDeployment.Spec.Template.Spec.Tolerations = []v1.Toleration{
-		kubeadmconstants.MasterToleration,
-		{
-			Key:      "CriticalAddonsOnly",
-			Operator: "Exists",
-		},
 	}
 
 	if _, err := client.ExtensionsV1beta1().Deployments(metav1.NamespaceSystem).Create(kubednsDeployment); err != nil {

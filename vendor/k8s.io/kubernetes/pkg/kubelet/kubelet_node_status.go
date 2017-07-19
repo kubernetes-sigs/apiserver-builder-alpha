@@ -26,15 +26,18 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/conversion"
 	"k8s.io/apimachinery/pkg/types"
 	utilnet "k8s.io/apimachinery/pkg/util/net"
-	"k8s.io/kubernetes/pkg/api/v1"
+	utilfeature "k8s.io/apiserver/pkg/util/feature"
+	k8s_api_v1 "k8s.io/kubernetes/pkg/api/v1"
 	v1helper "k8s.io/kubernetes/pkg/api/v1/helper"
 	"k8s.io/kubernetes/pkg/cloudprovider"
+	"k8s.io/kubernetes/pkg/features"
 	kubeletapis "k8s.io/kubernetes/pkg/kubelet/apis"
 	"k8s.io/kubernetes/pkg/kubelet/cadvisor"
 	"k8s.io/kubernetes/pkg/kubelet/events"
@@ -208,7 +211,7 @@ func (kl *Kubelet) initialNode() (*v1.Node, error) {
 	if len(kl.kubeletConfiguration.RegisterWithTaints) > 0 {
 		taints := make([]v1.Taint, len(kl.kubeletConfiguration.RegisterWithTaints))
 		for i := range kl.kubeletConfiguration.RegisterWithTaints {
-			if err := v1.Convert_api_Taint_To_v1_Taint(&kl.kubeletConfiguration.RegisterWithTaints[i], &taints[i], nil); err != nil {
+			if err := k8s_api_v1.Convert_api_Taint_To_v1_Taint(&kl.kubeletConfiguration.RegisterWithTaints[i], &taints[i], nil); err != nil {
 				return nil, err
 			}
 		}
@@ -420,7 +423,10 @@ func (kl *Kubelet) setNodeAddress(node *v1.Node) error {
 		glog.V(2).Infof("Using node IP: %q", kl.nodeIP.String())
 	}
 
-	if kl.cloud != nil {
+	if kl.externalCloudProvider {
+		// We rely on the external cloud provider to supply the addresses.
+		return nil
+	} else if kl.cloud != nil {
 		instances, ok := kl.cloud.Instances()
 		if !ok {
 			return fmt.Errorf("failed to get instances from cloud provider")
@@ -543,6 +549,7 @@ func (kl *Kubelet) setNodeStatusMachineInfo(node *v1.Node) {
 			node.Status.Capacity[v1.ResourcePods] = *resource.NewQuantity(
 				int64(kl.maxPods), resource.DecimalSI)
 		}
+
 		if node.Status.NodeInfo.BootID != "" &&
 			node.Status.NodeInfo.BootID != info.BootID {
 			// TODO: This requires a transaction, either both node status is updated
@@ -551,24 +558,17 @@ func (kl *Kubelet) setNodeStatusMachineInfo(node *v1.Node) {
 				"Node %s has been rebooted, boot id: %s", kl.nodeName, info.BootID)
 		}
 		node.Status.NodeInfo.BootID = info.BootID
-	}
 
-	rootfs, err := kl.GetCachedRootFsInfo()
-	if err != nil {
-		node.Status.Capacity[v1.ResourceStorage] = resource.MustParse("0Gi")
-	} else {
-		for rName, rCap := range cadvisor.StorageScratchCapacityFromFsInfo(rootfs) {
-			node.Status.Capacity[rName] = rCap
-		}
-	}
-
-	if hasDedicatedImageFs, _ := kl.HasDedicatedImageFs(); hasDedicatedImageFs {
-		imagesfs, err := kl.ImagesFsInfo()
-		if err != nil {
-			node.Status.Capacity[v1.ResourceStorageOverlay] = resource.MustParse("0Gi")
-		} else {
-			for rName, rCap := range cadvisor.StorageOverlayCapacityFromFsInfo(imagesfs) {
-				node.Status.Capacity[rName] = rCap
+		if utilfeature.DefaultFeatureGate.Enabled(features.LocalStorageCapacityIsolation) {
+			// TODO: all the node resources should use GetCapacity instead of deriving the
+			// capacity for every node status request
+			initialCapacity := kl.containerManager.GetCapacity()
+			if initialCapacity != nil {
+				node.Status.Capacity[v1.ResourceStorageScratch] = initialCapacity[v1.ResourceStorageScratch]
+				imageCapacity, ok := initialCapacity[v1.ResourceStorageOverlay]
+				if ok {
+					node.Status.Capacity[v1.ResourceStorageOverlay] = imageCapacity
+				}
 			}
 		}
 	}
@@ -696,7 +696,7 @@ func (kl *Kubelet) setNodeReadyCondition(node *v1.Node) {
 	}
 
 	// Append AppArmor status if it's enabled.
-	// TODO(timstclair): This is a temporary message until node feature reporting is added.
+	// TODO(tallclair): This is a temporary message until node feature reporting is added.
 	if newNodeReadyCondition.Status == v1.ConditionTrue &&
 		kl.appArmorValidator != nil && kl.appArmorValidator.ValidateHost() == nil {
 		newNodeReadyCondition.Message = fmt.Sprintf("%s. AppArmor enabled", newNodeReadyCondition.Message)

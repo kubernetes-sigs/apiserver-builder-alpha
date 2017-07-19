@@ -21,11 +21,11 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"k8s.io/api/core/v1"
+	storage "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8stype "k8s.io/apimachinery/pkg/types"
-	"k8s.io/kubernetes/pkg/api/v1"
-	storage "k8s.io/kubernetes/pkg/apis/storage/v1"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
+	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/pkg/cloudprovider/providers/vsphere"
 	"k8s.io/kubernetes/test/e2e/framework"
 )
@@ -45,7 +45,7 @@ import (
 	9. Delete PVC, PV and Storage Class.
 */
 
-var _ = framework.KubeDescribe("vsphere Volume fstype [Volume]", func() {
+var _ = SIGDescribe("vsphere Volume fstype", func() {
 	f := framework.NewDefaultFramework("volume-fstype")
 	var (
 		client       clientset.Interface

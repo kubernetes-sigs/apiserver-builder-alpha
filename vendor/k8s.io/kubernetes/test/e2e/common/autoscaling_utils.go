@@ -23,15 +23,15 @@ import (
 	"sync"
 	"time"
 
+	autoscalingv1 "k8s.io/api/autoscaling/v1"
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
+	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/api/v1"
-	autoscalingv1 "k8s.io/kubernetes/pkg/apis/autoscaling/v1"
 	extensionsinternal "k8s.io/kubernetes/pkg/apis/extensions"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 	"k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
 	"k8s.io/kubernetes/test/e2e/framework"
 	testutils "k8s.io/kubernetes/test/utils"
@@ -321,29 +321,28 @@ func (rc *ResourceConsumer) GetReplicas() int {
 		if replicationController == nil {
 			framework.Failf(rcIsNil)
 		}
-		return int(replicationController.Status.Replicas)
+		return int(replicationController.Status.ReadyReplicas)
 	case KindDeployment:
 		deployment, err := rc.framework.ClientSet.Extensions().Deployments(rc.framework.Namespace.Name).Get(rc.name, metav1.GetOptions{})
 		framework.ExpectNoError(err)
 		if deployment == nil {
 			framework.Failf(deploymentIsNil)
 		}
-		return int(deployment.Status.Replicas)
+		return int(deployment.Status.ReadyReplicas)
 	case KindReplicaSet:
 		rs, err := rc.framework.ClientSet.Extensions().ReplicaSets(rc.framework.Namespace.Name).Get(rc.name, metav1.GetOptions{})
 		framework.ExpectNoError(err)
 		if rs == nil {
 			framework.Failf(rsIsNil)
 		}
-		return int(rs.Status.Replicas)
+		return int(rs.Status.ReadyReplicas)
 	default:
 		framework.Failf(invalidKind)
 	}
 	return 0
 }
 
-func (rc *ResourceConsumer) WaitForReplicas(desiredReplicas int) {
-	duration := 15 * time.Minute
+func (rc *ResourceConsumer) WaitForReplicas(desiredReplicas int, duration time.Duration) {
 	interval := 20 * time.Second
 	err := wait.PollImmediate(interval, duration, func() (bool, error) {
 		replicas := rc.GetReplicas()

@@ -23,6 +23,9 @@ import (
 	"sync"
 	"time"
 
+	batch "k8s.io/api/batch/v1"
+	"k8s.io/api/core/v1"
+	extensions "k8s.io/api/extensions/v1beta1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -34,14 +37,11 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/apimachinery/pkg/util/wait"
+	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/api/v1"
 	batchinternal "k8s.io/kubernetes/pkg/apis/batch"
-	batch "k8s.io/kubernetes/pkg/apis/batch/v1"
 	extensionsinternal "k8s.io/kubernetes/pkg/apis/extensions"
-	extensions "k8s.io/kubernetes/pkg/apis/extensions/v1beta1"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 	"k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
 
 	"github.com/golang/glog"
@@ -108,9 +108,11 @@ type RunObjectConfig interface {
 	SetClient(clientset.Interface)
 	SetInternalClient(internalclientset.Interface)
 	GetReplicas() int
+	GetLabelValue(string) (string, bool)
 }
 
 type RCConfig struct {
+	Affinity       *v1.Affinity
 	Client         clientset.Interface
 	InternalClient internalclientset.Interface
 	Image          string
@@ -499,6 +501,11 @@ func (config *RCConfig) GetReplicas() int {
 	return config.Replicas
 }
 
+func (config *RCConfig) GetLabelValue(key string) (string, bool) {
+	value, found := config.Labels[key]
+	return value, found
+}
+
 func (config *RCConfig) create() error {
 	dnsDefault := v1.DNSDefault
 	if config.DNSPolicy == nil {
@@ -519,6 +526,7 @@ func (config *RCConfig) create() error {
 					Labels: map[string]string{"name": config.Name},
 				},
 				Spec: v1.PodSpec{
+					Affinity: config.Affinity,
 					Containers: []v1.Container{
 						{
 							Name:           config.Name,

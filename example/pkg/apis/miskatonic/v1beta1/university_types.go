@@ -25,7 +25,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/apiserver/pkg/endpoints/request"
 	"k8s.io/apiserver/pkg/registry/rest"
-	apiv1 "k8s.io/client-go/pkg/api/v1"
 	//extensionsv1beta1 "k8s.io/client-go/pkg/apis/extensions/v1beta1"
 )
 
@@ -33,6 +32,7 @@ import (
 // University.
 
 // +genclient=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +k8s:openapi-gen=true
 // +resource:path=universities,strategy=UniversityStrategy
@@ -54,6 +54,12 @@ type UniversitySpec struct {
 	// +optional
 	MaxStudents *int `json:"max_students,omitempty"`
 
+	// The unversioned struct definition for this field must be manually defined in the group package
+	Manual ManualCreateUnversionedType
+
+	// The unversioned struct definition for this field is automatically generated in the group package
+	Automatic AutomaticCreateUnversionedType
+
 	//// WARNING: Using types from client-go as fields does not work outside this example
 	//// This example hacked the vendored client-go to add the openapi generation directives
 	//// to make this work
@@ -68,6 +74,23 @@ type UniversitySpec struct {
 	//// This example hacked the vendored client-go to add the openapi generation directives
 	//// to make this work
 	//Rollout []extensionsv1beta1.Deployment `json:"rollout,omitempty"`
+}
+
+// Require that the unversioned struct is manually created.  This is *NOT* the default behavior for
+// structs appearing as fields in a resource that are defined in the same package as that resource,
+// but is explicitly configured through the +genregister comment.
+// +genregister:unversioned=false
+type ManualCreateUnversionedType struct {
+	A string
+	B bool
+}
+
+// Automatically create an unversioned copy of this struct by copying its definition
+// This is the default behavior for structs appearing as fields in a resource and that are defined in the
+// same package as that resource.
+type AutomaticCreateUnversionedType struct {
+	A string
+	B bool
 }
 
 // UniversityStatus defines the observed state of University
@@ -106,13 +129,11 @@ func (UniversitySchemeFns) DefaultingFunction(o interface{}) {
 // GetConversionFunctions returns functions for converting resource versions to override the
 // conversion functions
 func (UniversitySchemeFns) GetConversionFunctions() []interface{} {
-	return []interface{}{
-		apiv1.Convert_api_PodSpec_To_v1_PodSpec,
-		apiv1.Convert_v1_PodSpec_To_api_PodSpec,
-	}
+	return []interface{}{}
 }
 
 // +genclient=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +subresource-request
 type Scale struct {
@@ -125,6 +146,7 @@ type Scale struct {
 var _ rest.CreaterUpdater = &ScaleUniversityREST{}
 var _ rest.Patcher = &ScaleUniversityREST{}
 
+// +k8s:deepcopy-gen=false
 type ScaleUniversityREST struct {
 	Registry miskatonic.UniversityRegistry
 }

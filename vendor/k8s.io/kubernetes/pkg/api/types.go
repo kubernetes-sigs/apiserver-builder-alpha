@@ -417,6 +417,7 @@ const (
 
 // +genclient=true
 // +nonNamespaced=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 type PersistentVolume struct {
 	metav1.TypeMeta
@@ -483,6 +484,8 @@ type PersistentVolumeStatus struct {
 	Reason string
 }
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 type PersistentVolumeList struct {
 	metav1.TypeMeta
 	// +optional
@@ -491,6 +494,7 @@ type PersistentVolumeList struct {
 }
 
 // +genclient=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // PersistentVolumeClaim is a user's request for and claim to a persistent volume
 type PersistentVolumeClaim struct {
@@ -506,6 +510,8 @@ type PersistentVolumeClaim struct {
 	// +optional
 	Status PersistentVolumeClaimStatus
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 type PersistentVolumeClaimList struct {
 	metav1.TypeMeta
@@ -1008,7 +1014,7 @@ type DownwardAPIVolumeSource struct {
 type DownwardAPIVolumeFile struct {
 	// Required: Path is  the relative path name of the file to be created. Must not be absolute or contain the '..' path. Must be utf-8 encoded. The first item of the relative path must not start with '..'
 	Path string
-	// Required: Selects a field of the pod: only annotations, labels, name and  namespace are supported.
+	// Required: Selects a field of the pod: only annotations, labels, name, namespace and uid are supported.
 	// +optional
 	FieldRef *ObjectFieldSelector
 	// Selects a resource of the container: only resources limits and requests
@@ -1373,7 +1379,7 @@ type EnvVar struct {
 // Only one of its fields may be set.
 type EnvVarSource struct {
 	// Selects a field of the pod: supports metadata.name, metadata.namespace, metadata.labels, metadata.annotations,
-	// spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP.
+	// metadata.uid, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP.
 	// +optional
 	FieldRef *ObjectFieldSelector
 	// Selects a resource of the container: only resources limits and requests
@@ -1839,6 +1845,8 @@ const (
 	RestartPolicyNever     RestartPolicy = "Never"
 )
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 // PodList is a list of Pods.
 type PodList struct {
 	metav1.TypeMeta
@@ -2213,6 +2221,20 @@ type PodSpec struct {
 	// file if specified. This is only valid for non-hostNetwork pods.
 	// +optional
 	HostAliases []HostAlias
+	// If specified, indicates the pod's priority. "SYSTEM" is a special keyword
+	// which indicates the highest priority. Any other name must be defined by
+	// creating a PriorityClass object with that name.
+	// If not specified, the pod priority will be default or zero if there is no
+	// default.
+	// +optional
+	PriorityClassName string
+	// The priority value. Various system components use this field to find the
+	// priority of the pod. When Priority Admission Controller is enabled, it
+	// prevents users from setting this field. The admission controller populates
+	// this field from PriorityClassName.
+	// The higher the value, the higher the priority.
+	// +optional
+	Priority *int32
 }
 
 // HostAlias holds the mapping between IP and hostnames that will be injected as an entry in the
@@ -2263,7 +2285,7 @@ type PodSecurityContext struct {
 	// PodSecurityContext, the value specified in SecurityContext takes precedence
 	// for that container.
 	// +optional
-	RunAsUser *types.UnixUserID
+	RunAsUser *int64
 	// Indicates that the container must run as a non-root user.
 	// If true, the Kubelet will validate the image at runtime to ensure that it
 	// does not run as UID 0 (root) and fail to start the container if it does.
@@ -2276,7 +2298,7 @@ type PodSecurityContext struct {
 	// to the container's primary GID.  If unspecified, no groups will be added to
 	// any container.
 	// +optional
-	SupplementalGroups []types.UnixGroupID
+	SupplementalGroups []int64
 	// A special supplemental group that applies to all containers in a pod.
 	// Some volume types allow the Kubelet to change the ownership of that volume
 	// to be owned by the pod:
@@ -2287,7 +2309,7 @@ type PodSecurityContext struct {
 	//
 	// If unset, the Kubelet will not modify the ownership and permissions of any volume.
 	// +optional
-	FSGroup *types.UnixGroupID
+	FSGroup *int64
 }
 
 // PodQOSClass defines the supported qos classes of Pods.
@@ -2342,6 +2364,8 @@ type PodStatus struct {
 	ContainerStatuses []ContainerStatus
 }
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 // PodStatusResult is a wrapper for PodStatus returned by kubelet that can be encode/decoded
 type PodStatusResult struct {
 	metav1.TypeMeta
@@ -2354,6 +2378,7 @@ type PodStatusResult struct {
 }
 
 // +genclient=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Pod is a collection of containers, used as either input (create, update) or as output (list, get).
 type Pod struct {
@@ -2383,6 +2408,7 @@ type PodTemplateSpec struct {
 }
 
 // +genclient=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // PodTemplate describes a template for creating copies of a predefined pod.
 type PodTemplate struct {
@@ -2394,6 +2420,8 @@ type PodTemplate struct {
 	// +optional
 	Template PodTemplateSpec
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // PodTemplateList is a list of PodTemplates.
 type PodTemplateList struct {
@@ -2488,6 +2516,7 @@ type ReplicationControllerCondition struct {
 }
 
 // +genclient=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ReplicationController represents the configuration of a replication controller.
 type ReplicationController struct {
@@ -2505,6 +2534,8 @@ type ReplicationController struct {
 	Status ReplicationControllerStatus
 }
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 // ReplicationControllerList is a collection of replication controllers.
 type ReplicationControllerList struct {
 	metav1.TypeMeta
@@ -2519,6 +2550,8 @@ const (
 	// no proxying required and no environment variables should be created for pods
 	ClusterIPNone = "None"
 )
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ServiceList holds a list of services.
 type ServiceList struct {
@@ -2718,6 +2751,7 @@ type ServicePort struct {
 }
 
 // +genclient=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Service is a named abstraction of software service (for example, mysql) consisting of local port
 // (for example 3306) that the proxy listens on, and the selector that determines which pods
@@ -2737,6 +2771,7 @@ type Service struct {
 }
 
 // +genclient=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ServiceAccount binds together:
 // * a name, understood by users, and perhaps by peripheral systems, for an identity
@@ -2762,6 +2797,8 @@ type ServiceAccount struct {
 	AutomountServiceAccountToken *bool
 }
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 // ServiceAccountList is a list of ServiceAccount objects
 type ServiceAccountList struct {
 	metav1.TypeMeta
@@ -2772,6 +2809,7 @@ type ServiceAccountList struct {
 }
 
 // +genclient=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Endpoints is a collection of endpoints that implement the actual service.  Example:
 //   Name: "mysvc",
@@ -2840,6 +2878,8 @@ type EndpointPort struct {
 	// The IP protocol for this port.
 	Protocol Protocol
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // EndpointsList is a list of endpoints.
 type EndpointsList struct {
@@ -3112,6 +3152,7 @@ type ResourceList map[ResourceName]resource.Quantity
 
 // +genclient=true
 // +nonNamespaced=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Node is a worker node in Kubernetes
 // The name of the node according to etcd is in ObjectMeta.Name.
@@ -3128,6 +3169,8 @@ type Node struct {
 	// +optional
 	Status NodeStatus
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // NodeList is a list of nodes.
 type NodeList struct {
@@ -3172,6 +3215,7 @@ const (
 
 // +genclient=true
 // +nonNamespaced=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // A namespace provides a scope for Names.
 // Use of multiple namespaces is optional
@@ -3189,6 +3233,8 @@ type Namespace struct {
 	Status NamespaceStatus
 }
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 // NamespaceList is a list of Namespaces.
 type NamespaceList struct {
 	metav1.TypeMeta
@@ -3197,6 +3243,8 @@ type NamespaceList struct {
 
 	Items []Namespace
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Binding ties one object to another; for example, a pod is bound to a node by a scheduler.
 // Deprecated in 1.7, please use the bindings subresource of pods instead.
@@ -3231,6 +3279,8 @@ const (
 	DeletePropagationForeground DeletionPropagation = "Foreground"
 )
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 // DeleteOptions may be provided when deleting an API object
 // DEPRECATED: This type has been moved to meta/v1 and will be removed soon.
 type DeleteOptions struct {
@@ -3262,6 +3312,8 @@ type DeleteOptions struct {
 	PropagationPolicy *DeletionPropagation
 }
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 // ListOptions is the query options to a standard REST list call, and has future support for
 // watch calls.
 // DEPRECATED: This type has been moved to meta/v1 and will be removed soon.
@@ -3288,6 +3340,8 @@ type ListOptions struct {
 	// Timeout for the list/watch call.
 	TimeoutSeconds *int64
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // PodLogOptions is the query options for a Pod's logs REST call
 type PodLogOptions struct {
@@ -3321,6 +3375,8 @@ type PodLogOptions struct {
 	LimitBytes *int64
 }
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 // PodAttachOptions is the query options to a Pod's remote attach call
 // TODO: merge w/ PodExecOptions below for stdin, stdout, etc
 type PodAttachOptions struct {
@@ -3347,6 +3403,8 @@ type PodAttachOptions struct {
 	Container string
 }
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 // PodExecOptions is the query options to a Pod's remote exec call
 type PodExecOptions struct {
 	metav1.TypeMeta
@@ -3370,6 +3428,8 @@ type PodExecOptions struct {
 	Command []string
 }
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 // PodPortForwardOptions is the query options to a Pod's port forward call
 type PodPortForwardOptions struct {
 	metav1.TypeMeta
@@ -3379,6 +3439,8 @@ type PodPortForwardOptions struct {
 	Ports []int32
 }
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 // PodProxyOptions is the query options to a Pod's proxy call
 type PodProxyOptions struct {
 	metav1.TypeMeta
@@ -3387,6 +3449,8 @@ type PodProxyOptions struct {
 	Path string
 }
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 // NodeProxyOptions is the query options to a Node's proxy call
 type NodeProxyOptions struct {
 	metav1.TypeMeta
@@ -3394,6 +3458,8 @@ type NodeProxyOptions struct {
 	// Path is the URL path to use for the current proxy request
 	Path string
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ServiceProxyOptions is the query options to a Service's proxy call.
 type ServiceProxyOptions struct {
@@ -3408,6 +3474,7 @@ type ServiceProxyOptions struct {
 }
 
 // ObjectReference contains enough information to let you inspect or modify the referred object.
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type ObjectReference struct {
 	// +optional
 	Kind string
@@ -3440,6 +3507,8 @@ type LocalObjectReference struct {
 	Name string
 }
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 type SerializedReference struct {
 	metav1.TypeMeta
 	// +optional
@@ -3464,6 +3533,7 @@ const (
 )
 
 // +genclient=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Event is a report of an event somewhere in the cluster.
 // TODO: Decide whether to store these separately or with the object they apply to.
@@ -3509,6 +3579,8 @@ type Event struct {
 	Type string
 }
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 // EventList is a list of events.
 type EventList struct {
 	metav1.TypeMeta
@@ -3517,6 +3589,8 @@ type EventList struct {
 
 	Items []Event
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // List holds a list of objects, which may not be known by the server.
 type List struct {
@@ -3568,6 +3642,7 @@ type LimitRangeSpec struct {
 }
 
 // +genclient=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // LimitRange sets resource usage limits for each kind of resource in a Namespace
 type LimitRange struct {
@@ -3579,6 +3654,8 @@ type LimitRange struct {
 	// +optional
 	Spec LimitRangeSpec
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // LimitRangeList is a list of LimitRange items.
 type LimitRangeList struct {
@@ -3658,6 +3735,7 @@ type ResourceQuotaStatus struct {
 }
 
 // +genclient=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ResourceQuota sets aggregate quota restrictions enforced per namespace
 type ResourceQuota struct {
@@ -3674,6 +3752,8 @@ type ResourceQuota struct {
 	Status ResourceQuotaStatus
 }
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 // ResourceQuotaList is a list of ResourceQuota items
 type ResourceQuotaList struct {
 	metav1.TypeMeta
@@ -3685,6 +3765,7 @@ type ResourceQuotaList struct {
 }
 
 // +genclient=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Secret holds secret data of a certain type.  The total bytes of the values in
 // the Data field must be less than MaxSecretSize bytes.
@@ -3789,6 +3870,8 @@ const (
 	TLSPrivateKeyKey = "tls.key"
 )
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 type SecretList struct {
 	metav1.TypeMeta
 	// +optional
@@ -3798,6 +3881,7 @@ type SecretList struct {
 }
 
 // +genclient=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ConfigMap holds configuration data for components or applications to consume.
 type ConfigMap struct {
@@ -3810,6 +3894,8 @@ type ConfigMap struct {
 	// +optional
 	Data map[string]string
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ConfigMapList is a resource containing a list of ConfigMap objects.
 type ConfigMapList struct {
@@ -3838,7 +3924,7 @@ const (
 	// Enable TTY for remote command execution
 	ExecTTYParam = "tty"
 	// Command to run for remote command execution
-	ExecCommandParamm = "command"
+	ExecCommandParam = "command"
 
 	// Name of header that specifies stream type
 	StreamType = "streamType"
@@ -3881,6 +3967,7 @@ type ComponentCondition struct {
 
 // +genclient=true
 // +nonNamespaced=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ComponentStatus (and ComponentStatusList) holds the cluster validation info.
 type ComponentStatus struct {
@@ -3891,6 +3978,8 @@ type ComponentStatus struct {
 	// +optional
 	Conditions []ComponentCondition
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 type ComponentStatusList struct {
 	metav1.TypeMeta
@@ -3924,7 +4013,7 @@ type SecurityContext struct {
 	// May also be set in PodSecurityContext.  If set in both SecurityContext and
 	// PodSecurityContext, the value specified in SecurityContext takes precedence.
 	// +optional
-	RunAsUser *types.UnixUserID
+	RunAsUser *int64
 	// Indicates that the container must run as a non-root user.
 	// If true, the Kubelet will validate the image at runtime to ensure that it
 	// does not run as UID 0 (root) and fail to start the container if it does.
@@ -3954,6 +4043,8 @@ type SELinuxOptions struct {
 	// +optional
 	Level string
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // RangeAllocation is an opaque API object (not exposed to end users) that can be persisted to record
 // the global allocation state of the cluster. The schema of Range and Data generic, in that Range

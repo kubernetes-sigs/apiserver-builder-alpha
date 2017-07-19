@@ -30,15 +30,19 @@ import (
 
 	"k8s.io/client-go/tools/cache"
 
+	"k8s.io/api/core/v1"
+	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/api/v1"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 	nodepkg "k8s.io/kubernetes/pkg/controller/node"
 	"k8s.io/kubernetes/test/e2e/framework"
 	testutils "k8s.io/kubernetes/test/utils"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+)
+
+const (
+	timeout = 60 * time.Second
 )
 
 func expectNodeReadiness(isReady bool, newNode chan *v1.Node) {
@@ -94,7 +98,7 @@ func newPodOnNode(c clientset.Interface, namespace, podName, nodeName string) er
 	return err
 }
 
-var _ = framework.KubeDescribe("Network Partition [Disruptive] [Slow]", func() {
+var _ = framework.KubeDescribe("[sig-apps] Network Partition [Disruptive] [Slow]", func() {
 	f := framework.NewDefaultFramework("network-partition")
 	var systemPodsNo int32
 	var c clientset.Interface
@@ -341,7 +345,7 @@ var _ = framework.KubeDescribe("Network Partition [Disruptive] [Slow]", func() {
 		BeforeEach(func() {
 			framework.SkipUnlessProviderIs("gce", "gke")
 			By("creating service " + headlessSvcName + " in namespace " + f.Namespace.Name)
-			headlessService := createServiceSpec(headlessSvcName, "", true, labels)
+			headlessService := framework.CreateServiceSpec(headlessSvcName, "", true, labels)
 			_, err := f.ClientSet.Core().Services(f.Namespace.Name).Create(headlessService)
 			framework.ExpectNoError(err)
 			c = f.ClientSet
@@ -350,7 +354,7 @@ var _ = framework.KubeDescribe("Network Partition [Disruptive] [Slow]", func() {
 
 		AfterEach(func() {
 			if CurrentGinkgoTestDescription().Failed {
-				dumpDebugInfo(c, ns)
+				framework.DumpDebugInfo(c, ns)
 			}
 			framework.Logf("Deleting all stateful set in ns %v", ns)
 			framework.DeleteAllStatefulSets(c, ns)

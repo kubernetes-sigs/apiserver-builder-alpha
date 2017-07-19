@@ -23,10 +23,10 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/kubernetes/pkg/api/v1"
 	"k8s.io/kubernetes/pkg/util/exec"
 	"k8s.io/kubernetes/pkg/util/mount"
 	utilstrings "k8s.io/kubernetes/pkg/util/strings"
@@ -194,7 +194,7 @@ func (b *vsphereVolumeMounter) GetAttributes() volume.Attributes {
 }
 
 // SetUp attaches the disk and bind mounts to the volume path.
-func (b *vsphereVolumeMounter) SetUp(fsGroup *types.UnixGroupID) error {
+func (b *vsphereVolumeMounter) SetUp(fsGroup *int64) error {
 	return b.SetUpAt(b.GetPath(), fsGroup)
 }
 
@@ -206,7 +206,7 @@ func (b *vsphereVolumeMounter) CanMount() error {
 }
 
 // SetUp attaches the disk and bind mounts to the volume path.
-func (b *vsphereVolumeMounter) SetUpAt(dir string, fsGroup *types.UnixGroupID) error {
+func (b *vsphereVolumeMounter) SetUpAt(dir string, fsGroup *int64) error {
 	glog.V(5).Infof("vSphere volume setup %s to %s", b.volPath, dir)
 
 	// TODO: handle failed mounts here.

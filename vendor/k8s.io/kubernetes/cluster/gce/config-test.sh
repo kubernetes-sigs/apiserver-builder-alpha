@@ -19,6 +19,9 @@
 KUBE_ROOT=$(dirname "${BASH_SOURCE}")/../..
 source "${KUBE_ROOT}/cluster/gce/config-common.sh"
 
+# Specifying KUBE_GCE_API_ENDPOINT will override the default GCE Compute API endpoint (https://www.googleapis.com/compute/v1/).
+# This endpoint has to be pointing to v1 api. For example, https://www.googleapis.com/compute/staging_v1/
+GCE_API_ENDPOINT=${KUBE_GCE_API_ENDPOINT:-}
 GCLOUD=gcloud
 ZONE=${KUBE_GCE_ZONE:-us-central1-b}
 REGION=${ZONE%-*}
@@ -62,11 +65,13 @@ if [[ "${NODE_OS_DISTRIBUTION}" == "debian" ]]; then
     NODE_ACCELERATORS=""
 fi
 
-# By default a cluster will be started with the master on GCI and nodes on
-# containervm. If you are updating the containervm version, update this
-# variable. Also please update corresponding image for node e2e at:
+# By default a cluster will be started with the master and nodes
+# on Container-VM, the deprecated OS. Some tests assume container-VM,
+# and only when that is fixed can we use Container-Optimized OS
+# (cos, gci) as we do in config-default.sh.
+# Also please update corresponding image for node e2e at:
 # https://github.com/kubernetes/kubernetes/blob/master/test/e2e_node/jenkins/image-config.yaml
-CVM_VERSION=${CVM_VERSION:-container-vm-v20170214}
+CVM_VERSION=${CVM_VERSION:-container-vm-v20170627}
 GCI_VERSION=${KUBE_GCI_VERSION:-cos-stable-59-9460-64-0}
 MASTER_IMAGE=${KUBE_GCE_MASTER_IMAGE:-}
 MASTER_IMAGE_PROJECT=${KUBE_GCE_MASTER_PROJECT:-cos-cloud}
@@ -91,7 +96,7 @@ CLUSTER_IP_RANGE="${CLUSTER_IP_RANGE:-10.100.0.0/14}"
 MASTER_IP_RANGE="${MASTER_IP_RANGE:-10.246.0.0/24}"
 # NODE_IP_RANGE is used when ENABLE_IP_ALIASES=true. It is the primary range in
 # the subnet and is the range used for node instance IPs.
-NODE_IP_RANGE="${NODE_IP_RANGE:-10.40.0.0/22}"
+NODE_IP_RANGE="$(get-node-ip-range)"
 
 RUNTIME_CONFIG="${KUBE_RUNTIME_CONFIG:-}"
 
@@ -128,6 +133,10 @@ ENABLE_L7_LOADBALANCING="${KUBE_ENABLE_L7_LOADBALANCING:-glbc}"
 #   standalone     - Heapster only. Metrics available via Heapster REST API.
 ENABLE_CLUSTER_MONITORING="${KUBE_ENABLE_CLUSTER_MONITORING:-influxdb}"
 
+# One special node out of NUM_NODES would be created of this type if specified.
+# Useful for scheduling heapster in large clusters with nodes of small size.
+HEAPSTER_MACHINE_TYPE="${HEAPSTER_MACHINE_TYPE:-}"
+
 # Set etcd image (e.g. 3.0.17-alpha.1) and version (e.g. 3.0.17) if you need
 # non-default version.
 ETCD_IMAGE="${TEST_ETCD_IMAGE:-}"
@@ -150,10 +159,10 @@ TEST_CLUSTER_RESYNC_PERIOD="${TEST_CLUSTER_RESYNC_PERIOD:---min-resync-period=3m
 TEST_CLUSTER_API_CONTENT_TYPE="${TEST_CLUSTER_API_CONTENT_TYPE:-}"
 
 KUBELET_TEST_ARGS="${KUBELET_TEST_ARGS:-} --max-pods=110 --serialize-image-pulls=false --outofdisk-transition-frequency=0 ${TEST_CLUSTER_API_CONTENT_TYPE}"
-if [[ "${NODE_OS_DISTRIBUTION}" == "gci" ]]; then
+if [[ "${NODE_OS_DISTRIBUTION}" == "gci" ]] || [[ "${NODE_OS_DISTRIBUTION}" == "ubuntu" ]]; then
   NODE_KUBELET_TEST_ARGS=" --experimental-kernel-memcg-notification=true"
 fi
-if [[ "${MASTER_OS_DISTRIBUTION}" == "gci" ]]; then
+if [[ "${MASTER_OS_DISTRIBUTION}" == "gci" ]] || [[ "${MASTER_OS_DISTRIBUTION}" == "ubuntu" ]]; then
   MASTER_KUBELET_TEST_ARGS=" --experimental-kernel-memcg-notification=true"
 fi
 APISERVER_TEST_ARGS="${APISERVER_TEST_ARGS:-} --runtime-config=extensions/v1beta1 ${TEST_CLUSTER_DELETE_COLLECTION_WORKERS} ${TEST_CLUSTER_MAX_REQUESTS_INFLIGHT}"
@@ -229,6 +238,7 @@ if [[ "${ENABLE_CLUSTER_AUTOSCALER}" == "true" ]]; then
   AUTOSCALER_MIN_NODES="${KUBE_AUTOSCALER_MIN_NODES:-}"
   AUTOSCALER_MAX_NODES="${KUBE_AUTOSCALER_MAX_NODES:-}"
   AUTOSCALER_ENABLE_SCALE_DOWN="${KUBE_AUTOSCALER_ENABLE_SCALE_DOWN:-false}"
+  AUTOSCALER_EXPANDER_CONFIG="${KUBE_AUTOSCALER_EXPANDER_CONFIG:---expander=price}"
 fi
 
 # Optional: Enable Rescheduler
@@ -314,3 +324,5 @@ ENABLE_APISERVER_ADVANCED_AUDIT="${ENABLE_APISERVER_ADVANCED_AUDIT:-true}" # tru
 if [[ "${ENABLE_APISERVER_ADVANCED_AUDIT}" == "true" ]]; then
   FEATURE_GATES="${FEATURE_GATES},AdvancedAuditing=true"
 fi
+
+ENABLE_BIG_CLUSTER_SUBNETS="${ENABLE_BIG_CLUSTER_SUBNETS:-false}"

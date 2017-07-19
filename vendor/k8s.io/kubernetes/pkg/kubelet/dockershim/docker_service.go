@@ -25,11 +25,11 @@ import (
 	"time"
 
 	"github.com/blang/semver"
-	dockertypes "github.com/docker/engine-api/types"
+	dockertypes "github.com/docker/docker/api/types"
 	"github.com/golang/glog"
 
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/kubernetes/pkg/api/v1"
 	"k8s.io/kubernetes/pkg/apis/componentconfig"
 	internalapi "k8s.io/kubernetes/pkg/kubelet/apis/cri"
 	runtimeapi "k8s.io/kubernetes/pkg/kubelet/apis/cri/v1alpha1/runtime"
@@ -455,9 +455,12 @@ func (ds *dockerService) getDockerVersionFromCache() (*dockertypes.Version, erro
 	// We only store on key in the cache.
 	const dummyKey = "version"
 	value, err := ds.versionCache.Get(dummyKey)
-	dv := value.(*dockertypes.Version)
 	if err != nil {
 		return nil, err
+	}
+	dv, ok := value.(*dockertypes.Version)
+	if !ok {
+		return nil, fmt.Errorf("Converted to *dockertype.Version error")
 	}
 	return dv, nil
 }
