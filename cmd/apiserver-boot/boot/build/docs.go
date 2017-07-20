@@ -81,10 +81,12 @@ apiserver-boot build docs --generate-toc=false
 var operations, buildOpenapi, generateToc bool
 var server string
 var disableDelegatedAuth bool
+var cleanup bool
 var outputDir string
 
 func AddDocs(cmd *cobra.Command) {
 	docsCmd.Flags().StringVar(&server, "server", "bin/apiserver", "path to apiserver binary to run to get swagger.json")
+	docsCmd.Flags().BoolVar(&cleanup, "cleanup", true, "If true, cleanup intermediary files")
 	docsCmd.Flags().BoolVar(&buildOpenapi, "build-openapi", true, "If true, run the server and get the new swagger.json")
 	docsCmd.Flags().BoolVar(&operations, "operations", false, "if true, include operations in docs.")
 	docsCmd.Flags().BoolVar(&generateToc, "generate-toc", true, "If true, generate the table of contents from the api groups instead of using a statically configured ToC.")
@@ -188,5 +190,16 @@ func RunDocs(cmd *cobra.Command, args []string) {
 	err = c.Run()
 	if err != nil {
 		log.Fatalf("error: %v\n", err)
+	}
+
+	// Cleanup intermediate files
+	if cleanup {
+		os.RemoveAll(filepath.Join(wd, outputDir, "includes"))
+		os.RemoveAll(filepath.Join(wd, outputDir, "manifest.json"))
+		os.RemoveAll(filepath.Join(wd, outputDir, "openapi-spec"))
+		os.RemoveAll(filepath.Join(wd, outputDir, "build", "documents"))
+		os.RemoveAll(filepath.Join(wd, outputDir, "build", "documents"))
+		os.RemoveAll(filepath.Join(wd, outputDir, "build", "runbrodocs.sh"))
+		os.RemoveAll(filepath.Join(wd, outputDir, "build", "node_modules", "marked", "Makefile"))
 	}
 }
