@@ -35,7 +35,7 @@ import (
 var versionedAPIs []string
 var unversionedAPIs []string
 var codegenerators []string
-var copyright string = "boilerplate.go.txt"
+var copyright string
 var generators = sets.String{}
 
 var generateCmd = &cobra.Command{
@@ -47,31 +47,6 @@ apiserver-boot build generated`,
 	Run: RunGenerate,
 }
 
-var genericAPI = strings.Join([]string{
-	"k8s.io/api/core/v1",
-	"k8s.io/api/apps/v1beta1",
-	"k8s.io/api/authentication/v1",
-	"k8s.io/api/authentication/v1beta1",
-	"k8s.io/api/authorization/v1",
-	"k8s.io/api/authorization/v1beta1",
-	"k8s.io/api/autoscaling/v1",
-	"k8s.io/api/autoscaling/v2alpha1",
-	"k8s.io/api/batch/v1",
-	"k8s.io/api/batch/v2alpha1",
-	"k8s.io/api/certificates/v1beta1",
-	"k8s.io/api/extensions/v1beta1",
-	"k8s.io/api/policy/v1beta1",
-	"k8s.io/api/rbac/v1alpha1",
-	"k8s.io/api/rbac/v1beta1",
-	"k8s.io/api/settings/v1alpha1",
-	"k8s.io/api/storage/v1",
-	"k8s.io/api/storage/v1beta1",
-	"k8s.io/apimachinery/pkg/apis/meta/v1",
-	"k8s.io/apimachinery/pkg/api/resource",
-	"k8s.io/apimachinery/pkg/version",
-	"k8s.io/apimachinery/pkg/runtime",
-	"k8s.io/apimachinery/pkg/util/intstr"}, ",")
-
 var extraAPI = strings.Join([]string{
 	"k8s.io/apimachinery/pkg/apis/meta/v1",
 	"k8s.io/apimachinery/pkg/conversion",
@@ -79,6 +54,7 @@ var extraAPI = strings.Join([]string{
 
 func AddGenerate(cmd *cobra.Command) {
 	cmd.AddCommand(generateCmd)
+	generateCmd.Flags().StringVar(&copyright, "copyright", "boilerplate.go.txt", "Location of copyright boilerplate file.")
 	generateCmd.Flags().StringArrayVar(&versionedAPIs, "api-versions", []string{}, "API version to generate code for.  Can be specified multiple times.  e.g. --api-versions foo/v1beta1 --api-versions bar/v1  defaults to all versions found under directories pkg/apis/<group>/<version>")
 	generateCmd.Flags().StringArrayVar(&codegenerators, "generator", []string{}, "list of generators to run.  e.g. --generator apiregister --generator conversion Valid values: [apiregister,conversion,client,deepcopy,defaulter,openapi]")
 	generateCmd.AddCommand(generateCleanCmd)
@@ -181,11 +157,26 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	}
 
 	if doGen("openapi-gen") {
+		apis := []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1",
+			"k8s.io/apimachinery/pkg/api/resource",
+			"k8s.io/apimachinery/pkg/version",
+			"k8s.io/apimachinery/pkg/runtime",
+			"k8s.io/apimachinery/pkg/util/intstr",
+		}
+
+		// Add any vendored apis from core
+		apis = append(apis, getVendorApis(filepath.Join("k8s.io", "api"))...)
+		apis = append(apis, getVendorApis(filepath.Join("k8s.io", "client-go", "pkg", "apis"))...)
+		if _, err := os.Stat(filepath.Join("vendor", "k8s.io", "client-go", "pkg", "api", "v1")); err == nil {
+			apis = append(apis, filepath.Join("k8s.io", "client-go", "pkg", "api", "v1"))
+		}
+
 		c := exec.Command(filepath.Join(root, "openapi-gen"),
 			append(all,
 				"-o", util.GoSrc,
 				"--go-header-file", copyright,
-				"-i", genericAPI,
+				"-i", strings.Join(apis, ","),
 				"--output-package", filepath.Join(util.Repo, "pkg", "openapi"))...,
 		)
 		fmt.Printf("%s\n", strings.Join(c.Args, " "))
@@ -270,6 +261,27 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 			log.Fatalf("failed to run informer-gen %s %v", out, err)
 		}
 	}
+}
+
+func getVendorApis(pkg string) []string {
+	dir := filepath.Join("vendor", pkg)
+	apis := []string{}
+	if groups, err := ioutil.ReadDir(dir); err == nil {
+		for _, g := range groups {
+			p := filepath.Join(dir, g.Name())
+			if g.IsDir() {
+				if versions, err := ioutil.ReadDir(p); err == nil {
+					for _, v := range versions {
+						versionMatch := regexp.MustCompile("^v\\d+(alpha\\d+|beta\\d+)*$")
+						if v.IsDir() && versionMatch.MatchString(v.Name()) {
+							apis = append(apis, filepath.Join(pkg, g.Name(), v.Name()))
+						}
+					}
+				}
+			}
+		}
+	}
+	return apis
 }
 
 func initApis() {

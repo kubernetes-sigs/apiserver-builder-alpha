@@ -37,10 +37,11 @@ apiserver-boot create group --group insect --version v1beta`,
 	Run: RunCreate,
 }
 
-var copyright string = "boilerplate.go.txt"
+var copyright string
 
 func AddCreate(cmd *cobra.Command) {
 	cmd.AddCommand(createCmd)
+	cmd.Flags().StringVar(&copyright, "copyright", "boilerplate.go.txt", "Location of copyright boilerplate file.")
 	AddCreateGroup(createCmd)
 }
 
