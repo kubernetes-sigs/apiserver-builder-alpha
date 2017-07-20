@@ -15,6 +15,7 @@ For more information on custom REST implementations, see the
 
 ```go
 // +genclient=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +resource:path=foos,rest=FooREST
 // +k8s:openapi-gen=true

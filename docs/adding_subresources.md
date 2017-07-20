@@ -5,9 +5,11 @@
 Create a resource under `pkg/apis/<group>/<version>/<resource>_types.go`
 
 ```go
+// +k8s:openapi-gen=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 // +resource:path=bars
 // +subresource:request=Scale,path=scale,rest=ScaleBarREST
-// +k8s:openapi-gen=true
 type Bar struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -38,6 +40,7 @@ Define the request type in the same <kind>_types.go file
 
 ```go
 // +genclient=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +subresource-request
 type Scale struct {
@@ -65,6 +68,7 @@ Create the rest implementation in the *versioned* package.
 Example:
 
 ```go
+// +k8s:deepcopy-gen=false
 type ScaleBarREST struct {
 	Registry BarRegistry
 }
@@ -111,6 +115,7 @@ instances of Bar from the storage.
 
 
 ```go
+// +k8s:deepcopy-gen=false
 type ScaleBarREST struct {
 	Registry BarRegistry
 }

@@ -28,6 +28,7 @@ Example:
 
 ```go
 // +genclient=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +nonNamespaced=true
 
 // +resource:path=foos
