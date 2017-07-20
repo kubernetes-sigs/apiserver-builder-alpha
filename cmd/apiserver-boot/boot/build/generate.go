@@ -168,7 +168,9 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 		// Add any vendored apis from core
 		apis = append(apis, getVendorApis(filepath.Join("k8s.io", "api"))...)
 		apis = append(apis, getVendorApis(filepath.Join("k8s.io", "client-go", "pkg", "apis"))...)
-		if _, err := os.Stat(filepath.Join("vendor", "k8s.io", "client-go", "pkg", "api", "v1")); err == nil {
+
+		// Special case 'k8s.io/client-go/pkg/api/v1' because it does not have a group
+		if _, err := os.Stat(filepath.Join("vendor", "k8s.io", "client-go", "pkg", "api", "v1", "doc.go")); err == nil {
 			apis = append(apis, filepath.Join("k8s.io", "client-go", "pkg", "api", "v1"))
 		}
 
