@@ -1,4 +1,4 @@
-# Getting started (using v0.1-alpha.3)
+# Getting started (using v0.1-alpha.6)
 
 This document covers building an apiserver from scratch using `apiserver-boot`.  It
 is focused on how to use the tooling.  For information on the libraries, see
