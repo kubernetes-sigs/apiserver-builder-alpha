@@ -36,13 +36,14 @@ var repoCmd = &cobra.Command{
 
 var installDeps bool
 var domain string
-var copyright string = "boilerplate.go.txt"
+var copyright string
 
 func AddInitRepo(cmd *cobra.Command) {
 	cmd.AddCommand(repoCmd)
 	repoCmd.Flags().StringVar(&domain, "domain", "", "domain the api groups live under")
 
 	// Hide this flag by default
+	repoCmd.Flags().StringVar(&copyright, "copyright", "boilerplate.go.txt", "Location of copyright boilerplate file.")
 	repoCmd.Flags().
 		BoolVar(&installDeps, "install-deps", true, "if true, install the vendored deps packaged with apiserver-boot.")
 	repoCmd.Flags().MarkHidden("install-deps")
