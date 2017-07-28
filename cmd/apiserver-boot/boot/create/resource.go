@@ -425,7 +425,7 @@ func (c *{{.Kind}}ControllerImpl) Reconcile(u *{{.Version}}.{{.Kind}}) error {
 }
 
 func (c *{{.Kind}}ControllerImpl) Get(namespace, name string) (*{{.Version}}.{{.Kind}}, error) {
-	return c.lister.{{ if not .NonNamespacedKind }}{{ title .Resource }}(namespace).{{ end }}Get(name)
+	return c.lister.{{ if not .NonNamespacedKind }}{{plural .Kind}}(namespace).{{ end }}Get(name)
 }
 `
 
