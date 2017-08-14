@@ -1,6 +1,7 @@
 ## `apiserver-builder`
 
 [![Build Status](https://travis-ci.org/kubernetes-incubator/apiserver-builder.svg?branch=master)](https://travis-ci.org/kubernetes-incubator/apiserver-builder "Travis")
+[![Go Report Card](https://goreportcard.com/badge/github.com/kubernetes-incubator/apiserver-builder)](https://goreportcard.com/report/github.com/kubernetes-incubator/apiserver-builder)
 
 **Note**: This project is still only a proof of concept, and is not production ready.
 
