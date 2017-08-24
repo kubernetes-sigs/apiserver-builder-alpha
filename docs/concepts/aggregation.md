@@ -106,7 +106,7 @@ status:
 Notice that this is a Kubernetes API object like any other: it has a name,
 a spec, a status, etc.  There are several important fields in the spec.
 
-The first important field is `caBundle`.  This is the base64-encoding
+The first important field is `caBundle`.  This is the base64-encoded
 version of a CA certificate that can be used to verify the serving
 certificates of the API server.  The aggregator will check that the
 serving certificates are for a hostname of `<service>.<namespace>.svc` (in
@@ -126,7 +126,7 @@ each version within that group is sorted according to the
 
 For instance, suppose we also had a `wardle/v1` API version with
 `groupPriorityMinimum: 2000` and `versionPriority: 20`, and an API
-group-version `bloops/v1` at `groupVersionPriority: 1500`.  Then, both
+group-version `bloops/v1` at `groupPriorityMinimum: 1500`.  Then, both
 entries for the `wardle` group would appear before the `bloops` group, and
 `wardle/v1` would appear before `wardle/v1alpha1`.
 
@@ -164,13 +164,13 @@ using the admin client certificates.  The aggregator will verify the
 certificates, strip them from the request, and add the `X-Remote-User:
 system:admin` header.
 
-The aggregator will the connect to the wardle server, verifying the wardle
+The aggregator will then connect to the wardle server, verifying the wardle
 server's service certificates using the CA certificate from the `caBundle`
 field of the APIService object for `wardle/v1alpha1`, and submitting it's
 own proxy client certificates to identify itself to the wardle server.
 
 The wardle server will receive the modified request, verify the proxy
-client certificates against it's requestheader CA certificate, and treat
+client certificates against it's RequestHeader CA certificate, and treat
 the request as if it had come from the `system:admin` user, as marked in
 the `X-Remote-User` header.  The wardle server can then proceed along with
 its normal serving logic, validating authorization and returning a result
@@ -260,7 +260,7 @@ group-version with `kubectl get --raw /apis/wardle/v1alpha1`:
 ```
 
 This provides us with a list of resources.  `name` and `singularName`
-provide queues as to the plural and singluar resource names, while
+provide cues as to the plural and singular resource names, while
 `shortNames` provides a list of abbreviations.  Together, these form the
 names that `kubectl` will accept when operating on this resource.
 
