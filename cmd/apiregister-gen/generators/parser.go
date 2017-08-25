@@ -628,13 +628,24 @@ func (apigroup *APIGroup) DoType(t *types.Type) (*Struct, []*types.Type) {
 	}
 
 	for _, member := range t.Members {
-		memberGroup := GetGroup(member.Type)
 		uType := member.Type.Name.Name
 		memberName := member.Name
 		uImport := ""
 
+		// Use the element type for Pointers, Maps and Slices
+		mSubType := member.Type
+		hasElem := false
+		for mSubType.Elem != nil {
+			mSubType = mSubType.Elem
+			hasElem = true
+		}
+		if hasElem {
+			// Strip the package from the field type
+			uType = strings.Replace(member.Type.String(), mSubType.Name.Package+".", "", 1)
+		}
+
 		base := filepath.Base(member.Type.String())
-		samepkg := t.Name.Package == member.Type.Name.Package
+		samepkg := t.Name.Package == mSubType.Name.Package
 
 		// If not in the same package, calculate the import pkg
 		if !samepkg {
@@ -661,7 +672,7 @@ func (apigroup *APIGroup) DoType(t *types.Type) (*Struct, []*types.Type) {
 						uType = strings.Replace(member.Type.String(), path.Dir(uImport)+"/", "", 1)
 						uType = strings.Replace(uType, "/"+path.Base(t.Name.Package), "", 1)
 					}
-					fmt.Printf("\n%s : %s : %s\n%s : %s\n\n", member.Type.Kind, member.Type.String(), path.Dir(uImport), uImport, uType)
+					fmt.Printf("\nDifferent Package Parent Package: %s Child Package: %s Name: %s : %s : %s\n%s : %s\n\n", t.Name.Package, member.Type.Name.Package, member.Type.Kind, member.Type.String(), path.Dir(uImport), uImport, uType)
 				}
 			}
 		}
@@ -677,9 +688,10 @@ func (apigroup *APIGroup) DoType(t *types.Type) (*Struct, []*types.Type) {
 			UnversionedType:   uType,
 		})
 
-		// Add this member Type for processing
-		if !member.Type.IsPrimitive() && memberGroup == GetGroup(t) {
-			remaining = append(remaining, member.Type)
+		// Add this member Type for processing if it isn't a primitive and
+		// is part of the same API group
+		if !mSubType.IsPrimitive() && GetGroup(mSubType) == GetGroup(t) {
+			remaining = append(remaining, mSubType)
 		}
 	}
 	return s, remaining

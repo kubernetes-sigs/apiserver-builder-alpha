@@ -35,6 +35,7 @@ var output string
 var dovendor bool
 var test bool
 var version string
+var commit string
 
 var cachevendordir string
 
@@ -48,6 +49,7 @@ func main() {
 	buildCmd.Flags().StringVar(&output, "output", "apiserver-builder",
 		"value name of the tar file to build")
 	buildCmd.Flags().StringVar(&version, "version", "", "version name")
+	buildCmd.Flags().StringVar(&commit, "commit", "", "apiserver-builder commit")
 
 	buildCmd.Flags().BoolVar(&dovendor, "vendor", true, "if true, fetch packages to vendor")
 	buildCmd.Flags().BoolVar(&test, "test", true, "if true, run tests")
@@ -105,6 +107,9 @@ func TmpDir() string {
 }
 
 func RunBuild(cmd *cobra.Command, args []string) {
+	if len(commit) == 0 {
+		log.Fatal("must specify the --commit flag")
+	}
 	if len(version) == 0 {
 		log.Fatal("must specify the --version flag")
 	}
@@ -401,7 +406,7 @@ func BuildVendor(tooldir string) string {
 	cmd.Dir = pkgDir
 	RunCmd(cmd, vendordir)
 
-	cmd = exec.Command(bootBin, "init", "glide", "--fetch")
+	cmd = exec.Command(bootBin, "init", "glide", "--fetch", "--commit", commit)
 	cmd.Dir = pkgDir
 	RunCmd(cmd, vendordir)
 

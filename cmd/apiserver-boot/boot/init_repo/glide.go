@@ -41,9 +41,11 @@ apiserver-boot init glide --fetch
 }
 
 var fetch bool
+var builderCommit string
 
 func AddGlideInstallCmd(cmd *cobra.Command) {
 	glideInstallCmd.Flags().BoolVar(&fetch, "fetch", true, "if true, fetch new glide deps instead of copying the ones packaged with the tools")
+	glideInstallCmd.Flags().StringVar(&builderCommit, "commit", "", "if specified with fetch, use this commit for the apiserver-builder deps")
 	cmd.AddCommand(glideInstallCmd)
 }
 
@@ -101,12 +103,17 @@ func RunGlideInstall(cmd *cobra.Command, args []string) {
 }
 
 type glideTemplateArguments struct {
-	Repo string
+	Repo          string
+	BuilderCommit string
 }
 
 var glideTemplate = `
 package: {{.Repo}}
 import:
+{{ if .BuilderCommit -}}
+- name: github.com/kubernetes-incubator/apiserver-builder
+  version: {{ .BuilderCommit }}
+{{ end -}}
 - package: k8s.io/api
   version: c9fffff41e45e3c00186ac6b00d2cb585734d43e
 - package: k8s.io/apimachinery
@@ -148,5 +155,6 @@ func createGlide() {
 	util.WriteIfNotFound(path, "glide-template", glideTemplate,
 		glideTemplateArguments{
 			util.Repo,
+			builderCommit,
 		})
 }

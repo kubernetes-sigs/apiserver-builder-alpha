@@ -18,6 +18,7 @@ package create
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -34,17 +35,15 @@ var subresourceName string
 var createSubresourceCmd = &cobra.Command{
 	Use:   "subresource",
 	Short: "Creates a subresource",
-	Long:  `Creates a subresource.  Creates file pkg/apis/<group>/<version>/<subresourceName>_<kind>_types.go`,
+	Long:  `Creates a subresource.  Creates file pkg/apis/<group>/<version>/<subresourceName>_<kind>_types.go and updates pkg/apis/<group>/<version>/<kind>_types.go with the subresource comment directive.`,
 	Example: `# Create new subresource "pollinate" of resource "Bee" in the "insect" group with version "v1beta"
 apiserver-boot create subresource --subresource pollinate --group insect --version v1beta --kind Bee`,
 	Run: RunCreateSubresource,
 }
 
 func AddCreateSubresource(cmd *cobra.Command) {
-	createSubresourceCmd.Flags().StringVar(&groupName, "group", "", "name of the API group to create.  **Must be single lowercase word**.")
-	createSubresourceCmd.Flags().StringVar(&versionName, "version", "", "name of the API version to create.  **must match regex v\\d+(alpha\\d+|beta\\d+)** e.g. v1, v1beta1, v1alpha1")
-	createSubresourceCmd.Flags().StringVar(&kindName, "kind", "", "name of the API kind to create.  **Must be CamelCased (starting with UpperCase)**")
-	createSubresourceCmd.Flags().StringVar(&resourceName, "resource", "", "optional name of the API resource to create, normally the plural name of the kind in lowercase")
+	RegisterResourceFlags(createSubresourceCmd)
+
 	createSubresourceCmd.Flags().StringVar(&subresourceName, "subresource", "", "name of the subresource.  **Must be single lowercase word**")
 
 	cmd.AddCommand(createSubresourceCmd)
@@ -114,6 +113,25 @@ func createSubresource(boilerplate string) {
 				subresourceName, groupName, versionName, kindName)
 			found = true
 		}
+	}
+
+	if !found {
+		typesFileName = fmt.Sprintf("%s_types.go", strings.ToLower(kindName))
+		path = filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
+		types, err := ioutil.ReadFile(path)
+		if err != nil {
+			log.Fatal(err)
+		}
+		structName := fmt.Sprintf("type %s struct {", kindName)
+		sub := fmt.Sprintf("// +subresource:request=%s,path=%s,rest=%s%sREST",
+			strings.Title(subresourceName),
+			strings.ToLower(subresourceName),
+			strings.Title(subresourceName),
+			kindName)
+		result := strings.Replace(string(types),
+			structName,
+			sub+"\n"+structName, 1)
+		ioutil.WriteFile(path, []byte(result), 0644)
 	}
 
 	if found {

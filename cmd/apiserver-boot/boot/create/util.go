@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/markbates/inflect"
+	"github.com/spf13/cobra"
 
 	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 )
@@ -49,11 +50,18 @@ func ValidateResourceFlags() {
 	if !versionMatch.MatchString(versionName) {
 		log.Fatalf(
 			"--version has bad format. must match ^v\\d+(alpha\\d+|beta\\d+)*$.  "+
-				"e.g. v1alpha1,v1beta1,v1 but was(%s)", versionName)
+				"e.g. v1alpha1,v1beta1,v1 but was (%s)", versionName)
 	}
 
 	kindMatch := regexp.MustCompile("^[A-Z]+[A-Za-z0-9]*$")
 	if !kindMatch.MatchString(kindName) {
 		log.Fatalf("--kind must match regex ^[A-Z]+[A-Za-z0-9]*$ but was (%s)", kindName)
 	}
+}
+
+func RegisterResourceFlags(cmd *cobra.Command) {
+	cmd.Flags().StringVar(&groupName, "group", "", "name of the API group.  **Must be single lowercase word (match ^[a-z]+$)**.")
+	cmd.Flags().StringVar(&versionName, "version", "", "name of the API version.  **must match regex v\\d+(alpha\\d+|beta\\d+)** e.g. v1, v1beta1, v1alpha1")
+	cmd.Flags().StringVar(&kindName, "kind", "", "name of the API kind.  **Must be CamelCased (match ^[A-Z]+[A-Za-z0-9]*$)**")
+	cmd.Flags().StringVar(&resourceName, "resource", "", "optional name of the API resource, defaults to the plural name of the lowercase kind")
 }

@@ -44,10 +44,8 @@ apiserver-boot create group version resource --group insect --version v1beta --k
 }
 
 func AddCreateResource(cmd *cobra.Command) {
-	createResourceCmd.Flags().StringVar(&groupName, "group", "", "name of the API group to create")
-	createResourceCmd.Flags().StringVar(&versionName, "version", "", "name of the API version to create")
-	createResourceCmd.Flags().StringVar(&kindName, "kind", "", "name of the API kind to create")
-	createResourceCmd.Flags().StringVar(&resourceName, "resource", "", "optional name of the API resource to create, normally the plural name of the kind in lowercase")
+	RegisterResourceFlags(createResourceCmd)
+
 	createResourceCmd.Flags().BoolVar(&nonNamespacedKind, "non-namespaced", false, "if set, the API kind will be non namespaced")
 
 	cmd.AddCommand(createResourceCmd)
