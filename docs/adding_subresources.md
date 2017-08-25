@@ -1,6 +1,62 @@
 # Adding a subresource to a resource
 
-## Create a resource
+## Easy way: Creeate the subresource with apiserver-boot
+
+**Note:** Added in release v0.1-alpha.11
+
+Create the subresource definition using apiserver-boot
+
+To create a subresource of for the resource *Group/Version/Kind* run the following command
+from the root directory (e.g. the one that containings *glide.yaml*)
+
+```sh
+apiserver-boot create subresource --subresource <subresource> --group <resource-group> --version <resource-version> --kind <resource-kind>
+```
+
+This will:
+
+- create `pkg/apis/<group>/<version>/<subresource>_<kind>_types.go`
+  - contains the rest implementation
+- create `pkg/apis/<group>/<version>/<subresource>_<kind>_types_test.go`
+  - contains a simple test to invoke the subresource and make sure it returns 200
+- update `pkg/apis/<group>/<version>/<kind>_types.go`
+  - add the subresource comment directive to the resource
+
+Next regenerate the generated code to wire up the subresource
+  
+```sh
+apiserver-boot build generated
+```
+
+Run the tests
+
+```sh
+go test ./pkg/...
+```
+
+Look for the subresource endpoint through the discovery service:
+
+```sh
+# shell #1
+apiserver-boot run local
+```
+
+```sh
+# shell #2
+kubectl --kubeconfig kubeconfig proxy
+```
+
+```sh
+# shell #3
+curl 127.0.0.1:8001/
+curl 127.0.0.1:8001/apis/<group>.<domain>/<version>
+```
+
+## Hard way: Manually create the subresource
+
+Create the subresource definition by hand
+
+### Update a resource with the subresource
 
 Create a resource under `pkg/apis/<group>/<version>/<resource>_types.go`
 
@@ -34,7 +90,7 @@ Scale and ScaleBarREST live in the versioned package (same as the versioned reso
 
 
 
-## Create the subresource request
+### Create the subresource request
 
 Define the request type in the same <kind>_types.go file
 
@@ -61,7 +117,7 @@ Note the line:
 This tells the code generator that this is a subresource type and to
 register it in the wiring.
 
-## Create the REST implementation
+### Create the REST implementation
 
 Create the rest implementation in the *versioned* package.
 
@@ -107,7 +163,7 @@ func (r *ScaleBarREST) New() runtime.Object {
 ```
 
 
-### Anatomy of a REST implementation
+## Anatomy of a REST implementation
 
 Define the struct type implementing the REST api.  The Registry
 field is required, and provides a type safe library to read / write
