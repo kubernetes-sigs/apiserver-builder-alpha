@@ -111,7 +111,7 @@ var glideTemplate = `
 package: {{.Repo}}
 import:
 {{ if .BuilderCommit -}}
-- name: github.com/kubernetes-incubator/apiserver-builder
+- package: github.com/kubernetes-incubator/apiserver-builder
   version: {{ .BuilderCommit }}
 {{ end -}}
 - package: k8s.io/api
