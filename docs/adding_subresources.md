@@ -1,6 +1,6 @@
 # Adding a subresource to a resource
 
-## Easy way: Creeate the subresource with apiserver-boot
+## Easy way: Create the subresource with apiserver-boot
 
 **Note:** Added in release v0.1-alpha.11
 
