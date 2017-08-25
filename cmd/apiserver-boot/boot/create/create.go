@@ -43,6 +43,7 @@ func AddCreate(cmd *cobra.Command) {
 	cmd.AddCommand(createCmd)
 	cmd.Flags().StringVar(&copyright, "copyright", "boilerplate.go.txt", "Location of copyright boilerplate file.")
 	AddCreateGroup(createCmd)
+	AddCreateSubresource(createCmd)
 }
 
 func RunCreate(cmd *cobra.Command, args []string) {
