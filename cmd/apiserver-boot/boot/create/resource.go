@@ -21,7 +21,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
@@ -37,10 +36,10 @@ var nonNamespacedKind bool
 var createResourceCmd = &cobra.Command{
 	Use:   "resource",
 	Short: "Creates an API group, version and resource",
-	Long:  `Creates an API group, version and resource.  Will not recreate group or resource if they already exist.`,
+	Long:  `Creates an API group, version and resource.  Will not recreate group or resource if they already exist.  Creates file pkg/apis/<group>/<version>/<kind>_types.go`,
 	Example: `# Create new resource "Bee" in the "insect" group with version "v1beta"
 # Will automatically the group and version if they do not exist
-apiserver-boot create group version kind --group insect --version v1beta --kind Bee`,
+apiserver-boot create group version resource --group insect --version v1beta --kind Bee`,
 	Run: RunCreateResource,
 }
 
@@ -60,31 +59,7 @@ func RunCreateResource(cmd *cobra.Command, args []string) {
 	}
 
 	util.GetDomain()
-	if len(groupName) == 0 {
-		log.Fatalf("Must specify --group")
-	}
-	if len(versionName) == 0 {
-		log.Fatalf("Must specify --version")
-	}
-	if len(kindName) == 0 {
-		log.Fatal("Must specify --kind")
-	}
-	if len(resourceName) == 0 {
-		resourceName = inflect.NewDefaultRuleset().Pluralize(strings.ToLower(kindName))
-	}
-
-	if strings.ToLower(groupName) != groupName {
-		log.Fatalf("--group must be lowercase was (%s)", groupName)
-	}
-	versionMatch := regexp.MustCompile("^v\\d+(alpha\\d+|beta\\d+)*$")
-	if !versionMatch.MatchString(versionName) {
-		log.Fatalf(
-			"--version has bad format. must match ^v\\d+(alpha\\d+|beta\\d+)*$.  "+
-				"e.g. v1alpha1,v1beta1,v1 was(%s)", versionName)
-	}
-	if string(kindName[0]) != strings.ToUpper(string(kindName[0])) {
-		log.Fatalf("--kind must start with uppercase letter was (%s)", kindName)
-	}
+	ValidateResourceFlags()
 
 	cr := util.GetCopyright(copyright)
 
