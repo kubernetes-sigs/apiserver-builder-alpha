@@ -107,9 +107,6 @@ func TmpDir() string {
 }
 
 func RunBuild(cmd *cobra.Command, args []string) {
-	if len(commit) == 0 {
-		log.Fatal("must specify the --commit flag")
-	}
 	if len(version) == 0 {
 		log.Fatal("must specify the --version flag")
 	}
@@ -378,6 +375,10 @@ func BuildVendor(tooldir string) string {
 	if len(vendordir) == 0 {
 		vendordir = TmpDir()
 		fmt.Printf("to rerun with cached glide use `--vendordir %s`\n", vendordir)
+	}
+
+	if len(vendordir) == 0 && len(commit) == 0 {
+		log.Fatal("must specify the --commit flag")
 	}
 
 	vendordir, err := filepath.EvalSymlinks(vendordir)
