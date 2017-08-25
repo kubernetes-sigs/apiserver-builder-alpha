@@ -49,12 +49,12 @@ func main() {
 	buildCmd.Flags().StringVar(&output, "output", "apiserver-builder",
 		"value name of the tar file to build")
 	buildCmd.Flags().StringVar(&version, "version", "", "version name")
-	buildCmd.Flags().StringVar(&commit, "commit", "", "apiserver-builder commit")
 
 	buildCmd.Flags().BoolVar(&dovendor, "vendor", true, "if true, fetch packages to vendor")
 	buildCmd.Flags().BoolVar(&test, "test", true, "if true, run tests")
 	cmd.AddCommand(buildCmd)
 
+	vendorCmd.Flags().StringVar(&commit, "commit", "", "apiserver-builder commit")
 	vendorCmd.Flags().StringVar(&version, "version", "", "version name")
 	vendorCmd.Flags().StringVar(&cachevendordir, "vendordir", "",
 		"if specified, use this directory for setting up vendor instead of creating a tmp directory.")
