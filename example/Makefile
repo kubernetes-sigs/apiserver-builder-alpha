@@ -21,7 +21,7 @@ test: build
 	bash -c "find pkg/apis/ -name apiserver.local.config | xargs rm -rf"
 
 build: cmds
-	bin/apiserver-boot build executables
+	bin/apiserver-boot build executables --vendor-dir ../
 
 # Build docs
 docs: cleandocs build
