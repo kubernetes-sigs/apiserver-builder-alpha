@@ -651,28 +651,43 @@ func (apigroup *APIGroup) DoType(t *types.Type) (*Struct, []*types.Type) {
 		if !samepkg {
 			parts := strings.Split(base, ".")
 			if len(parts) > 1 {
-				switch member.Type.Name.Package {
-				case "k8s.io/apimachinery/pkg/apis/meta/v1":
-					// Use versioned types for meta/v1
-					uImport = fmt.Sprintf("%s \"%s\"", "metav1", "k8s.io/apimachinery/pkg/apis/meta/v1")
-					uType = "metav1." + parts[1]
-				default:
-					// Use unversioned types for everything else
-					t := member.Type
-					hasElem := false
-					if t.Elem != nil {
-						// Handle Pointers, Maps, Slices correctly
-						t = t.Elem
-						hasElem = true
-					}
-					uImportName := path.Base(path.Dir(t.Name.Package))
-					uImport = path.Dir(t.Name.Package)
-					uType = uImportName + "." + t.Name.Name
+				// Don't generate unversioned types for core types, just use the versioned types
+				if strings.HasPrefix(mSubType.Name.Package, "k8s.io/api/") {
+					// Import the package under an alias so it doesn't conflict with other groups
+					// having the same version
+					importAlias := path.Base(path.Dir(mSubType.Name.Package)) + path.Base(mSubType.Name.Package)
+					uImport = fmt.Sprintf("%s \"%s\"", importAlias, mSubType.Name.Package)
 					if hasElem {
-						uType = strings.Replace(member.Type.String(), path.Dir(uImport)+"/", "", 1)
-						uType = strings.Replace(uType, "/"+path.Base(t.Name.Package), "", 1)
+						// Replace the full package with the alias when referring to the type
+						uType = strings.Replace(member.Type.String(), mSubType.Name.Package, importAlias, 1)
+					} else {
+						// Replace the full package with the alias when referring to the type
+						uType = fmt.Sprintf("%s.%s", importAlias, parts[1])
 					}
-					fmt.Printf("\nDifferent Package Parent Package: %s Child Package: %s Name: %s : %s : %s\n%s : %s\n\n", t.Name.Package, member.Type.Name.Package, member.Type.Kind, member.Type.String(), path.Dir(uImport), uImport, uType)
+				} else {
+					switch member.Type.Name.Package {
+					case "k8s.io/apimachinery/pkg/apis/meta/v1":
+						// Use versioned types for meta/v1
+						uImport = fmt.Sprintf("%s \"%s\"", "metav1", "k8s.io/apimachinery/pkg/apis/meta/v1")
+						uType = "metav1." + parts[1]
+					default:
+						// Use unversioned types for everything else
+						t := member.Type
+						hasElem := false
+						if t.Elem != nil {
+							// Handle Pointers, Maps, Slices correctly
+							t = t.Elem
+							hasElem = true
+						}
+						uImportName := path.Base(path.Dir(t.Name.Package))
+						uImport = path.Dir(t.Name.Package)
+						uType = uImportName + "." + t.Name.Name
+						if hasElem {
+							uType = strings.Replace(member.Type.String(), path.Dir(uImport)+"/", "", 1)
+							uType = strings.Replace(uType, "/"+path.Base(t.Name.Package), "", 1)
+						}
+						fmt.Printf("\nDifferent Package Parent Package: %s Child Package: %s Name: %s : %s : %s\n%s : %s\n\n", t.Name.Package, member.Type.Name.Package, member.Type.Kind, member.Type.String(), path.Dir(uImport), uImport, uType)
+					}
 				}
 			}
 		}
