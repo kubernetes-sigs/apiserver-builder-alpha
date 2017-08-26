@@ -60,19 +60,10 @@ type UniversitySpec struct {
 	// The unversioned struct definition for this field is automatically generated in the group package
 	Automatic AutomaticCreateUnversionedType
 
-	// WARNING: Using types from client-go as fields does not work outside this example
-	// This example hacked the vendored client-go to add the openapi generation directives
-	// to make this work
 	Template *corev1.PodSpec `json:"template,omitempty"`
 
-	// WARNING: Using types from client-go as fields does not work outside this example
-	// This example hacked the vendored client-go to add the openapi generation directives
-	// to make this work
 	ServiceSpec corev1.ServiceSpec `json:"service_spec,omitempty"`
 
-	// WARNING: Using types from client-go as fields does not work outside this example
-	// This example hacked the vendored client-go to add the openapi generation directives
-	// to make this work
 	Rollout []extensionsv1beta1.Deployment `json:"rollout,omitempty"`
 }
 
