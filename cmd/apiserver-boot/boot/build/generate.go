@@ -37,6 +37,7 @@ var unversionedAPIs []string
 var codegenerators []string
 var copyright string
 var generators = sets.String{}
+var vendorDir string
 
 var generateCmd = &cobra.Command{
 	Use:   "generated",
@@ -55,6 +56,7 @@ var extraAPI = strings.Join([]string{
 func AddGenerate(cmd *cobra.Command) {
 	cmd.AddCommand(generateCmd)
 	generateCmd.Flags().StringVar(&copyright, "copyright", "boilerplate.go.txt", "Location of copyright boilerplate file.")
+	generateCmd.Flags().StringVar(&vendorDir, "vendor-dir", "", "Location of directory containing vendor files.")
 	generateCmd.Flags().StringArrayVar(&versionedAPIs, "api-versions", []string{}, "API version to generate code for.  Can be specified multiple times.  e.g. --api-versions foo/v1beta1 --api-versions bar/v1  defaults to all versions found under directories pkg/apis/<group>/<version>")
 	generateCmd.Flags().StringArrayVar(&codegenerators, "generator", []string{}, "list of generators to run.  e.g. --generator apiregister --generator conversion Valid values: [apiregister,conversion,client,deepcopy,defaulter,openapi]")
 	generateCmd.AddCommand(generateCleanCmd)
@@ -174,6 +176,10 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 			apis = append(apis, filepath.Join("k8s.io", "client-go", "pkg", "api", "v1"))
 		}
 
+		if _, err := os.Stat(filepath.Join("vendor", "k8s.io", "api", "core", "v1", "doc.go")); err == nil {
+			apis = append(apis, filepath.Join("k8s.io", "api", "core", "v1"))
+		}
+
 		c := exec.Command(filepath.Join(root, "openapi-gen"),
 			append(all,
 				"-o", util.GoSrc,
@@ -267,6 +273,9 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 
 func getVendorApis(pkg string) []string {
 	dir := filepath.Join("vendor", pkg)
+	if len(vendorDir) >= 0 {
+		dir = filepath.Join(vendorDir, dir)
+	}
 	apis := []string{}
 	if groups, err := ioutil.ReadDir(dir); err == nil {
 		for _, g := range groups {

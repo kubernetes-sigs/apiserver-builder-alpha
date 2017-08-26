@@ -20,11 +20,12 @@ import (
 	"log"
 
 	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic"
+	corev1 "k8s.io/api/core/v1"
+	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/apiserver/pkg/endpoints/request"
-	//extensionsv1beta1 "k8s.io/client-go/pkg/apis/extensions/v1beta1"
 )
 
 // Generating code from university_types.go file will generate storage and status REST endpoints for
@@ -59,20 +60,11 @@ type UniversitySpec struct {
 	// The unversioned struct definition for this field is automatically generated in the group package
 	Automatic AutomaticCreateUnversionedType
 
-	//// WARNING: Using types from client-go as fields does not work outside this example
-	//// This example hacked the vendored client-go to add the openapi generation directives
-	//// to make this work
-	//Template *apiv1.PodSpec `json:"template,omitempty"`
-	//
-	//// WARNING: Using types from client-go as fields does not work outside this example
-	//// This example hacked the vendored client-go to add the openapi generation directives
-	//// to make this work
-	//ServiceSpec apiv1.ServiceSpec `json:"service_spec,omitempty"`
-	//
-	//// WARNING: Using types from client-go as fields does not work outside this example
-	//// This example hacked the vendored client-go to add the openapi generation directives
-	//// to make this work
-	//Rollout []extensionsv1beta1.Deployment `json:"rollout,omitempty"`
+	Template *corev1.PodSpec `json:"template,omitempty"`
+
+	ServiceSpec corev1.ServiceSpec `json:"service_spec,omitempty"`
+
+	Rollout []extensionsv1beta1.Deployment `json:"rollout,omitempty"`
 }
 
 // Require that the unversioned struct is manually created.  This is *NOT* the default behavior for

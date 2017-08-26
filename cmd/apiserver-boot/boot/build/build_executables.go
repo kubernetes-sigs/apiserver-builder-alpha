@@ -48,6 +48,7 @@ apiserver-boot build --goos linux --goarch amd64 --output linux/`,
 func AddBuildExecutables(cmd *cobra.Command) {
 	cmd.AddCommand(createBuildExecutablesCmd)
 
+	createBuildExecutablesCmd.Flags().StringVar(&vendorDir, "vendor-dir", "", "Location of directory containing vendor files.")
 	createBuildExecutablesCmd.Flags().BoolVar(&GenerateForBuild, "generate", true, "if true, generate code before building")
 	createBuildExecutablesCmd.Flags().StringVar(&goos, "goos", "", "if specified, set this GOOS")
 	createBuildExecutablesCmd.Flags().StringVar(&goarch, "goarch", "", "if specified, set this GOARCH")
