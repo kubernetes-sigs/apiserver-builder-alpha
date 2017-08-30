@@ -78,7 +78,7 @@ func RunBuildContainer(cmd *cobra.Command, args []string) {
 	outputdir = dir
 	RunBuildExecutables(cmd, args)
 
-	log.Printf("Building the docker Image.")
+	log.Printf("Building the docker Image using %s.", path)
 
 	c := exec.Command("docker", "build", "-t", Image, dir)
 	fmt.Printf("%s\n", strings.Join(c.Args, " "))
@@ -95,6 +95,9 @@ type dockerfileTemplateArguments struct {
 
 var dockerfileTemplate = `
 FROM ubuntu:14.04
+
+RUN apt-get update
+RUN apt-get install -y ca-certificates
 
 ADD apiserver .
 ADD controller-manager .
