@@ -34,6 +34,11 @@ import (
 var Name, Namespace string
 var Versions []schema.GroupVersion
 var ResourceConfigDir string
+var ControllerArgs []string
+var ApiserverArgs []string
+var ControllerSecret string
+var ControllerSecretMount string
+var ControllerSecretEnv []string
 
 var buildResourceConfigCmd = &cobra.Command{
 	Use:   "config",
@@ -54,6 +59,11 @@ func AddBuildResourceConfig(cmd *cobra.Command) {
 }
 
 func AddBuildResourceConfigFlags(cmd *cobra.Command) {
+	cmd.Flags().StringSliceVar(&ControllerSecretEnv, "controller-env", []string{}, "")
+	cmd.Flags().StringVar(&ControllerSecret, "controller-secret", "", "")
+	cmd.Flags().StringVar(&ControllerSecretMount, "controller-secret-mount", "", "")
+	cmd.Flags().StringSliceVar(&ControllerArgs, "controller-args", []string{}, "")
+	cmd.Flags().StringSliceVar(&ApiserverArgs, "apiserver-args", []string{}, "")
 	cmd.Flags().StringVar(&Name, "name", "", "")
 	cmd.Flags().StringVar(&Namespace, "namespace", "", "")
 	cmd.Flags().StringVar(&Image, "image", "", "name of the apiserver Image with tag")
@@ -94,14 +104,19 @@ func buildResourceConfig() {
 	dir := filepath.Join(ResourceConfigDir, "certificates")
 
 	a := resourceConfigTemplateArgs{
-		Name:       Name,
-		Namespace:  Namespace,
-		Image:      Image,
-		Domain:     util.Domain,
-		Versions:   Versions,
-		ClientKey:  getBase64(filepath.Join(dir, "apiserver.key")),
-		CACert:     getBase64(filepath.Join(dir, "apiserver_ca.crt")),
-		ClientCert: getBase64(filepath.Join(dir, "apiserver.crt")),
+		Name:                  Name,
+		Namespace:             Namespace,
+		Image:                 Image,
+		Domain:                util.Domain,
+		Versions:              Versions,
+		ClientKey:             getBase64(filepath.Join(dir, "apiserver.key")),
+		CACert:                getBase64(filepath.Join(dir, "apiserver_ca.crt")),
+		ClientCert:            getBase64(filepath.Join(dir, "apiserver.crt")),
+		ApiserverArgs:         ApiserverArgs,
+		ControllerArgs:        ControllerArgs,
+		ControllerSecretMount: ControllerSecretMount,
+		ControllerSecret:      ControllerSecret,
+		ControllerSecretEnv:   ControllerSecretEnv,
 	}
 	path := filepath.Join(ResourceConfigDir, "apiserver.yaml")
 
@@ -190,14 +205,19 @@ func initVersionedApis() {
 }
 
 type resourceConfigTemplateArgs struct {
-	Versions   []schema.GroupVersion
-	CACert     string
-	ClientCert string
-	ClientKey  string
-	Domain     string
-	Name       string
-	Namespace  string
-	Image      string
+	Versions              []schema.GroupVersion
+	CACert                string
+	ClientCert            string
+	ClientKey             string
+	Domain                string
+	Name                  string
+	Namespace             string
+	Image                 string
+	ApiserverArgs         []string
+	ControllerArgs        []string
+	ControllerSecret      string
+	ControllerSecretMount string
+	ControllerSecretEnv   []string
 }
 
 var resourceConfigTemplate = `
@@ -265,23 +285,120 @@ spec:
         command:
         - "./apiserver"
         args:
-        - "--etcd-servers=http://localhost:2379"
+        - "--etcd-servers=http://etcd-svc:2379"
         - "--tls-cert-file=/apiserver.local.config/certificates/tls.crt"
         - "--tls-private-key-file=/apiserver.local.config/certificates/tls.key"
         - "--audit-log-path=-"
         - "--audit-log-maxage=0"
-        - "--audit-log-maxbackup=0"
+        - "--audit-log-maxbackup=0"{{ range $arg := .ApiserverArgs }}
+        - "{{ $arg }}"{{ end }}
+        resources:
+          requests:
+            cpu: 100m
+            memory: 20Mi
+          limits:
+            cpu: 100m
+            memory: 30Mi
       - name: controller
         image: {{.Image}}
         command:
         - "./controller-manager"
-        args:
-      - name: etcd
-        image: quay.io/coreos/etcd:v3.0.17
+        args:{{ range $arg := .ControllerArgs }}
+        - "{{ $arg }}"{{ end }}
+        resources:
+          requests:
+            cpu: 100m
+            memory: 20Mi
+          limits:
+            cpu: 100m
+            memory: 30Mi
       volumes:
       - name: apiserver-certs
         secret:
           secretName: {{ .Name }}
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: etcd
+  namespace: {{ .Namespace }}
+spec:
+  serviceName: "etcd"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: etcd
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: etcd
+        image: quay.io/coreos/etcd:latest
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 100m
+            memory: 20Mi
+          limits:
+            cpu: 100m
+            memory: 30Mi
+        env:
+        - name: ETCD_DATA_DIR
+          value: /etcd-data-dir
+        command:
+        - /usr/local/bin/etcd
+        - --listen-client-urls
+        - http://0.0.0.0:2379
+        - --advertise-client-urls
+        - http://localhost:2379
+        ports:
+        - containerPort: 2379
+        volumeMounts:
+        - name: etcd-data-dir
+          mountPath: /etcd-data-dir
+        readinessProbe:
+          httpGet:
+            port: 2379
+            path: /health
+          failureThreshold: 1
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 2
+        livenessProbe:
+          httpGet:
+            port: 2379
+            path: /health
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 2
+  volumeClaimTemplates:
+  - metadata:
+     name: etcd-data-dir
+     annotations:
+        volume.beta.kubernetes.io/storage-class: standard
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+         storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: etcd-svc
+  namespace: {{ .Namespace }}
+  labels:
+    app: etcd
+spec:
+  ports:
+  - port: 2379
+    name: etcd
+    targetPort: 2379
+  selector:
+    app: etcd
 ---
 apiVersion: v1
 kind: Secret
