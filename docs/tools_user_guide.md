@@ -167,7 +167,7 @@ kubectl --kubeconfig kubeconfig api-versions
 Create an instance of your API
 
 ```sh
-kubectl create -f sample/<type>.yaml
+kubectl --kubeconfig kubeconfig create -f sample/<type>.yaml
 ```
 
 More information available [here](running_locally.md)
