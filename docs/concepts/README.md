@@ -8,3 +8,4 @@ Currently, the following topics are available:
 
 - [Authentication, Authorization, and Certificates](./auth.md)
 - [Aggregation](./aggregation.md)
+- [Api building concept guide](./api_building_overview.md)
