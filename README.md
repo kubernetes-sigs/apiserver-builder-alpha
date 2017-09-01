@@ -35,6 +35,17 @@ Download the latest release and install on your PATH.
 
 [installation guide](docs/installing.md)
 
+#### Building APIs concept guide
+
+Conceptual information on how APIs and the Kubernetes control plane is structure and how to
+build new API extensions using apiserver-builder.
+
+If you want to get straight to building something without knowing all the details of what is going on,
+skip ahead to the tools guide and come back to this later.
+
+[api building concept guide](docs/concepts/api_building_overview.md)
+
+
 #### Tools user guide
 
 Instructions on how to use the tools packaged with apiserver-builder to build and run a new apiserver.
