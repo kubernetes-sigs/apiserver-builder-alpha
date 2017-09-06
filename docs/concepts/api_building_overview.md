@@ -116,11 +116,11 @@ Example resource definition:
 
 ```yaml
 type Foo struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
+  metav1.TypeMeta   `json:",inline"`
+  metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   FooSpec   `json:"spec,omitempty"`
-	Status FooStatus `json:"status,omitempty"`
+  Spec   FooSpec   `json:"spec,omitempty"`
+  Status FooStatus `json:"status,omitempty"`
 }
 
 type FooSpec struct {
@@ -240,7 +240,10 @@ func (DefaultStorageStrategy) Canonicalize(obj runtime.Object) {
 #### Update
 
 **Note**: The following operations are synchronous, however reconciling the
-stored object's desired state will happen asynchronously.
+object's desired state in the cluster will happen asynchronously after
+the object is stored.
+
+Update operations have the same basic pieces as Create operations, with a few minor differences.
 
 *ValidateUpdate*: A separate validate may be specified for updates that can validate
 new values against old values.  This is useful for enforcing immutability of
@@ -262,12 +265,16 @@ by the apiserver-builder.  Can be overriden by specifying the function
 **Note**: The delete is asynchronous and the garbage collection will be
 executed after the request returns.
 
-*Finalizers*: If a finalizer is specified on an object (e.g. PrepareForCreate)
+*Finalizers*: Controller manually garbage collects downstream resources.
+
+If a finalizer is specified on an object (e.g. PrepareForCreate)
 deleting an object will set the `DeletionTimestamp` field on the object with
 a grace period.  This allows controllers to see the object has been deleted
 and perform cleanup of resources the object may have created.
 
-*OwnerReference*: Automatic garbage collection may be specified by setting
+*OwnerReference*: apiserver automatically garbage collects downstream resources.
+
+Automatic garbage collection may be specified by setting
 an OwnerReference on the object to be garbage collected.  When the owning object
 is deleted, objects with the OwnerReference will automatically be deleted.
 Note: This is the preferred method for garbage collection, but will not
@@ -341,7 +348,7 @@ The following is a diagram of the storage - reconciliation interactions for crea
 
 ![Deployment Example](store_reconcile_example.jpg "Deployment Example")
 
-## Extension servers
+## Running extension apiservers and controller-managers
 
 APIs are built as separate apiserver and controller-manager processes.
 
