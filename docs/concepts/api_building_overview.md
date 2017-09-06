@@ -222,7 +222,7 @@ func (<ResourceType>Strategy) Validate(ctx request.Context, obj runtime.Object) 
 
 **Canonicalize**: Allows a final restructuring of the object before it is stored
 to put it in a canonical form.  Maybe used for tasks such as sorting an unordered
-list field to provide aa predictable and consistent representation of the same
+list field to provide a predictable and consistent representation of the same
 logical data.
 
 **Note:** This works on the *unversioned* representation of the object.
