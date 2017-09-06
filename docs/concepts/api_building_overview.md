@@ -1,11 +1,23 @@
 # Building and using Kubernetes APIs
 
 This document describes how Kubernetes APIs are structured and to use the apiserver-builder project
-to build them as extensions to the Kubernetes cluster.
+to build them as extensions to the Kubernetes cluster.  The canonical source for Kubernetes API
+conventions and structure lives in the [kubernetes api-conventions page](https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md).
+
+While much of this information applies generally to Kubernetes APIs, parts apply only to APIs built using
+apiserver-builder.
+
+**Note:** Though the purpose of this document is to teach how to build Kubernetes API extensions,
+the diagrams in this document illustrate the concepts using the OSS Kubernetes
+apiserver, controller-manager and scheduler as examples. Extension apiservers will use
+the same underlying concepts and infrastructure as the OSS Kubernetes apiserver.
+
+Extension apiservers may be run either standalone or they may publish and expose their APIs through
+the cluster apiserver.  The diagrams apply most directly to an extension apiserver run standalone.
 
 ## Vendoring the K8s libraries for building a new API server extension
 
-First create a new go package and use `apieserver-boot init repo --domain <your domain>`.  This
+First create a new go package and use `apieerver-boot init repo --domain <your domain>`.  This
 will vendor the required go libraries from kubernetes and set the initial directory and package
 structure including the *apiserver* and *controller* binaries responsible for storing and
 reconciling objects.
@@ -81,13 +93,17 @@ testing, documentation and reconciliation.
 
 Resources have 3 components:
 
-*Group*: Similar a `go` package.  Provides a canonical name for the resource.  Of the form <some-name>.<some-domain>.
+*Group*: Similar to a `go` package.  Provides a canonical name for the resource.  Of the form
+`<package-name>.<domain-name>` such as `myapifocusarea.mydomain.com`.  Must not have
+any capital letters.
 
 *Version*: Defines API stability and allows for evolving APIs in non-backwards compatible ways without breaking
 backwards compatibility by incrementing the version.  Resources with the same group & kind, but different versions
-generally share the same storage (listing from one version will list objects from all versions)
+generally share the same storage (listing from one version will list objects from all versions)  Must be some form
+of alpha, beta or stable - e.g. `v1alpha1, v1beta1, v1`.  For more information on the
+semantic meaning of API versions, see the [Kubernetes API documentation](https://kubernetes.io/docs/concepts/overview/kubernetes-api/#v1beta1-v1beta2-and-v1beta3-are-deprecated-please-move-to-v1-asap)
 
-*Kind*: Name of the API.  e.g. Deployment, Pod, Service, etc
+*Kind*: Name of the API.  e.g. Deployment, Pod, Service, etc.  Must be UpperCamel cased.
 
 ![Group Version Kind](gvk.jpg "Group Version Kind")
 
@@ -284,7 +300,7 @@ for more information.
 **Summary**:
 
 - Objects have Metadata, Spec and Status fields
-- Storage operations may be rejected or transformed by the API server before the object is written.
+- Storage operations may be rejected or transformed by the apiserver before the object is written.
 - `apiserver-boot create group version resource` will setup the basic scaffolding for a new resource type using sane overridable defaults.
 
 
@@ -341,6 +357,12 @@ Reconcile logic may include:
 on the Object during creation.  This will cause a DeletionTimestamp to be set on the object when it is deleted,
 resulting in the Reconcile method being invoked.
 
+### Using API extensions to manage resources external to the cluster
+
+Controllers may also reconcile Kubernetes APIs with external resources, such as resources
+hosted by a cloud provider.  When managing these sorts of a resources, a finalizer must
+be used to clean up after the Kubernetes object is deleted.
+
 ### End to end Deployment example
 
 The following is a diagram of the storage - reconciliation interactions for creating a new Deployment.
@@ -368,7 +390,7 @@ apiserver-builder can build the needed containers and yaml config to using:
 - `apiserver-boot apiserver-boot build config`: emit yaml configuration for running the
   apiserver, controller-manager and etcd in a cluster
  
-![Extension API servers](extensionserver.jpg "Extension API servers")
+![Extension apiservers](extensionserver.jpg "Extension apiservers")
 
 ## Advanced API topics
 
