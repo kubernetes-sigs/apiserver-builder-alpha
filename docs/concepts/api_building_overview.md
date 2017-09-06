@@ -75,8 +75,7 @@ The recommended way to bootstrap a new resource type is using `apiserver-boot cr
 as this will make sure the definition is well formatted and will also create supplementary files for
 testing, documentation and reconciliation.
 
-**Note**: All types created through apiserver-boot are automatically registered with the apiserver by
-the code generaion.
+**Note**: All types created through apiserver-boot are automatically registered with the apiserver through code generation.
 
 ### Resource name structure
 
