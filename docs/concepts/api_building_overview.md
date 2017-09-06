@@ -1,7 +1,7 @@
 # Building and using Kubernetes APIs
 
 This document describes how Kubernetes APIs are structured and to use the apiserver-builder project
-to build them.
+to build them as extensions to the Kubernetes cluster.
 
 ## Vendoring the K8s libraries for building a new API server extension
 
@@ -35,7 +35,7 @@ declared in the object against the observed state of the cluster, and take actio
 This can be done by either updating downstream Kubernetes objects (Deployment -> ReplicaSet -> Pod) or
 updating cloud provider resources (Loadbalancer).
 
-![API Phases](store_reconcile.png "API Phases")
+![API Phases](store_reconcile.jpg "API Phases")
 
 ### Properties
 
@@ -90,6 +90,7 @@ generally share the same storage (listing from one version will list objects fro
 
 *Kind*: Name of the API.  e.g. Deployment, Pod, Service, etc
 
+![Group Version Kind](gvk.jpg "Group Version Kind")
 
 ### Resource definition structure
 
@@ -102,35 +103,81 @@ the scaffolding for you resource definition with each of these fields.
 - Labels (queryable key-value pairs)
 
 *Spec*: Contains the desired state
-Add fields specifying the desired state here.  Used by reconciliation loops to update the cluster.
+Add fields specifying the desired state here.  Canonical information about the object
+goes here.  Used by reconciliation loops to update other objects in the cluster or
+external objects.
 
 *Status*: Contains the observed state
-Add fields specifying the observed state here.  Used by clients and reconciliation loops
-to understand the state of the cluster.
+Add fields specifying the observed state here.  **Note**: Status fields should not be the canonical
+source of information, and should only serve to publish status from other sources.
+Used by clients and reconciliation loops to view the state of the object.
 
-**Note**: Resources may have different versions with different representation.  Resources
-are converted between versions during storage using an "unversioned" object.
+Example resource definition:
+
+```yaml
+type Foo struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec   FooSpec   `json:"spec,omitempty"`
+	Status FooStatus `json:"status,omitempty"`
+}
+
+type FooSpec struct {
+  // Publish desired object state and canonical object information here
+}
+
+type FooStatus struct {
+  // Publish object status values here
+}
+```
+
+**Note**: Resources may have different versions with different representations.  All versions of the
+same resource must be able to be converted back and forth between forms without losing information.
+This is done using an "unversioned" object, which by default is generated for resources.
 
 ### Storage operations
 
 During storage operations there are several opportunities to either reject the request or
 modify the stored object before it is written.
 
-![Storage Operations](storage.png "Storage Operations")
+![Storage Operations](storage.jpg "Storage Operations")
 
 
 #### Create
 
 **Note**: The following operations are synchronous, however reconciling the
-stored object's desired state will happen asynchronously.
+object's desired state in the cluster will happen asynchronously after
+the object is stored.
 
-*PrepareForCreate*: Perform modifications to the underlying object before it is stored.
+**DefaultingFunction**: Optional fields that need to be interpreted with some value
+when they are not specified should be defaulted and written to the object.  **Note**: Leaving
+fields unspecified and interpreting this as some value is an anti-pattern and should
+be avoided.  Persisting the defaulted values makes it easier to change the default
+values for different versions of the same API.
 
-If unspecified
-in your type, a default PrepareForCreate  implementation will be provided by apiserver-builder.
-The default will drop updates to Status that do not go through the Status subresource.  The
-default maybe overridden by providing a function attached to `<ResourceType>Strategy` in the
-`_types.go`
+If unspecified in your type, a default DefaultingFunction will be provided by
+apiserver-builder.  The default implementation will do no defaulting.
+
+**Note:** This works on the *versioned* representation of the object.
+
+Example:
+
+```go
+func (<ResourceType>SchemeFns) DefaultingFunction(o interface{}) {
+    obj := o.(*<ResourceType>)
+
+    // Custom Defaulting logic here
+}
+```
+
+**PrepareForCreate**: Perform modifications to the underlying object before it is stored.
+Maybe used to set *Initializers* or *Finalizers* on an object before it is stored.
+
+If unspecified in your type, a default PrepareForCreate implementation will be provided
+by apiserver-builder.  The default will drop updates to Status that do not go through
+the Status subresource.  The default maybe overridden by providing a function attached
+to `<ResourceType>Strategy` in the `_types.go`
 
 **Note:** This works on the *unversioned* representation of the object.
 
@@ -138,18 +185,17 @@ Example:
 
 ```go
 func (s <ResourceType>Strategy) PrepareForCreate(ctx request.Context, obj runtime.Object) {
-    // Invoke the parent implementation
+    // Invoke the parent implementation to strip the Status
     s.DefaultStorageStrategy.PrepareForCreate(ctx, obj)
 
     // Cast the element
     o := obj.(*<group>.<ResourceType>)
 
-    // Your PrepareForCreate logic here
+    // Custom PrepareForCreate logic here
 }
-
 ```
 
-*Validate*: Perform static validation of the values set in the resource.  Reject
+**Validate**: Perform static validation of the values set in the resource.  Reject
 the creation request if the object is not valid.
 
 If unspecified in your type, a default Validate
@@ -174,24 +220,20 @@ func (<ResourceType>Strategy) Validate(ctx request.Context, obj runtime.Object) 
 }
 ```
 
+**Canonicalize**: Allows a final restructuring of the object before it is stored
+to put it in a canonical form.  Maybe used for tasks such as sorting an unordered
+list field to provide aa predictable and consistent representation of the same
+logical data.
 
-*DefaultingFunction*: Optional fields that need to be interpreted with some value
-when they are unset should be defaulted and written to the object.  Persisting
-the defaulted values makes it easier to change the default values for different
-versions of the same API.
-
-If unspecified in your type, a default DefaultingFunction will be provided by
-apiserver-builder.  The default implementation will do no defaulting.
-
-**Note:** This works on the *versioned* representation of the object.
+**Note:** This works on the *unversioned* representation of the object.
 
 Example:
 
 ```go
-func (<ResourceType>SchemeFns) DefaultingFunction(o interface{}) {
-    obj := o.(*<ResourceType>)
-
-    // Defaulting logic here
+func (DefaultStorageStrategy) Canonicalize(obj runtime.Object) {
+  o := obj.(*<group>.<ResourceType>Strategy)
+  
+  // Re-structure object here
 }
 ```
 
@@ -242,7 +284,7 @@ for more information.
 
 ## Reconciliation
 
-![Reconciliation Process](reconciliation.png "Reconciliation Process")
+![Reconciliation Process](reconciliation.jpg "Reconciliation Process")
 
 Reconciliation is performed by watching for updates to resource objects, and then writing back new objects or
 updates to the apiserver.  Typically, each resource has its own controller function defined in the controller-manager
@@ -297,9 +339,32 @@ resulting in the Reconcile method being invoked.
 
 The following is a diagram of the storage - reconciliation interactions for creating a new Deployment.
 
-![Deployment Example](store_reconcile_example.png "Deployment Example")
+![Deployment Example](store_reconcile_example.jpg "Deployment Example")
 
-## Advanced topics
+## Extension servers
+
+APIs are built as separate apiserver and controller-manager processes.
+
+Flow:
+- setup extension apiserver
+  - run as a Deployment
+  - register with the core apiserver using an `apiregistration.k8s.io/v1beta1/APIService`
+- setup etcd storage for the extension apiserver
+  - run as StatefulSet or etcd operator
+- setup the extension controller-manager
+  - run as a Deployment (maybe the same Pod as the extension apiserver)
+  - configure to talk to the core apiserver (extension APIs are used through core
+  
+apiserver-builder can build the needed containers and yaml config to using:
+
+- `apiserver-boot apiserver-boot build container`: cross-compile the go binaries into a
+  container image
+- `apiserver-boot apiserver-boot build config`: emit yaml configuration for running the
+  apiserver, controller-manager and etcd in a cluster
+ 
+![Extension API servers](extensionserver.jpg "Extension API servers")
+
+## Advanced API topics
 
 Following are advanced topics for further customizing APIs
 
@@ -327,3 +392,4 @@ A resource's Status and Spec have separate endpoints for their operations:
 
 Additional subresources may be specified for polymorphic operations such as `scale`, which can be generally
 understood by clients without having to understand the underlying structure of the object.
+
