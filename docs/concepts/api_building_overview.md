@@ -17,7 +17,7 @@ the cluster apiserver.  The diagrams apply most directly to an extension apiserv
 
 ## Vendoring the K8s libraries for building a new API server extension
 
-First create a new go package and use `apieerver-boot init repo --domain <your domain>`.  This
+First create a new go package and use `apiserver-boot init repo --domain <your domain>`.  This
 will vendor the required go libraries from kubernetes and set the initial directory and package
 structure including the *apiserver* and *controller* binaries responsible for storing and
 reconciling objects.
