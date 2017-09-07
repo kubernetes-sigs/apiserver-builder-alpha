@@ -105,8 +105,6 @@ semantic meaning of API versions, see the [Kubernetes API documentation](https:/
 
 *Kind*: Name of the API.  e.g. Deployment, Pod, Service, etc.  Must be UpperCamel cased.
 
-![Group Version Kind](gvk.jpg "Group Version Kind")
-
 ### Resource definition structure
 
 Resource definitions have 3 subsections.  Creating a resource with `apiserver-boot` will automatically populate
