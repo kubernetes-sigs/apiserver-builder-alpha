@@ -19,6 +19,7 @@ package university
 import (
 	"fmt"
 
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/controller"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
@@ -31,6 +32,8 @@ import (
 
 // +controller:group=miskatonic,version=v1beta1,kind=University,resource=universities
 type UniversityControllerImpl struct {
+	builders.DefaultControllerFns
+
 	// universityinformer listens for events about Universities
 	universityinformer cache.SharedIndexInformer
 
