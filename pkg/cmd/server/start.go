@@ -17,11 +17,12 @@ limitations under the License.
 package server
 
 import (
+	"flag"
 	"fmt"
 	"io"
 
 	"github.com/spf13/cobra"
-	flag "github.com/spf13/pflag"
+	"github.com/spf13/pflag"
 
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/apiserver"
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
@@ -67,7 +68,12 @@ func StartApiServer(etcdPath string, apis []*builders.APIGroupBuilder, openapide
 
 	// To disable providers, manually specify the list provided by getKnownProviders()
 	cmd, _ := NewCommandStartServer(etcdPath, os.Stdout, os.Stderr, apis, wait.NeverStop, title, version)
-	cmd.Flags().AddFlagSet(flag.CommandLine)
+	if logflag := flag.CommandLine.Lookup("v"); logflag != nil {
+		level := logflag.Value.(*glog.Level)
+		levelPtr := (*int32)(level)
+		cmd.Flags().Int32Var(levelPtr, "loglevel", 0, "Set the level of log output")
+	}
+	cmd.Flags().AddFlagSet(pflag.CommandLine)
 	if err := cmd.Execute(); err != nil {
 		panic(err)
 	}
