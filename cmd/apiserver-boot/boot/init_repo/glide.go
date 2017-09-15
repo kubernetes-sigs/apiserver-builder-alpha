@@ -49,13 +49,46 @@ func AddGlideInstallCmd(cmd *cobra.Command) {
 	cmd.AddCommand(glideInstallCmd)
 }
 
+func retrieveVersion(versionString string) string {
+	const V = "version"
+	versionString = strings.ToLower(versionString)
+	i := strings.Index(versionString, V)
+	if i >= 0 {
+		i += len(V)
+	} else {
+		i = 0
+	}
+
+	var r rune
+	var j int
+	for j, r = range versionString[i:] {
+		if '0' <= r && r <= '9' {
+			goto FindEnd
+		}
+	}
+	return ""
+
+FindEnd:
+	var k int
+	j += i
+	for k, r = range versionString[j:] {
+		if (r < '0' || '9' < r) && r != '.' {
+			goto Final
+		}
+	}
+	return versionString[j:]
+
+Final:
+	return versionString[j : k+j]
+}
+
 func fetchGlide() {
 	o, err := exec.Command("glide", "-v").CombinedOutput()
 	if err != nil {
 		log.Fatal("must install glide v0.12 or later")
 	}
-	if !strings.HasPrefix(string(o), "glide version v0.12") &&
-		!strings.HasPrefix(string(o), "glide version v0.13") {
+	v := retrieveVersion(string(o))
+	if !strings.HasPrefix(v, "0.12") && !strings.HasPrefix(v, "0.13") {
 		log.Fatalf("must install glide  or later, was %s", o)
 	}
 
