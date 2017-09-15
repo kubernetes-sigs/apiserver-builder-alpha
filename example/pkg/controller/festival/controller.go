@@ -22,6 +22,7 @@ package festival
 import (
 	"log"
 
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/controller"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
@@ -34,6 +35,8 @@ import (
 
 // +controller:group=kingsport,version=v1,kind=Festival,resource=festivals
 type FestivalControllerImpl struct {
+	builders.DefaultControllerFns
+
 	// informer listens for events about Festival
 	informer cache.SharedIndexInformer
 

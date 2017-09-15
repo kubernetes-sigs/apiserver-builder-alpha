@@ -352,6 +352,7 @@ package {{ lower .Kind }}
 import (
 	"log"
 
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/controller"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
@@ -364,6 +365,8 @@ import (
 
 // +controller:group={{ .Group }},version={{ .Version }},kind={{ .Kind}},resource={{ .Resource }}
 type {{.Kind}}ControllerImpl struct {
+	builders.DefaultControllerFns
+
 	// informer listens for events about {{.Kind}}
 	informer cache.SharedIndexInformer
 
