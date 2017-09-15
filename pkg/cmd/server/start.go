@@ -188,10 +188,6 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string)
 		return err
 	}
 
-	config.GenericConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(GetOpenApiDefinition, builders.Scheme)
-	config.GenericConfig.OpenAPIConfig.Info.Title = title
-	config.GenericConfig.OpenAPIConfig.Info.Version = version
-
 	if o.PrintBearerToken {
 		glog.Infof("Serving on loopback...")
 		glog.Infof("\n\n********************************\nTo test the server run:\n"+
@@ -205,7 +201,13 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string)
 		config.AddApi(provider)
 	}
 
-	server, err := config.Init().Complete().New()
+	config.Init()
+
+	config.GenericConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(GetOpenApiDefinition, builders.Scheme)
+	config.GenericConfig.OpenAPIConfig.Info.Title = title
+	config.GenericConfig.OpenAPIConfig.Info.Version = version
+
+	server, err := config.Complete().New()
 	if err != nil {
 		return err
 	}
