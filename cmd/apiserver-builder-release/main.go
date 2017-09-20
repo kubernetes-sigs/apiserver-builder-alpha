@@ -169,11 +169,18 @@ func RunCmd(cmd *exec.Cmd, gopath string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+    cmd.Env = []string{}
 	if setgopath {
-		cmd.Env = append(cmd.Env, fmt.Sprintf("GOPATH=%s", gopath))
+	    cmd.Env = append(cmd.Env, fmt.Sprintf("GOPATH=%s", gopath))
 	}
-	cmd.Env = append(cmd.Env, os.Environ()...)
-	cmd.Stderr = os.Stderr
+	for _, v := range os.Environ() {
+        if strings.HasPrefix(v, "GOPATH=") && setgopath {
+            continue
+        }
+        cmd.Env = append(cmd.Env, v)
+    }
+
+    cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	if len(cmd.Dir) == 0 && len(gopath) > 0 {
 		cmd.Dir = gopath
@@ -189,12 +196,24 @@ func Build(input, output, goos, goarch string) {
 	cmd := exec.Command("go", "build", "-o", output, input)
 
 	// CGO_ENABLED=0 for statically compile binaries
-	cmd.Env = append(cmd.Env, "CGO_ENABLED=0")
+	cmd.Env = []string{"CGO_ENABLED=0"}
 	if len(goos) > 0 {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("GOOS=%s", goos))
 	}
 	if len(goarch) > 0 {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("GOARCH=%s", goarch))
+	}
+	for _, v := range os.Environ() {
+		if strings.HasPrefix(v, "CGO_ENABLED=") {
+			continue
+		}
+		if strings.HasPrefix(v, "GOOS=") && len(goos) > 0 {
+			continue
+		}
+		if strings.HasPrefix(v, "GOARCH=") && len(goarch) > 0 {
+			continue
+		}
+		cmd.Env = append(cmd.Env, v)
 	}
 	RunCmd(cmd, "")
 }
