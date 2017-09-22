@@ -20,11 +20,7 @@ MAINTAINER=The Kubernetes Authors
 URL=https://github.com/$(VENDOR)/$(NAME)
 LICENSE=Apache-2.0
 
-BUILD_DIR=$(shell pwd)/build
-DARWIN_AMD64_BUILD_BIN_DIR=$(BUILD_DIR)/darwin-amd64/bin
-LINUX_AMD64_BUILD_BIN_DIR=$(BUILD_DIR)/linux-amd64/bin
-LINUX_AMD64_BUILD_PKG_DIR=$(BUILD_DIR)/linux-amd64/pkg
-WINDOWS_AMD64_BUILD_BIN_DIR=$(BUILD_DIR)/windows-amd64/bin
+#TMPDIR=/tmp/$(NAME)/$(VERSION)
 
 .PHONY: default
 default: install
@@ -39,62 +35,37 @@ install:
 
 .PHONY: clean
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf *.deb *.rpm *.tar.gz ./release
 
 .PHONY: build
-build: clean build-darwin-amd64 build-linux-amd64 build-windows-amd64
-
-.PHONY: build-darwin-amd64
-build-darwin-amd64: build-apiregister-gen-darwin-amd64 build-apiserver-boot-darwin-amd64 build-apiserver-builder-release-darwin-amd64
-
-.PHONY: build-apiregister-gen-darwin-amd64 build-apiserver-boot-darwin-amd64 build-apiserver-builder-release-darwin-amd64
-build-apiregister-gen-darwin-amd64 build-apiserver-boot-darwin-amd64 build-apiserver-builder-release-darwin-amd64: build-%-darwin-amd64:
-	mkdir -p $(DARWIN_AMD64_BUILD_BIN_DIR)
-	GOOS=darwin GOARCH=amd64 go build -o $(DARWIN_AMD64_BUILD_BIN_DIR)/$* ./cmd/$*/main.go
-
-.PHONY: build-linux-amd64
-build-linux-amd64: build-apiregister-gen-linux-amd64 build-apiserver-boot-linux-amd64 build-apiserver-builder-release-linux-amd64
-
-.PHONY: build-apiregister-gen-linux-amd64 build-apiserver-boot-linux-amd64 build-apiserver-builder-release-linux-amd64
-build-apiregister-gen-linux-amd64 build-apiserver-boot-linux-amd64 build-apiserver-builder-release-linux-amd64: build-%-linux-amd64:
-	mkdir -p $(LINUX_AMD64_BUILD_BIN_DIR)
-	GOOS=linux GOARCH=amd64 go build -o $(LINUX_AMD64_BUILD_BIN_DIR)/$* ./cmd/$*/main.go
-
-.PHONY: build-windows-amd64
-build-darwin-amd64: build-apiregister-gen-windows-amd64 build-apiserver-boot-windows-amd64 build-apiserver-builder-release-windows-amd64
-
-.PHONY: build-apiregister-gen-windows-amd64 build-apiserver-boot-windows-amd64 build-apiserver-builder-release-windows-amd64
-build-apiregister-gen-windows-amd64 build-apiserver-boot-windows-amd64 build-apiserver-builder-release-windows-amd64: build-%-windows-amd64:
-	mkdir -p $(WINDOWS_AMD64_BUILD_BIN_DIR)
-	GOOS=linux GOARCH=amd64 go build -o $(WINDOWS_AMD64_BUILD_BIN_DIR)/$* ./cmd/$*/main.go
+build: clean ## Create release artefacts for darwin:amd64, linux:amd64 and windows:amd64. Requires etcd, glide, hg.
+	go run ./cmd/apiserver-builder-release/main.go vendor --version $(VERSION)
+	go run ./cmd/apiserver-builder-release/main.go build --version $(VERSION)
 
 .PHONY: package
-package: build package-linux-amd64
+package: package-linux-amd64
 
 .PHONY: package-linux-amd64
-package-linux-amd64: build-linux-amd64 package-linux-amd64-deb package-linux-amd64-rpm
+package-linux-amd64: package-linux-amd64-deb package-linux-amd64-rpm
 
 .PHONY: package-linux-amd64-deb
-package-linux-amd64-deb: ## Build a Debian package. Requires jordansissel/fpm.
-	mkdir -p $(LINUX_AMD64_BUILD_PKG_DIR)
-
-	fpm --name '$(NAME)' --version '$(VERSION)' \
-	  --input-type dir \
+package-linux-amd64-deb: ## Create a Debian package. Requires jordansissel/fpm.
+	fpm --force --name '$(NAME)' --version '$(VERSION)' \
+	  --input-type tar \
 	  --output-type deb \
 	  --vendor '$(VENDOR)' \
 	  --description '$(DESCRIPTION)' \
 	  --url '$(URL)' \
 	  --maintainer '$(MAINTAINER)' \
 	  --license '$(LICENSE)' \
-	  --package $(LINUX_AMD64_BUILD_PKG_DIR)/$(NAME)_$(VERSION)_amd64.deb \
-	  $(LINUX_AMD64_BUILD_BIN_DIR)/=/usr/local/bin
+	  --package $(NAME)-$(VERSION)-amd64.deb \
+	  --prefix /usr/local \
+	  $(NAME)-$(VERSION)-linux-amd64.tar.gz
 
 .PHONY: package-linux-amd64-rpm
-package-linux-amd64-rpm: ## Build a Debian package. Requires jordansissel/fpm and rpmbuild.
-	mkdir -p $(LINUX_AMD64_BUILD_PKG_DIR)
-
-	fpm --name '$(NAME)' --version '$(VERSION)' \
-	  --input-type dir \
+package-linux-amd64-rpm: ## Create an RPM package. Requires jordansissel/fpm, rpm.
+	fpm --force --name '$(NAME)' --version '$(VERSION)' \
+	  --input-type tar \
 	  --output-type rpm \
 	  --vendor '$(VENDOR)' \
 	  --description '$(DESCRIPTION)' \
@@ -102,5 +73,6 @@ package-linux-amd64-rpm: ## Build a Debian package. Requires jordansissel/fpm an
 	  --maintainer '$(MAINTAINER)' \
 	  --license '$(LICENSE)' \
 	  --rpm-os linux \
-	  --package $(LINUX_AMD64_BUILD_PKG_DIR)/$(NAME)_$(VERSION)_amd64.rpm \
-	  $(LINUX_AMD64_BUILD_BIN_DIR)/=/usr/local/bin
+	  --package $(NAME)-$(VERSION)-amd64.rpm \
+	  --prefix /usr/local \
+	  $(NAME)-$(VERSION)-linux-amd64.tar.gz
