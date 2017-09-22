@@ -17,11 +17,12 @@ limitations under the License.
 package build
 
 import (
+	"bytes"
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -102,12 +103,31 @@ func RunBuildResourceConfig(cmd *cobra.Command, args []string) {
 }
 
 func getBase64(file string) string {
-	out, err := exec.Command("bash", "-c",
-		fmt.Sprintf("base64 %s | awk 'BEGIN{ORS=\"\";} {print}'", file)).CombinedOutput()
+	//out, err := exec.Command("bash", "-c",
+	//	fmt.Sprintf("base64 %s | awk 'BEGIN{ORS=\"\";} {print}'", file)).CombinedOutput()
+	//if err != nil {
+	//	log.Fatalf("Could not base64 encode file: %v", err)
+	//}
+
+	buff := bytes.Buffer{}
+	enc := base64.NewEncoder(base64.StdEncoding, &buff)
+	data, err := ioutil.ReadFile(file)
 	if err != nil {
-		log.Fatalf("Could not base64 encode file: %v", err)
+		log.Fatalf("Could not read file %s: %v", file, err)
 	}
-	return string(out)
+
+	_, err = enc.Write(data)
+	if err != nil {
+		log.Fatalf("Could not write bytes: %v", err)
+	}
+	enc.Close()
+	return buff.String()
+
+	//if string(out) != buff.String() {
+	//	fmt.Printf("\nNot Equal\n")
+	//}
+	//
+	//return string(out)
 }
 
 func buildResourceConfig() {
