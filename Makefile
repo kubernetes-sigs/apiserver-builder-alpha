@@ -20,8 +20,6 @@ MAINTAINER=The Kubernetes Authors
 URL=https://github.com/$(VENDOR)/$(NAME)
 LICENSE=Apache-2.0
 
-#TMPDIR=/tmp/$(NAME)/$(VERSION)
-
 .PHONY: default
 default: install
 
