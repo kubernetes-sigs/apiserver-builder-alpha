@@ -144,7 +144,7 @@ func buildResourceConfig() {
 
 func createCerts() {
 	dir := filepath.Join(ResourceConfigDir, "certificates")
-	util.DoCmd("mkdir", "-p", dir)
+	os.MkdirAll(dir, 0700)
 
 	if _, err := os.Stat(filepath.Join(dir, "apiserver_ca.crt")); os.IsNotExist(err) {
 		util.DoCmd("openssl", "req", "-x509",

@@ -135,7 +135,7 @@ func copyGlide() {
 
 	for file, err := tr.Next(); err == nil; file, err = tr.Next() {
 		p := filepath.Join(".", file.Name)
-		err := os.MkdirAll(filepath.Dir(p), 0755)
+		err := os.MkdirAll(filepath.Dir(p), 0700)
 		if err != nil {
 			log.Fatalf("Could not create directory %s: %v", filepath.Dir(p), err)
 		}

@@ -37,7 +37,7 @@ var GoSrc string
 // writeIfNotFound returns true if the file was created and false if it already exists
 func WriteIfNotFound(path, templateName, templateValue string, data interface{}) bool {
 	// Make sure the directory exists
-	exec.Command("mkdir", "-p", filepath.Dir(path)).CombinedOutput()
+	os.MkdirAll(filepath.Dir(path), 0700)
 
 	// Don't create the doc.go if it exists
 	if _, err := os.Stat(path); err == nil {
