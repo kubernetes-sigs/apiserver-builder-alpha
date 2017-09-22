@@ -149,6 +149,7 @@ func RunApiserverMinikube() *exec.Cmd {
 
 	err := apiserverCmd.Run()
 	if err != nil {
+		defer apiserverCmd.Process.Kill()
 		log.Fatalf("Failed to run apiserver %v", err)
 		os.Exit(-1)
 	}

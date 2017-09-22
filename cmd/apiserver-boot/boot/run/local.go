@@ -129,6 +129,7 @@ func RunEtcd() *exec.Cmd {
 	fmt.Printf("%s\n", strings.Join(etcdCmd.Args, " "))
 	go func() {
 		err := etcdCmd.Run()
+		defer etcdCmd.Process.Kill()
 		if err != nil {
 			log.Fatalf("Failed to run etcd %v", err)
 			os.Exit(-1)
@@ -162,6 +163,7 @@ func RunApiserver() *exec.Cmd {
 
 	err := apiserverCmd.Run()
 	if err != nil {
+		defer apiserverCmd.Process.Kill()
 		log.Fatalf("Failed to run apiserver %v", err)
 		os.Exit(-1)
 	}
@@ -184,6 +186,7 @@ func RunControllerManager() *exec.Cmd {
 
 	err := controllerManagerCmd.Run()
 	if err != nil {
+		defer controllerManagerCmd.Process.Kill()
 		log.Fatalf("Failed to run controller-manager %v", err)
 		os.Exit(-1)
 	}
