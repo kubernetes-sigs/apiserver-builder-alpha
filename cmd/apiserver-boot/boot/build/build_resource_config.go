@@ -40,15 +40,23 @@ var ControllerSecret string
 var ControllerSecretMount string
 var ControllerSecretEnv []string
 
+var LocalMinikube bool
+var LocalIp string
+
 var buildResourceConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Create kubernetes resource config files to launch the apiserver.",
 	Long:  `Create kubernetes resource config files to launch the apiserver.`,
 	Example: `
 # Build yaml resource config into the config/ directory for running the apiserver and
-# controller-manager as an aggregated service in a Kubernetes cluster
+# controller-manager as an aggregated service in a Kubernetes cluster as a container.
 # Generates CA and apiserver certificates.
 apiserver-boot build config --name nameofservice --namespace mysystemnamespace --image gcr.io/myrepo/myimage:mytag
+
+# Build yaml resource config into the config/ directory for running the apiserver and
+# controller-manager locally, but registered through aggregation into a local minikube cluster
+# Generates CA and apiserver certificates.
+apiserver-boot build config --name nameofservice --namespace mysystemnamespace --local-minikube
 `,
 	Run: RunBuildResourceConfig,
 }
@@ -68,6 +76,9 @@ func AddBuildResourceConfigFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&Namespace, "namespace", "", "")
 	cmd.Flags().StringVar(&Image, "image", "", "name of the apiserver Image with tag")
 	cmd.Flags().StringVar(&ResourceConfigDir, "output", "config", "directory to output resourceconfig")
+
+	cmd.Flags().BoolVar(&LocalMinikube, "local-minikube", false, "if true, generate config to run locally but aggregate through minikube.")
+	cmd.Flags().StringVar(&LocalIp, "local-ip", "10.0.2.2", "if using --local-minikube, this is the ip address minikube will look for the aggregated server at.")
 }
 
 func RunBuildResourceConfig(cmd *cobra.Command, args []string) {
@@ -77,7 +88,7 @@ func RunBuildResourceConfig(cmd *cobra.Command, args []string) {
 	if len(Namespace) == 0 {
 		log.Fatalf("must specify --namespace")
 	}
-	if len(Image) == 0 {
+	if len(Image) == 0 && !LocalMinikube {
 		log.Fatalf("Must specify --image")
 	}
 	util.GetDomain()
@@ -117,10 +128,15 @@ func buildResourceConfig() {
 		ControllerSecretMount: ControllerSecretMount,
 		ControllerSecret:      ControllerSecret,
 		ControllerSecretEnv:   ControllerSecretEnv,
+		LocalIp:               LocalIp,
 	}
 	path := filepath.Join(ResourceConfigDir, "apiserver.yaml")
 
-	created := util.WriteIfNotFound(path, "config-template", resourceConfigTemplate, a)
+	temp := resourceConfigTemplate
+	if LocalMinikube {
+		temp = localConfigTemplate
+	}
+	created := util.WriteIfNotFound(path, "config-template", temp, a)
 	if !created {
 		log.Fatalf("Resource config already exists.")
 	}
@@ -218,6 +234,7 @@ type resourceConfigTemplateArgs struct {
 	ControllerSecret      string
 	ControllerSecretMount string
 	ControllerSecretEnv   []string
+	LocalIp               string
 }
 
 var resourceConfigTemplate = `
@@ -412,5 +429,42 @@ metadata:
 data:
   tls.crt: {{ .ClientCert }}
   tls.key: {{ .ClientKey }}
+`
+
+var localConfigTemplate = `
+{{ $config := . -}}
+{{ range $api := .Versions -}}
+apiVersion: apiregistration.k8s.io/v1beta1
+kind: APIService
+metadata:
+  name: {{ $api.Version }}.{{ $api.Group }}.{{ $config.Domain }}
+  labels:
+    api: {{ $config.Name }}
+    apiserver: "true"
+spec:
+  version: {{ $api.Version }}
+  group: {{ $api.Group }}.{{ $config.Domain }}
+  groupPriorityMinimum: 2000
+  priority: 200
+  service:
+    name: {{ $config.Name }}
+    namespace: {{ $config.Namespace }}
+  versionPriority: 10
+  caBundle: "{{ $config.CACert }}"
 ---
+{{ end -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{.Name}}
+  namespace: {{.Namespace}}
+  labels:
+    api: {{.Name}}
+    apiserver: "true"
+spec:
+  type: ExternalName
+  externalName: "{{ .LocalIp }}"
+  ports:
+  - port: 443
+    protocol: TCP
 `
