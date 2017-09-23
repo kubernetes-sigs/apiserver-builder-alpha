@@ -116,7 +116,7 @@ func DoCmd(cmd string, args ...string) {
 }
 
 func CheckInstall() {
-	bins := []string{"glide.tar.gz", "apiregister-gen", "client-gen", "deepcopy-gen", "gen-apidocs", "informer-gen",
+	bins := []string{"apiregister-gen", "client-gen", "deepcopy-gen", "gen-apidocs", "informer-gen",
 		"openapi-gen", "apiserver-boot", "conversion-gen", "defaulter-gen", "lister-gen"}
 	missing := []string{}
 
