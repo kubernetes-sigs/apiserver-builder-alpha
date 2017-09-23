@@ -78,7 +78,7 @@ func AddLocalMinikube(cmd *cobra.Command) {
 
 func RunLocalMinikube(cmd *cobra.Command, args []string) {
 	config = minikubeconfig
-	minikubeport = minikubeport
+	securePort = minikubeport
 	if buildBin {
 		build.RunBuildExecutables(cmd, args)
 	}
