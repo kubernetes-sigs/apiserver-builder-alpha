@@ -19,7 +19,6 @@ package init_repo
 import (
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
@@ -64,7 +63,7 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 	createPackage(cr, filepath.Join("pkg", "controller", "sharedinformers"))
 	createPackage(cr, filepath.Join("pkg", "openapi"))
 
-	exec.Command("mkdir", "-p", filepath.Join("bin")).CombinedOutput()
+	os.MkdirAll("bin", 0700)
 
 	if installDeps {
 		log.Printf("installing godeps.  To disable this, run with --install-deps=false.")

@@ -45,6 +45,7 @@ func AddRun(cmd *cobra.Command) {
 	cmd.AddCommand(runCmd)
 	AddInCluster(runCmd)
 	AddLocal(runCmd)
+	AddLocalMinikube(runCmd)
 }
 
 func RunRun(cmd *cobra.Command, args []string) {

@@ -26,7 +26,6 @@ import (
 	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/markbates/inflect"
 	"github.com/spf13/cobra"
-	"os/exec"
 )
 
 var kindName string
@@ -99,7 +98,7 @@ func createResource(boilerplate string) {
 		}
 	}
 
-	exec.Command("mkdir", "-p", filepath.Join("docs", "examples")).CombinedOutput()
+	os.MkdirAll(filepath.Join("docs", "examples"), 0700)
 	docpath := filepath.Join("docs", "examples", strings.ToLower(kindName), fmt.Sprintf("%s.yaml", strings.ToLower(kindName)))
 	created = util.WriteIfNotFound(docpath, "example-template", exampleTemplate, a)
 	if !created {
@@ -109,7 +108,7 @@ func createResource(boilerplate string) {
 		}
 	}
 
-	exec.Command("mkdir", "-p", filepath.Join("sample")).CombinedOutput()
+	os.MkdirAll("sample", 0700)
 	samplepath := filepath.Join("sample", fmt.Sprintf("%s.yaml", strings.ToLower(kindName)))
 	created = util.WriteIfNotFound(samplepath, "sample-template", sampleTemplate, a)
 	if !created {

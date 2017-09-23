@@ -62,6 +62,7 @@ var server string
 var controllermanager string
 var toRun []string
 var disableDelegatedAuth bool
+var securePort int32
 
 func AddLocal(cmd *cobra.Command) {
 	localCmd.Flags().StringSliceVar(&toRun, "run", []string{"etcd", "apiserver", "controller-manager"}, "path to apiserver binary to run")
@@ -77,6 +78,8 @@ func AddLocal(cmd *cobra.Command) {
 	localCmd.Flags().BoolVar(&printcontrollermanager, "print-controller-manager", true, "if true, pipe the controller-manager stdout and stderr")
 	localCmd.Flags().BoolVar(&printetcd, "printetcd", false, "if true, pipe the etcd stdout and stderr")
 	localCmd.Flags().BoolVar(&buildBin, "build", true, "if true, build the binaries before running")
+
+	localCmd.Flags().Int32Var(&securePort, "secure-port", 9443, "Secure port from apiserver to serve requests")
 
 	cmd.AddCommand(localCmd)
 }
@@ -126,6 +129,7 @@ func RunEtcd() *exec.Cmd {
 	fmt.Printf("%s\n", strings.Join(etcdCmd.Args, " "))
 	go func() {
 		err := etcdCmd.Run()
+		defer etcdCmd.Process.Kill()
 		if err != nil {
 			log.Fatalf("Failed to run etcd %v", err)
 			os.Exit(-1)
@@ -141,7 +145,7 @@ func RunApiserver() *exec.Cmd {
 
 	flags := []string{
 		fmt.Sprintf("--etcd-servers=%s", etcd),
-		"--secure-port=9443",
+		fmt.Sprintf("--secure-port=%v", securePort),
 	}
 
 	if disableDelegatedAuth {
@@ -159,6 +163,7 @@ func RunApiserver() *exec.Cmd {
 
 	err := apiserverCmd.Run()
 	if err != nil {
+		defer apiserverCmd.Process.Kill()
 		log.Fatalf("Failed to run apiserver %v", err)
 		os.Exit(-1)
 	}
@@ -181,6 +186,7 @@ func RunControllerManager() *exec.Cmd {
 
 	err := controllerManagerCmd.Run()
 	if err != nil {
+		defer controllerManagerCmd.Process.Kill()
 		log.Fatalf("Failed to run controller-manager %v", err)
 		os.Exit(-1)
 	}
@@ -196,15 +202,20 @@ func WriteKubeConfig() {
 		os.Exit(-1)
 	}
 	path := filepath.Join(dir, "apiserver.local.config", "certificates", "apiserver")
-	util.WriteIfNotFound(config, "kubeconfig-template", configTemplate, path)
+	util.WriteIfNotFound(config, "kubeconfig-template", configTemplate, ConfigArgs{Path: path, Port: fmt.Sprintf("%v", securePort)})
+}
+
+type ConfigArgs struct {
+	Path string
+	Port string
 }
 
 var configTemplate = `
 apiVersion: v1
 clusters:
 - cluster:
-    certificate-authority: {{ . }}.crt
-    server: https://localhost:9443
+    certificate-authority: {{ .Path }}.crt
+    server: https://localhost:{{ .Port }}
   name: apiserver
 contexts:
 - context:
@@ -217,6 +228,6 @@ preferences: {}
 users:
 - name: apiserver
   user:
-    client-certificate: {{ . }}.crt
-    client-key: {{ . }}.key
+    client-certificate: {{ .Path }}.crt
+    client-key: {{ .Path }}.key
 `

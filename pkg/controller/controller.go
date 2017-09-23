@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"
@@ -116,6 +117,18 @@ func (q *QueueWorker) ProcessMessage() bool {
 	glog.V(4).Infof("Too many retries for %s Queue message %v: %v", q.Name, key, err)
 	q.Queue.Forget(key)
 	return false
+}
+
+func GetDefaults(c interface{}) DefaultMethods {
+	i, ok := c.(DefaultMethods)
+	if !ok {
+		return &builders.DefaultControllerFns{}
+	}
+	return i
+}
+
+type DefaultMethods interface {
+	Run(stopCh <-chan struct{})
 }
 
 type Controller interface {

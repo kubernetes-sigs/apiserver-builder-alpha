@@ -116,9 +116,9 @@ func RunDocs(cmd *cobra.Command, args []string) {
 	}
 
 	os.RemoveAll(filepath.Join(outputDir, "includes"))
-	exec.Command("mkdir", "-p", filepath.Join(outputDir, "openapi-spec")).CombinedOutput()
-	exec.Command("mkdir", "-p", filepath.Join(outputDir, "static_includes")).CombinedOutput()
-	exec.Command("mkdir", "-p", filepath.Join(outputDir, "examples")).CombinedOutput()
+	os.MkdirAll(filepath.Join(outputDir, "openapi-spec"), 0700)
+	os.MkdirAll(filepath.Join(outputDir, "static_includes"), 0700)
+	os.MkdirAll(filepath.Join(outputDir, "examples"), 0700)
 
 	// Build the swagger.json
 	if buildOpenapi {

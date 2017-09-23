@@ -17,6 +17,8 @@ limitations under the License.
 package init_repo
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"log"
 	"os"
 	"os/exec"
@@ -25,6 +27,7 @@ import (
 
 	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
+	"io/ioutil"
 )
 
 var glideInstallCmd = &cobra.Command{
@@ -104,8 +107,7 @@ func fetchGlide() {
 func copyGlide() {
 	// Move up two directories from the location of the `apiserver-boot`
 	// executable to find the `vendor` directory we package with our
-	// releases. TODO(campbellalex@google.com): this doesn't work for people
-	// who used `go install` to put `apiserver-boot` in their $GOPATH/bin.
+	// releases.
 	e, err := os.Executable()
 	if err != nil {
 		log.Fatal("unable to get directory of apiserver-builder tools")
@@ -113,17 +115,39 @@ func copyGlide() {
 
 	e = filepath.Dir(filepath.Dir(e))
 
-	doCmd := func(cmd string, args ...string) {
-		c := exec.Command(cmd, args...)
-		c.Stderr = os.Stderr
-		c.Stdout = os.Stdout
-		err = c.Run()
+	// read the file
+	f := filepath.Join(e, "bin", "glide.tar.gz")
+	fr, err := os.Open(f)
+	if err != nil {
+		log.Fatalf("failed to read vendor tar file %s %v", f, err)
+	}
+	defer fr.Close()
+
+	// setup gzip of tar
+	gr, err := gzip.NewReader(fr)
+	if err != nil {
+		log.Fatalf("failed to read vendor tar file %s %v", f, err)
+	}
+	defer gr.Close()
+
+	// setup tar reader
+	tr := tar.NewReader(gr)
+
+	for file, err := tr.Next(); err == nil; file, err = tr.Next() {
+		p := filepath.Join(".", file.Name)
+		err := os.MkdirAll(filepath.Dir(p), 0700)
 		if err != nil {
-			log.Fatalf("failed to copy go dependencies %v", err)
+			log.Fatalf("Could not create directory %s: %v", filepath.Dir(p), err)
+		}
+		b, err := ioutil.ReadAll(tr)
+		if err != nil {
+			log.Fatalf("Could not read file %s: %v", file.Name, err)
+		}
+		err = ioutil.WriteFile(p, b, os.FileMode(file.Mode))
+		if err != nil {
+			log.Fatalf("Could not write file %s: %v", p, err)
 		}
 	}
-
-	doCmd("tar", "-xzvf", filepath.Join(e, "bin", "glide.tar.gz"))
 }
 
 func RunGlideInstall(cmd *cobra.Command, args []string) {

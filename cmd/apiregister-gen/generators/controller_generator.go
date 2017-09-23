@@ -21,8 +21,8 @@ import (
 	"strings"
 	"text/template"
 
-	"k8s.io/gengo/generator"
 	"github.com/markbates/inflect"
+	"k8s.io/gengo/generator"
 )
 
 type controllerGenerator struct {
@@ -130,7 +130,7 @@ func (c *{{.Target.Kind}}Controller) reconcile(key string) (err error) {
 
 func (c *{{.Target.Kind}}Controller) Run(stopCh <-chan struct{}) {
 	c.queue.Run(stopCh)
-	c.controller.Run(stopCh)
+    controller.GetDefaults(c.controller).Run(stopCh)
 }
 `
 
@@ -226,7 +226,7 @@ func (d *informersGenerator) Imports(c *generator.Context) []string {
 func (d *informersGenerator) Finalize(context *generator.Context, w io.Writer) error {
 	temp := template.Must(template.New("informersGenerator-template").Funcs(
 		template.FuncMap{
-			"title": strings.Title,
+			"title":  strings.Title,
 			"plural": inflect.NewDefaultRuleset().Pluralize,
 		},
 	).Parse(InformersTemplate))

@@ -17,12 +17,9 @@ limitations under the License.
 package build
 
 import (
-	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
@@ -80,14 +77,7 @@ func RunBuildContainer(cmd *cobra.Command, args []string) {
 
 	log.Printf("Building the docker Image using %s.", path)
 
-	c := exec.Command("docker", "build", "-t", Image, dir)
-	fmt.Printf("%s\n", strings.Join(c.Args, " "))
-	c.Stderr = os.Stderr
-	c.Stdout = os.Stdout
-	err = c.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
+	util.DoCmd("docker", "build", "-t", Image, dir)
 }
 
 type dockerfileTemplateArguments struct {
