@@ -30,7 +30,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var targets = []string{}
+var targets []string
 var output string
 var dovendor bool
 var test bool
@@ -169,18 +169,17 @@ func RunCmd(cmd *exec.Cmd, gopath string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-    cmd.Env = []string{}
 	if setgopath {
-	    cmd.Env = append(cmd.Env, fmt.Sprintf("GOPATH=%s", gopath))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("GOPATH=%s", gopath))
 	}
 	for _, v := range os.Environ() {
-        if strings.HasPrefix(v, "GOPATH=") && setgopath {
-            continue
-        }
-        cmd.Env = append(cmd.Env, v)
-    }
+		if strings.HasPrefix(v, "GOPATH=") && setgopath {
+			continue
+		}
+		cmd.Env = append(cmd.Env, v)
+	}
 
-    cmd.Stderr = os.Stderr
+	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	if len(cmd.Dir) == 0 && len(gopath) > 0 {
 		cmd.Dir = gopath
