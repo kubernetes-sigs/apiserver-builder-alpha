@@ -53,6 +53,8 @@ apiserver-boot run local-minikube --kubeconfig <minikube-config>`,
 }
 
 var certDir string
+var minikubeconfig string
+var minikubeport int32
 
 func AddLocalMinikube(cmd *cobra.Command) {
 	localMinikubeCmd.Flags().StringSliceVar(&toRun, "run", []string{"etcd", "apiserver", "controller-manager"}, "path to apiserver binary to run")
@@ -61,20 +63,22 @@ func AddLocalMinikube(cmd *cobra.Command) {
 	localMinikubeCmd.Flags().StringVar(&controllermanager, "controller-manager", "", "path to controller-manager binary to run")
 	localMinikubeCmd.Flags().StringVar(&etcd, "etcd", "", "if non-empty, use this etcd instead of starting a new one")
 
-	localMinikubeCmd.Flags().StringVar(&config, "config", filepath.Join(homedir.HomeDir(), ".kube", "config"), "path to the core apiserver kubeconfig")
+	localMinikubeCmd.Flags().StringVar(&minikubeconfig, "config", filepath.Join(homedir.HomeDir(), ".kube", "config"), "path to the core apiserver kubeconfig")
 
 	localMinikubeCmd.Flags().BoolVar(&printapiserver, "print-apiserver", true, "if true, pipe the apiserver stdout and stderr")
 	localMinikubeCmd.Flags().BoolVar(&printcontrollermanager, "print-controller-manager", true, "if true, pipe the controller-manager stdout and stderr")
 	localMinikubeCmd.Flags().BoolVar(&printetcd, "printetcd", false, "if true, pipe the etcd stdout and stderr")
 	localMinikubeCmd.Flags().BoolVar(&buildBin, "build", true, "if true, build the binaries before running")
 
-	localMinikubeCmd.Flags().Int32Var(&securePort, "secure-port", 443, "Secure port from apiserver to serve requests")
+	localMinikubeCmd.Flags().Int32Var(&minikubeport, "secure-port", 443, "Secure port from apiserver to serve requests")
 	localMinikubeCmd.Flags().StringVar(&certDir, "cert-dir", filepath.Join("config", "certificates"), "directory containing apiserver certificates")
 
 	cmd.AddCommand(localMinikubeCmd)
 }
 
 func RunLocalMinikube(cmd *cobra.Command, args []string) {
+	config = minikubeconfig
+	minikubeport = minikubeport
 	if buildBin {
 		build.RunBuildExecutables(cmd, args)
 	}
