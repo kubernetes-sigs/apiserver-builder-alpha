@@ -12,6 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+NAME=apiserver-builder
+VENDOR=kubernetes-incubator
+VERSION=$(shell cat VERSION)
+DESCRIPTION=apiserver-builder implements libraries and tools to quickly and easily build Kubernetes apiservers to support custom resource types.
+MAINTAINER=The Kubernetes Authors
+URL=https://github.com/$(VENDOR)/$(NAME)
+LICENSE=Apache-2.0
+
+.PHONY: default
+default: install
+
 .PHONY: test
 test:
 	go test ./pkg/... ./cmd/...
@@ -20,3 +31,46 @@ test:
 install:
 	go install -v ./pkg/... ./cmd/...
 
+.PHONY: clean
+clean:
+	rm -rf *.deb *.rpm *.tar.gz ./release
+
+.PHONY: build
+build: clean ## Create release artefacts for darwin:amd64, linux:amd64 and windows:amd64. Requires etcd, glide, hg.
+	go run ./cmd/apiserver-builder-release/main.go vendor --version $(VERSION)
+	go run ./cmd/apiserver-builder-release/main.go build --version $(VERSION)
+
+.PHONY: package
+package: package-linux-amd64
+
+.PHONY: package-linux-amd64
+package-linux-amd64: package-linux-amd64-deb package-linux-amd64-rpm
+
+.PHONY: package-linux-amd64-deb
+package-linux-amd64-deb: ## Create a Debian package. Requires jordansissel/fpm.
+	fpm --force --name '$(NAME)' --version '$(VERSION)' \
+	  --input-type tar \
+	  --output-type deb \
+	  --vendor '$(VENDOR)' \
+	  --description '$(DESCRIPTION)' \
+	  --url '$(URL)' \
+	  --maintainer '$(MAINTAINER)' \
+	  --license '$(LICENSE)' \
+	  --package $(NAME)-$(VERSION)-amd64.deb \
+	  --prefix /usr/local \
+	  $(NAME)-$(VERSION)-linux-amd64.tar.gz
+
+.PHONY: package-linux-amd64-rpm
+package-linux-amd64-rpm: ## Create an RPM package. Requires jordansissel/fpm, rpm.
+	fpm --force --name '$(NAME)' --version '$(VERSION)' \
+	  --input-type tar \
+	  --output-type rpm \
+	  --vendor '$(VENDOR)' \
+	  --description '$(DESCRIPTION)' \
+	  --url '$(URL)' \
+	  --maintainer '$(MAINTAINER)' \
+	  --license '$(LICENSE)' \
+	  --rpm-os linux \
+	  --package $(NAME)-$(VERSION)-amd64.rpm \
+	  --prefix /usr/local \
+	  $(NAME)-$(VERSION)-linux-amd64.tar.gz
