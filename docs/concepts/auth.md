@@ -186,8 +186,7 @@ server.
 If you do not wish to have your addon API server authenticate against the
 same cluster that it is running on, or if it is running outside of
 a cluster, you can pass the `--authentication-kubeconfig` option to the
-service catalog API server to specify a different Kubeconfig file to use to
-connect.
+addon API server to specify a different Kubeconfig file to use to connect.
 
 The [Webhook token
 authentication](https://kubernetes.io/docs/admin/authentication/#webhook-token-authentication)
@@ -248,5 +247,4 @@ server.
 If you do not wish to have your addon API server authenticate against the
 same cluster that it is running on, or if it is running outside of
 a cluster, you can pass the `--authorization-kubeconfig` option to the
-service catalog API server to specify a different Kubeconfig file to use to
-connect.
+addon API server to specify a different Kubeconfig file to use to connect.
