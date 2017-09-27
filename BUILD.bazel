@@ -1,0 +1,15 @@
+filegroup(
+    name = "all",
+    srcs = [
+        "//cmd/apiregister-gen",
+        "//cmd/apiserver-boot",
+        "//vendor/github.com/kubernetes-incubator/reference-docs/gen-apidocs",
+        "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/client-gen",
+        "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/conversion-gen",
+        "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/deepcopy-gen",
+        "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/defaulter-gen",
+        "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/informer-gen",
+        "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/lister-gen",
+        "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/openapi-gen",
+    ],
+)
