@@ -13,10 +13,11 @@ go_library(
         "doc.go",
         "netsh.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/util/netsh",
     tags = ["automanaged"],
     deps = [
-        "//pkg/util/exec:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/exec:go_default_library",
     ],
 )
 

@@ -14,17 +14,12 @@ go_test(
         "main_test.go",
         "master_test.go",
     ],
+    importpath = "k8s.io/kubernetes/test/integration/master",
     tags = [
         "automanaged",
         "integration",
     ],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/api/testapi:go_default_library",
-        "//pkg/client/clientset_generated/internalclientset:go_default_library",
-        "//pkg/master:go_default_library",
-        "//test/integration:go_default_library",
-        "//test/integration/framework:go_default_library",
         "//vendor/github.com/ghodss/yaml:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
@@ -38,6 +33,12 @@ go_test(
         "//vendor/k8s.io/apiserver/plugin/pkg/authenticator/token/tokentest:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes/typed/core/v1:go_default_library",
         "//vendor/k8s.io/client-go/rest:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/testapi:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/master:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/integration:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/integration/framework:go_default_library",
     ],
 )
 

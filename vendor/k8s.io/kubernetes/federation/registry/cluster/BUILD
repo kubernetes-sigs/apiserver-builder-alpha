@@ -14,11 +14,9 @@ go_library(
         "registry.go",
         "strategy.go",
     ],
+    importpath = "k8s.io/kubernetes/federation/registry/cluster",
     tags = ["automanaged"],
     deps = [
-        "//federation/apis/federation:go_default_library",
-        "//federation/apis/federation/validation:go_default_library",
-        "//pkg/api:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/internalversion:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/fields:go_default_library",
@@ -31,22 +29,26 @@ go_library(
         "//vendor/k8s.io/apiserver/pkg/registry/rest:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/storage:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/storage/names:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/apis/federation:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/apis/federation/validation:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["strategy_test.go"],
+    importpath = "k8s.io/kubernetes/federation/registry/cluster",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//federation/apis/federation:go_default_library",
-        "//pkg/api:go_default_library",
-        "//pkg/api/testing:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/fields:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/endpoints/request:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/apis/federation:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/testing:go_default_library",
     ],
 )
 

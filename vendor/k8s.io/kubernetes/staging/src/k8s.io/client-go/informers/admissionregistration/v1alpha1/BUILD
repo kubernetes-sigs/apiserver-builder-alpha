@@ -14,6 +14,7 @@ go_library(
         "initializerconfiguration.go",
         "interface.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/informers/admissionregistration/v1alpha1",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/admissionregistration/v1alpha1:go_default_library",

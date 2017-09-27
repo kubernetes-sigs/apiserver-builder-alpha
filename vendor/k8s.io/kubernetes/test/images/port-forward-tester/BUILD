@@ -10,6 +10,7 @@ load(
 
 go_binary(
     name = "port-forward-tester",
+    importpath = "k8s.io/kubernetes/test/images/port-forward-tester",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -17,6 +18,7 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["portforwardtester.go"],
+    importpath = "k8s.io/kubernetes/test/images/port-forward-tester",
     tags = ["automanaged"],
 )
 

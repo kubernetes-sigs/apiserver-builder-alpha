@@ -15,6 +15,7 @@ go_test(
         "transport_test.go",
         "upgradeaware_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/util/proxy",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -34,6 +35,7 @@ go_library(
         "transport.go",
         "upgradeaware.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/util/proxy",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

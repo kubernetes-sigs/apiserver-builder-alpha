@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["build.go"],
+    importpath = "k8s.io/kubernetes/test/e2e_node/builder",
     tags = ["automanaged"],
     deps = ["//vendor/github.com/golang/glog:go_default_library"],
 )

@@ -15,10 +15,9 @@ go_library(
         "config.go",
         "doc.go",
     ],
+    importpath = "k8s.io/kubernetes/plugin/pkg/admission/imagepolicy",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/apis/imagepolicy/install:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/api/imagepolicy/v1alpha1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
@@ -28,6 +27,8 @@ go_library(
         "//vendor/k8s.io/apiserver/pkg/admission:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/util/webhook:go_default_library",
         "//vendor/k8s.io/client-go/rest:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/imagepolicy/install:go_default_library",
     ],
 )
 
@@ -38,15 +39,16 @@ go_test(
         "certs_test.go",
         "config_test.go",
     ],
+    importpath = "k8s.io/kubernetes/plugin/pkg/admission/imagepolicy",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/apis/imagepolicy/install:go_default_library",
         "//vendor/k8s.io/api/imagepolicy/v1alpha1:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/admission:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/authentication/user:go_default_library",
         "//vendor/k8s.io/client-go/tools/clientcmd/api/v1:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/imagepolicy/install:go_default_library",
     ],
 )
 

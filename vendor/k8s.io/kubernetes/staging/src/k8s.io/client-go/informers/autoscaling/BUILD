@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["interface.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/informers/autoscaling",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/client-go/informers/autoscaling/v1:go_default_library",

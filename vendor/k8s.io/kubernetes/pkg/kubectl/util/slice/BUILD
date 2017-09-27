@@ -11,12 +11,14 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["slice.go"],
+    importpath = "k8s.io/kubernetes/pkg/kubectl/util/slice",
     tags = ["automanaged"],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["slice_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/kubectl/util/slice",
     library = ":go_default_library",
     tags = ["automanaged"],
 )

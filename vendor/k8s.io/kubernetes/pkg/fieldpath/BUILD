@@ -14,6 +14,7 @@ go_library(
         "doc.go",
         "fieldpath.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/fieldpath",
     tags = ["automanaged"],
     deps = ["//vendor/k8s.io/apimachinery/pkg/api/meta:go_default_library"],
 )
@@ -21,6 +22,7 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = ["fieldpath_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/fieldpath",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [

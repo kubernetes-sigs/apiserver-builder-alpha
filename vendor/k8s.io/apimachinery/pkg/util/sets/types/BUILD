@@ -10,5 +10,6 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["types.go"],
+    importpath = "k8s.io/apimachinery/pkg/util/sets/types",
     tags = ["automanaged"],
 )

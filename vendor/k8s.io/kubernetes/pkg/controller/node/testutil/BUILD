@@ -10,11 +10,9 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["test_utils.go"],
+    importpath = "k8s.io/kubernetes/pkg/controller/node/testutil",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/api/v1/ref:go_default_library",
-        "//pkg/util/node:go_default_library",
         "//vendor/github.com/evanphx/json-patch:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
@@ -29,6 +27,9 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes/fake:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes/typed/core/v1:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/v1/ref:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/node:go_default_library",
     ],
 )
 

@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["authz_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/authorization/authorizerfactory",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -25,6 +26,7 @@ go_library(
         "builtin.go",
         "delegating.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/authorization/authorizerfactory",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apiserver/pkg/authorization/authorizer:go_default_library",

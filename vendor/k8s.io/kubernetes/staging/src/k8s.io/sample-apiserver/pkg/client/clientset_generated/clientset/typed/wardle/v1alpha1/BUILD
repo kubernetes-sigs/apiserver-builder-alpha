@@ -16,6 +16,7 @@ go_library(
         "generated_expansion.go",
         "wardle_client.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/sample-apiserver/pkg/client/clientset_generated/clientset/typed/wardle/v1alpha1",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",

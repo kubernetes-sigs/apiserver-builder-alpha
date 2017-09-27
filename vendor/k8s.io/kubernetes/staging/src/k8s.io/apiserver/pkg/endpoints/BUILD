@@ -17,6 +17,7 @@ go_test(
         "proxy_test.go",
         "watch_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/endpoints",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -67,6 +68,7 @@ go_library(
         "groupversion.go",
         "installer.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/endpoints",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/emicklei/go-restful:go_default_library",

@@ -15,6 +15,7 @@ go_test(
         "deep_copy_test.go",
         "helper_test.go",
     ],
+    importpath = "k8s.io/apimachinery/pkg/conversion",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -33,6 +34,7 @@ go_library(
         "doc.go",
         "helper.go",
     ],
+    importpath = "k8s.io/apimachinery/pkg/conversion",
     tags = ["automanaged"],
     deps = ["//vendor/k8s.io/apimachinery/third_party/forked/golang/reflect:go_default_library"],
 )

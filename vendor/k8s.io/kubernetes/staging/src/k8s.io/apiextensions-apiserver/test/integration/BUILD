@@ -16,6 +16,7 @@ go_test(
         "registration_test.go",
         "validation_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiextensions-apiserver/test/integration",
     tags = [
         "automanaged",
         "integration",

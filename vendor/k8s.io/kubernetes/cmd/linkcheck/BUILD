@@ -10,6 +10,7 @@ load(
 
 go_binary(
     name = "linkcheck",
+    importpath = "k8s.io/kubernetes/cmd/linkcheck",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -17,6 +18,7 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["links.go"],
+    importpath = "k8s.io/kubernetes/cmd/linkcheck",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/mvdan/xurls:go_default_library",

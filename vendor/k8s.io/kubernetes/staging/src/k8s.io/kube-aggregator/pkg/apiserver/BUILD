@@ -14,6 +14,7 @@ go_test(
         "handler_apis_test.go",
         "handler_proxy_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/kube-aggregator/pkg/apiserver",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -39,6 +40,7 @@ go_library(
         "handler_proxy.go",
         "resolvers.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/kube-aggregator/pkg/apiserver",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/go-openapi/spec:go_default_library",

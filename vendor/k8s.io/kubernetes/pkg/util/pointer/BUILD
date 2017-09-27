@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["pointer_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/pointer",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -18,6 +19,7 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["pointer.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/pointer",
     tags = ["automanaged"],
 )
 

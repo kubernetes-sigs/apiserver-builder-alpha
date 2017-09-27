@@ -14,14 +14,15 @@ go_library(
         "lister.go",
         "tags.go",
     ],
+    importpath = "k8s.io/kubernetes/cmd/libs/go2idl/lister-gen/generators",
     tags = ["automanaged"],
     deps = [
-        "//cmd/libs/go2idl/client-gen/types:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/gengo/args:go_default_library",
         "//vendor/k8s.io/gengo/generator:go_default_library",
         "//vendor/k8s.io/gengo/namer:go_default_library",
         "//vendor/k8s.io/gengo/types:go_default_library",
+        "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/client-gen/types:go_default_library",
     ],
 )
 

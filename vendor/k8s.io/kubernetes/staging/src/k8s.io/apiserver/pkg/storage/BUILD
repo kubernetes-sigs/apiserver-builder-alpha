@@ -17,6 +17,7 @@ go_test(
         "util_test.go",
         "watch_cache_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/storage",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -50,6 +51,7 @@ go_library(
         "util.go",
         "watch_cache.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/storage",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

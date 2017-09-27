@@ -10,6 +10,7 @@ load(
 
 go_binary(
     name = "netexec",
+    importpath = "k8s.io/kubernetes/test/images/netexec",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -17,6 +18,7 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["netexec.go"],
+    importpath = "k8s.io/kubernetes/test/images/netexec",
     tags = ["automanaged"],
     deps = ["//vendor/k8s.io/apimachinery/pkg/util/net:go_default_library"],
 )

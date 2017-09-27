@@ -15,6 +15,7 @@ go_library(
         "doc.go",
         "generated_expansion.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset/typed/apiregistration/v1beta1",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",

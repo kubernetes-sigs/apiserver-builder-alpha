@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["kubeconfig_test.go"],
+    importpath = "k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -18,6 +19,7 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["kubeconfig.go"],
+    importpath = "k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/client-go/kubernetes:go_default_library",

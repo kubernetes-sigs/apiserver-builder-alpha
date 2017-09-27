@@ -11,19 +11,21 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["conntrack.go"],
+    importpath = "k8s.io/kubernetes/pkg/proxy/util",
     tags = ["automanaged"],
     deps = [
-        "//pkg/util/exec:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/exec:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["conntrack_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/proxy/util",
     library = ":go_default_library",
     tags = ["automanaged"],
-    deps = ["//pkg/util/exec:go_default_library"],
+    deps = ["//vendor/k8s.io/kubernetes/pkg/util/exec:go_default_library"],
 )
 
 filegroup(

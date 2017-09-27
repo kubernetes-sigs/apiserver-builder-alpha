@@ -15,13 +15,9 @@ go_library(
         "job.go",
         "statefulset.go",
     ],
+    importpath = "k8s.io/kubernetes/test/e2e/upgrades/apps",
     tags = ["automanaged"],
     deps = [
-        "//pkg/controller:go_default_library",
-        "//pkg/controller/deployment/util:go_default_library",
-        "//pkg/util/version:go_default_library",
-        "//test/e2e/framework:go_default_library",
-        "//test/e2e/upgrades:go_default_library",
         "//vendor/github.com/onsi/ginkgo:go_default_library",
         "//vendor/github.com/onsi/gomega:go_default_library",
         "//vendor/k8s.io/api/apps/v1beta1:go_default_library",
@@ -31,6 +27,11 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller/deployment/util:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/version:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/e2e/framework:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/e2e/upgrades:go_default_library",
     ],
 )
 

@@ -11,11 +11,12 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["preferences.go"],
+    importpath = "k8s.io/kubernetes/federation/pkg/federation-controller/util/replicapreferences",
     tags = ["automanaged"],
     deps = [
-        "//federation/apis/federation:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/meta:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/apis/federation:go_default_library",
     ],
 )
 
@@ -35,6 +36,7 @@ filegroup(
 go_test(
     name = "go_default_test",
     srcs = ["preferences_test.go"],
+    importpath = "k8s.io/kubernetes/federation/pkg/federation-controller/util/replicapreferences",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [

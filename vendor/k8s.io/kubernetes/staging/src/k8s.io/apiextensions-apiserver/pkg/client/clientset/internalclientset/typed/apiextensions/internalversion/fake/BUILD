@@ -14,6 +14,7 @@ go_library(
         "fake_apiextensions_client.go",
         "fake_customresourcedefinition.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiextensions-apiserver/pkg/client/clientset/internalclientset/typed/apiextensions/internalversion/fake",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions:go_default_library",

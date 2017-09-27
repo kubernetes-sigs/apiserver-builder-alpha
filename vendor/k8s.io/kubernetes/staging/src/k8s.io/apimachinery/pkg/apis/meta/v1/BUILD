@@ -20,6 +20,7 @@ go_test(
         "time_test.go",
         "types_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/apis/meta/v1",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -53,6 +54,7 @@ go_library(
         "zz_generated.deepcopy.go",
         "zz_generated.defaults.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/apis/meta/v1",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/go-openapi/spec:go_default_library",
@@ -71,4 +73,10 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/util/intstr:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
     ],
+)
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = ["generated.proto"],
+    visibility = ["//visibility:public"],
 )

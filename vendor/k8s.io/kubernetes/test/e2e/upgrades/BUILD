@@ -22,13 +22,9 @@ go_library(
         "sysctl.go",
         "upgrade.go",
     ],
+    importpath = "k8s.io/kubernetes/test/e2e/upgrades",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api/v1/helper:go_default_library",
-        "//pkg/kubelet/sysctl:go_default_library",
-        "//pkg/util/version:go_default_library",
-        "//test/e2e/common:go_default_library",
-        "//test/e2e/framework:go_default_library",
         "//vendor/github.com/onsi/ginkgo:go_default_library",
         "//vendor/github.com/onsi/gomega:go_default_library",
         "//vendor/github.com/onsi/gomega/gstruct:go_default_library",
@@ -39,6 +35,11 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/util/errors:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/uuid:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/v1/helper:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/sysctl:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/version:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/e2e/common:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/e2e/framework:go_default_library",
     ],
 )
 

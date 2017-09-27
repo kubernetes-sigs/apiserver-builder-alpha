@@ -14,6 +14,7 @@ go_test(
         "event_test.go",
         "events_cache_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/tools/record",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -38,6 +39,7 @@ go_library(
         "events_cache.go",
         "fake.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/tools/record",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

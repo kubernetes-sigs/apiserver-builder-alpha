@@ -14,6 +14,7 @@ go_test(
         "backoff_test.go",
         "throttle_test.go",
     ],
+    importpath = "k8s.io/client-go/util/flowcontrol",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = ["//vendor/k8s.io/apimachinery/pkg/util/clock:go_default_library"],
@@ -25,6 +26,7 @@ go_library(
         "backoff.go",
         "throttle.go",
     ],
+    importpath = "k8s.io/client-go/util/flowcontrol",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/juju/ratelimit:go_default_library",

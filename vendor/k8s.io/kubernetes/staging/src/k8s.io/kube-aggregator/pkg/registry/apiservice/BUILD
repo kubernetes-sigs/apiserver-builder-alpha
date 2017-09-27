@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["strategy.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/kube-aggregator/pkg/registry/apiservice",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/fields:go_default_library",

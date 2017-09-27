@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["resttest.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/registry/rest/resttest",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/api/equality:go_default_library",

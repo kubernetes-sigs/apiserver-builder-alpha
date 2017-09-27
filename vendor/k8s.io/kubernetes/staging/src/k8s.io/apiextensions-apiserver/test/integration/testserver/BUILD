@@ -13,6 +13,7 @@ go_library(
         "resources.go",
         "start.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiextensions-apiserver/test/integration/testserver",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/pborman/uuid:go_default_library",

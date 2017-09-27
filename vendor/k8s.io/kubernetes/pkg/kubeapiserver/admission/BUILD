@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["init_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/kubeapiserver/admission",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -22,15 +23,16 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["initializer.go"],
+    importpath = "k8s.io/kubernetes/pkg/kubeapiserver/admission",
     tags = ["automanaged"],
     deps = [
-        "//pkg/client/clientset_generated/internalclientset:go_default_library",
-        "//pkg/client/informers/informers_generated/internalversion:go_default_library",
-        "//pkg/quota:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/meta:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/admission:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/authorization/authorizer:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/client/informers/informers_generated/internalversion:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/quota:go_default_library",
     ],
 )
 

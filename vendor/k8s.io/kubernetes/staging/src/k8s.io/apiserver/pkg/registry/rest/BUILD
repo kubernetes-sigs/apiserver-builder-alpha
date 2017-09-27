@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["meta_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/registry/rest",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -35,6 +36,7 @@ go_library(
         "update.go",
         "zz_generated.deepcopy.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/registry/rest",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",

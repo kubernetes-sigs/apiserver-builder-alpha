@@ -14,6 +14,7 @@ go_test(
         "checker_test.go",
         "reader_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/audit/policy",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -32,6 +33,7 @@ go_library(
         "checker.go",
         "reader.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/audit/policy",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

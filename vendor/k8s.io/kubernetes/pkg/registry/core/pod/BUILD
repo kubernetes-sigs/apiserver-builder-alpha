@@ -14,12 +14,9 @@ go_library(
         "doc.go",
         "strategy.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/registry/core/pod",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/api/helper/qos:go_default_library",
-        "//pkg/api/validation:go_default_library",
-        "//pkg/kubelet/client:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/fields:go_default_library",
@@ -32,18 +29,20 @@ go_library(
         "//vendor/k8s.io/apiserver/pkg/registry/generic:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/storage:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/storage/names:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/helper/qos:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/validation:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/client:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["strategy_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/registry/core/pod",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/api/testing:go_default_library",
-        "//pkg/kubelet/client:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
@@ -52,6 +51,9 @@ go_test(
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/endpoints/request:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/testing:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/client:go_default_library",
     ],
 )
 

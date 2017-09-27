@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["unstructured_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -21,6 +22,7 @@ go_library(
         "unstructured.go",
         "zz_generated.deepcopy.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

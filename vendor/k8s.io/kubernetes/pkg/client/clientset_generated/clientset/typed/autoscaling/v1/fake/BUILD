@@ -14,9 +14,9 @@ go_library(
         "fake_autoscaling_client.go",
         "fake_horizontalpodautoscaler.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/client/clientset_generated/clientset/typed/autoscaling/v1/fake",
     tags = ["automanaged"],
     deps = [
-        "//pkg/client/clientset_generated/clientset/typed/autoscaling/v1:go_default_library",
         "//vendor/k8s.io/api/autoscaling/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
@@ -25,6 +25,7 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
         "//vendor/k8s.io/client-go/rest:go_default_library",
         "//vendor/k8s.io/client-go/testing:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/client/clientset_generated/clientset/typed/autoscaling/v1:go_default_library",
     ],
 )
 

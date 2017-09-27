@@ -14,6 +14,7 @@ go_library(
         "externaladmissionhookconfiguration.go",
         "initializerconfiguration.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/client/listers/admissionregistration/v1alpha1",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/admissionregistration/v1alpha1:go_default_library",

@@ -15,12 +15,9 @@ go_library(
         "gke_signer.go",
         "options.go",
     ],
+    importpath = "k8s.io/kubernetes/cmd/gke-certificates-controller/app",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/apis/certificates/install:go_default_library",
-        "//pkg/controller:go_default_library",
-        "//pkg/controller/certificates:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/spf13/cobra:go_default_library",
         "//vendor/github.com/spf13/pflag:go_default_library",
@@ -36,6 +33,10 @@ go_library(
         "//vendor/k8s.io/client-go/rest:go_default_library",
         "//vendor/k8s.io/client-go/tools/clientcmd:go_default_library",
         "//vendor/k8s.io/client-go/tools/record:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/certificates/install:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller/certificates:go_default_library",
     ],
 )
 
@@ -55,6 +56,7 @@ filegroup(
 go_test(
     name = "go_default_test",
     srcs = ["gke_signer_test.go"],
+    importpath = "k8s.io/kubernetes/cmd/gke-certificates-controller/app",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [

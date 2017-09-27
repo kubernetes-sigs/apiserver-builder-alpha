@@ -14,12 +14,14 @@ go_library(
         "doc.go",
         "version.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/util/version",
     tags = ["automanaged"],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["version_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/version",
     library = ":go_default_library",
     tags = ["automanaged"],
 )

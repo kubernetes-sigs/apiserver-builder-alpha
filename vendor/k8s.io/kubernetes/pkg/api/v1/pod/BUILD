@@ -11,6 +11,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["util.go"],
+    importpath = "k8s.io/kubernetes/pkg/api/v1/pod",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/core/v1:go_default_library",
@@ -22,6 +23,7 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = ["util_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/api/v1/pod",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [

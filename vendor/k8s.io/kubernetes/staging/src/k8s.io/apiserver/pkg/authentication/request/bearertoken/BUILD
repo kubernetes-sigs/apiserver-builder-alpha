@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["bearertoken_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/authentication/request/bearertoken",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -22,6 +23,7 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["bearertoken.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/authentication/request/bearertoken",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apiserver/pkg/authentication/authenticator:go_default_library",

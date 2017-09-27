@@ -11,14 +11,9 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["nodecontroller.go"],
+    importpath = "k8s.io/kubernetes/pkg/controller/cloud",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api/v1/node:go_default_library",
-        "//pkg/client/retry:go_default_library",
-        "//pkg/cloudprovider:go_default_library",
-        "//pkg/kubelet/apis:go_default_library",
-        "//pkg/util/node:go_default_library",
-        "//plugin/pkg/scheduler/algorithm:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
@@ -31,21 +26,22 @@ go_library(
         "//vendor/k8s.io/client-go/kubernetes/typed/core/v1:go_default_library",
         "//vendor/k8s.io/client-go/tools/cache:go_default_library",
         "//vendor/k8s.io/client-go/tools/record:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/v1/node:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/client/retry:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/cloudprovider:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/apis:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/node:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/scheduler/algorithm:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["nodecontroller_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/controller/cloud",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//pkg/cloudprovider:go_default_library",
-        "//pkg/cloudprovider/providers/fake:go_default_library",
-        "//pkg/controller:go_default_library",
-        "//pkg/controller/node/testutil:go_default_library",
-        "//pkg/kubelet/apis:go_default_library",
-        "//plugin/pkg/scheduler/algorithm:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
@@ -55,6 +51,12 @@ go_test(
         "//vendor/k8s.io/client-go/kubernetes/fake:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes/scheme:go_default_library",
         "//vendor/k8s.io/client-go/tools/record:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/cloudprovider:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/cloudprovider/providers/fake:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller/node/testutil:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/apis:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/scheduler/algorithm:go_default_library",
     ],
 )
 

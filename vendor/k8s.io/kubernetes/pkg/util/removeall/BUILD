@@ -11,19 +11,21 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["removeall_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/removeall",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//pkg/util/mount:go_default_library",
         "//vendor/k8s.io/client-go/util/testing:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/mount:go_default_library",
     ],
 )
 
 go_library(
     name = "go_default_library",
     srcs = ["removeall.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/removeall",
     tags = ["automanaged"],
-    deps = ["//pkg/util/mount:go_default_library"],
+    deps = ["//vendor/k8s.io/kubernetes/pkg/util/mount:go_default_library"],
 )
 
 filegroup(

@@ -14,8 +14,9 @@ go_library(
         "doc.go",
         "tolerations.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/util/tolerations",
     tags = ["automanaged"],
-    deps = ["//pkg/api:go_default_library"],
+    deps = ["//vendor/k8s.io/kubernetes/pkg/api:go_default_library"],
 )
 
 filegroup(
@@ -34,7 +35,8 @@ filegroup(
 go_test(
     name = "go_default_test",
     srcs = ["tolerations_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/tolerations",
     library = ":go_default_library",
     tags = ["automanaged"],
-    deps = ["//pkg/api:go_default_library"],
+    deps = ["//vendor/k8s.io/kubernetes/pkg/api:go_default_library"],
 )

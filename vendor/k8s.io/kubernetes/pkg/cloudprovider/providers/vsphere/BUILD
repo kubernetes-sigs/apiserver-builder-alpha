@@ -15,11 +15,9 @@ go_library(
         "vsphere_metrics.go",
         "vsphere_util.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/cloudprovider/providers/vsphere",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api/v1/helper:go_default_library",
-        "//pkg/cloudprovider:go_default_library",
-        "//pkg/controller:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/prometheus/client_golang/prometheus:go_default_library",
         "//vendor/github.com/vmware/govmomi:go_default_library",
@@ -38,19 +36,23 @@ go_library(
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/runtime:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/v1/helper:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/cloudprovider:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["vsphere_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/cloudprovider/providers/vsphere",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//pkg/cloudprovider:go_default_library",
         "//vendor/golang.org/x/net/context:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/rand:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/cloudprovider:go_default_library",
     ],
 )
 

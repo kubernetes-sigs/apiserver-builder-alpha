@@ -14,13 +14,12 @@ go_test(
         "evictions_test.go",
         "main_test.go",
     ],
+    importpath = "k8s.io/kubernetes/test/integration/evictions",
     tags = [
         "automanaged",
         "integration",
     ],
     deps = [
-        "//pkg/controller/disruption:go_default_library",
-        "//test/integration/framework:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/api/policy/v1beta1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
@@ -32,6 +31,8 @@ go_test(
         "//vendor/k8s.io/client-go/kubernetes:go_default_library",
         "//vendor/k8s.io/client-go/rest:go_default_library",
         "//vendor/k8s.io/client-go/tools/cache:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller/disruption:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/integration/framework:go_default_library",
     ],
 )
 

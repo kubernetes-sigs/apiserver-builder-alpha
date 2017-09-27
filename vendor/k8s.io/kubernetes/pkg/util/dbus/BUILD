@@ -15,6 +15,7 @@ go_library(
         "doc.go",
         "fake_dbus.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/util/dbus",
     tags = ["automanaged"],
     deps = ["//vendor/github.com/godbus/dbus:go_default_library"],
 )
@@ -22,6 +23,7 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = ["dbus_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/dbus",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = ["//vendor/github.com/godbus/dbus:go_default_library"],

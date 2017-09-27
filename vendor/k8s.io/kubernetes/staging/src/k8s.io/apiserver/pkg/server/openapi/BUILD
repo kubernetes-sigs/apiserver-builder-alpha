@@ -14,6 +14,7 @@ go_test(
         "openapi_aggregator_test.go",
         "openapi_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/server/openapi",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -34,6 +35,7 @@ go_library(
         "openapi_handler.go",
         "util.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/server/openapi",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/NYTimes/gziphandler:go_default_library",

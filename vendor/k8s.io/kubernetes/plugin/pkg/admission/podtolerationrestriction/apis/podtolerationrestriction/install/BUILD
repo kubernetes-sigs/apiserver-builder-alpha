@@ -10,13 +10,14 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["install.go"],
+    importpath = "k8s.io/kubernetes/plugin/pkg/admission/podtolerationrestriction/apis/podtolerationrestriction/install",
     tags = ["automanaged"],
     deps = [
-        "//plugin/pkg/admission/podtolerationrestriction/apis/podtolerationrestriction:go_default_library",
-        "//plugin/pkg/admission/podtolerationrestriction/apis/podtolerationrestriction/v1alpha1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apimachinery/announced:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apimachinery/registered:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/admission/podtolerationrestriction/apis/podtolerationrestriction:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/admission/podtolerationrestriction/apis/podtolerationrestriction/v1alpha1:go_default_library",
     ],
 )
 

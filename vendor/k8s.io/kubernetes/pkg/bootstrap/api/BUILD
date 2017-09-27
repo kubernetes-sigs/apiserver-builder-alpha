@@ -13,6 +13,7 @@ go_library(
         "doc.go",
         "types.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/bootstrap/api",
     tags = ["automanaged"],
     deps = ["//vendor/k8s.io/api/core/v1:go_default_library"],
 )

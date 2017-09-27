@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["requestheader_test.go"],
+    importpath = "k8s.io/apiserver/pkg/authentication/request/headerrequest",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = ["//vendor/k8s.io/apiserver/pkg/authentication/user:go_default_library"],
@@ -19,6 +20,7 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["requestheader.go"],
+    importpath = "k8s.io/apiserver/pkg/authentication/request/headerrequest",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/util/sets:go_default_library",

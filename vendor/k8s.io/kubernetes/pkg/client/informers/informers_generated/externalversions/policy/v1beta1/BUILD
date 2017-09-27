@@ -13,16 +13,17 @@ go_library(
         "interface.go",
         "poddisruptionbudget.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/client/informers/informers_generated/externalversions/policy/v1beta1",
     tags = ["automanaged"],
     deps = [
-        "//pkg/client/clientset_generated/clientset:go_default_library",
-        "//pkg/client/informers/informers_generated/externalversions/internalinterfaces:go_default_library",
-        "//pkg/client/listers/policy/v1beta1:go_default_library",
         "//vendor/k8s.io/api/policy/v1beta1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
         "//vendor/k8s.io/client-go/tools/cache:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/client/clientset_generated/clientset:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/client/informers/informers_generated/externalversions/internalinterfaces:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/client/listers/policy/v1beta1:go_default_library",
     ],
 )
 

@@ -13,6 +13,7 @@ go_library(
         "factory.go",
         "generic.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/kube-aggregator/pkg/client/informers/internalversion",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",

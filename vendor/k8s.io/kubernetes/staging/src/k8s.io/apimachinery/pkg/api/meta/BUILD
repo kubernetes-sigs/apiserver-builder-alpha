@@ -16,6 +16,7 @@ go_test(
         "priority_test.go",
         "restmapper_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/api/meta",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -43,6 +44,7 @@ go_library(
         "restmapper.go",
         "unstructured.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/api/meta",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

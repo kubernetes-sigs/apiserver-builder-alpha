@@ -16,6 +16,7 @@ go_library(
         "plugins.go",
         "runner.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/kubectl/plugins",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/ghodss/yaml:go_default_library",
@@ -46,6 +47,7 @@ go_test(
         "plugins_test.go",
         "runner_test.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/kubectl/plugins",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = ["//vendor/github.com/spf13/pflag:go_default_library"],

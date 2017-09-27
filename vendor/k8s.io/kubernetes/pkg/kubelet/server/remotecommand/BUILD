@@ -16,10 +16,9 @@ go_library(
         "httpstream.go",
         "websocket.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/server/remotecommand",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/util/exec:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
@@ -31,6 +30,8 @@ go_library(
         "//vendor/k8s.io/apiserver/pkg/server/httplog:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/util/wsstream:go_default_library",
         "//vendor/k8s.io/client-go/tools/remotecommand:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/exec:go_default_library",
     ],
 )
 

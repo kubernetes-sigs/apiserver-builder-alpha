@@ -18,6 +18,7 @@ go_library(
         "role.go",
         "rolebinding.go",
     ],
+    importpath = "k8s.io/client-go/kubernetes/typed/rbac/v1alpha1",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/rbac/v1alpha1:go_default_library",

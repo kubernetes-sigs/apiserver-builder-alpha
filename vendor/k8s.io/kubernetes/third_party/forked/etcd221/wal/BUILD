@@ -19,9 +19,9 @@ go_library(
         "util.go",
         "wal.go",
     ],
+    importpath = "k8s.io/kubernetes/third_party/forked/etcd221/wal",
     tags = ["automanaged"],
     deps = [
-        "//third_party/forked/etcd221/pkg/fileutil:go_default_library",
         "//vendor/github.com/coreos/etcd/pkg/crc:go_default_library",
         "//vendor/github.com/coreos/etcd/pkg/pbutil:go_default_library",
         "//vendor/github.com/coreos/etcd/raft:go_default_library",
@@ -29,6 +29,7 @@ go_library(
         "//vendor/github.com/coreos/etcd/wal/walpb:go_default_library",
         "//vendor/github.com/coreos/pkg/capnslog:go_default_library",
         "//vendor/github.com/prometheus/client_golang/prometheus:go_default_library",
+        "//vendor/k8s.io/kubernetes/third_party/forked/etcd221/pkg/fileutil:go_default_library",
     ],
 )
 

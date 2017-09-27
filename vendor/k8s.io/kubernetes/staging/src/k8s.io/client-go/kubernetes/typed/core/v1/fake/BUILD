@@ -34,6 +34,7 @@ go_library(
         "fake_service_expansion.go",
         "fake_serviceaccount.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/kubernetes/typed/core/v1/fake",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/core/v1:go_default_library",

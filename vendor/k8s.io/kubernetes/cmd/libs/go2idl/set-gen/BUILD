@@ -10,6 +10,7 @@ load(
 
 go_binary(
     name = "set-gen",
+    importpath = "k8s.io/kubernetes/cmd/libs/go2idl/set-gen",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -21,6 +22,7 @@ exports_files([
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
+    importpath = "k8s.io/kubernetes/cmd/libs/go2idl/set-gen",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

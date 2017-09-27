@@ -13,6 +13,7 @@ go_library(
         "client.go",
         "cr.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiextensions-apiserver/examples/client-go/client",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/core/v1:go_default_library",

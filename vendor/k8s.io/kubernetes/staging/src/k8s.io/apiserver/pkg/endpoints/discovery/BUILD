@@ -14,6 +14,7 @@ go_test(
         "addresses_test.go",
         "root_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/endpoints/discovery",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -39,6 +40,7 @@ go_library(
         "util.go",
         "version.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/endpoints/discovery",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/emicklei/go-restful:go_default_library",

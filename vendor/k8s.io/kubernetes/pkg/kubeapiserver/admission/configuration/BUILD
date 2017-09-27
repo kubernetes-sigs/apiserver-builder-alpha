@@ -15,6 +15,7 @@ go_test(
         "external_admission_hook_manager_test.go",
         "initializer_manager_test.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/kubeapiserver/admission/configuration",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -34,6 +35,7 @@ go_library(
         "external_admission_hook_manager.go",
         "initializer_manager.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/kubeapiserver/admission/configuration",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

@@ -15,6 +15,7 @@ go_library(
         "options.go",
         "storage_decorator.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/registry/generic",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

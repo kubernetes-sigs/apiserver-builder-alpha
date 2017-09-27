@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["swagger_doc_generator_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/runtime",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -36,6 +37,7 @@ go_library(
         "types_proto.go",
         "zz_generated.deepcopy.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/runtime",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/gogo/protobuf/proto:go_default_library",
@@ -54,6 +56,7 @@ go_test(
         "extension_test.go",
         "scheme_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/runtime_test",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/google/gofuzz:go_default_library",
@@ -66,4 +69,10 @@ go_test(
         "//vendor/k8s.io/apimachinery/pkg/runtime/testing:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/diff:go_default_library",
     ],
+)
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = ["generated.proto"],
+    visibility = ["//visibility:public"],
 )

@@ -14,10 +14,9 @@ go_library(
         "configmap_manager.go",
         "fake_manager.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/configmap",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api/v1/pod:go_default_library",
-        "//pkg/kubelet/util:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
@@ -25,6 +24,8 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/util/sets:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/storage/etcd:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/v1/pod:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/util:go_default_library",
     ],
 )
 
@@ -44,6 +45,7 @@ filegroup(
 go_test(
     name = "go_default_test",
     srcs = ["configmap_manager_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/configmap",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [

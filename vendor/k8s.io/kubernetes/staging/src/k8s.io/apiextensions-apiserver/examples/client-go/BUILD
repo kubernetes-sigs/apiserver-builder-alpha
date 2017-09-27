@@ -11,6 +11,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiextensions-apiserver/examples/client-go",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/core/v1:go_default_library",
@@ -27,6 +28,7 @@ go_library(
 
 go_binary(
     name = "client-go",
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiextensions-apiserver/examples/client-go",
     library = ":go_default_library",
     tags = ["automanaged"],
 )

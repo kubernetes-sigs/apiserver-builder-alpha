@@ -10,6 +10,7 @@ load(
 
 go_binary(
     name = "deepcopy-gen",
+    importpath = "k8s.io/kubernetes/cmd/libs/go2idl/deepcopy-gen",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -17,6 +18,7 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
+    importpath = "k8s.io/kubernetes/cmd/libs/go2idl/deepcopy-gen",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

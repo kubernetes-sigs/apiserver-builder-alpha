@@ -10,6 +10,7 @@ load(
 
 go_binary(
     name = "fakegitserver",
+    importpath = "k8s.io/kubernetes/test/images/fakegitserver",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -17,6 +18,7 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["gitserver.go"],
+    importpath = "k8s.io/kubernetes/test/images/fakegitserver",
     tags = ["automanaged"],
 )
 

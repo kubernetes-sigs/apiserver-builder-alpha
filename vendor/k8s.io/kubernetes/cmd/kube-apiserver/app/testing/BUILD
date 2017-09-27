@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["server_test.go"],
+    importpath = "k8s.io/kubernetes/cmd/kube-apiserver/app/testing",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -30,15 +31,16 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["testserver.go"],
+    importpath = "k8s.io/kubernetes/cmd/kube-apiserver/app/testing",
     tags = ["automanaged"],
     deps = [
-        "//cmd/kube-apiserver/app:go_default_library",
-        "//cmd/kube-apiserver/app/options:go_default_library",
-        "//pkg/api:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/storage/etcd/testing:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes:go_default_library",
         "//vendor/k8s.io/client-go/rest:go_default_library",
+        "//vendor/k8s.io/kubernetes/cmd/kube-apiserver/app:go_default_library",
+        "//vendor/k8s.io/kubernetes/cmd/kube-apiserver/app/options:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
     ],
 )
 

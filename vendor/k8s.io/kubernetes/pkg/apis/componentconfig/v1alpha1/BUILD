@@ -19,20 +19,21 @@ go_library(
         "zz_generated.deepcopy.go",
         "zz_generated.defaults.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/apis/componentconfig/v1alpha1",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/apis/componentconfig:go_default_library",
-        "//pkg/kubelet/apis:go_default_library",
-        "//pkg/kubelet/qos:go_default_library",
-        "//pkg/kubelet/types:go_default_library",
-        "//pkg/master/ports:go_default_library",
-        "//pkg/util/pointer:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/conversion:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/componentconfig:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/apis:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/qos:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/types:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/master/ports:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/pointer:go_default_library",
     ],
 )
 
@@ -52,7 +53,8 @@ filegroup(
 go_test(
     name = "go_default_test",
     srcs = ["defaults_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/apis/componentconfig/v1alpha1",
     library = ":go_default_library",
     tags = ["automanaged"],
-    deps = ["//pkg/apis/componentconfig:go_default_library"],
+    deps = ["//vendor/k8s.io/kubernetes/pkg/apis/componentconfig:go_default_library"],
 )

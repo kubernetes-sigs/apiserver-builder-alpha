@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["anonymous_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/authentication/request/anonymous",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -23,6 +24,7 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["anonymous.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/authentication/request/anonymous",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apiserver/pkg/authentication/authenticator:go_default_library",

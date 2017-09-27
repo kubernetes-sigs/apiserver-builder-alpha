@@ -15,14 +15,15 @@ go_library(
         "federation_client.go",
         "generated_expansion.go",
     ],
+    importpath = "k8s.io/kubernetes/federation/client/clientset_generated/federation_internalclientset/typed/federation/internalversion",
     tags = ["automanaged"],
     deps = [
-        "//federation/apis/federation:go_default_library",
-        "//federation/client/clientset_generated/federation_internalclientset/scheme:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
         "//vendor/k8s.io/client-go/rest:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/apis/federation:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/client/clientset_generated/federation_internalclientset/scheme:go_default_library",
     ],
 )
 

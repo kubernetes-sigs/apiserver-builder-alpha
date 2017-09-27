@@ -14,11 +14,9 @@ go_library(
         "doc.go",
         "strategy.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/registry/apps/statefulset",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/apis/apps:go_default_library",
-        "//pkg/apis/apps/validation:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/equality:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/fields:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
@@ -29,20 +27,24 @@ go_library(
         "//vendor/k8s.io/apiserver/pkg/registry/rest:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/storage:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/storage/names:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/apps:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/apps/validation:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["strategy_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/registry/apps/statefulset",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/apis/apps:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/endpoints/request:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/registry/rest:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/apps:go_default_library",
     ],
 )
 

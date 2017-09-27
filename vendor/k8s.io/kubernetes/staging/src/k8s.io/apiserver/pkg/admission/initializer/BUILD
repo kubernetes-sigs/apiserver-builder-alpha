@@ -14,6 +14,7 @@ go_library(
         "initializer.go",
         "interfaces.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/admission/initializer",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apiserver/pkg/admission:go_default_library",
@@ -26,6 +27,7 @@ go_library(
 go_test(
     name = "go_default_xtest",
     srcs = ["initializer_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/admission/initializer_test",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apiserver/pkg/admission:go_default_library",

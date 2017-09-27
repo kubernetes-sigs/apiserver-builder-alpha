@@ -14,6 +14,7 @@ go_library(
         "job.go",
         "job_expansion.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/listers/batch/v1",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/batch/v1:go_default_library",

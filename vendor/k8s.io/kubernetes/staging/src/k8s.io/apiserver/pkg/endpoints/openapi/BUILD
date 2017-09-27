@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["openapi_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/endpoints/openapi",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -24,6 +25,7 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["openapi.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/endpoints/openapi",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/emicklei/go-restful:go_default_library",

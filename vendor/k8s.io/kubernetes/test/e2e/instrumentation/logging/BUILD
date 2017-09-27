@@ -20,11 +20,9 @@ go_library(
         "sd_utils.go",
         "utils.go",
     ],
+    importpath = "k8s.io/kubernetes/test/e2e/instrumentation/logging",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//test/e2e/framework:go_default_library",
-        "//test/e2e/instrumentation:go_default_library",
         "//vendor/github.com/onsi/ginkgo:go_default_library",
         "//vendor/github.com/onsi/gomega:go_default_library",
         "//vendor/golang.org/x/net/context:go_default_library",
@@ -38,6 +36,9 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
         "//vendor/k8s.io/client-go/util/integer:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/e2e/framework:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/e2e/instrumentation:go_default_library",
     ],
 )
 

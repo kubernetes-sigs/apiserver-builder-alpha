@@ -15,6 +15,7 @@ go_binary(
         "-extldflags",
         "-static",
     ],
+    importpath = "k8s.io/kubernetes/cmd/kubectl",
     library = ":go_default_library",
     tags = ["automanaged"],
     visibility = [
@@ -26,8 +27,10 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["kubectl.go"],
+    importpath = "k8s.io/kubernetes/cmd/kubectl",
     tags = ["automanaged"],
-    deps = ["//cmd/kubectl/app:go_default_library"],
+    visibility = ["//visibility:private"],
+    deps = ["//vendor/k8s.io/kubernetes/cmd/kubectl/app:go_default_library"],
 )
 
 filegroup(

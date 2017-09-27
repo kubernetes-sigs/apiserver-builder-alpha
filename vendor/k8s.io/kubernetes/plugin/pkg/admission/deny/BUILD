@@ -11,6 +11,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["admission.go"],
+    importpath = "k8s.io/kubernetes/plugin/pkg/admission/deny",
     tags = ["automanaged"],
     deps = ["//vendor/k8s.io/apiserver/pkg/admission:go_default_library"],
 )
@@ -18,11 +19,12 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = ["admission_test.go"],
+    importpath = "k8s.io/kubernetes/plugin/pkg/admission/deny",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/admission:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
     ],
 )
 

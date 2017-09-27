@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["memcache_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/discovery/cached",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -22,6 +23,7 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["memcache.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/discovery/cached",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/emicklei/go-restful-swagger12:go_default_library",

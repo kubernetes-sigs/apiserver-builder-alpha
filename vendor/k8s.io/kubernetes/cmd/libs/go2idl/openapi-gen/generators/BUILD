@@ -11,6 +11,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["openapi.go"],
+    importpath = "k8s.io/kubernetes/cmd/libs/go2idl/openapi-gen/generators",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",
@@ -25,6 +26,7 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = ["openapi_test.go"],
+    importpath = "k8s.io/kubernetes/cmd/libs/go2idl/openapi-gen/generators",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [

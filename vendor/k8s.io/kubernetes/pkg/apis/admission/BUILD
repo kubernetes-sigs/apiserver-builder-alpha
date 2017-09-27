@@ -16,9 +16,9 @@ go_library(
         "types.go",
         "zz_generated.deepcopy.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/apis/admission",
     tags = ["automanaged"],
     deps = [
-        "//pkg/apis/authentication:go_default_library",
         "//vendor/github.com/ugorji/go/codec:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/conversion:go_default_library",
@@ -26,6 +26,7 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/admission:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/authentication:go_default_library",
     ],
 )
 

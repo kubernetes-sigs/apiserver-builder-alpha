@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["negotiate_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/endpoints/handlers/negotiation",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -26,6 +27,7 @@ go_library(
         "errors.go",
         "negotiate.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/endpoints/handlers/negotiation",
     tags = ["automanaged"],
     deps = [
         "//vendor/bitbucket.org/ww/goautoneg:go_default_library",

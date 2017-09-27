@@ -10,7 +10,13 @@ go_library(
     srcs = [
         "umask.go",
         "util.go",
-    ],
+    ] + select({
+        "@io_bazel_rules_go//go/platform:windows_amd64": [
+            "umask_windows.go",
+        ],
+        "//conditions:default": [],
+    }),
+    importpath = "k8s.io/kubernetes/pkg/kubectl/util",
     tags = ["automanaged"],
     visibility = ["//build/visible_to:pkg_kubectl_util_CONSUMERS"],
     deps = [

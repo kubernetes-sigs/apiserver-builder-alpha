@@ -17,6 +17,7 @@ go_test(
         "testdata/intermediate.pem",
         "testdata/root.pem",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/authentication/request/x509",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -32,6 +33,7 @@ go_library(
         "doc.go",
         "x509.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/authentication/request/x509",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

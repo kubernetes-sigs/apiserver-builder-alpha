@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["validation.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/kube-aggregator/pkg/apis/apiregistration/validation",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/api/validation:go_default_library",

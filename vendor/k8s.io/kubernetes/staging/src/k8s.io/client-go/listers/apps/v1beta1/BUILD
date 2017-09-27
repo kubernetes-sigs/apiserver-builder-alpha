@@ -17,6 +17,7 @@ go_library(
         "statefulset.go",
         "statefulset_expansion.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/listers/apps/v1beta1",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/apps/v1beta1:go_default_library",

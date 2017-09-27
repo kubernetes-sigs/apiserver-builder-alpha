@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["path.go"],
+    importpath = "k8s.io/kubernetes/cmd/libs/go2idl/client-gen/path",
     tags = ["automanaged"],
 )
 

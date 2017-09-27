@@ -13,6 +13,7 @@ go_library(
         "doc.go",
         "utils.go",
     ],
+    importpath = "k8s.io/kubernetes/test/integration",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",

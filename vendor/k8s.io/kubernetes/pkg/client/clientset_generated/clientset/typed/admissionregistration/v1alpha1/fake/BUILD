@@ -15,9 +15,9 @@ go_library(
         "fake_externaladmissionhookconfiguration.go",
         "fake_initializerconfiguration.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/client/clientset_generated/clientset/typed/admissionregistration/v1alpha1/fake",
     tags = ["automanaged"],
     deps = [
-        "//pkg/client/clientset_generated/clientset/typed/admissionregistration/v1alpha1:go_default_library",
         "//vendor/k8s.io/api/admissionregistration/v1alpha1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
@@ -26,6 +26,7 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
         "//vendor/k8s.io/client-go/rest:go_default_library",
         "//vendor/k8s.io/client-go/testing:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/client/clientset_generated/clientset/typed/admissionregistration/v1alpha1:go_default_library",
     ],
 )
 

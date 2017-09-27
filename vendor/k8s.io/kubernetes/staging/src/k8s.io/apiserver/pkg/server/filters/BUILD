@@ -16,6 +16,7 @@ go_test(
         "maxinflight_test.go",
         "timeout_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/server/filters",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -40,6 +41,7 @@ go_library(
         "timeout.go",
         "wrap.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/server/filters",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/emicklei/go-restful:go_default_library",

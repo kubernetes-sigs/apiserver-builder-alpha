@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["meta_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/runtime/serializer/json",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -21,6 +22,7 @@ go_library(
         "json.go",
         "meta.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/runtime/serializer/json",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/ghodss/yaml:go_default_library",
@@ -36,6 +38,7 @@ go_library(
 go_test(
     name = "go_default_xtest",
     srcs = ["json_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/runtime/serializer/json_test",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",

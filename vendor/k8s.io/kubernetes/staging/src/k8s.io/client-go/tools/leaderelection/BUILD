@@ -11,6 +11,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["leaderelection.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/tools/leaderelection",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",
@@ -25,6 +26,7 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = ["leaderelection_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/tools/leaderelection",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [

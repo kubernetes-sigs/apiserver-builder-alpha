@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["errors_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/api/errors",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -27,6 +28,7 @@ go_library(
         "doc.go",
         "errors.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/api/errors",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",

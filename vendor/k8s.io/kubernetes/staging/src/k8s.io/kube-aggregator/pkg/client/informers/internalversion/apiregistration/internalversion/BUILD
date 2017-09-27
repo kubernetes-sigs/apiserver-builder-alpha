@@ -13,6 +13,7 @@ go_library(
         "apiservice.go",
         "interface.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/kube-aggregator/pkg/client/informers/internalversion/apiregistration/internalversion",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",

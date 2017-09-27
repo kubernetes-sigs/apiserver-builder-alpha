@@ -15,10 +15,9 @@ go_library(
         "certificate_store.go",
         "kubelet.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/certificate",
     tags = ["automanaged"],
     deps = [
-        "//pkg/apis/componentconfig:go_default_library",
-        "//pkg/util/file:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/api/certificates/v1beta1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
@@ -29,6 +28,8 @@ go_library(
         "//vendor/k8s.io/client-go/kubernetes:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes/typed/certificates/v1beta1:go_default_library",
         "//vendor/k8s.io/client-go/util/cert:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/componentconfig:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/file:go_default_library",
     ],
 )
 
@@ -38,6 +39,7 @@ go_test(
         "certificate_manager_test.go",
         "certificate_store_test.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/certificate",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [

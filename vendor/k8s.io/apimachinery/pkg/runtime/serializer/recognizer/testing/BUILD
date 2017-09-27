@@ -10,6 +10,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["recognizer_test.go"],
+    importpath = "k8s.io/apimachinery/pkg/runtime/serializer/recognizer/testing",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",

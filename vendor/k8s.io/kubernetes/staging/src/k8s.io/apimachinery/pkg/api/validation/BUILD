@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["objectmeta_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/api/validation",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -26,6 +27,7 @@ go_library(
         "generic.go",
         "objectmeta.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/api/validation",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/api/equality:go_default_library",

@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["ssh_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/master/tunneler",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -22,14 +23,15 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["ssh.go"],
+    importpath = "k8s.io/kubernetes/pkg/master/tunneler",
     tags = ["automanaged"],
     deps = [
-        "//pkg/ssh:go_default_library",
-        "//pkg/util/file:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/prometheus/client_golang/prometheus:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/clock:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/ssh:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/file:go_default_library",
     ],
 )
 

@@ -15,6 +15,7 @@ go_test(
         "roundtripper_test.go",
         "upgrade_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/util/httpstream/spdy",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -30,6 +31,7 @@ go_library(
         "roundtripper.go",
         "upgrade.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/util/httpstream/spdy",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/docker/spdystream:go_default_library",

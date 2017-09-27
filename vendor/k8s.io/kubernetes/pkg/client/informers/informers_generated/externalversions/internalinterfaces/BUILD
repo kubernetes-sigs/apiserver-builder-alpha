@@ -10,11 +10,12 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["factory_interfaces.go"],
+    importpath = "k8s.io/kubernetes/pkg/client/informers/informers_generated/externalversions/internalinterfaces",
     tags = ["automanaged"],
     deps = [
-        "//pkg/client/clientset_generated/clientset:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
         "//vendor/k8s.io/client-go/tools/cache:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/client/clientset_generated/clientset:go_default_library",
     ],
 )
 

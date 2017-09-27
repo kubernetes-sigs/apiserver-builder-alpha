@@ -10,6 +10,7 @@ load(
 
 go_binary(
     name = "no-snat-test-proxy",
+    importpath = "k8s.io/kubernetes/test/images/no-snat-test-proxy",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -17,6 +18,7 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
+    importpath = "k8s.io/kubernetes/test/images/no-snat-test-proxy",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/spf13/pflag:go_default_library",

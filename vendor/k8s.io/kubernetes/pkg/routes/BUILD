@@ -14,6 +14,7 @@ go_library(
         "logs.go",
         "ui.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/routes",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/emicklei/go-restful:go_default_library",

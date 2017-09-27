@@ -14,12 +14,14 @@ go_library(
         "doc.go",
         "limitwriter.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/util/limitwriter",
     tags = ["automanaged"],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["limitwriter_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/limitwriter",
     library = ":go_default_library",
     tags = ["automanaged"],
 )

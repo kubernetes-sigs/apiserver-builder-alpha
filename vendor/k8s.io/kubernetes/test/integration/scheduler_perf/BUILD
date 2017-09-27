@@ -14,16 +14,11 @@ go_library(
         "scheduler_perf_types.go",
         "util.go",
     ],
+    importpath = "k8s.io/kubernetes/test/integration/scheduler_perf",
     tags = [
         "automanaged",
     ],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/api/testapi:go_default_library",
-        "//plugin/pkg/scheduler:go_default_library",
-        "//plugin/pkg/scheduler/algorithmprovider:go_default_library",
-        "//plugin/pkg/scheduler/factory:go_default_library",
-        "//test/integration/framework:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/client-go/informers:go_default_library",
@@ -31,6 +26,12 @@ go_library(
         "//vendor/k8s.io/client-go/kubernetes/typed/core/v1:go_default_library",
         "//vendor/k8s.io/client-go/rest:go_default_library",
         "//vendor/k8s.io/client-go/tools/record:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/testapi:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/scheduler:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/scheduler/algorithmprovider:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/scheduler/factory:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/integration/framework:go_default_library",
     ],
 )
 
@@ -42,19 +43,20 @@ go_test(
         "scheduler_bench_test.go",
         "scheduler_test.go",
     ],
+    importpath = "k8s.io/kubernetes/test/integration/scheduler_perf",
     library = ":go_default_library",
     tags = [
         "automanaged",
         "integration",
     ],
     deps = [
-        "//plugin/pkg/scheduler:go_default_library",
-        "//test/integration/framework:go_default_library",
-        "//test/utils:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/scheduler:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/integration/framework:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/utils:go_default_library",
     ],
 )
 

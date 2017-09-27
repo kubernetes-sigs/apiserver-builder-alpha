@@ -13,6 +13,7 @@ go_library(
         "cronjob.go",
         "interface.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/informers/batch/v2alpha1",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/batch/v2alpha1:go_default_library",

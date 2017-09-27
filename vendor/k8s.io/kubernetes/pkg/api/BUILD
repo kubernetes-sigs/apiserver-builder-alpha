@@ -23,6 +23,7 @@ go_library(
         "types.go",
         "zz_generated.deepcopy.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/api",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library",
@@ -43,6 +44,7 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = ["taint_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/api",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -59,15 +61,10 @@ go_test(
         "serialization_test.go",
         "unstructured_test.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/api_test",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/api/testapi:go_default_library",
-        "//pkg/api/testing:go_default_library",
-        "//pkg/api/v1:go_default_library",
-        "//pkg/apis/batch/v2alpha1:go_default_library",
-        "//pkg/apis/extensions:go_default_library",
-        "//pkg/apis/extensions/v1beta1:go_default_library",
+        ":go_default_library",
         "//vendor/github.com/gogo/protobuf/proto:go_default_library",
         "//vendor/github.com/golang/protobuf/proto:go_default_library",
         "//vendor/github.com/google/gofuzz:go_default_library",
@@ -90,6 +87,12 @@ go_test(
         "//vendor/k8s.io/apimachinery/pkg/util/json:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/sets:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/testapi:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/testing:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/v1:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/batch/v2alpha1:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/extensions:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/extensions/v1beta1:go_default_library",
     ],
 )
 

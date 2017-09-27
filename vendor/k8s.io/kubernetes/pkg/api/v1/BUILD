@@ -19,12 +19,9 @@ go_library(
         "zz_generated.conversion.go",
         "zz_generated.defaults.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/api/v1",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/apis/extensions:go_default_library",
-        "//pkg/util/parsers:go_default_library",
-        "//pkg/util/pointer:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/conversion:go_default_library",
@@ -34,6 +31,10 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/util/intstr:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/rand:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/validation/field:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/extensions:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/parsers:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/pointer:go_default_library",
     ],
 )
 
@@ -44,13 +45,10 @@ go_test(
         "conversion_test.go",
         "defaults_test.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/api/v1_test",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/api/install:go_default_library",
-        "//pkg/api/testing/compat:go_default_library",
-        "//pkg/api/v1:go_default_library",
-        "//pkg/api/validation:go_default_library",
+        ":go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/equality:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library",
@@ -59,6 +57,10 @@ go_test(
         "//vendor/k8s.io/apimachinery/pkg/util/diff:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/intstr:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/validation/field:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/install:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/testing/compat:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/validation:go_default_library",
     ],
 )
 

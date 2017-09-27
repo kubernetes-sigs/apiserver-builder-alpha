@@ -10,8 +10,9 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["args.go"],
+    importpath = "k8s.io/kubernetes/cmd/libs/go2idl/client-gen/args",
     tags = ["automanaged"],
-    deps = ["//cmd/libs/go2idl/client-gen/types:go_default_library"],
+    deps = ["//vendor/k8s.io/kubernetes/cmd/libs/go2idl/client-gen/types:go_default_library"],
 )
 
 filegroup(

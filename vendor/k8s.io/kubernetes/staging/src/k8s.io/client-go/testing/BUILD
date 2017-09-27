@@ -14,6 +14,7 @@ go_library(
         "fake.go",
         "fixture.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/testing",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",

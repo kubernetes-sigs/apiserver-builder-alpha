@@ -14,22 +14,24 @@ go_library(
         "mustmatchpatterns.go",
         "types.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/security/podsecuritypolicy/sysctl",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/api/helper:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/validation/field:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/helper:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["mustmatchpatterns_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/security/podsecuritypolicy/sysctl",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/api/helper:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/helper:go_default_library",
     ],
 )
 

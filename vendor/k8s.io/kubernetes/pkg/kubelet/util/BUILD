@@ -13,18 +13,32 @@ go_library(
     srcs = [
         "doc.go",
         "util.go",
-        "util_linux.go",
-    ],
+        "util_unsupported.go",
+    ] + select({
+        "@io_bazel_rules_go//go/platform:linux_amd64": [
+            "util_linux.go",
+        ],
+        "@io_bazel_rules_go//go/platform:windows_amd64": [
+            "util_windows.go",
+        ],
+        "//conditions:default": [],
+    }),
+    importpath = "k8s.io/kubernetes/pkg/kubelet/util",
     tags = ["automanaged"],
     deps = [
-        "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
-    ],
+    ] + select({
+        "@io_bazel_rules_go//go/platform:linux_amd64": [
+            "//vendor/github.com/golang/glog:go_default_library",
+        ],
+        "//conditions:default": [],
+    }),
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["util_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/util",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = ["//vendor/github.com/stretchr/testify/assert:go_default_library"],

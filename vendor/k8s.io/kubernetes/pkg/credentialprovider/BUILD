@@ -17,6 +17,7 @@ go_library(
         "plugins.go",
         "provider.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/credentialprovider",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/docker/docker/api/types:go_default_library",
@@ -33,6 +34,7 @@ go_test(
         "keyring_test.go",
         "provider_test.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/credentialprovider",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = ["//vendor/github.com/docker/docker/api/types:go_default_library"],

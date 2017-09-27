@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["modes_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/kubeapiserver/authorizer/modes",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -18,6 +19,7 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["modes.go"],
+    importpath = "k8s.io/kubernetes/pkg/kubeapiserver/authorizer/modes",
     tags = ["automanaged"],
 )
 

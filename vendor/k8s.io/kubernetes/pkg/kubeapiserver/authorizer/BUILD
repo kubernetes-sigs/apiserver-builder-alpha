@@ -14,30 +14,32 @@ go_test(
     data = [
         "//pkg/auth/authorizer/abac:example_policy",
     ],
+    importpath = "k8s.io/kubernetes/pkg/kubeapiserver/authorizer",
     library = ":go_default_library",
     tags = ["automanaged"],
-    deps = ["//pkg/kubeapiserver/authorizer/modes:go_default_library"],
+    deps = ["//vendor/k8s.io/kubernetes/pkg/kubeapiserver/authorizer/modes:go_default_library"],
 )
 
 go_library(
     name = "go_default_library",
     srcs = ["config.go"],
+    importpath = "k8s.io/kubernetes/pkg/kubeapiserver/authorizer",
     tags = ["automanaged"],
     deps = [
-        "//pkg/apis/rbac:go_default_library",
-        "//pkg/auth/authorizer/abac:go_default_library",
-        "//pkg/auth/nodeidentifier:go_default_library",
-        "//pkg/client/informers/informers_generated/internalversion:go_default_library",
-        "//pkg/client/listers/rbac/internalversion:go_default_library",
-        "//pkg/kubeapiserver/authorizer/modes:go_default_library",
-        "//plugin/pkg/auth/authorizer/node:go_default_library",
-        "//plugin/pkg/auth/authorizer/rbac:go_default_library",
-        "//plugin/pkg/auth/authorizer/rbac/bootstrappolicy:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/authorization/authorizer:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/authorization/authorizerfactory:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/authorization/union:go_default_library",
         "//vendor/k8s.io/apiserver/plugin/pkg/authorizer/webhook:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/rbac:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/auth/authorizer/abac:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/auth/nodeidentifier:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/client/informers/informers_generated/internalversion:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/client/listers/rbac/internalversion:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubeapiserver/authorizer/modes:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/auth/authorizer/node:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/auth/authorizer/rbac:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/auth/authorizer/rbac/bootstrappolicy:go_default_library",
     ],
 )
 

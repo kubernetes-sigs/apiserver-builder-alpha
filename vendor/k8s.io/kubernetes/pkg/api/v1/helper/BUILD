@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["helpers_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/api/v1/helper",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -24,13 +25,14 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["helpers.go"],
+    importpath = "k8s.io/kubernetes/pkg/api/v1/helper",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/api/helper:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/selection:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/helper:go_default_library",
     ],
 )
 

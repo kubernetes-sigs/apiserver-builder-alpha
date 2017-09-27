@@ -19,14 +19,9 @@ go_library(
         "services.go",
         "util.go",
     ],
+    importpath = "k8s.io/kubernetes/test/e2e_node/services",
     tags = ["automanaged"],
     deps = [
-        "//cmd/kube-apiserver/app:go_default_library",
-        "//cmd/kube-apiserver/app/options:go_default_library",
-        "//pkg/api:go_default_library",
-        "//pkg/controller/namespace:go_default_library",
-        "//test/e2e/framework:go_default_library",
-        "//test/e2e_node/builder:go_default_library",
         "//vendor/github.com/coreos/etcd/etcdserver:go_default_library",
         "//vendor/github.com/coreos/etcd/etcdserver/api/v2http:go_default_library",
         "//vendor/github.com/coreos/etcd/pkg/transport:go_default_library",
@@ -39,6 +34,12 @@ go_library(
         "//vendor/k8s.io/client-go/informers:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes:go_default_library",
         "//vendor/k8s.io/client-go/rest:go_default_library",
+        "//vendor/k8s.io/kubernetes/cmd/kube-apiserver/app:go_default_library",
+        "//vendor/k8s.io/kubernetes/cmd/kube-apiserver/app/options:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller/namespace:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/e2e/framework:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/e2e_node/builder:go_default_library",
     ],
 )
 

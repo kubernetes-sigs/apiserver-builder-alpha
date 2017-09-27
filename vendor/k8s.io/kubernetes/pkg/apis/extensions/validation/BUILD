@@ -11,14 +11,9 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["validation.go"],
+    importpath = "k8s.io/kubernetes/pkg/apis/extensions/validation",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/api/validation:go_default_library",
-        "//pkg/apis/extensions:go_default_library",
-        "//pkg/security/apparmor:go_default_library",
-        "//pkg/security/podsecuritypolicy/seccomp:go_default_library",
-        "//pkg/security/podsecuritypolicy/util:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/equality:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1/validation:go_default_library",
@@ -27,24 +22,31 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/util/sets:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/validation:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/validation/field:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/validation:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/extensions:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/security/apparmor:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/security/podsecuritypolicy/seccomp:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/security/podsecuritypolicy/util:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["validation_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/apis/extensions/validation",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/apis/extensions:go_default_library",
-        "//pkg/security/apparmor:go_default_library",
-        "//pkg/security/podsecuritypolicy/seccomp:go_default_library",
-        "//pkg/security/podsecuritypolicy/util:go_default_library",
         "//vendor/github.com/davecgh/go-spew/spew:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/intstr:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/validation/field:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/extensions:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/security/apparmor:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/security/podsecuritypolicy/seccomp:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/security/podsecuritypolicy/util:go_default_library",
     ],
 )
 

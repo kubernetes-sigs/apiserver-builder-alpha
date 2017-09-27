@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["constants.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/util/remotecommand",
     tags = ["automanaged"],
     deps = ["//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library"],
 )

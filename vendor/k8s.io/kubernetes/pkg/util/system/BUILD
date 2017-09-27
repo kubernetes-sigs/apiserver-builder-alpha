@@ -11,12 +11,14 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["system_utils.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/system",
     tags = ["automanaged"],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["system_utils_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/system",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [

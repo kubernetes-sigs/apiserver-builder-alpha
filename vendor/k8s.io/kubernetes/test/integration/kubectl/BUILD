@@ -14,15 +14,16 @@ go_test(
         "kubectl_test.go",
         "main_test.go",
     ],
+    importpath = "k8s.io/kubernetes/test/integration/kubectl",
     tags = [
         "automanaged",
         "integration",
     ],
     deps = [
-        "//pkg/kubectl/cmd/util:go_default_library",
-        "//test/integration/framework:go_default_library",
         "//vendor/k8s.io/client-go/tools/clientcmd:go_default_library",
         "//vendor/k8s.io/client-go/tools/clientcmd/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubectl/cmd/util:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/integration/framework:go_default_library",
     ],
 )
 

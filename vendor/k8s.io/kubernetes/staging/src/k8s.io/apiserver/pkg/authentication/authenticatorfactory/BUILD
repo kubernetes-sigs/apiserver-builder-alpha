@@ -14,6 +14,7 @@ go_library(
         "loopback.go",
         "requestheader.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/authentication/authenticatorfactory",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/go-openapi/spec:go_default_library",

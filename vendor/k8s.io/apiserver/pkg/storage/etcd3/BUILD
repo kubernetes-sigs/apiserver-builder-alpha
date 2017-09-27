@@ -15,6 +15,7 @@ go_test(
         "store_test.go",
         "watcher_test.go",
     ],
+    importpath = "k8s.io/apiserver/pkg/storage/etcd3",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -48,6 +49,7 @@ go_library(
         "store.go",
         "watcher.go",
     ],
+    importpath = "k8s.io/apiserver/pkg/storage/etcd3",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/coreos/etcd/clientv3:go_default_library",

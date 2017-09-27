@@ -14,6 +14,7 @@ go_test(
         "cache_test.go",
         "lruexpirecache_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/util/cache",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -28,6 +29,7 @@ go_library(
         "cache.go",
         "lruexpirecache.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/util/cache",
     tags = ["automanaged"],
     deps = ["//vendor/github.com/hashicorp/golang-lru:go_default_library"],
 )

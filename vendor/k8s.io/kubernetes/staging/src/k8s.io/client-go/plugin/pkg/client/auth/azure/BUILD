@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["azure_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/plugin/pkg/client/auth/azure",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = ["//vendor/github.com/Azure/go-autorest/autorest/adal:go_default_library"],
@@ -19,6 +20,7 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["azure.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/plugin/pkg/client/auth/azure",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/Azure/go-autorest/autorest:go_default_library",

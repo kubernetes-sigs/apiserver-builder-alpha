@@ -14,6 +14,7 @@ go_library(
         "doc.go",
         "import.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/kubernetes",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

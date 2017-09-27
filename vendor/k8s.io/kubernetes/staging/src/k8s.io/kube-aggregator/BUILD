@@ -17,6 +17,7 @@ go_binary(
         "-extldflags",
         "-static",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/kube-aggregator",
     library = ":go_default_library",
     tags = ["automanaged"],
     x_defs = version_x_defs(),
@@ -25,6 +26,7 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/kube-aggregator",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",

@@ -15,12 +15,14 @@ go_library(
         "exec.go",
         "fake_exec.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/util/exec",
     tags = ["automanaged"],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["exec_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/exec",
     library = ":go_default_library",
     tags = ["automanaged"],
 )

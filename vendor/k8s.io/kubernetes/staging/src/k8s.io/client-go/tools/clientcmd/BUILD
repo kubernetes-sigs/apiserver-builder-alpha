@@ -16,6 +16,7 @@ go_test(
         "merged_client_builder_test.go",
         "validation_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/tools/clientcmd",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -42,6 +43,7 @@ go_library(
         "overrides.go",
         "validation.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/tools/clientcmd",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

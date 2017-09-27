@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["discovery.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/discovery/fake",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/emicklei/go-restful-swagger12:go_default_library",

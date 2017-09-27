@@ -14,6 +14,7 @@ go_library(
         "fake_storage_client.go",
         "fake_storageclass.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/kubernetes/typed/storage/v1beta1/fake",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/storage/v1beta1:go_default_library",

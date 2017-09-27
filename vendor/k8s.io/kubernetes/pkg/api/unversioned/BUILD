@@ -14,6 +14,7 @@ go_library(
         "time.go",
         "types.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/api/unversioned",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/go-openapi/spec:go_default_library",

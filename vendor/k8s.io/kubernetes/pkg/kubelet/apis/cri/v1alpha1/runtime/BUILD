@@ -13,6 +13,7 @@ go_library(
         "api.pb.go",
         "constants.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/apis/cri/v1alpha1/runtime",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/gogo/protobuf/gogoproto:go_default_library",
@@ -34,4 +35,10 @@ filegroup(
     name = "all-srcs",
     srcs = [":package-srcs"],
     tags = ["automanaged"],
+)
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = ["api.proto"],
+    visibility = ["//visibility:public"],
 )

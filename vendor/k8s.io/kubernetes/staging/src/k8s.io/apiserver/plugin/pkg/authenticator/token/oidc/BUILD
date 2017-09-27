@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["oidc_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/plugin/pkg/authenticator/token/oidc",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -24,6 +25,7 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["oidc.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/plugin/pkg/authenticator/token/oidc",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/coreos/go-oidc/jose:go_default_library",

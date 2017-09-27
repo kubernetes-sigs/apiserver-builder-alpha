@@ -18,6 +18,7 @@ go_library(
         "replicaset.go",
         "thirdpartyresource.go",
     ],
+    importpath = "k8s.io/client-go/informers/extensions/v1beta1",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/extensions/v1beta1:go_default_library",

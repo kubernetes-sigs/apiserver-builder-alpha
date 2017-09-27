@@ -10,8 +10,9 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["closewait.go"],
+    importpath = "k8s.io/kubernetes/test/images/net/nat",
     tags = ["automanaged"],
-    deps = ["//test/images/net/common:go_default_library"],
+    deps = ["//vendor/k8s.io/kubernetes/test/images/net/common:go_default_library"],
 )
 
 filegroup(

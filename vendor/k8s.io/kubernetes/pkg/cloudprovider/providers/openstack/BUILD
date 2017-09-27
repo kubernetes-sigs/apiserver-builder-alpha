@@ -20,15 +20,9 @@ go_library(
         "openstack_routes.go",
         "openstack_volumes.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/cloudprovider/providers/openstack",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api/v1/helper:go_default_library",
-        "//pkg/api/v1/service:go_default_library",
-        "//pkg/cloudprovider:go_default_library",
-        "//pkg/controller:go_default_library",
-        "//pkg/util/exec:go_default_library",
-        "//pkg/util/mount:go_default_library",
-        "//pkg/volume:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/gophercloud/gophercloud:go_default_library",
         "//vendor/github.com/gophercloud/gophercloud/openstack:go_default_library",
@@ -62,6 +56,13 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/util/net:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
         "//vendor/k8s.io/client-go/util/cert:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/v1/helper:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/v1/service:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/cloudprovider:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/exec:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/mount:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/volume:go_default_library",
     ],
 )
 
@@ -72,10 +73,10 @@ go_test(
         "openstack_routes_test.go",
         "openstack_test.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/cloudprovider/providers/openstack",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//pkg/cloudprovider:go_default_library",
         "//vendor/github.com/gophercloud/gophercloud:go_default_library",
         "//vendor/github.com/gophercloud/gophercloud/openstack/blockstorage/v1/apiversions:go_default_library",
         "//vendor/github.com/gophercloud/gophercloud/openstack/compute/v2/servers:go_default_library",
@@ -84,6 +85,7 @@ go_test(
         "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/rand:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/cloudprovider:go_default_library",
     ],
 )
 

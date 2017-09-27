@@ -14,6 +14,7 @@ go_test(
         "decorated_watcher_test.go",
         "store_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/registry/generic/registry",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -53,6 +54,7 @@ go_library(
         "storage_factory.go",
         "store.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/registry/generic/registry",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

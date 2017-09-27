@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["insecure_handler.go"],
+    importpath = "k8s.io/kubernetes/pkg/kubeapiserver/server",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

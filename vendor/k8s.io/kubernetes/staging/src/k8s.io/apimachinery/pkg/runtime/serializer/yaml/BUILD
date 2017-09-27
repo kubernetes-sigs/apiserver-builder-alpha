@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["yaml.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/runtime/serializer/yaml",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",

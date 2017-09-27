@@ -16,16 +16,10 @@ go_test(
         "portfoward_test.go",
         "remotecommand_test.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/client/tests",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/api/install:go_default_library",
-        "//pkg/api/testapi:go_default_library",
-        "//pkg/client/clientset_generated/internalclientset:go_default_library",
-        "//pkg/client/clientset_generated/internalclientset/fake:go_default_library",
-        "//pkg/kubelet/server/portforward:go_default_library",
-        "//pkg/kubelet/server/remotecommand:go_default_library",
         "//vendor/github.com/stretchr/testify/require:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
@@ -42,12 +36,20 @@ go_test(
         "//vendor/k8s.io/client-go/tools/remotecommand:go_default_library",
         "//vendor/k8s.io/client-go/transport/spdy:go_default_library",
         "//vendor/k8s.io/client-go/util/testing:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/install:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/testapi:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset/fake:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/server/portforward:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/server/remotecommand:go_default_library",
     ],
 )
 
 go_library(
     name = "go_default_library",
     srcs = ["doc.go"],
+    importpath = "k8s.io/kubernetes/pkg/client/tests",
     tags = ["automanaged"],
 )
 

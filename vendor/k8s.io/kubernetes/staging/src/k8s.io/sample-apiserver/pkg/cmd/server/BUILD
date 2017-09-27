@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["start.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/sample-apiserver/pkg/cmd/server",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/spf13/cobra:go_default_library",

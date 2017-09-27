@@ -11,6 +11,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["work_queue.go"],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/util/queue",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
@@ -21,6 +22,7 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = ["work_queue_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/util/queue",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [

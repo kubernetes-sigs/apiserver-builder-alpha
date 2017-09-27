@@ -15,6 +15,7 @@ go_library(
         "podpreset.go",
         "settings_client.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/kubernetes/typed/settings/v1alpha1",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/settings/v1alpha1:go_default_library",

@@ -14,6 +14,7 @@ go_library(
         "config.go",
         "types.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/server/options/encryptionconfig",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/ghodss/yaml:go_default_library",
@@ -28,6 +29,7 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = ["encryptionconfig_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/server/options/encryptionconfig",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [

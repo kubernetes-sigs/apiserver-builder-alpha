@@ -10,6 +10,7 @@ load(
 
 go_binary(
     name = "entrypoint-tester",
+    importpath = "k8s.io/kubernetes/test/images/entrypoint-tester",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -17,6 +18,7 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["ep.go"],
+    importpath = "k8s.io/kubernetes/test/images/entrypoint-tester",
     tags = ["automanaged"],
 )
 

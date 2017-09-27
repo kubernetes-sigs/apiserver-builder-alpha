@@ -14,6 +14,7 @@ go_library(
         "flunder.go",
         "interface.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/sample-apiserver/pkg/client/informers_generated/internalversion/wardle/internalversion",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",

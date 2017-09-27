@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["install_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/install",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -23,6 +24,7 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["install.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/install",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions:go_default_library",

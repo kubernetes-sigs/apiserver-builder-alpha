@@ -13,6 +13,7 @@ go_library(
         "etcd.go",
         "strategy.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiextensions-apiserver/pkg/registry/customresource",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/api/meta:go_default_library",

@@ -14,10 +14,9 @@ go_library(
         "fake_testgroup_client.go",
         "fake_testtype.go",
     ],
+    importpath = "k8s.io/kubernetes/cmd/libs/go2idl/client-gen/testoutput/clientset_generated/test_internalclientset/typed/testgroup/internalversion/fake",
     tags = ["automanaged"],
     deps = [
-        "//cmd/libs/go2idl/client-gen/test_apis/testgroup:go_default_library",
-        "//cmd/libs/go2idl/client-gen/testoutput/clientset_generated/test_internalclientset/typed/testgroup/internalversion:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
@@ -25,6 +24,8 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
         "//vendor/k8s.io/client-go/rest:go_default_library",
         "//vendor/k8s.io/client-go/testing:go_default_library",
+        "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/client-gen/test_apis/testgroup:go_default_library",
+        "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/client-gen/testoutput/clientset_generated/test_internalclientset/typed/testgroup/internalversion:go_default_library",
     ],
 )
 

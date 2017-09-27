@@ -15,11 +15,9 @@ go_library(
         "replication_controller.go",
         "replication_controller_utils.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/controller/replication",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api/v1/pod:go_default_library",
-        "//pkg/controller:go_default_library",
-        "//pkg/util/metrics:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
@@ -36,19 +34,19 @@ go_library(
         "//vendor/k8s.io/client-go/tools/cache:go_default_library",
         "//vendor/k8s.io/client-go/tools/record:go_default_library",
         "//vendor/k8s.io/client-go/util/workqueue:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/v1/pod:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/metrics:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["replication_controller_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/controller/replication",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/api/testapi:go_default_library",
-        "//pkg/controller:go_default_library",
-        "//pkg/securitycontext:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/equality:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
@@ -66,6 +64,10 @@ go_test(
         "//vendor/k8s.io/client-go/tools/cache:go_default_library",
         "//vendor/k8s.io/client-go/util/testing:go_default_library",
         "//vendor/k8s.io/client-go/util/workqueue:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/testapi:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/securitycontext:go_default_library",
     ],
 )
 

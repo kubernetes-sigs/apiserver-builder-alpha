@@ -10,6 +10,7 @@ load(
 
 go_binary(
     name = "goproxy",
+    importpath = "k8s.io/kubernetes/test/images/goproxy",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -17,6 +18,7 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["goproxy.go"],
+    importpath = "k8s.io/kubernetes/test/images/goproxy",
     tags = ["automanaged"],
     deps = ["//vendor/github.com/elazarl/goproxy:go_default_library"],
 )

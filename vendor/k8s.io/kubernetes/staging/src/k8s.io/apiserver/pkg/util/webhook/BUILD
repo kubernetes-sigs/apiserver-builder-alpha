@@ -11,6 +11,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["webhook.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/util/webhook",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
@@ -30,6 +31,7 @@ go_test(
         "certs_test.go",
         "webhook_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/util/webhook",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [

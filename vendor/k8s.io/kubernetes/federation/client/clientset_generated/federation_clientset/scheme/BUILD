@@ -13,9 +13,9 @@ go_library(
         "doc.go",
         "register.go",
     ],
+    importpath = "k8s.io/kubernetes/federation/client/clientset_generated/federation_clientset/scheme",
     tags = ["automanaged"],
     deps = [
-        "//federation/apis/federation/v1beta1:go_default_library",
         "//vendor/k8s.io/api/autoscaling/v1:go_default_library",
         "//vendor/k8s.io/api/batch/v1:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
@@ -24,6 +24,7 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime/serializer:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/apis/federation/v1beta1:go_default_library",
     ],
 )
 

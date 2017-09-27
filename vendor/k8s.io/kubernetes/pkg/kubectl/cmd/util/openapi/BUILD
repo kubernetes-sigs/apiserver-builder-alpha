@@ -17,9 +17,9 @@ go_library(
         "openapi_cache.go",
         "openapi_getter.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi",
     tags = ["automanaged"],
     deps = [
-        "//pkg/version:go_default_library",
         "//vendor/github.com/go-openapi/spec:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/googleapis/gnostic/OpenAPIv2:go_default_library",
@@ -27,6 +27,7 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/sets:go_default_library",
         "//vendor/k8s.io/client-go/discovery:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/version:go_default_library",
     ],
 )
 
@@ -40,9 +41,10 @@ go_test(
         "openapi_test.go",
     ],
     data = ["//api/openapi-spec:swagger-spec"],
+    importpath = "k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi_test",
     tags = ["automanaged"],
     deps = [
-        "//pkg/kubectl/cmd/util/openapi:go_default_library",
+        ":go_default_library",
         "//vendor/github.com/go-openapi/spec:go_default_library",
         "//vendor/github.com/googleapis/gnostic/OpenAPIv2:go_default_library",
         "//vendor/github.com/googleapis/gnostic/compiler:go_default_library",

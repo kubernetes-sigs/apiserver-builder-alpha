@@ -13,6 +13,7 @@ go_library(
         "factory.go",
         "generic.go",
     ],
+    importpath = "k8s.io/client-go/informers",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/admissionregistration/v1alpha1:go_default_library",

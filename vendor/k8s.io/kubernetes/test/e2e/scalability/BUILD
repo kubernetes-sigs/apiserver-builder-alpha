@@ -14,14 +14,9 @@ go_library(
         "empty.go",
         "load.go",
     ],
+    importpath = "k8s.io/kubernetes/test/e2e/scalability",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/apis/batch:go_default_library",
-        "//pkg/apis/extensions:go_default_library",
-        "//pkg/client/clientset_generated/internalclientset:go_default_library",
-        "//test/e2e/framework:go_default_library",
-        "//test/utils:go_default_library",
         "//vendor/github.com/onsi/ginkgo:go_default_library",
         "//vendor/github.com/onsi/gomega:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
@@ -41,6 +36,12 @@ go_library(
         "//vendor/k8s.io/client-go/tools/cache:go_default_library",
         "//vendor/k8s.io/client-go/transport:go_default_library",
         "//vendor/k8s.io/client-go/util/workqueue:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/batch:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/extensions:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/e2e/framework:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/utils:go_default_library",
     ],
 )
 

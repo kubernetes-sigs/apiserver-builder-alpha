@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["healthz_test.go"],
+    importpath = "k8s.io/apiserver/pkg/server/healthz",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -21,5 +22,6 @@ go_library(
         "doc.go",
         "healthz.go",
     ],
+    importpath = "k8s.io/apiserver/pkg/server/healthz",
     tags = ["automanaged"],
 )

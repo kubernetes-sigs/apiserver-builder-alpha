@@ -14,6 +14,7 @@ go_test(
         "chain_test.go",
         "config_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/admission",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -33,6 +34,7 @@ go_library(
         "interfaces.go",
         "plugins.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/admission",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/ghodss/yaml:go_default_library",

@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["options.go"],
+    importpath = "k8s.io/kubernetes/pkg/controller/volume/persistentvolume/options",
     tags = ["automanaged"],
     deps = ["//vendor/github.com/spf13/pflag:go_default_library"],
 )

@@ -15,15 +15,13 @@ go_test(
         "main_test.go",
         "patch_test.go",
     ],
+    importpath = "k8s.io/kubernetes/test/integration/apiserver",
     tags = [
         "automanaged",
         "etcd",
         "integration",
     ],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/api/testapi:go_default_library",
-        "//test/integration/framework:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/pborman/uuid:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
@@ -35,6 +33,9 @@ go_test(
         "//vendor/k8s.io/apiserver/pkg/endpoints/handlers:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes:go_default_library",
         "//vendor/k8s.io/client-go/rest:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/testapi:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/integration/framework:go_default_library",
     ],
 )
 

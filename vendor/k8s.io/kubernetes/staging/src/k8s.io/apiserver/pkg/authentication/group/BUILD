@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["group_adder_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/authentication/group",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -25,6 +26,7 @@ go_library(
         "authenticated_group_adder.go",
         "group_adder.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/authentication/group",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apiserver/pkg/authentication/authenticator:go_default_library",

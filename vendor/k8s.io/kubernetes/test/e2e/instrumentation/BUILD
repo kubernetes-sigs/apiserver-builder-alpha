@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["framework.go"],
+    importpath = "k8s.io/kubernetes/test/e2e/instrumentation",
     tags = ["automanaged"],
     deps = ["//vendor/github.com/onsi/ginkgo:go_default_library"],
 )

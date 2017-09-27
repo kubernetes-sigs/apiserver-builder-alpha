@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["valuefuzz_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/api/testing",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -23,6 +24,7 @@ go_library(
         "roundtrip.go",
         "valuefuzz.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/api/testing",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/davecgh/go-spew/spew:go_default_library",

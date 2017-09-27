@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["types_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiextensions-apiserver/examples/client-go/apis/cr/v1",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -30,6 +31,7 @@ go_library(
         "types.go",
         "zz_generated.deepcopy.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiextensions-apiserver/examples/client-go/apis/cr/v1",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",

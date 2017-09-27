@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["controller.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiextensions-apiserver/examples/client-go/controller",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/core/v1:go_default_library",

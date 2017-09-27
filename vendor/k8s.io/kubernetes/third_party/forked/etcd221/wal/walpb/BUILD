@@ -13,6 +13,7 @@ go_library(
         "record.go",
         "record.pb.go",
     ],
+    importpath = "k8s.io/kubernetes/third_party/forked/etcd221/wal/walpb",
     tags = ["automanaged"],
     deps = ["//vendor/github.com/gogo/protobuf/proto:go_default_library"],
 )
@@ -28,4 +29,10 @@ filegroup(
     name = "all-srcs",
     srcs = [":package-srcs"],
     tags = ["automanaged"],
+)
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = ["record.proto"],
+    visibility = ["//visibility:public"],
 )

@@ -10,6 +10,7 @@ load(
 
 go_binary(
     name = "import-boss",
+    importpath = "k8s.io/kubernetes/cmd/libs/go2idl/import-boss",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -17,6 +18,7 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
+    importpath = "k8s.io/kubernetes/cmd/libs/go2idl/import-boss",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

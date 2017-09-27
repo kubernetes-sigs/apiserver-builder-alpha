@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["naming_controller_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiextensions-apiserver/pkg/controller/status",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -24,6 +25,7 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["naming_controller.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiextensions-apiserver/pkg/controller/status",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

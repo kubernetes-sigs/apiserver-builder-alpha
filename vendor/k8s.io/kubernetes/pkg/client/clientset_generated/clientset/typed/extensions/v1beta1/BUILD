@@ -23,9 +23,9 @@ go_library(
         "scale_expansion.go",
         "thirdpartyresource.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/client/clientset_generated/clientset/typed/extensions/v1beta1",
     tags = ["automanaged"],
     deps = [
-        "//pkg/client/clientset_generated/clientset/scheme:go_default_library",
         "//vendor/k8s.io/api/extensions/v1beta1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/meta:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
@@ -34,6 +34,7 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
         "//vendor/k8s.io/client-go/rest:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/client/clientset_generated/clientset/scheme:go_default_library",
     ],
 )
 

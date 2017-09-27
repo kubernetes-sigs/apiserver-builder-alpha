@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["tls_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/storage/storagebackend/factory",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -35,6 +36,7 @@ go_library(
         "etcd3.go",
         "factory.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/storage/storagebackend/factory",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/coreos/etcd/client:go_default_library",

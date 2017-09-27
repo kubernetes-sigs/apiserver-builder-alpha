@@ -10,14 +10,15 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["deletion_helper.go"],
+    importpath = "k8s.io/kubernetes/federation/pkg/federation-controller/util/deletionhelper",
     tags = ["automanaged"],
     deps = [
-        "//federation/pkg/federation-controller/util:go_default_library",
-        "//federation/pkg/federation-controller/util/finalizers:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/sets:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/pkg/federation-controller/util:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/pkg/federation-controller/util/finalizers:go_default_library",
     ],
 )
 

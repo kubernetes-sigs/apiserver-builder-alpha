@@ -16,6 +16,7 @@ go_library(
         "restmapper.go",
         "unstructured.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/discovery",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/emicklei/go-restful-swagger12:go_default_library",
@@ -43,6 +44,7 @@ go_test(
         "helper_blackbox_test.go",
         "restmapper_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/discovery_test",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/emicklei/go-restful-swagger12:go_default_library",

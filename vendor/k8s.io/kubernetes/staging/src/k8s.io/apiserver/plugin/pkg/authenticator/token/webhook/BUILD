@@ -14,6 +14,7 @@ go_test(
         "certs_test.go",
         "webhook_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/plugin/pkg/authenticator/token/webhook",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -27,6 +28,7 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["webhook.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/plugin/pkg/authenticator/token/webhook",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/authentication/v1beta1:go_default_library",

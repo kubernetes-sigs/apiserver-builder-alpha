@@ -11,12 +11,14 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["checks.go"],
+    importpath = "k8s.io/kubernetes/cmd/kube-apiserver/app/preflight",
     tags = ["automanaged"],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["checks_test.go"],
+    importpath = "k8s.io/kubernetes/cmd/kube-apiserver/app/preflight",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = ["//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library"],

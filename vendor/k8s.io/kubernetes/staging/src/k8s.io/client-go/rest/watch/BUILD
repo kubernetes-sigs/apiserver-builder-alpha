@@ -14,6 +14,7 @@ go_library(
         "decoder.go",
         "encoder.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/rest/watch",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
@@ -29,6 +30,7 @@ go_test(
         "decoder_test.go",
         "encoder_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/rest/watch_test",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/core/v1:go_default_library",
