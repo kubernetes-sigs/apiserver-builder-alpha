@@ -9,7 +9,15 @@ load(
 
 go_library(
     name = "go_default_library",
-    srcs = ["rlimit_linux.go"],
+    srcs = [
+        "rlimit_unsupported.go",
+    ] + select({
+        "@io_bazel_rules_go//go/platform:linux_amd64": [
+            "rlimit_linux.go",
+        ],
+        "//conditions:default": [],
+    }),
+    importpath = "k8s.io/kubernetes/pkg/util/rlimit",
     tags = ["automanaged"],
 )
 

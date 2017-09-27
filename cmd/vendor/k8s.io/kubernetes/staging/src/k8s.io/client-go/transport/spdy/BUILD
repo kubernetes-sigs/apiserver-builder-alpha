@@ -10,10 +10,11 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["spdy.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/transport/spdy",
     tags = ["automanaged"],
     deps = [
-        "//vendor/k8s.io/apimachinery/pkg/util/httpstream:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/httpstream/spdy:go_default_library",
-        "//vendor/k8s.io/client-go/rest:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/httpstream:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/httpstream/spdy:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/rest:go_default_library",
     ],
 )

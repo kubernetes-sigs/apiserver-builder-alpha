@@ -13,13 +13,14 @@ go_library(
         "expansion_generated.go",
         "imagereview.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/client/listers/imagepolicy/internalversion",
     tags = ["automanaged"],
     deps = [
-        "//pkg/apis/imagepolicy:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
-        "//vendor/k8s.io/client-go/tools/cache:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/tools/cache:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/apis/imagepolicy:go_default_library",
     ],
 )
 

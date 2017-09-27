@@ -14,6 +14,7 @@ go_library(
         "fake_autoscaling_client.go",
         "fake_horizontalpodautoscaler.go",
     ],
+    importpath = "k8s.io/client-go/kubernetes/typed/autoscaling/v2alpha1/fake",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/autoscaling/v2alpha1:go_default_library",

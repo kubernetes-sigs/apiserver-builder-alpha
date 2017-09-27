@@ -18,14 +18,15 @@ go_library(
         "role.go",
         "rolebinding.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset/typed/rbac/internalversion",
     tags = ["automanaged"],
     deps = [
-        "//pkg/apis/rbac:go_default_library",
-        "//pkg/client/clientset_generated/internalclientset/scheme:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
-        "//vendor/k8s.io/client-go/rest:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/types:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/rest:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/apis/rbac:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset/scheme:go_default_library",
     ],
 )
 

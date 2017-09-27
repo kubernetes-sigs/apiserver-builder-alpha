@@ -11,26 +11,28 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["memcache_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/discovery/cached",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
-        "//vendor/k8s.io/client-go/discovery/fake:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/discovery/fake:go_default_library",
     ],
 )
 
 go_library(
     name = "go_default_library",
     srcs = ["memcache.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/discovery/cached",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/emicklei/go-restful-swagger12:go_default_library",
         "//vendor/github.com/googleapis/gnostic/OpenAPIv2:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/runtime:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/version:go_default_library",
-        "//vendor/k8s.io/client-go/discovery:go_default_library",
-        "//vendor/k8s.io/client-go/rest:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/runtime:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/version:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/discovery:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/rest:go_default_library",
     ],
 )

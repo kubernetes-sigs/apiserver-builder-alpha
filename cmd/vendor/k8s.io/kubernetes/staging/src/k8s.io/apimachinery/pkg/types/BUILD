@@ -16,5 +16,6 @@ go_library(
         "patch.go",
         "uid.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/types",
     tags = ["automanaged"],
 )

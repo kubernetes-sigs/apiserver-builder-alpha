@@ -19,6 +19,7 @@ go_library(
         "int64.go",
         "string.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/util/sets",
     tags = ["automanaged"],
 )
 
@@ -43,7 +44,7 @@ $(location //cmd/libs/go2idl/set-gen) \
     --output-package sets
     """,
     go_deps = [
-        "//vendor/k8s.io/apimachinery/pkg/util/sets/types:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/sets/types:go_default_library",
     ],
     tools = [
         "//cmd/libs/go2idl/set-gen",
@@ -53,6 +54,7 @@ $(location //cmd/libs/go2idl/set-gen) \
 go_test(
     name = "go_default_test",
     srcs = ["set_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/util/sets",
     library = ":go_default_library",
     tags = ["automanaged"],
 )

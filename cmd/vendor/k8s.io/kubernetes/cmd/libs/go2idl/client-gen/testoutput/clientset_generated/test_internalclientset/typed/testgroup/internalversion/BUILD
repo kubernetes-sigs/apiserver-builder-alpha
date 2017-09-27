@@ -15,14 +15,15 @@ go_library(
         "testgroup_client.go",
         "testtype.go",
     ],
+    importpath = "k8s.io/kubernetes/cmd/libs/go2idl/client-gen/testoutput/clientset_generated/test_internalclientset/typed/testgroup/internalversion",
     tags = ["automanaged"],
     deps = [
-        "//cmd/libs/go2idl/client-gen/test_apis/testgroup:go_default_library",
-        "//cmd/libs/go2idl/client-gen/testoutput/clientset_generated/test_internalclientset/scheme:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
-        "//vendor/k8s.io/client-go/rest:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/types:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/rest:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/client-gen/test_apis/testgroup:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/client-gen/testoutput/clientset_generated/test_internalclientset/scheme:go_default_library",
     ],
 )
 

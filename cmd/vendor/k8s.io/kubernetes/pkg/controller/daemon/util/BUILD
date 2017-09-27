@@ -11,16 +11,17 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["daemonset_util.go"],
+    importpath = "k8s.io/kubernetes/pkg/controller/daemon/util",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api/v1/helper:go_default_library",
-        "//pkg/api/v1/pod:go_default_library",
-        "//pkg/util/labels:go_default_library",
-        "//plugin/pkg/scheduler/algorithm:go_default_library",
-        "//vendor/k8s.io/api/core/v1:go_default_library",
-        "//vendor/k8s.io/api/extensions/v1beta1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
-        "//vendor/k8s.io/client-go/kubernetes/scheme:go_default_library",
+        "//cmd/vendor/k8s.io/api/core/v1:go_default_library",
+        "//cmd/vendor/k8s.io/api/extensions/v1beta1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/kubernetes/scheme:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/api/v1/helper:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/api/v1/pod:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/util/labels:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/plugin/pkg/scheduler/algorithm:go_default_library",
     ],
 )
 
@@ -40,12 +41,13 @@ filegroup(
 go_test(
     name = "go_default_test",
     srcs = ["daemonset_util_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/controller/daemon/util",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api/testapi:go_default_library",
-        "//vendor/k8s.io/api/core/v1:go_default_library",
-        "//vendor/k8s.io/api/extensions/v1beta1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//cmd/vendor/k8s.io/api/core/v1:go_default_library",
+        "//cmd/vendor/k8s.io/api/extensions/v1beta1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/api/testapi:go_default_library",
     ],
 )

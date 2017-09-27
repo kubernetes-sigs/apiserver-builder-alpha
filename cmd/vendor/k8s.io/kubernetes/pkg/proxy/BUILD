@@ -13,8 +13,9 @@ go_library(
         "doc.go",
         "types.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/proxy",
     tags = ["automanaged"],
-    deps = ["//vendor/k8s.io/apimachinery/pkg/types:go_default_library"],
+    deps = ["//cmd/vendor/k8s.io/apimachinery/pkg/types:go_default_library"],
 )
 
 filegroup(

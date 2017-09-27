@@ -13,14 +13,15 @@ go_library(
         "doc.go",
         "kubeconfig.go",
     ],
+    importpath = "k8s.io/kubernetes/cmd/kubeadm/app/phases/kubeconfig",
     tags = ["automanaged"],
     deps = [
-        "//cmd/kubeadm/app/constants:go_default_library",
-        "//cmd/kubeadm/app/phases/certs/pkiutil:go_default_library",
-        "//cmd/kubeadm/app/util/kubeconfig:go_default_library",
-        "//vendor/k8s.io/client-go/tools/clientcmd:go_default_library",
-        "//vendor/k8s.io/client-go/tools/clientcmd/api:go_default_library",
-        "//vendor/k8s.io/client-go/util/cert:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/tools/clientcmd:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/tools/clientcmd/api:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/util/cert:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/cmd/kubeadm/app/constants:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/cmd/kubeadm/app/phases/certs/pkiutil:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig:go_default_library",
     ],
 )
 

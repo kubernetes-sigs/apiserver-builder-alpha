@@ -11,6 +11,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["mt.go"],
+    importpath = "k8s.io/kubernetes/test/images/mounttest",
     tags = ["automanaged"],
 )
 
@@ -29,6 +30,7 @@ filegroup(
 
 go_binary(
     name = "mounttest",
+    importpath = "k8s.io/kubernetes/test/images/mounttest",
     library = ":go_default_library",
     tags = ["automanaged"],
 )

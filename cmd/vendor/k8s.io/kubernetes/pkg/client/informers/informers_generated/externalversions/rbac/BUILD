@@ -10,11 +10,12 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["interface.go"],
+    importpath = "k8s.io/kubernetes/pkg/client/informers/informers_generated/externalversions/rbac",
     tags = ["automanaged"],
     deps = [
-        "//pkg/client/informers/informers_generated/externalversions/internalinterfaces:go_default_library",
-        "//pkg/client/informers/informers_generated/externalversions/rbac/v1alpha1:go_default_library",
-        "//pkg/client/informers/informers_generated/externalversions/rbac/v1beta1:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/client/informers/informers_generated/externalversions/internalinterfaces:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/client/informers/informers_generated/externalversions/rbac/v1alpha1:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/client/informers/informers_generated/externalversions/rbac/v1beta1:go_default_library",
     ],
 )
 

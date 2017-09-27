@@ -10,8 +10,9 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["fake.go"],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/network/hostport/testing",
     tags = ["automanaged"],
-    deps = ["//pkg/kubelet/network/hostport:go_default_library"],
+    deps = ["//cmd/vendor/k8s.io/kubernetes/pkg/kubelet/network/hostport:go_default_library"],
 )
 
 filegroup(

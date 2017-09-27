@@ -11,26 +11,28 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["aws_credentials.go"],
+    importpath = "k8s.io/kubernetes/pkg/credentialprovider/aws",
     tags = ["automanaged"],
     deps = [
-        "//pkg/credentialprovider:go_default_library",
         "//vendor/github.com/aws/aws-sdk-go/aws:go_default_library",
         "//vendor/github.com/aws/aws-sdk-go/aws/request:go_default_library",
         "//vendor/github.com/aws/aws-sdk-go/aws/session:go_default_library",
         "//vendor/github.com/aws/aws-sdk-go/service/ecr:go_default_library",
-        "//vendor/github.com/golang/glog:go_default_library",
+        "//cmd/vendor/github.com/golang/glog:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/credentialprovider:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["aws_credentials_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/credentialprovider/aws",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//pkg/credentialprovider:go_default_library",
         "//vendor/github.com/aws/aws-sdk-go/aws:go_default_library",
         "//vendor/github.com/aws/aws-sdk-go/service/ecr:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/credentialprovider:go_default_library",
     ],
 )
 

@@ -122,7 +122,7 @@ release_filegroup(
         "//cmd/kube-controller-manager",
         "//cmd/kubeadm",
         "//plugin/cmd/kube-scheduler",
-        "//vendor/k8s.io/kube-aggregator",
+        "//cmd/vendor/k8s.io/kube-aggregator",
     ],
 )
 
@@ -141,7 +141,7 @@ filegroup(
         "//federation/cmd/genfeddocs",
         "//test/e2e:e2e.test",
         "//test/e2e_node:e2e_node.test",  # TODO: server platforms only
-        "//vendor/github.com/onsi/ginkgo/ginkgo",
+        "//cmd/vendor/github.com/onsi/ginkgo/ginkgo",
     ],
 )
 

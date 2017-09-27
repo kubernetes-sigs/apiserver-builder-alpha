@@ -20,11 +20,12 @@ go_library(
         "fake_subjectaccessreview.go",
         "fake_subjectaccessreview_expansion.go",
     ],
+    importpath = "k8s.io/client-go/kubernetes/typed/authorization/v1beta1/fake",
     tags = ["automanaged"],
     deps = [
-        "//vendor/k8s.io/api/authorization/v1beta1:go_default_library",
-        "//vendor/k8s.io/client-go/kubernetes/typed/authorization/v1beta1:go_default_library",
-        "//vendor/k8s.io/client-go/rest:go_default_library",
-        "//vendor/k8s.io/client-go/testing:go_default_library",
+        "//cmd/vendor/k8s.io/api/authorization/v1beta1:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/kubernetes/typed/authorization/v1beta1:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/rest:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/testing:go_default_library",
     ],
 )

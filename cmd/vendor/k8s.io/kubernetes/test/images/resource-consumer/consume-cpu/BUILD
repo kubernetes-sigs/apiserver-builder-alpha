@@ -10,6 +10,7 @@ load(
 
 go_binary(
     name = "consume-cpu",
+    importpath = "k8s.io/kubernetes/test/images/resource-consumer/consume-cpu",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -17,6 +18,7 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["consume_cpu.go"],
+    importpath = "k8s.io/kubernetes/test/images/resource-consumer/consume-cpu",
     tags = ["automanaged"],
     deps = ["//vendor/bitbucket.org/bertimus9/systemstat:go_default_library"],
 )

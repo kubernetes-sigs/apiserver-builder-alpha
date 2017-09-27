@@ -17,11 +17,12 @@ go_test(
         "quantity_test.go",
         "scale_int_test.go",
     ],
+    importpath = "k8s.io/apimachinery/pkg/api/resource",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/google/gofuzz:go_default_library",
-        "//vendor/github.com/spf13/pflag:go_default_library",
+        "//cmd/vendor/github.com/spf13/pflag:go_default_library",
         "//vendor/gopkg.in/inf.v0:go_default_library",
     ],
 )
@@ -37,19 +38,27 @@ go_library(
         "scale_int.go",
         "suffix.go",
     ],
+    importpath = "k8s.io/apimachinery/pkg/api/resource",
     tags = ["automanaged"],
     deps = [
-        "//vendor/github.com/go-openapi/spec:go_default_library",
-        "//vendor/github.com/gogo/protobuf/proto:go_default_library",
-        "//vendor/github.com/spf13/pflag:go_default_library",
+        "//cmd/vendor/github.com/go-openapi/spec:go_default_library",
+        "//cmd/vendor/github.com/gogo/protobuf/proto:go_default_library",
+        "//cmd/vendor/github.com/spf13/pflag:go_default_library",
         "//vendor/gopkg.in/inf.v0:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/openapi:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/openapi:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_xtest",
     srcs = ["quantity_example_test.go"],
+    importpath = "k8s.io/apimachinery/pkg/api/resource_test",
     tags = ["automanaged"],
-    deps = ["//vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library"],
+    deps = ["//cmd/vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library"],
+)
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = ["generated.proto"],
+    visibility = ["//visibility:public"],
 )

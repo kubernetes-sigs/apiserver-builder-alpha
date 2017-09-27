@@ -10,16 +10,17 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["install.go"],
+    importpath = "k8s.io/kubernetes/pkg/apis/authentication/install",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/apis/authentication:go_default_library",
-        "//pkg/apis/authentication/v1:go_default_library",
-        "//pkg/apis/authentication/v1beta1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apimachinery/announced:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apimachinery/registered:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/sets:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apimachinery/announced:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apimachinery/registered:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/sets:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/apis/authentication:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/apis/authentication/v1:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/apis/authentication/v1beta1:go_default_library",
     ],
 )
 

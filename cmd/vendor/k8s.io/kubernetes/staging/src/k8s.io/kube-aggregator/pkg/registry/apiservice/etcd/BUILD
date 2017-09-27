@@ -10,14 +10,15 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["etcd.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/kube-aggregator/pkg/registry/apiservice/etcd",
     tags = ["automanaged"],
     deps = [
-        "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
-        "//vendor/k8s.io/apiserver/pkg/endpoints/request:go_default_library",
-        "//vendor/k8s.io/apiserver/pkg/registry/generic:go_default_library",
-        "//vendor/k8s.io/apiserver/pkg/registry/generic/registry:go_default_library",
-        "//vendor/k8s.io/apiserver/pkg/registry/rest:go_default_library",
-        "//vendor/k8s.io/kube-aggregator/pkg/apis/apiregistration:go_default_library",
-        "//vendor/k8s.io/kube-aggregator/pkg/registry/apiservice:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
+        "//cmd/vendor/k8s.io/apiserver/pkg/endpoints/request:go_default_library",
+        "//cmd/vendor/k8s.io/apiserver/pkg/registry/generic:go_default_library",
+        "//cmd/vendor/k8s.io/apiserver/pkg/registry/generic/registry:go_default_library",
+        "//cmd/vendor/k8s.io/apiserver/pkg/registry/rest:go_default_library",
+        "//cmd/vendor/k8s.io/kube-aggregator/pkg/apis/apiregistration:go_default_library",
+        "//cmd/vendor/k8s.io/kube-aggregator/pkg/registry/apiservice:go_default_library",
     ],
 )

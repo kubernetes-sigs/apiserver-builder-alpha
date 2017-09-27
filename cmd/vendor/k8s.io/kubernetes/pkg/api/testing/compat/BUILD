@@ -10,13 +10,14 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["compatibility_tester.go"],
+    importpath = "k8s.io/kubernetes/pkg/api/testing/compat",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/printers:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/validation/field:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/validation/field:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/printers:go_default_library",
     ],
 )
 

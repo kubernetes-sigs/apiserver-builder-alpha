@@ -18,6 +18,7 @@ go_test(
         "runtime_serializer_protobuf_protobuf_test.go",
         "runtime_unversioned_test.go",
     ],
+    importpath = "k8s.io/apimachinery/pkg/test",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -43,6 +44,7 @@ go_library(
         "util.go",
         "zz_generated.deepcopy.go",
     ],
+    importpath = "k8s.io/apimachinery/pkg/test",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",

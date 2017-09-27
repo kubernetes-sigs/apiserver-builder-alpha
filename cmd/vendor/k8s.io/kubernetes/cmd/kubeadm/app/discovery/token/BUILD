@@ -11,18 +11,19 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["token.go"],
+    importpath = "k8s.io/kubernetes/cmd/kubeadm/app/discovery/token",
     tags = ["automanaged"],
     deps = [
-        "//cmd/kubeadm/app/constants:go_default_library",
-        "//cmd/kubeadm/app/util/kubeconfig:go_default_library",
-        "//cmd/kubeadm/app/util/token:go_default_library",
-        "//pkg/bootstrap/api:go_default_library",
-        "//pkg/controller/bootstrap:go_default_library",
-        "//vendor/k8s.io/api/core/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
-        "//vendor/k8s.io/client-go/tools/clientcmd:go_default_library",
-        "//vendor/k8s.io/client-go/tools/clientcmd/api:go_default_library",
+        "//cmd/vendor/k8s.io/api/core/v1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/tools/clientcmd:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/tools/clientcmd/api:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/cmd/kubeadm/app/constants:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/cmd/kubeadm/app/util/token:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/bootstrap/api:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/controller/bootstrap:go_default_library",
     ],
 )
 
@@ -42,10 +43,11 @@ filegroup(
 go_test(
     name = "go_default_test",
     srcs = ["token_test.go"],
+    importpath = "k8s.io/kubernetes/cmd/kubeadm/app/discovery/token",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//cmd/kubeadm/app/util/kubeconfig:go_default_library",
-        "//vendor/k8s.io/client-go/tools/clientcmd/api:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/tools/clientcmd/api:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig:go_default_library",
     ],
 )

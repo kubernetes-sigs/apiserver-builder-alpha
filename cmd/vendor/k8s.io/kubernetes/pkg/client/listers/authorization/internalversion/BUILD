@@ -15,13 +15,14 @@ go_library(
         "selfsubjectaccessreview.go",
         "subjectaccessreview.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/client/listers/authorization/internalversion",
     tags = ["automanaged"],
     deps = [
-        "//pkg/apis/authorization:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
-        "//vendor/k8s.io/client-go/tools/cache:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/tools/cache:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/apis/authorization:go_default_library",
     ],
 )
 

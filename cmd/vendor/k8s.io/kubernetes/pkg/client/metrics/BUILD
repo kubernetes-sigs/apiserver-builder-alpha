@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["metrics.go"],
+    importpath = "k8s.io/kubernetes/pkg/client/metrics",
     tags = ["automanaged"],
 )
 

@@ -11,25 +11,27 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["install_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/install",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/google/gofuzz:go_default_library",
-        "//vendor/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/api/testing:go_default_library",
+        "//cmd/vendor/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/api/testing:go_default_library",
     ],
 )
 
 go_library(
     name = "go_default_library",
     srcs = ["install.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/install",
     tags = ["automanaged"],
     deps = [
-        "//vendor/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions:go_default_library",
-        "//vendor/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apimachinery/announced:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apimachinery/registered:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/sets:go_default_library",
+        "//cmd/vendor/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions:go_default_library",
+        "//cmd/vendor/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apimachinery/announced:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apimachinery/registered:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/sets:go_default_library",
     ],
 )

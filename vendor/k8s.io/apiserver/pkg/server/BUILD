@@ -15,6 +15,7 @@ go_test(
         "config_test.go",
         "genericapiserver_test.go",
     ],
+    importpath = "k8s.io/apiserver/pkg/server",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -56,6 +57,7 @@ go_library(
         "plugins.go",
         "serve.go",
     ],
+    importpath = "k8s.io/apiserver/pkg/server",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/coreos/go-systemd/daemon:go_default_library",

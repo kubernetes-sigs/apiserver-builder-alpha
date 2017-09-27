@@ -15,15 +15,16 @@ go_library(
         "poddisruptionbudget.go",
         "poddisruptionbudget_expansion.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/client/listers/policy/v1beta1",
     tags = ["automanaged"],
     deps = [
-        "//vendor/github.com/golang/glog:go_default_library",
-        "//vendor/k8s.io/api/core/v1:go_default_library",
-        "//vendor/k8s.io/api/policy/v1beta1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
-        "//vendor/k8s.io/client-go/tools/cache:go_default_library",
+        "//cmd/vendor/github.com/golang/glog:go_default_library",
+        "//cmd/vendor/k8s.io/api/core/v1:go_default_library",
+        "//cmd/vendor/k8s.io/api/policy/v1beta1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/tools/cache:go_default_library",
     ],
 )
 

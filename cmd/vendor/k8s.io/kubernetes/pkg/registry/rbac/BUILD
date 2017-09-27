@@ -10,13 +10,14 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["escalation_check.go"],
+    importpath = "k8s.io/kubernetes/pkg/registry/rbac",
     tags = ["automanaged"],
     deps = [
-        "//pkg/apis/rbac:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/runtime:go_default_library",
-        "//vendor/k8s.io/apiserver/pkg/authentication/user:go_default_library",
-        "//vendor/k8s.io/apiserver/pkg/authorization/authorizer:go_default_library",
-        "//vendor/k8s.io/apiserver/pkg/endpoints/request:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/runtime:go_default_library",
+        "//cmd/vendor/k8s.io/apiserver/pkg/authentication/user:go_default_library",
+        "//cmd/vendor/k8s.io/apiserver/pkg/authorization/authorizer:go_default_library",
+        "//cmd/vendor/k8s.io/apiserver/pkg/endpoints/request:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/apis/rbac:go_default_library",
     ],
 )
 

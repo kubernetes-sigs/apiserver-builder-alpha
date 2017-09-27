@@ -10,14 +10,15 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["kubefed.go"],
+    importpath = "k8s.io/kubernetes/federation/cmd/kubefed/app",
     tags = ["automanaged"],
     deps = [
-        "//federation/pkg/kubefed:go_default_library",
-        "//pkg/client/metrics/prometheus:go_default_library",
-        "//pkg/kubectl/cmd/util:go_default_library",
-        "//pkg/util/logs:go_default_library",
-        "//pkg/version:go_default_library",
-        "//pkg/version/prometheus:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/federation/pkg/kubefed:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/client/metrics/prometheus:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/kubectl/cmd/util:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/util/logs:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/version:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/version/prometheus:go_default_library",
     ],
 )
 

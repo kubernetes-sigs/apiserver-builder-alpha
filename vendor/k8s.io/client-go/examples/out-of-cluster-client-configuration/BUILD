@@ -10,6 +10,7 @@ load(
 
 go_binary(
     name = "out-of-cluster-client-configuration",
+    importpath = "k8s.io/client-go/examples/out-of-cluster-client-configuration",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -17,6 +18,7 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
+    importpath = "k8s.io/client-go/examples/out-of-cluster-client-configuration",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",

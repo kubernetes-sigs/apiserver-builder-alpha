@@ -11,6 +11,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["util.go"],
+    importpath = "k8s.io/kubernetes/cmd/kubeadm/test/cmd",
     tags = ["automanaged"],
 )
 
@@ -25,6 +26,7 @@ go_test(
     ],
     args = ["--kubeadm-path=../../kubeadm"],
     data = ["//cmd/kubeadm"],
+    importpath = "k8s.io/kubernetes/cmd/kubeadm/test/cmd",
     library = ":go_default_library",
     tags = [
         "automanaged",

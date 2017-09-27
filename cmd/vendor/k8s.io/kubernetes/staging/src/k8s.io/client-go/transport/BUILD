@@ -15,6 +15,7 @@ go_test(
         "round_trippers_test.go",
         "transport_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/transport",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -27,9 +28,10 @@ go_library(
         "round_trippers.go",
         "transport.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/transport",
     tags = ["automanaged"],
     deps = [
-        "//vendor/github.com/golang/glog:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/net:go_default_library",
+        "//cmd/vendor/github.com/golang/glog:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/net:go_default_library",
     ],
 )

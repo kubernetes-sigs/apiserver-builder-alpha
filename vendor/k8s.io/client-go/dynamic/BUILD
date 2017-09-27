@@ -14,6 +14,7 @@ go_test(
         "client_test.go",
         "dynamic_util_test.go",
     ],
+    importpath = "k8s.io/client-go/dynamic",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -36,6 +37,7 @@ go_library(
         "client_pool.go",
         "dynamic_util.go",
     ],
+    importpath = "k8s.io/client-go/dynamic",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/core/v1:go_default_library",

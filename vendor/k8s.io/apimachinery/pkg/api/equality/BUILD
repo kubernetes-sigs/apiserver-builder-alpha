@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["semantic.go"],
+    importpath = "k8s.io/apimachinery/pkg/api/equality",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library",

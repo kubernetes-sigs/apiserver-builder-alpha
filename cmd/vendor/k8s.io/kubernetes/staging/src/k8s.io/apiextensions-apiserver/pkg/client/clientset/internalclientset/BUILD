@@ -13,12 +13,13 @@ go_library(
         "clientset.go",
         "doc.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiextensions-apiserver/pkg/client/clientset/internalclientset",
     tags = ["automanaged"],
     deps = [
-        "//vendor/github.com/golang/glog:go_default_library",
-        "//vendor/k8s.io/apiextensions-apiserver/pkg/client/clientset/internalclientset/typed/apiextensions/internalversion:go_default_library",
-        "//vendor/k8s.io/client-go/discovery:go_default_library",
-        "//vendor/k8s.io/client-go/rest:go_default_library",
-        "//vendor/k8s.io/client-go/util/flowcontrol:go_default_library",
+        "//cmd/vendor/github.com/golang/glog:go_default_library",
+        "//cmd/vendor/k8s.io/apiextensions-apiserver/pkg/client/clientset/internalclientset/typed/apiextensions/internalversion:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/discovery:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/rest:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/util/flowcontrol:go_default_library",
     ],
 )

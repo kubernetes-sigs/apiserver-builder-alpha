@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["doc.go"],
+    importpath = "k8s.io/kubernetes/pkg/api/errors",
     tags = ["automanaged"],
 )
 

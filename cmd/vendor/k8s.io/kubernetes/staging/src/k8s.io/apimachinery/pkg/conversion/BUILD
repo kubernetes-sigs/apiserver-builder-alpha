@@ -15,12 +15,13 @@ go_test(
         "deep_copy_test.go",
         "helper_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/conversion",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/google/gofuzz:go_default_library",
-        "//vendor/github.com/spf13/pflag:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/diff:go_default_library",
+        "//cmd/vendor/github.com/spf13/pflag:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/diff:go_default_library",
     ],
 )
 
@@ -33,6 +34,7 @@ go_library(
         "doc.go",
         "helper.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/conversion",
     tags = ["automanaged"],
-    deps = ["//vendor/k8s.io/apimachinery/third_party/forked/golang/reflect:go_default_library"],
+    deps = ["//cmd/vendor/k8s.io/apimachinery/third_party/forked/golang/reflect:go_default_library"],
 )

@@ -11,11 +11,10 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["rackspace.go"],
+    importpath = "k8s.io/kubernetes/pkg/cloudprovider/providers/rackspace",
     tags = ["automanaged"],
     deps = [
-        "//pkg/cloudprovider:go_default_library",
-        "//pkg/controller:go_default_library",
-        "//vendor/github.com/golang/glog:go_default_library",
+        "//cmd/vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/rackspace/gophercloud:go_default_library",
         "//vendor/github.com/rackspace/gophercloud/openstack/compute/v2/extensions/volumeattach:go_default_library",
         "//vendor/github.com/rackspace/gophercloud/openstack/compute/v2/servers:go_default_library",
@@ -25,14 +24,17 @@ go_library(
         "//vendor/github.com/rackspace/gophercloud/rackspace/compute/v2/servers:go_default_library",
         "//vendor/github.com/rackspace/gophercloud/rackspace/compute/v2/volumeattach:go_default_library",
         "//vendor/gopkg.in/gcfg.v1:go_default_library",
-        "//vendor/k8s.io/api/core/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
+        "//cmd/vendor/k8s.io/api/core/v1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/types:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/cloudprovider:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/controller:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["rackspace_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/cloudprovider/providers/rackspace",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = ["//vendor/github.com/rackspace/gophercloud:go_default_library"],

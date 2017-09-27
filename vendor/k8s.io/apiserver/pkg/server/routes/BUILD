@@ -19,6 +19,7 @@ go_library(
         "swaggerui.go",
         "version.go",
     ],
+    importpath = "k8s.io/apiserver/pkg/server/routes",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/elazarl/go-bindata-assetfs:go_default_library",

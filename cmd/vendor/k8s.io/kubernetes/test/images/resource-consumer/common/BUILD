@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["common.go"],
+    importpath = "k8s.io/kubernetes/test/images/resource-consumer/common",
     tags = ["automanaged"],
 )
 

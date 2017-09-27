@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["errors.go"],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/dockershim/errors",
     tags = ["automanaged"],
 )
 

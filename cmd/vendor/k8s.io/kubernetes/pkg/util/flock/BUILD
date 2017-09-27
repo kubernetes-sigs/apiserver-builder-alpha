@@ -9,7 +9,18 @@ load(
 
 go_library(
     name = "go_default_library",
-    srcs = ["flock_unix.go"],
+    srcs = [
+        "flock_other.go",
+    ] + select({
+        "@io_bazel_rules_go//go/platform:darwin_amd64": [
+            "flock_unix.go",
+        ],
+        "@io_bazel_rules_go//go/platform:linux_amd64": [
+            "flock_unix.go",
+        ],
+        "//conditions:default": [],
+    }),
+    importpath = "k8s.io/kubernetes/pkg/util/flock",
     tags = ["automanaged"],
 )
 

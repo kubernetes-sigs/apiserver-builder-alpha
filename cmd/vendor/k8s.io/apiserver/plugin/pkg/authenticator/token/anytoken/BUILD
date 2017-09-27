@@ -11,14 +11,16 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["anytoken_test.go"],
+    importpath = "k8s.io/apiserver/plugin/pkg/authenticator/token/anytoken",
     library = ":go_default_library",
     tags = ["automanaged"],
-    deps = ["//vendor/k8s.io/apiserver/pkg/authentication/user:go_default_library"],
+    deps = ["//cmd/vendor/k8s.io/apiserver/pkg/authentication/user:go_default_library"],
 )
 
 go_library(
     name = "go_default_library",
     srcs = ["anytoken.go"],
+    importpath = "k8s.io/apiserver/plugin/pkg/authenticator/token/anytoken",
     tags = ["automanaged"],
-    deps = ["//vendor/k8s.io/apiserver/pkg/authentication/user:go_default_library"],
+    deps = ["//cmd/vendor/k8s.io/apiserver/pkg/authentication/user:go_default_library"],
 )

@@ -14,6 +14,7 @@ go_test(
         "helpers_test.go",
         "types_test.go",
     ],
+    importpath = "k8s.io/client-go/tools/clientcmd/api",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = ["//vendor/github.com/ghodss/yaml:go_default_library"],
@@ -28,6 +29,7 @@ go_library(
         "types.go",
         "zz_generated.deepcopy.go",
     ],
+    importpath = "k8s.io/client-go/tools/clientcmd/api",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/conversion:go_default_library",

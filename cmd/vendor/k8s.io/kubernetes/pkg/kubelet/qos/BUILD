@@ -11,11 +11,12 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["policy_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/qos",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//vendor/k8s.io/api/core/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library",
+        "//cmd/vendor/k8s.io/api/core/v1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library",
     ],
 )
 
@@ -25,10 +26,11 @@ go_library(
         "doc.go",
         "policy.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/qos",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api/v1/helper/qos:go_default_library",
-        "//vendor/k8s.io/api/core/v1:go_default_library",
+        "//cmd/vendor/k8s.io/api/core/v1:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/api/v1/helper/qos:go_default_library",
     ],
 )
 

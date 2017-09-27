@@ -10,6 +10,7 @@ load(
 
 go_binary(
     name = "defaulter-gen",
+    importpath = "k8s.io/kubernetes/cmd/libs/go2idl/defaulter-gen",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -17,12 +18,13 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
+    importpath = "k8s.io/kubernetes/cmd/libs/go2idl/defaulter-gen",
     tags = ["automanaged"],
     deps = [
-        "//vendor/github.com/golang/glog:go_default_library",
-        "//vendor/github.com/spf13/pflag:go_default_library",
-        "//vendor/k8s.io/gengo/args:go_default_library",
-        "//vendor/k8s.io/gengo/examples/defaulter-gen/generators:go_default_library",
+        "//cmd/vendor/github.com/golang/glog:go_default_library",
+        "//cmd/vendor/github.com/spf13/pflag:go_default_library",
+        "//cmd/vendor/k8s.io/gengo/args:go_default_library",
+        "//cmd/vendor/k8s.io/gengo/examples/defaulter-gen/generators:go_default_library",
     ],
 )
 

@@ -10,15 +10,16 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["install.go"],
+    importpath = "k8s.io/kubernetes/pkg/apis/autoscaling/install",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/apis/autoscaling:go_default_library",
-        "//pkg/apis/autoscaling/v1:go_default_library",
-        "//pkg/apis/autoscaling/v2alpha1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apimachinery/announced:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apimachinery/registered:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apimachinery/announced:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apimachinery/registered:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/apis/autoscaling:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/apis/autoscaling/v1:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/apis/autoscaling/v2alpha1:go_default_library",
     ],
 )
 

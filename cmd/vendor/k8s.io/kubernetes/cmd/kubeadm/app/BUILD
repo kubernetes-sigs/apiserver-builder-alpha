@@ -10,12 +10,13 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["kubeadm.go"],
+    importpath = "k8s.io/kubernetes/cmd/kubeadm/app",
     tags = ["automanaged"],
     deps = [
-        "//cmd/kubeadm/app/apis/kubeadm/install:go_default_library",
-        "//cmd/kubeadm/app/cmd:go_default_library",
-        "//pkg/kubectl/cmd/util:go_default_library",
-        "//vendor/github.com/spf13/pflag:go_default_library",
+        "//cmd/vendor/github.com/spf13/pflag:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/install:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/cmd/kubeadm/app/cmd:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/kubectl/cmd/util:go_default_library",
     ],
 )
 

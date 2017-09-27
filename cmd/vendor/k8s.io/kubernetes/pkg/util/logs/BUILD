@@ -10,11 +10,12 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["logs.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/logs",
     tags = ["automanaged"],
     deps = [
-        "//vendor/github.com/golang/glog:go_default_library",
-        "//vendor/github.com/spf13/pflag:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
+        "//cmd/vendor/github.com/golang/glog:go_default_library",
+        "//cmd/vendor/github.com/spf13/pflag:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
     ],
 )
 

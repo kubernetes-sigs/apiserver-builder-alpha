@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["deep_equal_test.go"],
+    importpath = "k8s.io/apimachinery/third_party/forked/golang/reflect",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -21,5 +22,6 @@ go_library(
         "deep_equal.go",
         "type.go",
     ],
+    importpath = "k8s.io/apimachinery/third_party/forked/golang/reflect",
     tags = ["automanaged"],
 )

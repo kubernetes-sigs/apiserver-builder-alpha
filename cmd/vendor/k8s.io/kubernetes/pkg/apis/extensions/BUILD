@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["helpers_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/apis/extensions",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -24,15 +25,16 @@ go_library(
         "types.go",
         "zz_generated.deepcopy.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/apis/extensions",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/conversion:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/intstr:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/conversion:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/intstr:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/api:go_default_library",
     ],
 )
 

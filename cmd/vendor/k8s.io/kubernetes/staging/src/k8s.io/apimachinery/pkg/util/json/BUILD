@@ -11,12 +11,14 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["json.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/util/json",
     tags = ["automanaged"],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["json_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/util/json",
     library = ":go_default_library",
     tags = ["automanaged"],
 )

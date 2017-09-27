@@ -13,12 +13,13 @@ go_library(
         "doc.go",
         "protobuf.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/runtime/serializer/protobuf",
     tags = ["automanaged"],
     deps = [
-        "//vendor/github.com/gogo/protobuf/proto:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/runtime/serializer/recognizer:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/framer:go_default_library",
+        "//cmd/vendor/github.com/gogo/protobuf/proto:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/runtime/serializer/recognizer:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/framer:go_default_library",
     ],
 )

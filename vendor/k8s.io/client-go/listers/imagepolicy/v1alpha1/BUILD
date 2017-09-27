@@ -13,6 +13,7 @@ go_library(
         "expansion_generated.go",
         "imagereview.go",
     ],
+    importpath = "k8s.io/client-go/listers/imagepolicy/v1alpha1",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/imagepolicy/v1alpha1:go_default_library",

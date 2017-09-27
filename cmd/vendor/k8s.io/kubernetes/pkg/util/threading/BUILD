@@ -11,13 +11,15 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["deadlock-detector.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/threading",
     tags = ["automanaged"],
-    deps = ["//vendor/github.com/golang/glog:go_default_library"],
+    deps = ["//cmd/vendor/github.com/golang/glog:go_default_library"],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["deadlock-detector_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/threading",
     library = ":go_default_library",
     tags = ["automanaged"],
 )

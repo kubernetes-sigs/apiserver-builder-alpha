@@ -10,5 +10,6 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["homedir.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/util/homedir",
     tags = ["automanaged"],
 )

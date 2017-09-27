@@ -10,11 +10,12 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["volumehelper.go"],
+    importpath = "k8s.io/kubernetes/pkg/volume/util/volumehelper",
     tags = ["automanaged"],
     deps = [
-        "//pkg/volume:go_default_library",
-        "//pkg/volume/util/types:go_default_library",
-        "//vendor/k8s.io/api/core/v1:go_default_library",
+        "//cmd/vendor/k8s.io/api/core/v1:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/volume:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/volume/util/types:go_default_library",
     ],
 )
 

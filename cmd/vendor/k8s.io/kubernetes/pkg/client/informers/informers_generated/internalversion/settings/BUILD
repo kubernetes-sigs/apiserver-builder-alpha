@@ -10,10 +10,11 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["interface.go"],
+    importpath = "k8s.io/kubernetes/pkg/client/informers/informers_generated/internalversion/settings",
     tags = ["automanaged"],
     deps = [
-        "//pkg/client/informers/informers_generated/internalversion/internalinterfaces:go_default_library",
-        "//pkg/client/informers/informers_generated/internalversion/settings/internalversion:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/client/informers/informers_generated/internalversion/internalinterfaces:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/client/informers/informers_generated/internalversion/settings/internalversion:go_default_library",
     ],
 )
 

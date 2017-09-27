@@ -10,11 +10,12 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["time.go"],
+    importpath = "k8s.io/kubernetes/pkg/apis/meta/v1",
     tags = ["automanaged"],
     deps = [
-        "//vendor/github.com/go-openapi/spec:go_default_library",
+        "//cmd/vendor/github.com/go-openapi/spec:go_default_library",
         "//vendor/github.com/google/gofuzz:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/openapi:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/openapi:go_default_library",
     ],
 )
 

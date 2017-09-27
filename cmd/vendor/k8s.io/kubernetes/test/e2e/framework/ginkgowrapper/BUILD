@@ -10,8 +10,9 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["wrapper.go"],
+    importpath = "k8s.io/kubernetes/test/e2e/framework/ginkgowrapper",
     tags = ["automanaged"],
-    deps = ["//vendor/github.com/onsi/ginkgo:go_default_library"],
+    deps = ["//cmd/vendor/github.com/onsi/ginkgo:go_default_library"],
 )
 
 filegroup(

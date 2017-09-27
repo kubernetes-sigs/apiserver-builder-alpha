@@ -11,16 +11,18 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["ebtables.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/ebtables",
     tags = ["automanaged"],
-    deps = ["//pkg/util/exec:go_default_library"],
+    deps = ["//cmd/vendor/k8s.io/kubernetes/pkg/util/exec:go_default_library"],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["ebtables_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/ebtables",
     library = ":go_default_library",
     tags = ["automanaged"],
-    deps = ["//pkg/util/exec:go_default_library"],
+    deps = ["//cmd/vendor/k8s.io/kubernetes/pkg/util/exec:go_default_library"],
 )
 
 filegroup(

@@ -11,21 +11,23 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["azure_credentials.go"],
+    importpath = "k8s.io/kubernetes/pkg/credentialprovider/azure",
     tags = ["automanaged"],
     deps = [
-        "//pkg/cloudprovider/providers/azure:go_default_library",
-        "//pkg/credentialprovider:go_default_library",
         "//vendor/github.com/Azure/azure-sdk-for-go/arm/containerregistry:go_default_library",
         "//vendor/github.com/Azure/go-autorest/autorest:go_default_library",
         "//vendor/github.com/Azure/go-autorest/autorest/azure:go_default_library",
-        "//vendor/github.com/golang/glog:go_default_library",
-        "//vendor/github.com/spf13/pflag:go_default_library",
+        "//cmd/vendor/github.com/golang/glog:go_default_library",
+        "//cmd/vendor/github.com/spf13/pflag:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/cloudprovider/providers/azure:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/credentialprovider:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["azure_credentials_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/credentialprovider/azure",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [

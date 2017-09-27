@@ -16,12 +16,13 @@ go_library(
         "fake_tokenreview.go",
         "fake_tokenreview_expansion.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset/typed/authentication/internalversion/fake",
     tags = ["automanaged"],
     deps = [
-        "//pkg/apis/authentication:go_default_library",
-        "//pkg/client/clientset_generated/internalclientset/typed/authentication/internalversion:go_default_library",
-        "//vendor/k8s.io/client-go/rest:go_default_library",
-        "//vendor/k8s.io/client-go/testing:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/rest:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/testing:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/apis/authentication:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset/typed/authentication/internalversion:go_default_library",
     ],
 )
 

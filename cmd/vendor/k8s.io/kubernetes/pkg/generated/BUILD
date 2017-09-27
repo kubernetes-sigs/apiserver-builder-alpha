@@ -13,6 +13,7 @@ go_library(
         "bindata.go",
         "doc.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/generated",
     tags = ["automanaged"],
 )
 

@@ -13,9 +13,10 @@ go_library(
         "common.go",
         "doc.go",
     ],
+    importpath = "k8s.io/apimachinery/pkg/openapi",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/emicklei/go-restful:go_default_library",
-        "//vendor/github.com/go-openapi/spec:go_default_library",
+        "//cmd/vendor/github.com/go-openapi/spec:go_default_library",
     ],
 )

@@ -31,6 +31,7 @@ go_library(
         "service_expansion.go",
         "serviceaccount.go",
     ],
+    importpath = "k8s.io/client-go/listers/core/v1",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/core/v1:go_default_library",

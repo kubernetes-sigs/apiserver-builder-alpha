@@ -11,22 +11,24 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["taints.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/taints",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//vendor/k8s.io/api/core/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/validation:go_default_library",
+        "//cmd/vendor/k8s.io/api/core/v1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/validation:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/api:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["taints_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/taints",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//vendor/github.com/spf13/pflag:go_default_library",
+        "//cmd/vendor/github.com/spf13/pflag:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/api:go_default_library",
     ],
 )
 

@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["metrics.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/storage/etcd/metrics",
     tags = ["automanaged"],
     deps = ["//vendor/github.com/prometheus/client_golang/prometheus:go_default_library"],
 )

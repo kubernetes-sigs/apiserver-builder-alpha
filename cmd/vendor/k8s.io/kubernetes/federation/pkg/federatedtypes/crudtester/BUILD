@@ -10,14 +10,15 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["crudtester.go"],
+    importpath = "k8s.io/kubernetes/federation/pkg/federatedtypes/crudtester",
     tags = ["automanaged"],
     deps = [
-        "//federation/pkg/federatedtypes:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
-        "//vendor/k8s.io/client-go/kubernetes:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/kubernetes:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/federation/pkg/federatedtypes:go_default_library",
     ],
 )
 

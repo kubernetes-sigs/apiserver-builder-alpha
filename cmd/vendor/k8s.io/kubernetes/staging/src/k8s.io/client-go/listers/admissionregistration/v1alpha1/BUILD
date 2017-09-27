@@ -14,12 +14,13 @@ go_library(
         "externaladmissionhookconfiguration.go",
         "initializerconfiguration.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/client-go/listers/admissionregistration/v1alpha1",
     tags = ["automanaged"],
     deps = [
-        "//vendor/k8s.io/api/admissionregistration/v1alpha1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
-        "//vendor/k8s.io/client-go/tools/cache:go_default_library",
+        "//cmd/vendor/k8s.io/api/admissionregistration/v1alpha1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/tools/cache:go_default_library",
     ],
 )

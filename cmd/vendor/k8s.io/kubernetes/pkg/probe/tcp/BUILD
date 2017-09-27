@@ -11,19 +11,21 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["tcp.go"],
+    importpath = "k8s.io/kubernetes/pkg/probe/tcp",
     tags = ["automanaged"],
     deps = [
-        "//pkg/probe:go_default_library",
-        "//vendor/github.com/golang/glog:go_default_library",
+        "//cmd/vendor/github.com/golang/glog:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/probe:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["tcp_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/probe/tcp",
     library = ":go_default_library",
     tags = ["automanaged"],
-    deps = ["//pkg/probe:go_default_library"],
+    deps = ["//cmd/vendor/k8s.io/kubernetes/pkg/probe:go_default_library"],
 )
 
 filegroup(

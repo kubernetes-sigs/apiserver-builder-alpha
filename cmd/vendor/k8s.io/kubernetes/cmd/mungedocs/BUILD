@@ -11,6 +11,7 @@ load(
 
 go_binary(
     name = "mungedocs",
+    importpath = "k8s.io/kubernetes/cmd/mungedocs",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -33,6 +34,7 @@ go_test(
         ":testdata",
         "//docs:srcs",
     ],
+    importpath = "k8s.io/kubernetes/cmd/mungedocs",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = ["//vendor/github.com/stretchr/testify/assert:go_default_library"],
@@ -52,8 +54,9 @@ go_library(
         "util.go",
         "whitespace.go",
     ],
+    importpath = "k8s.io/kubernetes/cmd/mungedocs",
     tags = ["automanaged"],
-    deps = ["//vendor/github.com/spf13/pflag:go_default_library"],
+    deps = ["//cmd/vendor/github.com/spf13/pflag:go_default_library"],
 )
 
 filegroup(

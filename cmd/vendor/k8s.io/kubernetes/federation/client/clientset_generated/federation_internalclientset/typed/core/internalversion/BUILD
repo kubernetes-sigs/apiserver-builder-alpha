@@ -20,14 +20,15 @@ go_library(
         "secret.go",
         "service.go",
     ],
+    importpath = "k8s.io/kubernetes/federation/client/clientset_generated/federation_internalclientset/typed/core/internalversion",
     tags = ["automanaged"],
     deps = [
-        "//federation/client/clientset_generated/federation_internalclientset/scheme:go_default_library",
-        "//pkg/api:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
-        "//vendor/k8s.io/client-go/rest:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/types:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/rest:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/federation/client/clientset_generated/federation_internalclientset/scheme:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/api:go_default_library",
     ],
 )
 

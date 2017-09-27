@@ -20,12 +20,13 @@ go_library(
         "subjectaccessreview.go",
         "subjectaccessreview_expansion.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/client/clientset_generated/clientset/typed/authorization/v1beta1",
     tags = ["automanaged"],
     deps = [
-        "//pkg/client/clientset_generated/clientset/scheme:go_default_library",
-        "//vendor/k8s.io/api/authorization/v1beta1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/runtime/serializer:go_default_library",
-        "//vendor/k8s.io/client-go/rest:go_default_library",
+        "//cmd/vendor/k8s.io/api/authorization/v1beta1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/runtime/serializer:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/rest:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/client/clientset_generated/clientset/scheme:go_default_library",
     ],
 )
 

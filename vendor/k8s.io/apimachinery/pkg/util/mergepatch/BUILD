@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["util_test.go"],
+    importpath = "k8s.io/apimachinery/pkg/util/mergepatch",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -21,6 +22,7 @@ go_library(
         "errors.go",
         "util.go",
     ],
+    importpath = "k8s.io/apimachinery/pkg/util/mergepatch",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/davecgh/go-spew/spew:go_default_library",

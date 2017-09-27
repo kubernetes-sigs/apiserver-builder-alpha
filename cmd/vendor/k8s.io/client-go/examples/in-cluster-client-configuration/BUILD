@@ -10,6 +10,7 @@ load(
 
 go_binary(
     name = "in-cluster-client-configuration",
+    importpath = "k8s.io/client-go/examples/in-cluster-client-configuration",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -17,11 +18,12 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
+    importpath = "k8s.io/client-go/examples/in-cluster-client-configuration",
     tags = ["automanaged"],
     deps = [
-        "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
-        "//vendor/k8s.io/client-go/kubernetes:go_default_library",
-        "//vendor/k8s.io/client-go/rest:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/kubernetes:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/rest:go_default_library",
     ],
 )

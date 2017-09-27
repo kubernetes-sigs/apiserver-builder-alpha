@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["interfaces.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/authorization/authorizer",
     tags = ["automanaged"],
-    deps = ["//vendor/k8s.io/apiserver/pkg/authentication/user:go_default_library"],
+    deps = ["//cmd/vendor/k8s.io/apiserver/pkg/authentication/user:go_default_library"],
 )

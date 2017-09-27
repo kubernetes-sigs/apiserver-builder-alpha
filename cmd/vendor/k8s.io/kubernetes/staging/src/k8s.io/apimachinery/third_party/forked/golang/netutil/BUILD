@@ -10,5 +10,6 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["addr.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/third_party/forked/golang/netutil",
     tags = ["automanaged"],
 )

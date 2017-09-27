@@ -1,3 +1,5 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
 package(default_visibility = ["//visibility:public"])
 
 load("//pkg/generated/openapi:def.bzl", "openapi_library")
@@ -66,4 +68,10 @@ filegroup(
     name = "all-srcs",
     srcs = [":package-srcs"],
     tags = ["automanaged"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = ["doc.go"],
+    importpath = "k8s.io/kubernetes/pkg/generated/openapi",
 )

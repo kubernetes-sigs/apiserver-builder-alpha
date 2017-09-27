@@ -17,6 +17,7 @@ go_binary(
         "-extldflags",
         "-static",
     ],
+    importpath = "k8s.io/kubernetes/cmd/kube-proxy",
     library = ":go_default_library",
     tags = ["automanaged"],
     x_defs = version_x_defs(),
@@ -25,14 +26,15 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["proxy.go"],
+    importpath = "k8s.io/kubernetes/cmd/kube-proxy",
     tags = ["automanaged"],
     deps = [
-        "//cmd/kube-proxy/app:go_default_library",
-        "//pkg/client/metrics/prometheus:go_default_library",
-        "//pkg/version/prometheus:go_default_library",
-        "//vendor/github.com/spf13/pflag:go_default_library",
-        "//vendor/k8s.io/apiserver/pkg/util/flag:go_default_library",
-        "//vendor/k8s.io/apiserver/pkg/util/logs:go_default_library",
+        "//cmd/vendor/github.com/spf13/pflag:go_default_library",
+        "//cmd/vendor/k8s.io/apiserver/pkg/util/flag:go_default_library",
+        "//cmd/vendor/k8s.io/apiserver/pkg/util/logs:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/cmd/kube-proxy/app:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/client/metrics/prometheus:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/version/prometheus:go_default_library",
     ],
 )
 

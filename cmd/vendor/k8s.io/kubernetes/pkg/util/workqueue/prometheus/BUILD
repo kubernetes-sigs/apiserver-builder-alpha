@@ -10,10 +10,11 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["prometheus.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/workqueue/prometheus",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/prometheus/client_golang/prometheus:go_default_library",
-        "//vendor/k8s.io/client-go/util/workqueue:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/util/workqueue:go_default_library",
     ],
 )
 

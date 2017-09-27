@@ -16,16 +16,17 @@ go_library(
         "template.go",
         "version.go",
     ],
+    importpath = "k8s.io/kubernetes/cmd/kubeadm/app/util",
     tags = ["automanaged"],
     deps = [
-        "//cmd/kubeadm/app/constants:go_default_library",
-        "//cmd/kubeadm/app/preflight:go_default_library",
-        "//cmd/kubeadm/app/util/kubeconfig:go_default_library",
-        "//vendor/k8s.io/api/core/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/errors:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
-        "//vendor/k8s.io/client-go/kubernetes:go_default_library",
+        "//cmd/vendor/k8s.io/api/core/v1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/errors:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
+        "//cmd/vendor/k8s.io/client-go/kubernetes:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/cmd/kubeadm/app/constants:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/cmd/kubeadm/app/preflight:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig:go_default_library",
     ],
 )
 
@@ -36,9 +37,10 @@ go_test(
         "template_test.go",
         "version_test.go",
     ],
+    importpath = "k8s.io/kubernetes/cmd/kubeadm/app/util",
     library = ":go_default_library",
     tags = ["automanaged"],
-    deps = ["//cmd/kubeadm/app/preflight:go_default_library"],
+    deps = ["//cmd/vendor/k8s.io/kubernetes/cmd/kubeadm/app/preflight:go_default_library"],
 )
 
 filegroup(

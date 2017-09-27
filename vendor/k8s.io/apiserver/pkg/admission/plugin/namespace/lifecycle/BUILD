@@ -11,6 +11,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["admission.go"],
+    importpath = "k8s.io/apiserver/pkg/admission/plugin/namespace/lifecycle",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",
@@ -32,6 +33,7 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = ["admission_test.go"],
+    importpath = "k8s.io/apiserver/pkg/admission/plugin/namespace/lifecycle",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [

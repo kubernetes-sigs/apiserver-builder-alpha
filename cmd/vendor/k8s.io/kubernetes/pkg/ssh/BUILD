@@ -11,26 +11,28 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["ssh_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/ssh",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//vendor/github.com/golang/glog:go_default_library",
+        "//cmd/vendor/github.com/golang/glog:go_default_library",
         "//vendor/golang.org/x/crypto/ssh:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
     ],
 )
 
 go_library(
     name = "go_default_library",
     srcs = ["ssh.go"],
+    importpath = "k8s.io/kubernetes/pkg/ssh",
     tags = ["automanaged"],
     deps = [
-        "//vendor/github.com/golang/glog:go_default_library",
+        "//cmd/vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/prometheus/client_golang/prometheus:go_default_library",
         "//vendor/golang.org/x/crypto/ssh:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/net:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/runtime:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/net:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/runtime:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
     ],
 )
 

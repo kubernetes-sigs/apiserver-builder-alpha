@@ -13,5 +13,6 @@ go_library(
         "doc.go",
         "user.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/authentication/user",
     tags = ["automanaged"],
 )

@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["interrupt.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/interrupt",
     tags = ["automanaged"],
 )
 

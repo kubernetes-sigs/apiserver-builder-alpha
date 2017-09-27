@@ -15,6 +15,7 @@ go_library(
         "poddisruptionbudget.go",
         "poddisruptionbudget_expansion.go",
     ],
+    importpath = "k8s.io/client-go/listers/policy/v1beta1",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

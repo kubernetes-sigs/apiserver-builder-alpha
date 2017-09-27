@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["intstr_test.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/util/intstr",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = ["//vendor/github.com/ghodss/yaml:go_default_library"],
@@ -22,12 +23,19 @@ go_library(
         "generated.pb.go",
         "intstr.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apimachinery/pkg/util/intstr",
     tags = ["automanaged"],
     deps = [
-        "//vendor/github.com/go-openapi/spec:go_default_library",
-        "//vendor/github.com/gogo/protobuf/proto:go_default_library",
-        "//vendor/github.com/golang/glog:go_default_library",
+        "//cmd/vendor/github.com/go-openapi/spec:go_default_library",
+        "//cmd/vendor/github.com/gogo/protobuf/proto:go_default_library",
+        "//cmd/vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/google/gofuzz:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/openapi:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/openapi:go_default_library",
     ],
+)
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = ["generated.proto"],
+    visibility = ["//visibility:public"],
 )

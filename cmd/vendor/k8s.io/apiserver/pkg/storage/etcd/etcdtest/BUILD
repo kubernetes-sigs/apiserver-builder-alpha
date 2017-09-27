@@ -13,5 +13,6 @@ go_library(
         "doc.go",
         "etcdtest.go",
     ],
+    importpath = "k8s.io/apiserver/pkg/storage/etcd/etcdtest",
     tags = ["automanaged"],
 )

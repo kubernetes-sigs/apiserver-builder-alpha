@@ -11,6 +11,8 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["csr_test.go"],
+    data = glob(["testdata/**"]),
+    importpath = "k8s.io/client-go/util/cert",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -26,5 +28,6 @@ go_library(
     data = [
         "testdata/dontUseThisKey.pem",
     ],
+    importpath = "k8s.io/client-go/util/cert",
     tags = ["automanaged"],
 )

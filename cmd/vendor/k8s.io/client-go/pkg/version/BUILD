@@ -14,6 +14,7 @@ go_library(
         "doc.go",
         "version.go",
     ],
+    importpath = "k8s.io/client-go/pkg/version",
     tags = ["automanaged"],
-    deps = ["//vendor/k8s.io/apimachinery/pkg/version:go_default_library"],
+    deps = ["//cmd/vendor/k8s.io/apimachinery/pkg/version:go_default_library"],
 )

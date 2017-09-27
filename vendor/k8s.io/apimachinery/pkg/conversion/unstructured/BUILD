@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["converter_test.go"],
+    importpath = "k8s.io/apimachinery/pkg/conversion/unstructured",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -25,6 +26,7 @@ go_library(
         "converter.go",
         "doc.go",
     ],
+    importpath = "k8s.io/apimachinery/pkg/conversion/unstructured",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

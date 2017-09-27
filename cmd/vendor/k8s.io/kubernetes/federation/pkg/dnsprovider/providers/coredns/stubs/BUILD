@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["corednsapi.go"],
+    importpath = "k8s.io/kubernetes/federation/pkg/dnsprovider/providers/coredns/stubs",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/coreos/etcd/client:go_default_library",

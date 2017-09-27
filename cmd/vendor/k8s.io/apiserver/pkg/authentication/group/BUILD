@@ -11,11 +11,12 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["group_adder_test.go"],
+    importpath = "k8s.io/apiserver/pkg/authentication/group",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//vendor/k8s.io/apiserver/pkg/authentication/authenticator:go_default_library",
-        "//vendor/k8s.io/apiserver/pkg/authentication/user:go_default_library",
+        "//cmd/vendor/k8s.io/apiserver/pkg/authentication/authenticator:go_default_library",
+        "//cmd/vendor/k8s.io/apiserver/pkg/authentication/user:go_default_library",
     ],
 )
 
@@ -25,9 +26,10 @@ go_library(
         "authenticated_group_adder.go",
         "group_adder.go",
     ],
+    importpath = "k8s.io/apiserver/pkg/authentication/group",
     tags = ["automanaged"],
     deps = [
-        "//vendor/k8s.io/apiserver/pkg/authentication/authenticator:go_default_library",
-        "//vendor/k8s.io/apiserver/pkg/authentication/user:go_default_library",
+        "//cmd/vendor/k8s.io/apiserver/pkg/authentication/authenticator:go_default_library",
+        "//cmd/vendor/k8s.io/apiserver/pkg/authentication/user:go_default_library",
     ],
 )

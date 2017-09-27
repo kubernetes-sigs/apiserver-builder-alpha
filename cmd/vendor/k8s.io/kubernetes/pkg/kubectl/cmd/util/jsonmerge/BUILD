@@ -8,12 +8,14 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["jsonmerge.go"],
+    importpath = "k8s.io/kubernetes/pkg/kubectl/cmd/util/jsonmerge",
     tags = ["automanaged"],
+    visibility = ["//visibility:public"],
     deps = [
         "//vendor/github.com/evanphx/json-patch:go_default_library",
-        "//vendor/github.com/golang/glog:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/mergepatch:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/yaml:go_default_library",
+        "//cmd/vendor/github.com/golang/glog:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/mergepatch:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/yaml:go_default_library",
     ],
 )
 

@@ -10,5 +10,6 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["trie.go"],
+    importpath = "k8s.io/apiserver/pkg/util/trie",
     tags = ["automanaged"],
 )

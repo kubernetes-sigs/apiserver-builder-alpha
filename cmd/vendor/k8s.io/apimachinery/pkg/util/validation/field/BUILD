@@ -14,6 +14,7 @@ go_test(
         "errors_test.go",
         "path_test.go",
     ],
+    importpath = "k8s.io/apimachinery/pkg/util/validation/field",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -24,9 +25,10 @@ go_library(
         "errors.go",
         "path.go",
     ],
+    importpath = "k8s.io/apimachinery/pkg/util/validation/field",
     tags = ["automanaged"],
     deps = [
-        "//vendor/k8s.io/apimachinery/pkg/util/errors:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/sets:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/errors:go_default_library",
+        "//cmd/vendor/k8s.io/apimachinery/pkg/util/sets:go_default_library",
     ],
 )

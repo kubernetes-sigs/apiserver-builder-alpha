@@ -15,6 +15,7 @@ go_library(
         "interface.go",
         "statefulset.go",
     ],
+    importpath = "k8s.io/client-go/informers/apps/v1beta1",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/apps/v1beta1:go_default_library",

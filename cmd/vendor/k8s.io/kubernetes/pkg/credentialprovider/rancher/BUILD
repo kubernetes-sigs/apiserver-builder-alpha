@@ -11,11 +11,12 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["rancher_registry_credentials_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/credentialprovider/rancher",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//pkg/credentialprovider:go_default_library",
         "//vendor/github.com/rancher/go-rancher/client:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/credentialprovider:go_default_library",
     ],
 )
 
@@ -25,11 +26,12 @@ go_library(
         "doc.go",
         "rancher_registry_credentials.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/credentialprovider/rancher",
     tags = ["automanaged"],
     deps = [
-        "//pkg/credentialprovider:go_default_library",
-        "//vendor/github.com/golang/glog:go_default_library",
+        "//cmd/vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/rancher/go-rancher/client:go_default_library",
+        "//cmd/vendor/k8s.io/kubernetes/pkg/credentialprovider:go_default_library",
     ],
 )
 

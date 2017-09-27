@@ -11,6 +11,7 @@ load(
 
 go_binary(
     name = "list",
+    importpath = "k8s.io/kubernetes/test/list",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -18,6 +19,7 @@ go_binary(
 go_test(
     name = "go_default_test",
     srcs = ["main_test.go"],
+    importpath = "k8s.io/kubernetes/test/list",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -25,6 +27,7 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
+    importpath = "k8s.io/kubernetes/test/list",
     tags = ["automanaged"],
 )
 
