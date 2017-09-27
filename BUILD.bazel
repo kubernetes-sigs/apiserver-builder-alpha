@@ -1,15 +1,20 @@
-filegroup(
-    name = "all",
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar", "pkg_deb")
+
+pkg_tar(
+    name = "apiserver-builder",
+    extension = "tar.gz",
+    package_dir = "apiserver-builder",
     srcs = [
-        "//cmd/apiregister-gen",
-        "//cmd/apiserver-boot",
-        "//vendor/github.com/kubernetes-incubator/reference-docs/gen-apidocs",
-        "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/client-gen",
-        "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/conversion-gen",
-        "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/deepcopy-gen",
-        "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/defaulter-gen",
-        "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/informer-gen",
-        "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/lister-gen",
-        "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/openapi-gen",
+            "//cmd/apiregister-gen",
+            "//cmd/apiserver-boot",
+            "//vendor/github.com/kubernetes-incubator/reference-docs/gen-apidocs",
+            "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/client-gen",
+            "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/conversion-gen",
+            "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/deepcopy-gen",
+            "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/defaulter-gen",
+            "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/informer-gen",
+            "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/lister-gen",
+            "//vendor/k8s.io/kubernetes/cmd/libs/go2idl/openapi-gen",
     ],
+    mode = "0755",
 )
