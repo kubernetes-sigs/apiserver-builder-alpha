@@ -144,7 +144,7 @@ func RunBuild(cmd *cobra.Command, args []string) {
 		BuildVendorTar(dir)
 
 		for _, pkg := range VendoredBuildPackages {
-			Build(filepath.Join("vendor", pkg, "main.go"),
+			Build(filepath.Join("cmd", "vendor", pkg, "main.go"),
 				filepath.Join(dir, "bin", filepath.Base(pkg)),
 				goos, goarch,
 			)
