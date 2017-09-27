@@ -1,4 +1,4 @@
-package: github.com/kubernetes-incubator/apiserver-builder
+package: github.com/kubernetes-incubator/apiserver-builder/cmd
 ignore:
 - github.com/kubernetes-incubator/apiserver-builder
 import:
