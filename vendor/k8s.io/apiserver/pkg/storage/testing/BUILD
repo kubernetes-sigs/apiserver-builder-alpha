@@ -16,6 +16,7 @@ go_library(
         "utils.go",
         "zz_generated.deepcopy.go",
     ],
+    importpath = "k8s.io/apiserver/pkg/storage/testing",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/ugorji/go/codec:go_default_library",

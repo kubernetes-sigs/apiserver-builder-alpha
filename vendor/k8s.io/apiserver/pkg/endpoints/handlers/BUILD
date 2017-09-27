@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["rest_test.go"],
+    importpath = "k8s.io/apiserver/pkg/endpoints/handlers",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -42,6 +43,7 @@ go_library(
         "rest.go",
         "watch.go",
     ],
+    importpath = "k8s.io/apiserver/pkg/endpoints/handlers",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/evanphx/json-patch:go_default_library",

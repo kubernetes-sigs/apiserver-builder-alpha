@@ -22,8 +22,6 @@ import:
   version: 7b1b6e8dc027253d45fc029bc269d1c019f83a34
 - package: github.com/spf13/pflag
   version: d90f37a48761fe767528f31db1955e4f795d652f
-- package: github.com/markbates/inflect
-  version: 6cacb66d100482ef7cc366289ccb156020e57e76
 - package: k8s.io/apimachinery
   version: 7da60ba7ddca684051555f2c558eef2dfebc70d5
 - package: k8s.io/apiserver
@@ -37,11 +35,3 @@ import:
   version: ~1.3.1
 - package: github.com/onsi/gomega
   version: ~1.1.0
-- package: k8s.io/kubernetes
-  version: effcdda0cee4d4c8d1df832f17bb5fbd281c4bad
-  subpackages:
-  - cmd/libs/go2idl
-- package: github.com/kubernetes-incubator/reference-docs
-  version: 9000d782e8f8dbfd670b9c48bd4b47af8f6adb49
-  subpackages:
-  - gen-apidocs

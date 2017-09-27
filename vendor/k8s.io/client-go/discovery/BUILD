@@ -16,6 +16,7 @@ go_library(
         "restmapper.go",
         "unstructured.go",
     ],
+    importpath = "k8s.io/client-go/discovery",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/emicklei/go-restful-swagger12:go_default_library",
@@ -43,8 +44,10 @@ go_test(
         "helper_blackbox_test.go",
         "restmapper_test.go",
     ],
+    importpath = "k8s.io/client-go/discovery_test",
     tags = ["automanaged"],
     deps = [
+        ":go_default_library",
         "//vendor/github.com/emicklei/go-restful-swagger12:go_default_library",
         "//vendor/github.com/gogo/protobuf/proto:go_default_library",
         "//vendor/github.com/googleapis/gnostic/OpenAPIv2:go_default_library",
@@ -56,7 +59,6 @@ go_test(
         "//vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/sets:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/version:go_default_library",
-        "//vendor/k8s.io/client-go/discovery:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes/scheme:go_default_library",
         "//vendor/k8s.io/client-go/rest:go_default_library",
         "//vendor/k8s.io/client-go/rest/fake:go_default_library",

@@ -18,6 +18,7 @@ go_test(
         "url_utils_test.go",
         "urlbackoff_test.go",
     ],
+    importpath = "k8s.io/client-go/rest",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -59,6 +60,7 @@ go_library(
         "versions.go",
         "zz_generated.deepcopy.go",
     ],
+    importpath = "k8s.io/client-go/rest",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

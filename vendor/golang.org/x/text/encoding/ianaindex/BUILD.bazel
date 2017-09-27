@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["ianaindex.go"],
+    importpath = "golang.org/x/text/encoding/ianaindex",
+    visibility = ["//visibility:public"],
+    deps = ["//vendor/golang.org/x/text/encoding:go_default_library"],
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = ["example_test.go"],
+    importpath = "golang.org/x/text/encoding/ianaindex_test",
+    deps = [
+        ":go_default_library",
+        "//vendor/golang.org/x/text/encoding/charmap:go_default_library",
+    ],
+)

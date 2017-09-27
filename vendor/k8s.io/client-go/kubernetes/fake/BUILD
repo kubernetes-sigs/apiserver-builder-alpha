@@ -14,6 +14,7 @@ go_library(
         "doc.go",
         "register.go",
     ],
+    importpath = "k8s.io/client-go/kubernetes/fake",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/admissionregistration/v1alpha1:go_default_library",

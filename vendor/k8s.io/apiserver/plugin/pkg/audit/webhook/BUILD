@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["webhook_test.go"],
+    importpath = "k8s.io/apiserver/plugin/pkg/audit/webhook",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -28,6 +29,7 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["webhook.go"],
+    importpath = "k8s.io/apiserver/plugin/pkg/audit/webhook",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/apimachinery/announced:go_default_library",

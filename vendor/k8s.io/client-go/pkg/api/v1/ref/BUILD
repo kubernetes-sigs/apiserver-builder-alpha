@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["ref.go"],
+    importpath = "k8s.io/client-go/pkg/api/v1/ref",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/core/v1:go_default_library",

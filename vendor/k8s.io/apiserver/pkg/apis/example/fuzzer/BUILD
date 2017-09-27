@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["fuzzer.go"],
+    importpath = "k8s.io/apiserver/pkg/apis/example/fuzzer",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/google/gofuzz:go_default_library",

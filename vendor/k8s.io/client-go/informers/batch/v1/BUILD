@@ -13,6 +13,7 @@ go_library(
         "interface.go",
         "job.go",
     ],
+    importpath = "k8s.io/client-go/informers/batch/v1",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/batch/v1:go_default_library",

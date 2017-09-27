@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["uuid.go"],
+    importpath = "k8s.io/apimachinery/pkg/util/uuid",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/pborman/uuid:go_default_library",

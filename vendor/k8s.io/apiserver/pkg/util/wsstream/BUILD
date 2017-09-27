@@ -14,6 +14,7 @@ go_test(
         "conn_test.go",
         "stream_test.go",
     ],
+    importpath = "k8s.io/apiserver/pkg/util/wsstream",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = ["//vendor/golang.org/x/net/websocket:go_default_library"],
@@ -26,6 +27,7 @@ go_library(
         "doc.go",
         "stream.go",
     ],
+    importpath = "k8s.io/apiserver/pkg/util/wsstream",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

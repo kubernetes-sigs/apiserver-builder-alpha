@@ -13,6 +13,7 @@ go_library(
         "expansion_generated.go",
         "storageclass.go",
     ],
+    importpath = "k8s.io/client-go/listers/storage/v1",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/storage/v1:go_default_library",

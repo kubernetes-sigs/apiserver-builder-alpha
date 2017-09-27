@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["proxy_test.go"],
+    importpath = "k8s.io/apiserver/pkg/util/proxy",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -25,6 +26,7 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["proxy.go"],
+    importpath = "k8s.io/apiserver/pkg/util/proxy",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/core/v1:go_default_library",

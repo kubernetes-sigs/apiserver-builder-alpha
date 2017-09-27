@@ -14,6 +14,7 @@ go_library(
         "endpointslock.go",
         "interface.go",
     ],
+    importpath = "k8s.io/client-go/tools/leaderelection/resourcelock",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/api/core/v1:go_default_library",

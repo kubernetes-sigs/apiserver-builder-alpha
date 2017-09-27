@@ -1,5 +1,5 @@
-hash: 5e8b3cbb88a8e709f68cf0ace2436a8b746d2e7b2cc0907111eec9564f384e3e
-updated: 2017-07-19T13:13:58.211237229-07:00
+hash: c3e4ef353de84d1f91f3a9719cabe885b524584cda895477c98c7c6bcf43b6ce
+updated: 2017-09-27T07:04:06.167464237-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -164,10 +164,6 @@ imports:
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
-- name: github.com/kubernetes-incubator/reference-docs
-  version: 9000d782e8f8dbfd670b9c48bd4b47af8f6adb49
-  subpackages:
-  - gen-apidocs
 - name: github.com/mailru/easyjson
   version: d5b7844b561a7bc640052f1b935f7b800330d7e0
   subpackages:
@@ -559,8 +555,6 @@ imports:
   - listers/settings/v1alpha1
   - listers/storage/v1
   - listers/storage/v1beta1
-  - pkg/api
-  - pkg/api/v1
   - pkg/api/v1/ref
   - pkg/version
   - plugin/pkg/client/auth
@@ -593,8 +587,4 @@ imports:
   - namer
   - parser
   - types
-- name: k8s.io/kubernetes
-  version: effcdda0cee4d4c8d1df832f17bb5fbd281c4bad
-  subpackages:
-  - cmd/libs/go2idl
 testImports: []

@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["install.go"],
+    importpath = "k8s.io/apimachinery/pkg/apis/testapigroup/install",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/apimachinery/announced:go_default_library",

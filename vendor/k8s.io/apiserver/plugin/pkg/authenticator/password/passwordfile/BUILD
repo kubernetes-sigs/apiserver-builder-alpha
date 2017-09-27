@@ -11,6 +11,7 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["passwordfile_test.go"],
+    importpath = "k8s.io/apiserver/plugin/pkg/authenticator/password/passwordfile",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = ["//vendor/k8s.io/apiserver/pkg/authentication/user:go_default_library"],
@@ -19,6 +20,7 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["passwordfile.go"],
+    importpath = "k8s.io/apiserver/plugin/pkg/authenticator/password/passwordfile",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

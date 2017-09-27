@@ -14,6 +14,7 @@ go_test(
         "labels_test.go",
         "selector_test.go",
     ],
+    importpath = "k8s.io/apimachinery/pkg/labels",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -30,6 +31,7 @@ go_library(
         "selector.go",
         "zz_generated.deepcopy.go",
     ],
+    importpath = "k8s.io/apimachinery/pkg/labels",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",
