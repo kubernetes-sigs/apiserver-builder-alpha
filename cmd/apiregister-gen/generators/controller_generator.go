@@ -74,24 +74,37 @@ type {{.Target.Kind}}Controller struct {
 
 	BeforeReconcile func(key string)
 	AfterReconcile  func(key string, err error)
+
+	Informers *sharedinformers.SharedInformers
 }
 
 // NewController returns a new {{.Target.Kind}}Controller for responding to {{.Target.Kind}} events
 func New{{.Target.Kind}}Controller(config *rest.Config, si *sharedinformers.SharedInformers) *{{.Target.Kind}}Controller {
 	q := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "{{.Target.Kind}}")
 
+	queue := &controller.QueueWorker{q, 10, "{{.Target.Kind}}", nil}
+	c := &{{.Target.Kind}}Controller{queue, nil, "{{.Target.Kind}}", nil, nil, si}
+
 	// For non-generated code to add events
 	uc := &{{.Target.Kind}}ControllerImpl{}
-	uc.Init(config, si, q)
+	uc.Init(config, si, c.LookupAndReconcile)
+	c.controller = uc
 
-	queue := &controller.QueueWorker{q, 10, "{{.Target.Kind}}", nil}
-	c := &{{.Target.Kind}}Controller{queue, uc, "{{.Target.Kind}}", nil, nil}
 	queue.Reconcile = c.reconcile
+	if c.Informers.WorkerQueues == nil {
+		c.Informers.WorkerQueues = map[string]*controller.QueueWorker{}
+	}
+	c.Informers.WorkerQueues["{{.Target.Kind}}"] = queue
+	si.Factory.{{title .Target.Group}}().{{title .Target.Version}}().{{title .Resource}}().Informer().AddEventHandler(&controller.QueueingEventHandler{q, nil})
 	return c
 }
 
 func (c *{{.Target.Kind}}Controller) GetName() string {
 	return c.Name
+}
+
+func (c *{{.Target.Kind}}Controller) LookupAndReconcile(key string) (err error) {
+	return c.reconcile(key)
 }
 
 func (c *{{.Target.Kind}}Controller) reconcile(key string) (err error) {
@@ -130,6 +143,9 @@ func (c *{{.Target.Kind}}Controller) reconcile(key string) (err error) {
 
 func (c *{{.Target.Kind}}Controller) Run(stopCh <-chan struct{}) {
 	c.queue.Run(stopCh)
+	for _, q := range c.Informers.WorkerQueues {
+		q.Run(stopCh)
+	}
     controller.GetDefaults(c.controller).Run(stopCh)
 }
 `
@@ -217,6 +233,7 @@ func (d *informersGenerator) Imports(c *generator.Context) []string {
 	repo := d.Controllers[0].Repo
 	return []string{
 		"time",
+		"github.com/kubernetes-incubator/apiserver-builder/pkg/controller",
 		"k8s.io/client-go/rest",
 		repo + "/pkg/client/clientset_generated/clientset",
 		repo + "/pkg/client/informers_generated/externalversions",
@@ -237,14 +254,22 @@ var InformersTemplate = `
 // SharedInformers wraps all informers used by controllers so that
 // they are shared across controller implementations
 type SharedInformers struct {
-	Factory externalversions.SharedInformerFactory
+	controller.SharedInformersDefaults
+	Factory           externalversions.SharedInformerFactory
 }
 
 // newSharedInformers returns a set of started informers
 func NewSharedInformers(config *rest.Config, shutdown <-chan struct{}) *SharedInformers {
-	cs := clientset.NewForConfigOrDie(config)
-	si := &SharedInformers{externalversions.NewSharedInformerFactory(cs, 10*time.Minute)}
+	si := &SharedInformers{
+		controller.SharedInformersDefaults{},
+		externalversions.NewSharedInformerFactory(clientset.NewForConfigOrDie(config), 10*time.Minute),
+	}
+    if si.SetupKubernetesTypes() {
+        si.InitKubernetesInformers(config)
+    }
+	si.Init()
 	si.startInformers(shutdown)
+	si.StartAdditionalInformers(shutdown)
 	return si
 }
 
@@ -254,5 +279,4 @@ func (si *SharedInformers) startInformers(shutdown <-chan struct{}) {
 	go si.Factory.{{title $c.Target.Group}}().{{title $c.Target.Version}}().{{plural $c.Target.Kind}}().Informer().Run(shutdown)
 	{{ end -}}
 }
-
 `

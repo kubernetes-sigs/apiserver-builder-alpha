@@ -352,10 +352,7 @@ import (
 	"log"
 
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/controller"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/cache"
-	"k8s.io/client-go/util/workqueue"
 
 	"{{.Repo}}/pkg/apis/{{.Group}}/{{.Version}}"
 	"{{.Repo}}/pkg/controller/sharedinformers"
@@ -365,9 +362,6 @@ import (
 // +controller:group={{ .Group }},version={{ .Version }},kind={{ .Kind}},resource={{ .Resource }}
 type {{.Kind}}ControllerImpl struct {
 	builders.DefaultControllerFns
-
-	// informer listens for events about {{.Kind}}
-	informer cache.SharedIndexInformer
 
 	// lister indexes properties about {{.Kind}}
 	lister listers.{{.Kind}}Lister
@@ -381,15 +375,10 @@ type {{.Kind}}ControllerImpl struct {
 func (c *{{.Kind}}ControllerImpl) Init(
 	config *rest.Config,
 	si *sharedinformers.SharedInformers,
-	queue workqueue.RateLimitingInterface) {
+    reconcileKey func(key string) error) {
 
 	// Set the informer and lister for subscribing to events and indexing {{.Resource}} labels
-	i := si.Factory.{{title .Group}}().{{title .Version}}().{{plural .Kind}}()
-	c.informer = i.Informer()
-	c.lister = i.Lister()
-
-	// Add an event handler to enqueue a message for {{.Resource}} adds / updates
-	c.informer.AddEventHandler(&controller.QueueingEventHandler{queue})
+	c.lister = si.Factory.{{title .Group}}().{{title .Version}}().{{plural .Kind}}().Lister()
 }
 
 // Reconcile handles enqueued messages
