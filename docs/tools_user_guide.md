@@ -165,6 +165,11 @@ This is a good way to test validation and defaulting of your types.
 go test ./pkg/...
 ```
 
+## Run the apiserver + controller-manager with minikube
+
+See [running in minikube](running_in_minikube.md)
+
+
 ## Run the apiserver + controller-manager in a cluster
 
 Run an etcd instance and the apiserver + controller-manager as an aggregated

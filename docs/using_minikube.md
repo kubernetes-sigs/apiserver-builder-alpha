@@ -1,3 +1,9 @@
+# THIS DOC HAS BEEN DEPRECATED
+
+`apiserver-boot` now supports running in minikube using `run local-minikube`
+See [Running in minikube](running_in_minikube.md) instead
+
+
 # Running the apiserver with delegated auth against minikube
 
 - start [minikube](https://github.com/kubernetes/minikube)
