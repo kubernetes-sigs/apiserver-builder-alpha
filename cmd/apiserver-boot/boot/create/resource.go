@@ -157,6 +157,9 @@ func createResource(boilerplate string) {
 		}
 	}
 
+	path = filepath.Join(dir, "pkg", "controller", "sharedinformers", "informers.go")
+	created = util.WriteIfNotFound(path, "sharedinformer-template", sharedInformersTemplate, a)
+
 	if found {
 		os.Exit(-1)
 	}
@@ -341,6 +344,28 @@ var _ = Describe("{{.Kind}}", func() {
 		})
 	})
 })
+`
+
+var sharedInformersTemplate = `
+{{.BoilerPlate}}
+
+package sharedinformers
+
+// SetupKubernetesTypes registers the config for watching Kubernetes types
+func (si *SharedInformers) SetupKubernetesTypes() bool {
+    // Set this to true to initial the ClientSet and InformerFactory for
+    // Kubernetes APIs (e.g. Deployment)
+	return false
+}
+
+// StartAdditionalInformers starts watching Deployments
+func (si *SharedInformers) StartAdditionalInformers(shutdown <-chan struct{}) {
+    // Start specific Kubernetes API informers here.  Note, it is only necessary
+    // to start 1 informer for each Kind. (e.g. only 1 Deployment informer)
+
+    // Uncomment this to start listening for Deployment Create / Update / Deletes
+    // go si.KubernetesFactory.Apps().V1beta1().Deployments().Informer().Run(shutdown)
+}
 `
 
 var resourceControllerTemplate = `

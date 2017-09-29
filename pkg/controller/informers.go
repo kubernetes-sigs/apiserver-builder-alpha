@@ -73,7 +73,7 @@ func (c *SharedInformersDefaults) Watch(
 		c.WorkerQueues = map[string]*QueueWorker{}
 	}
 	c.WorkerQueues[name] = queue
-	i.AddEventHandler(&QueueingEventHandler{q, f})
+	i.AddEventHandler(&QueueingEventHandler{q, f, true})
 }
 
 func NewConfig(kubeconfig string) (*rest.Config, error) {
