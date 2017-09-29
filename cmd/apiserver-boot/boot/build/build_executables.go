@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
 )
 
@@ -31,6 +32,8 @@ var GenerateForBuild bool = true
 var goos string = "linux"
 var goarch string = "amd64"
 var outputdir string = "bin"
+var Bazel bool
+var Gazelle bool
 
 var createBuildExecutablesCmd = &cobra.Command{
 	Use:   "executables",
@@ -41,7 +44,18 @@ var createBuildExecutablesCmd = &cobra.Command{
 apiserver-boot build executables
 
 # Build binaries into the linux/ directory using the cross compiler for linux:amd64
-apiserver-boot build --goos linux --goarch amd64 --output linux/`,
+apiserver-boot build executables --goos linux --goarch amd64 --output linux/
+
+# Regenerate Bazel BUILD files, and then build with bazel
+# Must first install bazel and gazelle !!!
+apiserver-boot build executables --bazel --gazelle
+
+# Run Bazel without generating BUILD files
+apiserver-boot build executables --bazel
+
+# Run Bazel without generating BUILD files or generated code
+apiserver-boot build executables --bazel --generated=false
+`,
 	Run: RunBuildExecutables,
 }
 
@@ -53,9 +67,71 @@ func AddBuildExecutables(cmd *cobra.Command) {
 	createBuildExecutablesCmd.Flags().StringVar(&goos, "goos", "", "if specified, set this GOOS")
 	createBuildExecutablesCmd.Flags().StringVar(&goarch, "goarch", "", "if specified, set this GOARCH")
 	createBuildExecutablesCmd.Flags().StringVar(&outputdir, "output", "bin", "if set, write the binaries to this directory")
+	createBuildExecutablesCmd.Flags().BoolVar(&Bazel, "bazel", false, "if true, use bazel to build.  May require updating build rules with gazelle.")
+	createBuildExecutablesCmd.Flags().BoolVar(&Gazelle, "gazelle", false, "if true, run gazelle before running bazel.")
 }
 
 func RunBuildExecutables(cmd *cobra.Command, args []string) {
+	if Bazel {
+		BazelBuild(cmd, args)
+	} else {
+		GoBuild(cmd, args)
+	}
+}
+
+func BazelBuild(cmd *cobra.Command, args []string) {
+	if Gazelle {
+		c := exec.Command("gazelle", "update",
+			"-go_prefix", util.Repo, "-external", "vendored", "pkg", "cmd")
+		fmt.Printf("%s\n", strings.Join(c.Args, " "))
+		c.Stderr = os.Stderr
+		c.Stdout = os.Stdout
+		err := c.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	if GenerateForBuild {
+		log.Printf("regenerating generated code.  To disable regeneration, run with --generate=false.")
+		RunGenerate(cmd, args)
+	}
+
+	c := exec.Command("bazel", "build",
+		filepath.Join("cmd", "apiserver"),
+		filepath.Join("cmd", "controller-manager"))
+	fmt.Printf("%s\n", strings.Join(c.Args, " "))
+	c.Stderr = os.Stderr
+	c.Stdout = os.Stdout
+	err := c.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	c = exec.Command("cp",
+		filepath.Join("bazel-bin", "cmd", "apiserver", "apiserver"),
+		filepath.Join("bin", "apiserver"))
+	fmt.Printf("%s\n", strings.Join(c.Args, " "))
+	c.Stderr = os.Stderr
+	c.Stdout = os.Stdout
+	err = c.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	c = exec.Command("cp",
+		filepath.Join("bazel-bin", "cmd", "controller-manager", "controller-manager"),
+		filepath.Join("bin", "controller-manager"))
+	fmt.Printf("%s\n", strings.Join(c.Args, " "))
+	c.Stderr = os.Stderr
+	c.Stdout = os.Stdout
+	err = c.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func GoBuild(cmd *cobra.Command, args []string) {
 	if GenerateForBuild {
 		log.Printf("regenerating generated code.  To disable regeneration, run with --generate=false.")
 		RunGenerate(cmd, args)

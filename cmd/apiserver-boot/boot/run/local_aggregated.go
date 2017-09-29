@@ -55,6 +55,8 @@ apiserver-boot run local-minikube --kubeconfig <minikube-config>`,
 var certDir string
 var minikubeconfig string
 var minikubeport int32
+var gazelle bool
+var bazel bool
 
 func AddLocalMinikube(cmd *cobra.Command) {
 	localMinikubeCmd.Flags().StringSliceVar(&toRun, "run", []string{"etcd", "apiserver", "controller-manager"}, "path to apiserver binary to run")
@@ -72,6 +74,9 @@ func AddLocalMinikube(cmd *cobra.Command) {
 
 	localMinikubeCmd.Flags().Int32Var(&minikubeport, "secure-port", 443, "Secure port from apiserver to serve requests")
 	localMinikubeCmd.Flags().StringVar(&certDir, "cert-dir", filepath.Join("config", "certificates"), "directory containing apiserver certificates")
+
+    localMinikubeCmd.Flags().BoolVar(&bazel, "bazel", false, "if true, use bazel to build.  May require updating build rules with gazelle.")
+    localMinikubeCmd.Flags().BoolVar(&gazelle, "gazelle", false, "if true, run gazelle before running bazel.")
 
 	cmd.AddCommand(localMinikubeCmd)
 }
