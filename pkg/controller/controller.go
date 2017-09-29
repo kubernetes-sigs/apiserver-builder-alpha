@@ -31,8 +31,9 @@ import (
 
 // QueueingEventHandler queues the key for the object on add and update events
 type QueueingEventHandler struct {
-	Queue    workqueue.RateLimitingInterface
-	ObjToKey func(obj interface{}) (string, error)
+	Queue         workqueue.RateLimitingInterface
+	ObjToKey      func(obj interface{}) (string, error)
+	EnqueueDelete bool
 }
 
 func (c *QueueingEventHandler) enqueue(obj interface{}) {
@@ -60,6 +61,9 @@ func (c *QueueingEventHandler) OnUpdate(oldObj, newObj interface{}) {
 
 func (c *QueueingEventHandler) OnDelete(obj interface{}) {
 	glog.V(6).Infof("Delete event for %+v\n", obj)
+	if c.EnqueueDelete {
+		c.enqueue(obj)
+	}
 }
 
 // QueueWorker continuously runs a Reconcile function against a message Queue
