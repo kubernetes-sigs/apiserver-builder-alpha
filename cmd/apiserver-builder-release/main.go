@@ -36,6 +36,8 @@ var dovendor bool
 var test bool
 var version string
 var commit string
+var userLocalVendor bool
+var useBazel bool
 
 var cachevendordir string
 
@@ -49,6 +51,7 @@ func main() {
 	buildCmd.Flags().StringVar(&output, "output", "apiserver-builder",
 		"value name of the tar file to build")
 	buildCmd.Flags().StringVar(&version, "version", "", "version name")
+	buildCmd.Flags().BoolVar(&useBazel, "bazel", false, "use bazel to compile (faster, but no X-compile)")
 
 	buildCmd.Flags().BoolVar(&dovendor, "vendor", true, "if true, fetch packages to vendor")
 	buildCmd.Flags().BoolVar(&test, "test", true, "if true, run tests")
@@ -58,7 +61,11 @@ func main() {
 	vendorCmd.Flags().StringVar(&version, "version", "", "version name")
 	vendorCmd.Flags().StringVar(&cachevendordir, "vendordir", "",
 		"if specified, use this directory for setting up vendor instead of creating a tmp directory.")
+	vendorCmd.Flags().BoolVar(&userLocalVendor, "use-local-vendor", true, "if true, run use the local vendored code")
 	cmd.AddCommand(vendorCmd)
+
+	installCmd.Flags().StringVar(&version, "version", "", "version name")
+	cmd.AddCommand(installCmd)
 
 	if err := cmd.Execute(); err != nil {
 		log.Fatal(err)
@@ -125,37 +132,68 @@ func RunBuild(cmd *cobra.Command, args []string) {
 		log.Fatalf("must first run `apiserver-builder-release vendor`.  could not find %s", vendor)
 	}
 
-	// Build binaries for the targeted platforms in then tar
-	for _, target := range targets {
-		// Build binaries for this os:arch
-		parts := strings.Split(target, ":")
-		if len(parts) != 2 {
-			log.Fatalf("--targets flags must be GOOS:GOARCH pairs [%s]", target)
-		}
-		goos := parts[0]
-		goarch := parts[1]
-		// Cleanup old binaries
-		os.RemoveAll(filepath.Join(dir, "bin"))
-		err := os.Mkdir(filepath.Join(dir, "bin"), 0700)
-		if err != nil {
-			log.Fatalf("failed to create directory %s %v", filepath.Join(dir, "bin"), err)
-		}
+	if !useBazel {
+		// Build binaries for the targeted platforms in then tar
+		for _, target := range targets {
+			// Build binaries for this os:arch
+			parts := strings.Split(target, ":")
+			if len(parts) != 2 {
+				log.Fatalf("--targets flags must be GOOS:GOARCH pairs [%s]", target)
+			}
+			goos := parts[0]
+			goarch := parts[1]
+			// Cleanup old binaries
+			os.RemoveAll(filepath.Join(dir, "bin"))
+			err := os.Mkdir(filepath.Join(dir, "bin"), 0700)
+			if err != nil {
+				log.Fatalf("failed to create directory %s %v", filepath.Join(dir, "bin"), err)
+			}
 
+			BuildVendorTar(dir)
+
+			for _, pkg := range VendoredBuildPackages {
+				Build(filepath.Join("cmd", "vendor", pkg, "main.go"),
+					filepath.Join(dir, "bin", filepath.Base(pkg)),
+					goos, goarch,
+				)
+			}
+			for _, pkg := range OwnedBuildPackages {
+				Build(filepath.Join(pkg, "main.go"),
+					filepath.Join(dir, "bin", filepath.Base(pkg)),
+					goos, goarch,
+				)
+			}
+			PackageTar(goos, goarch, dir, vendor)
+		}
+	} else {
+		os.MkdirAll(filepath.Join(dir, "bin"), 0700)
 		BuildVendorTar(dir)
+		BazelBuildCopy(dir, []string{
+			"//cmd/apiregister-gen",
+			"//cmd/apiserver-boot",
+			"//cmd/vendor/github.com/kubernetes-incubator/reference-docs/gen-apidocs",
+			"//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/client-gen",
+			"//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/conversion-gen",
+			"//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/deepcopy-gen",
+			"//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/defaulter-gen",
+			"//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/informer-gen",
+			"//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/lister-gen",
+			"//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/openapi-gen",
+		}...)
+		PackageTar("", "", dir, vendor)
+	}
+}
 
-		for _, pkg := range VendoredBuildPackages {
-			Build(filepath.Join("cmd", "vendor", pkg, "main.go"),
-				filepath.Join(dir, "bin", filepath.Base(pkg)),
-				goos, goarch,
-			)
-		}
-		for _, pkg := range OwnedBuildPackages {
-			Build(filepath.Join(pkg, "main.go"),
-				filepath.Join(dir, "bin", filepath.Base(pkg)),
-				goos, goarch,
-			)
-		}
-		PackageTar(goos, goarch, dir, vendor)
+func BazelBuildCopy(dest string, targets ...string) {
+	args := append([]string{"build"}, targets...)
+	c := exec.Command("bazel", args...)
+	RunCmd(c, "")
+
+	// Copy the binaries
+	for _, t := range targets {
+		name := filepath.Base(t)
+		c := exec.Command("cp", filepath.Join("bazel-bin", t, name), filepath.Join(dest, "bin", name))
+		RunCmd(c, "")
 	}
 }
 
@@ -372,20 +410,53 @@ func RunVendor(cmd *cobra.Command, args []string) {
 	dir = filepath.Join(dir, "release", version)
 	os.MkdirAll(dir, 0700)
 
-	//Build binaries for the current platform so that we can use them
-	for _, pkg := range VendoredBuildPackages {
-		Build(filepath.Join("vendor", pkg, "main.go"),
-			filepath.Join(dir, "bin", filepath.Base(pkg)),
-			"", "",
-		)
+	if userLocalVendor {
+		BuildLocalVendor(dir)
+	} else {
+		//Build binaries for the current platform so that we can use them
+		for _, pkg := range VendoredBuildPackages {
+			Build(filepath.Join("vendor", pkg, "main.go"),
+				filepath.Join(dir, "bin", filepath.Base(pkg)),
+				"", "",
+			)
+		}
+		for _, pkg := range OwnedBuildPackages {
+			Build(filepath.Join(pkg, "main.go"),
+				filepath.Join(dir, "bin", filepath.Base(pkg)),
+				"", "",
+			)
+		}
+		BuildVendor(dir)
 	}
-	for _, pkg := range OwnedBuildPackages {
-		Build(filepath.Join(pkg, "main.go"),
-			filepath.Join(dir, "bin", filepath.Base(pkg)),
-			"", "",
-		)
-	}
-	BuildVendor(dir)
+}
+
+func BuildLocalVendor(tooldir string) {
+	os.MkdirAll(filepath.Join(tooldir, "src"), 0700)
+	c := exec.Command("cp", "-R", "-H",
+		filepath.Join("vendor"),
+		filepath.Join(tooldir, "src", "vendor"))
+	RunCmd(c, "")
+	os.MkdirAll(filepath.Join(tooldir, "src", "vendor", "github.com", "kubernetes-incubator", "apiserver-builder"), 0700)
+	c = exec.Command("cp", "-R", "-H",
+		filepath.Join("pkg"),
+		filepath.Join(tooldir, "src", "vendor", "github.com", "kubernetes-incubator", "apiserver-builder", "pkg"))
+	RunCmd(c, "")
+
+	c = exec.Command("bash", "-c",
+		fmt.Sprintf("find %s -name BUILD.bazel| xargs sed -i='' s'|//pkg|//vendor/github.com/kubernetes-incubator/apiserver-builder/pkg|g'",
+			filepath.Join(tooldir, "src", "vendor", "github.com", "kubernetes-incubator", "apiserver-builder", "pkg"),
+		))
+	RunCmd(c, "")
+
+	c = exec.Command("cp", "-R", "-H",
+		filepath.Join("glide.yaml"),
+		filepath.Join(tooldir, "src", "glide.yaml"))
+	RunCmd(c, "")
+	c = exec.Command("cp", "-R", "-H",
+		filepath.Join("glide.lock"),
+		filepath.Join(tooldir, "src", "glide.lock"))
+	RunCmd(c, "")
+
 }
 
 func BuildVendor(tooldir string) string {
@@ -455,4 +526,25 @@ func BuildVendor(tooldir string) string {
 	}
 
 	return pkgDir
+}
+
+var installCmd = &cobra.Command{
+	Use:   "install",
+	Short: "install release locally",
+	Long:  `install release locally`,
+	Run:   RunInstall,
+}
+
+func RunInstall(cmd *cobra.Command, args []string) {
+	if len(version) == 0 {
+		log.Fatal("must specify the --version flag")
+	}
+
+	// Untar to to /usr/local/apiserver-build/
+	os.Mkdir(filepath.Join("/", "usr", "local", "apiserver-builder"), 0700)
+	c := exec.Command("tar", "-xzvf", fmt.Sprintf("%s-%s-%s-%s.tar.gz", output, version, "", ""),
+		"-C", filepath.Join("/", "usr", "local", "apiserver-builder"),
+	)
+	RunCmd(c, "")
+
 }

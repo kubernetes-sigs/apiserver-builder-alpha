@@ -54,6 +54,7 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 	}
 	cr := util.GetCopyright(copyright)
 
+	createBazelWorkspace()
 	createApiserver(cr)
 	createControllerManager(cr)
 	createAPIs(cr)
@@ -69,6 +70,15 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 		log.Printf("installing godeps.  To disable this, run with --install-deps=false.")
 		copyGlide()
 	}
+}
+
+func createBazelWorkspace() {
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	path := filepath.Join(dir, "WORKSPACE")
+	util.WriteIfNotFound(path, "bazel-workspace-template", workspaceTemplate, nil)
 }
 
 type controllerManagerTemplateArguments struct {
@@ -118,7 +128,6 @@ func createControllerManager(boilerplate string) {
 			boilerplate,
 			util.Repo,
 		})
-
 }
 
 type apiserverTemplateArguments struct {
@@ -219,4 +228,15 @@ var apisDocTemplate = `
 
 package apis
 
+`
+
+var workspaceTemplate = `
+http_archive(
+    name = "io_bazel_rules_go",
+    url = "https://github.com/bazelbuild/rules_go/releases/download/0.5.5/rules_go-0.5.5.tar.gz",
+    sha256 = "ca58b0b856dc95473b93f2228ab117913b82a6617fc0deabd107346e3981522a",
+)
+load("@io_bazel_rules_go//go:def.bzl", "go_repositories")
+
+go_repositories()
 `
