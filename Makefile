@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# from cmd/
+#  bash -c "find vendor/github.com/kubernetes-incubator/apiserver-builder -name BUILD.bazel| xargs sed -i='' s'|//pkg|//vendor/github.com/kubernetes-incubator/apiserver-builder/pkg|g'"
+
 NAME=apiserver-builder
 VENDOR=kubernetes-incubator
 VERSION=$(shell cat VERSION)
