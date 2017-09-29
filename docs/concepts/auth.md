@@ -173,10 +173,10 @@ authentication method used by most human Kubernetes clients, as well as
 in-cluster non-human clients.
 
 In this case, addon API servers extract the token from the HTTP request,
-and verify it against another API server. In common cases, this is the
-main Kubernetes API server.  This allows users who are can authentication
-with the main Kubernetes system to also authenticate with addon API
-servers.
+and verify it against another API server using a `TokenReview`. In common
+cases, this is the main Kubernetes API server.  This allows users who are
+can authentication with the main Kubernetes system to also authenticate
+with addon API servers.
 
 By default, the addon API servers search for the connection information
 and credentials that are automatically injected into every pod running on
@@ -186,8 +186,7 @@ server.
 If you do not wish to have your addon API server authenticate against the
 same cluster that it is running on, or if it is running outside of
 a cluster, you can pass the `--authentication-kubeconfig` option to the
-service catalog API server to specify a different Kubeconfig file to use to
-connect.
+addon API server to specify a different Kubeconfig file to use to connect.
 
 The [Webhook token
 authentication](https://kubernetes.io/docs/admin/authentication/#webhook-token-authentication)
@@ -235,10 +234,10 @@ section of the Kubernetes documentation for more information.
 ### Authorization
 
 Addon API servers use delegated authorization.  This means that they query
-for authorization against the main Kubernetes API server, allowing cluster
-admins to store policy for addon API servers in the same place as the
-policy used for the main Kubernetes API server, and in the same format
-(e.g. Kubernetes RBAC).
+for authorization against the main Kubernetes API server using
+a `SubjectAccessReview`, allowing cluster admins to store policy for addon
+API servers in the same place as the policy used for the main Kubernetes
+API server, and in the same format (e.g. Kubernetes RBAC).
 
 By default, the addon API servers search for the connection information
 and credentials that are automatically injected into every pod running on
@@ -248,5 +247,23 @@ server.
 If you do not wish to have your addon API server authenticate against the
 same cluster that it is running on, or if it is running outside of
 a cluster, you can pass the `--authorization-kubeconfig` option to the
-service catalog API server to specify a different Kubeconfig file to use to
-connect.
+addon API server to specify a different Kubeconfig file to use to connect.
+
+### RBAC Rules
+
+By default, Kubernetes ships with RBAC, (**R**esource **B**ased **A**ccess
+**C**ontrol) enabled by default, with some standard policy.  This means
+that in order for your addon API server to be able to delegate
+authentication (for [Delegated Token
+Authentication](#delegated-token-authentication) and authorization, you'll
+need to create several role bindings.
+
+First, to allow the addon API server to delegate authentication and
+authorization requests to the main Kubernetes API server, you'll need to
+add a cluster role binding for the cluster role `system:auth-delegator`.
+
+Then, you'll need to create a role binding for the
+`extension-apiserver-authentication-reader` in the `kube-system` namespace.
+This allows the addon API server to read the client CA file and
+RequestHeader client CA file from the `extension-apiserver-authentication`
+ConfigMap in the `kube-system` namespace.

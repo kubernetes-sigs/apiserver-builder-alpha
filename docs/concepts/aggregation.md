@@ -184,6 +184,13 @@ access the API servers directly.
 
 ## Troubleshooting Tips
 
+### RBAC
+
+Kubernetes enables RBAC (**R**esource **B**ased **A**ccess **C**ontrol) by
+default.  Aggregated API servers commonly need serveral RBAC roles
+assinged to them in order to function properly.  See the [RBAC
+section](./auth.md#rbac) for more details.
+
 ### Viewing Discovery Information
 
 It can occasionally be useful to directly look at the discovery
