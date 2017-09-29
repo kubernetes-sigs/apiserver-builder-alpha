@@ -56,7 +56,8 @@ func (d *controllerGenerator) Imports(c *generator.Context) []string {
 func (d *controllerGenerator) Finalize(context *generator.Context, w io.Writer) error {
 	temp := template.Must(template.New("controller-template").Funcs(
 		template.FuncMap{
-			"title": strings.Title,
+			"title":  strings.Title,
+			"plural": inflect.NewDefaultRuleset().Pluralize,
 		},
 	).Parse(ControllerAPITemplate))
 	return temp.Execute(w, d.controller)
@@ -95,7 +96,7 @@ func New{{.Target.Kind}}Controller(config *rest.Config, si *sharedinformers.Shar
 		c.Informers.WorkerQueues = map[string]*controller.QueueWorker{}
 	}
 	c.Informers.WorkerQueues["{{.Target.Kind}}"] = queue
-	si.Factory.{{title .Target.Group}}().{{title .Target.Version}}().{{title .Resource}}().Informer().
+	si.Factory.{{title .Target.Group}}().{{title .Target.Version}}().{{plural .Target.Kind }}().Informer().
         AddEventHandler(&controller.QueueingEventHandler{q, nil, false})
 	return c
 }
@@ -191,7 +192,8 @@ func (d *allControllerGenerator) Imports(c *generator.Context) []string {
 func (d *allControllerGenerator) Finalize(context *generator.Context, w io.Writer) error {
 	temp := template.Must(template.New("all-controller-template").Funcs(
 		template.FuncMap{
-			"title": strings.Title,
+			"title":  strings.Title,
+			"plural": inflect.NewDefaultRuleset().Pluralize,
 		},
 	).Parse(AllControllerAPITemplate))
 	return temp.Execute(w, d)
