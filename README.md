@@ -25,6 +25,14 @@ apiserver-builder provides libraries, code generators, and tooling to make it po
 and run a basic apiserver in an afternoon, while providing all of the hooks to offer the
 same capabilities when building from scratch.
 
+## Highlights
+
+- Tools to bootstrap type definitions, controllers, tests and documentation for new resources
+- Tools to build and run the extension control plane standalone and in minikube and remote clusters.
+- Easily watch and update Kubernetes API types from your controller
+- Easily add new resources and subresources
+- Provides sane defaults for most values, but can be overridden
+
 ## Guides
 
 **Note:** The guides are presented roughly in the order of recommended progression.
