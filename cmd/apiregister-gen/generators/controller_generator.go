@@ -143,7 +143,6 @@ func (c *{{.Target.Kind}}Controller) reconcile(key string) (err error) {
 }
 
 func (c *{{.Target.Kind}}Controller) Run(stopCh <-chan struct{}) {
-	c.queue.Run(stopCh)
 	for _, q := range c.Informers.WorkerQueues {
 		q.Run(stopCh)
 	}
