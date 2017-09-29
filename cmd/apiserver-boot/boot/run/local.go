@@ -81,11 +81,18 @@ func AddLocal(cmd *cobra.Command) {
 
 	localCmd.Flags().Int32Var(&securePort, "secure-port", 9443, "Secure port from apiserver to serve requests")
 
+	localCmd.Flags().BoolVar(&bazel, "bazel", false, "if true, use bazel to build.  May require updating build rules with gazelle.")
+	localCmd.Flags().BoolVar(&gazelle, "gazelle", false, "if true, run gazelle before running bazel.")
+	localCmd.Flags().BoolVar(&generate, "generate", true, "if true, generate code before building")
+
 	cmd.AddCommand(localCmd)
 }
 
 func RunLocal(cmd *cobra.Command, args []string) {
 	if buildBin {
+		build.Bazel = bazel
+		build.Gazelle = gazelle
+		build.GenerateForBuild = generate
 		build.RunBuildExecutables(cmd, args)
 	}
 
