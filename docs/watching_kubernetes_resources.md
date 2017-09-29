@@ -1,5 +1,15 @@
 # Watching Kubernetes resources
 
+### Before you begin - configure your 
+
+- Install minikube and start a new cluster
+- Create a new GO project
+- In the GO project init the repo with `apiserver-boot init`
+- Create a resource with `apiserver-boot create group version resource`
+- Build the executables with `apiserver-boot build executables`
+- Create the aggregation config with `apiserver-boot build config --local-minikube --name test --namespace default`
+- Install the aggregated apiserver config into minikube with `kubectl create -f config/apiserver.yaml`
+
 ## Run the sharedinformers to watch the types
 
 Setup the informers and related objects that are shared across all controllers
@@ -93,8 +103,26 @@ func (c *FooControllerImpl) Init(
 
 ### Create/delete/update the Kubernetes from your controller reconcile loop
 
+Add a PodSpec to your resource Spec.
+
 Use the si.KubernetesClientSet from within your controllers `Reconcile` function
 to update Kubernetes objects.
 
 **Note**: Consider using a `Lister` for reading and indexing cached objects to reduce load
 on the apiserver.
+
+### Notes
+
+Value validation will not be executed for the fields in your Spec when your resource
+is created.  We hope to fix this in the future by making the Validation functions for
+Kubernetes API objects available.
+
+### Run aggregated with minikube
+
+Run your extension server locally but aggregated with minikube:
+
+`apiserver-boot run local-minikube`
+
+To run without rebuilding the binaries or generating code.
+
+`apiserver-boot run local-minikube --build=false`
