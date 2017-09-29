@@ -27,7 +27,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
 	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/olympus"
-	"k8s.io/api/extensions/v1beta1"
 )
 
 // +genclient=true
@@ -46,8 +45,7 @@ type Poseidon struct {
 
 // PoseidonSpec defines the desired state of Poseidon
 type PoseidonSpec struct {
-	PodSpec    v1.PodTemplate
-	Deployment v1beta1.Deployment
+	Template v1.PodSpec `json:"template",omitempty`
 }
 
 // PoseidonStatus defines the observed state of Poseidon
