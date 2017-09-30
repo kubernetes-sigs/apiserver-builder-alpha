@@ -25,11 +25,10 @@ import (
 	"k8s.io/client-go/rest"
 
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 	olympusv1beta1 "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/olympus/v1beta1"
 	listers "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/listers_generated/olympus/v1beta1"
 	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/controller/sharedinformers"
-	"hash/fnv"
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/controller"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -81,26 +80,13 @@ func (c *PoseidonControllerImpl) DeploymentToPoseidon(i interface{}) (string, er
 	}
 }
 
-func GetHash(i interface{}) uint32 {
-	hasher := fnv.New32a()
-	hasher.Reset()
-	printer := spew.ConfigState{
-		Indent:         " ",
-		SortKeys:       true,
-		DisableMethods: true,
-		SpewKeys:       true,
-	}
-	printer.Fprintf(hasher, "%#v", i)
-	return hasher.Sum32()
-}
-
 // Reconcile handles enqueued messages
 func (c *PoseidonControllerImpl) Reconcile(u *olympusv1beta1.Poseidon) error {
 	// TODO: Instead of using the same name, include a hash function against the PodTemplate to uniquely identify multiple
 	// Deployments
 
 	d, err := c.deploymentLister.Deployments(u.Namespace).Get(u.Name)
-	hash := fmt.Sprintf("%d", GetHash(u.Spec.Template))
+	hash := fmt.Sprintf("%d", controller.GetHash(u.Spec.Template))
 
 	if d == nil || err != nil {
 		log.Printf("Creating Deployment for Poseidon %s", u.Name)
