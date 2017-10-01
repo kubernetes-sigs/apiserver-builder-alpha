@@ -142,12 +142,30 @@ func RunBuild(cmd *cobra.Command, args []string) {
 			}
 			goos := parts[0]
 			goarch := parts[1]
+
 			// Cleanup old binaries
 			os.RemoveAll(filepath.Join(dir, "bin"))
 			err := os.Mkdir(filepath.Join(dir, "bin"), 0700)
 			if err != nil {
 				log.Fatalf("failed to create directory %s %v", filepath.Join(dir, "bin"), err)
 			}
+
+			kubedir := filepath.Join(dir, "thirdparty", "src", "k8s.io", "kubernetes")
+			kubebin := filepath.Join(kubedir, " _output", "local", "bin", goos, goarch, "kube-apiserver")
+			if _, err := os.Stat(vendor); os.IsNotExist(err) {
+				log.Fatalf("must first run `make WHAT=cmd/kube-apiserver from %s`.  could not find %s",
+					dir, kubebin)
+			}
+			c := exec.Command("cp", kubebin, filepath.Join(dir, "kube-apiserver"))
+			RunCmd(c, "")
+
+			kubedir = filepath.Join(dir, " _output", "local", "bin", goos, goarch, "kube-controller-manager")
+			if _, err := os.Stat(vendor); os.IsNotExist(err) {
+				log.Fatalf("must first run `make WHAT=cmd/kube-controller-manager from %s`.  could not find %s",
+					dir, kubebin)
+			}
+			c = exec.Command("cp", kubebin, filepath.Join(dir, "kube-controller-manager"))
+			RunCmd(c, "")
 
 			BuildVendorTar(dir)
 
@@ -166,6 +184,19 @@ func RunBuild(cmd *cobra.Command, args []string) {
 			PackageTar(goos, goarch, dir, vendor)
 		}
 	} else {
+		if len(targets) != 1 {
+			log.Fatalf("Must specify exactly 1 target when using bazel")
+		}
+		target := targets[0]
+		parts := strings.Split(target, ":")
+		if len(parts) != 2 {
+			log.Fatalf("--targets flags must be GOOS:GOARCH pairs [%s]", target)
+		}
+		goos := parts[0]
+		goarch := parts[1]
+
+		CopyKubernetes(dir, goos, goarch)
+
 		os.MkdirAll(filepath.Join(dir, "bin"), 0700)
 		BuildVendorTar(dir)
 		BazelBuildCopy(dir, []string{
@@ -182,6 +213,30 @@ func RunBuild(cmd *cobra.Command, args []string) {
 		}...)
 		PackageTar("", "", dir, vendor)
 	}
+}
+
+func CopyKubernetes(versionDir, goos, goarch string) {
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatalf(fmt.Sprintf("%v", err))
+	}
+	os.MkdirAll(filepath.Join(versionDir, "bin"), 0700)
+	kubedir := filepath.Join(dir, "thirdparty", "src", "k8s.io", "kubernetes")
+	kubebin := filepath.Join(kubedir, "_output", "local", "bin", goos, goarch, "kube-apiserver")
+	if _, err := os.Stat(kubebin); os.IsNotExist(err) {
+		log.Fatalf("must first run `make WHAT=cmd/kube-apiserver from %s`.  could not find %s",
+			dir, kubebin)
+	}
+	c := exec.Command("cp", kubebin, filepath.Join(versionDir, "bin", "kube-apiserver"))
+	RunCmd(c, "")
+
+	kubedir = filepath.Join(dir, "_output", "local", "bin", goos, goarch, "kube-controller-manager")
+	if _, err := os.Stat(kubebin); os.IsNotExist(err) {
+		log.Fatalf("must first run `make WHAT=cmd/kube-controller-manager from %s`.  could not find %s",
+			dir, kubebin)
+	}
+	c = exec.Command("cp", kubebin, filepath.Join(versionDir, "bin", "kube-controller-manager"))
+	RunCmd(c, "")
 }
 
 func BazelBuildCopy(dest string, targets ...string) {
