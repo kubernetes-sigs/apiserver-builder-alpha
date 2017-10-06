@@ -40,6 +40,8 @@ var ApiserverArgs []string
 var ControllerSecret string
 var ControllerSecretMount string
 var ControllerSecretEnv []string
+var ImagePullSecrets []string
+var ServiceAccount string
 
 var LocalMinikube bool
 var LocalIp string
@@ -75,6 +77,8 @@ func AddBuildResourceConfigFlags(cmd *cobra.Command) {
 	cmd.Flags().StringSliceVar(&ApiserverArgs, "apiserver-args", []string{}, "")
 	cmd.Flags().StringVar(&Name, "name", "", "")
 	cmd.Flags().StringVar(&Namespace, "namespace", "", "")
+	cmd.Flags().StringSliceVar(&ImagePullSecrets, "image-pull-secrets", []string{}, "List of secret names for docker registry")
+	cmd.Flags().StringVar(&ServiceAccount, "service-account", "", "Name of service account that will be attached to deployed pod")
 	cmd.Flags().StringVar(&Image, "image", "", "name of the apiserver Image with tag")
 	cmd.Flags().StringVar(&ResourceConfigDir, "output", "config", "directory to output resourceconfig")
 
@@ -148,7 +152,9 @@ func buildResourceConfig() {
 		ControllerSecretMount: ControllerSecretMount,
 		ControllerSecret:      ControllerSecret,
 		ControllerSecretEnv:   ControllerSecretEnv,
-		LocalIp:               LocalIp,
+    LocalIp:               LocalIp,
+    ImagePullSecrets:      ImagePullSecrets,
+    ServiceAccount:        ServiceAccount,
 	}
 	path := filepath.Join(ResourceConfigDir, "apiserver.yaml")
 
@@ -254,7 +260,9 @@ type resourceConfigTemplateArgs struct {
 	ControllerSecret      string
 	ControllerSecretMount string
 	ControllerSecretEnv   []string
-	LocalIp               string
+  LocalIp               string
+  ServiceAccount        string
+  ImagePullSecrets      []string
 }
 
 var resourceConfigTemplate = `
@@ -312,6 +320,15 @@ spec:
         api: {{.Name}}
         apiserver: "true"
     spec:
+      {{if .ImagePullSecrets}}
+      imagePullSecrets:
+        {{range .ImagePullSecrets}}
+      - name: {{.}}      
+        {{end}}
+      {{end}}
+      {{if .ServiceAccount}}
+      serviceAccount: .ServiceAccount
+      {{end}}
       containers:
       - name: apiserver
         image: {{.Image}}
