@@ -320,15 +320,14 @@ spec:
         api: {{.Name}}
         apiserver: "true"
     spec:
-      {{if .ImagePullSecrets}}
+      {{- if .ImagePullSecrets }}
       imagePullSecrets:
-        {{range .ImagePullSecrets}}
-      - name: {{.}}      
-        {{end}}
-      {{end}}
-      {{if .ServiceAccount}}
-      serviceAccount: .ServiceAccount
-      {{end}}
+      {{range .ImagePullSecrets }}- name: {{.}}
+      {{ end }}
+      {{- end -}}
+      {{- if .ServiceAccount }}
+      serviceAccount: {{.ServiceAccount}}
+      {{- end }}
       containers:
       - name: apiserver
         image: {{.Image}}
