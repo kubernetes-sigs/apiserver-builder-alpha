@@ -80,6 +80,11 @@ func RunBuildExecutables(cmd *cobra.Command, args []string) {
 }
 
 func BazelBuild(cmd *cobra.Command, args []string) {
+	if GenerateForBuild {
+		log.Printf("regenerating generated code.  To disable regeneration, run with --generate=false.")
+		RunGenerate(cmd, args)
+	}
+
 	if Gazelle {
 		c := exec.Command("gazelle", "update",
 			"-go_prefix", util.Repo, "-external", "vendored", "pkg", "cmd")
@@ -90,11 +95,6 @@ func BazelBuild(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-	}
-
-	if GenerateForBuild {
-		log.Printf("regenerating generated code.  To disable regeneration, run with --generate=false.")
-		RunGenerate(cmd, args)
 	}
 
 	c := exec.Command("bazel", "build",
