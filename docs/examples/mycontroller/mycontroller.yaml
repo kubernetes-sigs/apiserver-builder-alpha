@@ -1,0 +1,7 @@
+note: MyController Example
+sample: |
+  apiVersion: simple.example.com/v1alpha1
+  kind: MyController
+  metadata:
+    name: mycontroller-example
+  spec:
