@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "x-samplecompanyone.go",
+        "x-samplecompanyone.pb.go",
+    ],
+    importpath = "github.com/googleapis/gnostic/extensions/sample/generated/openapi_extensions_samplecompanyone/proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/golang/protobuf/proto:go_default_library",
+        "//vendor/github.com/googleapis/gnostic/compiler:go_default_library",
+    ],
+)
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = ["x-samplecompanyone.proto"],
+    visibility = ["//visibility:public"],
+)

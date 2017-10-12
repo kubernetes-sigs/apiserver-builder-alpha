@@ -1,0 +1,32 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "socket.go",
+        "socket_stub.go",
+    ] + select({
+        "@io_bazel_rules_go//go/platform:darwin_amd64": [
+            "socket_posix.go",
+        ],
+        "@io_bazel_rules_go//go/platform:linux_amd64": [
+            "socket_posix.go",
+        ],
+        "@io_bazel_rules_go//go/platform:windows_amd64": [
+            "socket_posix.go",
+        ],
+        "//conditions:default": [],
+    }),
+    importpath = "golang.org/x/net/internal/netreflect",
+    visibility = ["//vendor/golang.org/x/net:__subpackages__"],
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = ["socket_test.go"],
+    importpath = "golang.org/x/net/internal/netreflect_test",
+    deps = [
+        ":go_default_library",
+        "//vendor/golang.org/x/net/internal/nettest:go_default_library",
+    ],
+)
