@@ -1,0 +1,34 @@
+
+apiVersion: apiregistration.k8s.io/v1beta1
+kind: APIService
+metadata:
+  name: v1alpha1.simple.example.com
+  labels:
+    api: test
+    apiserver: "true"
+spec:
+  version: v1alpha1
+  group: simple.example.com
+  groupPriorityMinimum: 2000
+  priority: 200
+  service:
+    name: test
+    namespace: default
+  versionPriority: 10
+  # Removed from example
+  caBundle: "<Generated>"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test
+  namespace: default
+  labels:
+    api: test
+    apiserver: "true"
+spec:
+  type: ExternalName
+  externalName: "10.0.2.2"
+  ports:
+  - port: 443
+    protocol: TCP
