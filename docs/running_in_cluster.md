@@ -46,6 +46,10 @@ This will perform the following:
 present and runnable from "./".  You may need to manually edit the config if your
 container looks differently.
 
+You can also provide optional flags:
+- `image-pull-secrets` secrets that will be used by k8s cluster if your image is stored in private registry
+- `service-account` service account name that will be used by deployment, can be used to provide additional rights for running container
+
 ### Run the apiserver
 
 `kubectl apply -f config/apiserver.yaml`
