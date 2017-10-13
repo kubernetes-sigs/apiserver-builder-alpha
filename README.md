@@ -60,6 +60,12 @@ Instructions on how to use the tools packaged with apiserver-builder to build an
 
 [tools guide](docs/tools_user_guide.md)
 
+#### Step by step example
+
+List of commints showing `apiserver-boot` commands run and the corresponding changes:
+
+https://github.com/kubernetes-incubator/apiserver-builder/commits/example-simple
+
 #### Coding and libraries user guide
 
 Instructions for how to implement custom APIs on top of the apiserver-builder libraries.
