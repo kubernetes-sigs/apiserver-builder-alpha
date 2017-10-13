@@ -1,4 +1,3 @@
-
 /*
 Copyright 2017 The Kubernetes Authors.
 
@@ -14,8 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
-
 
 package v1alpha1
 
@@ -47,6 +44,8 @@ type MyController struct {
 
 // MyControllerSpec defines the desired state of MyController
 type MyControllerSpec struct {
+	// foo is a field
+	Foo string `json:"foo,omitempty"`
 }
 
 // MyControllerStatus defines the observed state of MyController
