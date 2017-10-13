@@ -109,6 +109,7 @@ func Convert_simple_MyControllerList_To_v1alpha1_MyControllerList(in *simple.MyC
 }
 
 func autoConvert_v1alpha1_MyControllerSpec_To_simple_MyControllerSpec(in *MyControllerSpec, out *simple.MyControllerSpec, s conversion.Scope) error {
+	out.Foo = in.Foo
 	return nil
 }
 
@@ -118,6 +119,7 @@ func Convert_v1alpha1_MyControllerSpec_To_simple_MyControllerSpec(in *MyControll
 }
 
 func autoConvert_simple_MyControllerSpec_To_v1alpha1_MyControllerSpec(in *simple.MyControllerSpec, out *MyControllerSpec, s conversion.Scope) error {
+	out.Foo = in.Foo
 	return nil
 }
 

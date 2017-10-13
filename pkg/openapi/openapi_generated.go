@@ -133,7 +133,15 @@ func GetOpenAPIDefinitions(ref openapi.ReferenceCallback) map[string]openapi.Ope
 			Schema: spec.Schema{
 				SchemaProps: spec.SchemaProps{
 					Description: "MyControllerSpec defines the desired state of MyController",
-					Properties:  map[string]spec.Schema{},
+					Properties: map[string]spec.Schema{
+						"foo": {
+							SchemaProps: spec.SchemaProps{
+								Description: "foo is a field",
+								Type:        []string{"string"},
+								Format:      "",
+							},
+						},
+					},
 				},
 			},
 			Dependencies: []string{},

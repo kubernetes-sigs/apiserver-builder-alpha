@@ -76,6 +76,7 @@ type MyController struct {
 }
 
 type MyControllerSpec struct {
+	Foo string
 }
 
 type MyControllerStatus struct {
