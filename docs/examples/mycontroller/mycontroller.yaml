@@ -5,3 +5,4 @@ sample: |
   metadata:
     name: mycontroller-example
   spec:
+    foo: bar
