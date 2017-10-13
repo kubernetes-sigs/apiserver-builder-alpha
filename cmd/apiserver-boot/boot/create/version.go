@@ -40,9 +40,9 @@ var createVersionCmd = &cobra.Command{
 func AddCreateVersion(cmd *cobra.Command) {
 	createVersionCmd.Flags().StringVar(&groupName, "group", "", "name of the API group to create")
 	createVersionCmd.Flags().StringVar(&versionName, "version", "", "name of the API version to create")
-	cmd.AddCommand(createVersionCmd)
 
-	AddCreateResource(createVersionCmd)
+	cmd.AddCommand(createVersionCmd)
+	createVersionCmd.AddCommand(createResourceCmd)
 }
 
 func RunCreateVersion(cmd *cobra.Command, args []string) {
