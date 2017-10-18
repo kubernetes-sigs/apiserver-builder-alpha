@@ -61,7 +61,7 @@ package-linux-amd64-deb: ## Create a Debian package. Requires jordansissel/fpm.
 	  --maintainer '$(MAINTAINER)' \
 	  --license '$(LICENSE)' \
 	  --package $(NAME)-$(VERSION)-amd64.deb \
-	  --prefix /usr/local \
+	  --prefix /usr/local/apiserver-builder \
 	  $(NAME)-$(VERSION)-linux-amd64.tar.gz
 
 .PHONY: package-linux-amd64-rpm
@@ -76,5 +76,5 @@ package-linux-amd64-rpm: ## Create an RPM package. Requires jordansissel/fpm, rp
 	  --license '$(LICENSE)' \
 	  --rpm-os linux \
 	  --package $(NAME)-$(VERSION)-amd64.rpm \
-	  --prefix /usr/local \
+	  --prefix /usr/local/apiserver-builder \
 	  $(NAME)-$(VERSION)-linux-amd64.tar.gz
