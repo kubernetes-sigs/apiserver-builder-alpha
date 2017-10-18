@@ -108,6 +108,9 @@ func BazelBuild(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
+	os.RemoveAll(filepath.Join("bin", "apiserver"))
+	os.RemoveAll(filepath.Join("bin", "controller-manager"))
+
 	c = exec.Command("cp",
 		filepath.Join("bazel-bin", "cmd", "apiserver", "apiserver"),
 		filepath.Join("bin", "apiserver"))
@@ -136,6 +139,9 @@ func GoBuild(cmd *cobra.Command, args []string) {
 		log.Printf("regenerating generated code.  To disable regeneration, run with --generate=false.")
 		RunGenerate(cmd, args)
 	}
+
+	os.RemoveAll(filepath.Join("bin", "apiserver"))
+	os.RemoveAll(filepath.Join("bin", "controller-manager"))
 
 	// Build the apiserver
 	path := filepath.Join("cmd", "apiserver", "main.go")

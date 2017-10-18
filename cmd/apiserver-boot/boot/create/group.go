@@ -40,7 +40,7 @@ func AddCreateGroup(cmd *cobra.Command) {
 	createGroupCmd.Flags().StringVar(&groupName, "group", "", "name of the API group to create")
 
 	cmd.AddCommand(createGroupCmd)
-	AddCreateVersion(createGroupCmd)
+	createGroupCmd.AddCommand(createVersionCmd)
 }
 
 func RunCreateGroup(cmd *cobra.Command, args []string) {
