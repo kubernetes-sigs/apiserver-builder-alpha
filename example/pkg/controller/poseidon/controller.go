@@ -24,10 +24,14 @@ import (
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
 	"k8s.io/client-go/rest"
 
+	"fmt"
 	olympusv1beta1 "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/olympus/v1beta1"
 	listers "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/listers_generated/olympus/v1beta1"
 	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/controller/sharedinformers"
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/controller"
 	"k8s.io/api/extensions/v1beta1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
 // +controller:group=olympus,version=v1beta1,kind=Poseidon,resource=poseidons
@@ -38,6 +42,8 @@ type PoseidonControllerImpl struct {
 	lister listers.PoseidonLister
 
 	deploymentLister extensionsv1beta1listers.DeploymentLister
+
+	cs *kubernetes.Clientset
 }
 
 // Init initializes the controller and is called by the generated code
@@ -59,6 +65,8 @@ func (c *PoseidonControllerImpl) Init(
 	di := si.KubernetesFactory.Extensions().V1beta1().Deployments()
 	c.deploymentLister = di.Lister()
 	si.Watch("PoseidonPod", di.Informer(), c.DeploymentToPoseidon, r)
+
+	c.cs = si.KubernetesClientSet
 }
 
 func (c *PoseidonControllerImpl) DeploymentToPoseidon(i interface{}) (string, error) {
@@ -74,8 +82,57 @@ func (c *PoseidonControllerImpl) DeploymentToPoseidon(i interface{}) (string, er
 
 // Reconcile handles enqueued messages
 func (c *PoseidonControllerImpl) Reconcile(u *olympusv1beta1.Poseidon) error {
-	// Implement controller logic here
-	log.Printf("Running reconcile Poseidon for %s\n", u.Name)
+	// TODO: Instead of using the same name, include a hash function against the PodTemplate to uniquely identify multiple
+	// Deployments
+
+	d, err := c.deploymentLister.Deployments(u.Namespace).Get(u.Name)
+	hash := fmt.Sprintf("%d", controller.GetHash(u.Spec.Template))
+
+	if d == nil || err != nil {
+		log.Printf("Creating Deployment for Poseidon %s", u.Name)
+		d = &v1beta1.Deployment{}
+		// Note, these may be defaulted on when the Deployment is created, so don't count on them
+		// always being the same.  Will need to save a hash copy of the template to check if it has
+		// changed on the resource since the Deployment was updated
+		d.Name = u.Name
+		d.Spec.Template.Spec = u.Spec.Template
+		d.Spec.Selector = &v1.LabelSelector{}
+
+		// Use the labels from the Poseidon object - TODO: Validate that the Poseidon labels are
+		// specified, and make them immutable
+		d.Spec.Selector.MatchLabels = u.Labels
+		d.Spec.Template.ObjectMeta.Labels = u.Labels
+		d.Annotations = u.Annotations
+		if d.Annotations == nil {
+			d.Annotations = map[string]string{}
+		}
+		// TODO: incorporate the name of the API groupversionkind into the annotation label
+		d.Annotations["pod-hash"] = hash
+		owner := v1.OwnerReference{
+			Name:       u.Name,
+			UID:        u.UID,
+			Kind:       "Poseidon",
+			APIVersion: olympusv1beta1.SchemeGroupVersion.String(),
+		}
+		d.OwnerReferences = append(d.OwnerReferences, owner)
+		_, err = c.cs.ExtensionsV1beta1().Deployments(u.Namespace).Create(d)
+		if err != nil {
+			log.Printf("Error: %v", err)
+		}
+		return err
+	} else if hash != d.Annotations["pod-hash"] {
+		log.Printf("Updating Deployment for Poseidon %s", u.Name)
+		d.Spec.Template.Spec = u.Spec.Template
+		_, err = c.cs.ExtensionsV1beta1().Deployments(u.Namespace).Update(d)
+		if err != nil {
+			log.Printf("Error: %v", err)
+
+		}
+		return err
+	} else {
+		log.Printf("No changes to Deployment for Poseidon %s", u.Name)
+	}
+
 	return nil
 }
 

@@ -19,8 +19,10 @@ package controller
 import (
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/golang/glog"
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
+	"hash/fnv"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"
@@ -160,4 +162,17 @@ func GetConfig(kubeconfig string) (*rest.Config, error) {
 	} else {
 		return rest.InClusterConfig()
 	}
+}
+
+func GetHash(i interface{}) uint32 {
+	hasher := fnv.New32a()
+	hasher.Reset()
+	printer := spew.ConfigState{
+		Indent:         " ",
+		SortKeys:       true,
+		DisableMethods: true,
+		SpewKeys:       true,
+	}
+	printer.Fprintf(hasher, "%#v", i)
+	return hasher.Sum32()
 }
