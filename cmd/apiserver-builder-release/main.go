@@ -434,7 +434,7 @@ func BuildLocalVendor(tooldir string) {
 	os.MkdirAll(filepath.Join(tooldir, "src"), 0700)
 	c := exec.Command("cp", "-R", "-H",
 		filepath.Join("vendor"),
-		filepath.Join(tooldir, "src", "vendor"))
+		filepath.Join(tooldir, "src"))
 	RunCmd(c, "")
 	os.MkdirAll(filepath.Join(tooldir, "src", "vendor", "github.com", "kubernetes-incubator", "apiserver-builder"), 0700)
 	c = exec.Command("cp", "-R", "-H",
