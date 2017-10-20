@@ -21,9 +21,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"strings"
+
 	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
-	"strings"
 )
 
 var createGroupCmd = &cobra.Command{
