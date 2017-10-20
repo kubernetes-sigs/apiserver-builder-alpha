@@ -240,20 +240,15 @@ func Build(input, output, goos, goarch string) {
 			log.Fatalf("%v", err)
 		}
 
-		goversion, err := exec.Command("go", "version").CombinedOutput()
-		if err != nil {
-			log.Fatalf("%v", err)
-		}
-
-		t := time.Now()
+		t := time.Now().Local()
+		p := "github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/version"
 		ldflags := []string{
-			fmt.Sprintf("-X github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/version.apiserverBuilderVersion=%s", version),
-			fmt.Sprintf("-X github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/version.kubernetesVendorVersion=%s", kubernetesVersion),
-			fmt.Sprintf("-X github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/version.goos=%s", goos),
-			fmt.Sprintf("-X github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/version.goarch=%s", goarch),
-			fmt.Sprintf("-X github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/version.gitCommit=%s", commit),
-			fmt.Sprintf("-X github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/version.buildDate=%s", t.Format("2017-01-01")),
-			fmt.Sprintf("-X github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/version.goVersion=%s", goversion),
+			fmt.Sprintf("-X %s.apiserverBuilderVersion=%s", p, version),
+			fmt.Sprintf("-X %s.kubernetesVendorVersion=%s", p, kubernetesVersion),
+			fmt.Sprintf("-X %s.goos=%s", p, goos),
+			fmt.Sprintf("-X %s.goarch=%s", p, goarch),
+			fmt.Sprintf("-X %s.gitCommit=%s", p, commit),
+			fmt.Sprintf("-X %s.buildDate=%s", p, t.Format("2006-01-02-15:04:05")),
 		}
 		cmd = exec.Command("go", "build",
 			"-ldflags", strings.Join(ldflags, " "),

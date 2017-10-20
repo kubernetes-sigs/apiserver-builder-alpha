@@ -108,6 +108,11 @@ func fetchGlide() {
 }
 
 func CopyGlide() {
+	// Delete old versions of the packages we manage before installing the new ones
+	if Update {
+		DeleteOld()
+	}
+
 	// Move up two directories from the location of the `apiserver-boot`
 	// executable to find the `vendor` directory we package with our
 	// releases.
@@ -138,14 +143,9 @@ func CopyGlide() {
 
 	for file, err := tr.Next(); err == nil; file, err = tr.Next() {
 		p := filepath.Join(".", file.Name)
-		if Update {
-			// Delete existing directory first if upgrading
-			if filepath.Dir(p) != "." {
-				os.RemoveAll(filepath.Dir(p))
-			} else {
-				// don't update glide files
-				continue
-			}
+
+		if Update && filepath.Dir(p) == "." {
+			continue
 		}
 
 		err := os.MkdirAll(filepath.Dir(p), 0700)
@@ -159,6 +159,52 @@ func CopyGlide() {
 		err = ioutil.WriteFile(p, b, os.FileMode(file.Mode))
 		if err != nil {
 			log.Fatalf("Could not write file %s: %v", p, err)
+		}
+	}
+}
+
+// DeleteOld delete all the versions for all packages it is going to untar
+func DeleteOld() {
+	// Move up two directories from the location of the `apiserver-boot`
+	// executable to find the `vendor` directory we package with our
+	// releases.
+	e, err := os.Executable()
+	if err != nil {
+		log.Fatal("unable to get directory of apiserver-builder tools")
+	}
+
+	e = filepath.Dir(filepath.Dir(e))
+
+	// read the file
+	f := filepath.Join(e, "bin", "glide.tar.gz")
+	fr, err := os.Open(f)
+	if err != nil {
+		log.Fatalf("failed to read vendor tar file %s %v", f, err)
+	}
+	defer fr.Close()
+
+	// setup gzip of tar
+	gr, err := gzip.NewReader(fr)
+	if err != nil {
+		log.Fatalf("failed to read vendor tar file %s %v", f, err)
+	}
+	defer gr.Close()
+
+	// setup tar reader
+	tr := tar.NewReader(gr)
+
+	for file, err := tr.Next(); err == nil; file, err = tr.Next() {
+		p := filepath.Join(".", file.Name)
+		// Delete existing directory first if upgrading
+		if filepath.Dir(p) != "." {
+			dir := filepath.Base(filepath.Dir(p))
+			parent := filepath.Base(filepath.Dir(filepath.Dir(p)))
+			gparent := filepath.Base(filepath.Dir(filepath.Dir(filepath.Dir(p))))
+
+			// Delete the directory if it is a repo or package in a repo
+			if dir != "vendor" && parent != "vendor" && !(gparent == "vendor" && parent == "github.com") {
+				os.RemoveAll(filepath.Dir(p))
+			}
 		}
 	}
 }

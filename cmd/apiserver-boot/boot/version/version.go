@@ -27,7 +27,6 @@ var (
 	kubernetesVendorVersion = "unknown"
 	goos                    = "unknown"
 	goarch                  = "unknown"
-	goVersion               = "unknown"
 	gitCommit               = "$Format:%H$" // sha1 from git, output of $(git rev-parse HEAD)
 
 	buildDate = "1970-01-01T00:00:00Z" // build date in ISO8601 format, output of $(date -u +'%Y-%m-%dT%H:%M:%SZ')
@@ -38,7 +37,6 @@ type Version struct {
 	KubernetesVendor        string `json:"kubernetesVendor"`
 	GitCommit               string `json:"gitCommit"`
 	BuildDate               string `json:"buildDate"`
-	GoCompiler              string `json:"goCompiler"`
 	GoOs                    string `json:"goOs"`
 	GoArch                  string `json:"goArch"`
 }
@@ -49,7 +47,6 @@ func GetVersion() Version {
 		kubernetesVendorVersion,
 		gitCommit,
 		buildDate,
-		goVersion,
 		goos,
 		goarch,
 	}
