@@ -28,6 +28,7 @@ import (
 	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/create"
 	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/init_repo"
 	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/run"
+	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/update"
 	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/version"
 )
@@ -56,6 +57,7 @@ func main() {
 	create.AddCreate(cmd)
 	build.AddBuild(cmd)
 	run.AddRun(cmd)
+	update.AddUpdate(cmd)
 	version.AddVersion(cmd)
 
 	if err := cmd.Execute(); err != nil {

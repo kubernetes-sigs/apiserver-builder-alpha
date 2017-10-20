@@ -25,9 +25,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"io/ioutil"
+
 	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
-	"io/ioutil"
 )
 
 var glideInstallCmd = &cobra.Command{
@@ -45,10 +46,12 @@ apiserver-boot init glide --fetch
 
 var fetch bool
 var builderCommit string
+var Update bool
 
 func AddGlideInstallCmd(cmd *cobra.Command) {
 	glideInstallCmd.Flags().BoolVar(&fetch, "fetch", true, "if true, fetch new glide deps instead of copying the ones packaged with the tools")
 	glideInstallCmd.Flags().StringVar(&builderCommit, "commit", "", "if specified with fetch, use this commit for the apiserver-builder deps")
+	glideInstallCmd.Flags().BoolVar(&Update, "update", false, "if true, don't touch glide.yaml or glide.lock, and replace versions of packages managed by apiserver-boot.")
 	cmd.AddCommand(glideInstallCmd)
 }
 
@@ -104,7 +107,7 @@ func fetchGlide() {
 	}
 }
 
-func copyGlide() {
+func CopyGlide() {
 	// Move up two directories from the location of the `apiserver-boot`
 	// executable to find the `vendor` directory we package with our
 	// releases.
@@ -135,6 +138,16 @@ func copyGlide() {
 
 	for file, err := tr.Next(); err == nil; file, err = tr.Next() {
 		p := filepath.Join(".", file.Name)
+		if Update {
+			// Delete existing directory first if upgrading
+			if filepath.Dir(p) != "." {
+				os.RemoveAll(filepath.Dir(p))
+			} else {
+				// don't update glide files
+				continue
+			}
+		}
+
 		err := os.MkdirAll(filepath.Dir(p), 0700)
 		if err != nil {
 			log.Fatalf("Could not create directory %s: %v", filepath.Dir(p), err)
@@ -151,11 +164,13 @@ func copyGlide() {
 }
 
 func RunGlideInstall(cmd *cobra.Command, args []string) {
-	createGlide()
+	if !Update {
+		createGlide()
+	}
 	if fetch {
 		fetchGlide()
 	} else {
-		copyGlide()
+		CopyGlide()
 	}
 }
 

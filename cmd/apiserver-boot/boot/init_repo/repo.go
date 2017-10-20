@@ -45,6 +45,8 @@ func AddInitRepo(cmd *cobra.Command) {
 	repoCmd.Flags().StringVar(&copyright, "copyright", "boilerplate.go.txt", "Location of copyright boilerplate file.")
 	repoCmd.Flags().
 		BoolVar(&installDeps, "install-deps", true, "if true, install the vendored deps packaged with apiserver-boot.")
+	repoCmd.Flags().
+		BoolVar(&Update, "update", false, "if true, don't touch glide.yaml or glide.lock, and replace versions of packages managed by apiserver-boot.")
 	repoCmd.Flags().MarkHidden("install-deps")
 }
 
@@ -68,7 +70,7 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 
 	if installDeps {
 		log.Printf("installing godeps.  To disable this, run with --install-deps=false.")
-		copyGlide()
+		CopyGlide()
 	}
 }
 
