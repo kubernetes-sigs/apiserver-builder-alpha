@@ -11,7 +11,8 @@ go_library(
         "//cmd/apiserver-boot/boot/init_repo:go_default_library",
         "//cmd/apiserver-boot/boot/run:go_default_library",
         "//cmd/apiserver-boot/boot/util:go_default_library",
-        "//cmd/vendor/github.com/spf13/cobra:go_default_library",
+        "//cmd/apiserver-boot/boot/version:go_default_library",
+        "//vendor/github.com/spf13/cobra:go_default_library",
     ],
 )
 
