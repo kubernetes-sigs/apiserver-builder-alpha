@@ -88,7 +88,16 @@ func New{{.Target.Kind}}Controller(config *rest.Config, si *sharedinformers.Shar
 
 	// For non-generated code to add events
 	uc := &{{.Target.Kind}}ControllerImpl{}
-	uc.Init(config, si, c.LookupAndReconcile)
+	var ci sharedinformers.Controller = uc
+
+    // Call the Init method that is implemented.
+    // Support multiple Init methods for backwards compatibility
+	if i, ok := ci.(sharedinformers.LegacyControllerInit); ok {
+        i.Init(config, si, c.LookupAndReconcile)
+    } else if i, ok := ci.(sharedinformers.ControllerInit); ok {
+        i.Init(&sharedinformers.ControllerInitArgumentsImpl{si, config, c.LookupAndReconcile})
+    }
+
 	c.controller = uc
 
 	queue.Reconcile = c.reconcile
@@ -239,6 +248,7 @@ func (d *informersGenerator) Imports(c *generator.Context) []string {
 		"k8s.io/client-go/rest",
 		repo + "/pkg/client/clientset_generated/clientset",
 		repo + "/pkg/client/informers_generated/externalversions",
+		"k8s.io/client-go/tools/cache",
 	}
 }
 
@@ -280,5 +290,68 @@ func (si *SharedInformers) startInformers(shutdown <-chan struct{}) {
 	{{ range $c := . -}}
 	go si.Factory.{{title $c.Target.Group}}().{{title $c.Target.Version}}().{{plural $c.Target.Kind}}().Informer().Run(shutdown)
 	{{ end -}}
+}
+
+// ControllerInitArguments are arguments provided to the Init function for a new controller.
+type ControllerInitArguments interface {
+    // GetSharedInformers returns the SharedInformers that can be used to access
+    // informers and listers for watching and indexing Kubernetes Resources
+    GetSharedInformers() *SharedInformers
+
+    // GetRestConfig returns the Config to create new client-go clients
+    GetRestConfig() *rest.Config
+
+    // Watch uses resourceInformer to watch a resource.  When create, update, or deletes
+    // to the resource type are encountered, watch uses watchResourceToReconcileResourceKey
+    // to lookup the key for the resource reconciled by the controller (maybe a different type
+    // than the watched resource), and enqueue it to be reconciled.
+    // watchName: name of the informer.  may appear in logs
+    // resourceInformer: gotten from the SharedInformer.  controls which resource type is watched
+    // getReconcileKey: takes an instance of the watched resource and returns
+    //                                      a key for the reconciled resource type to enqueue.
+	Watch(watchName string, resourceInformer cache.SharedIndexInformer,
+            getReconcileKey func(interface{}) (string, error))
+}
+
+type ControllerInitArgumentsImpl struct {
+    Si *SharedInformers
+    Rc *rest.Config
+    Rk func(key string) error
+}
+
+func (c ControllerInitArgumentsImpl) GetSharedInformers() *SharedInformers {
+  return c.Si
+}
+
+func (c ControllerInitArgumentsImpl) GetRestConfig() *rest.Config {
+  return c.Rc
+}
+
+// Watch uses resourceInformer to watch a resource.  When create, update, or deletes
+// to the resource type are encountered, watch uses watchResourceToReconcileResourceKey
+// to lookup the key for the resource reconciled by the controller (maybe a different type
+// than the watched resource), and enqueue it to be reconciled.
+// watchName: name of the informer.  may appear in logs
+// resourceInformer: gotten from the SharedInformer.  controls which resource type is watched
+// getReconcileKey: takes an instance of the watched resource and returns
+//                                      a key for the reconciled resource type to enqueue.
+func (c ControllerInitArgumentsImpl) Watch(
+    watchName string, resourceInformer cache.SharedIndexInformer,
+    getReconcileKey func(interface{}) (string, error)) {
+    c.Si.Watch(watchName, resourceInformer, getReconcileKey, c.Rk)
+}
+
+type Controller interface {}
+
+// LegacyControllerInit old controllers may implement this, and we keep
+// it for backwards compatibility.
+type LegacyControllerInit interface {
+    Init(config *rest.Config, si *SharedInformers, r func(key string) error)
+}
+
+// ControllerInit new controllers should implement this.  It is more flexible in
+// allowing additional options to be passed in
+type ControllerInit interface {
+    Init(args ControllerInitArguments)
 }
 `
