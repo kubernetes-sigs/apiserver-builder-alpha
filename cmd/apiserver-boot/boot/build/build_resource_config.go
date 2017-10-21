@@ -179,7 +179,7 @@ func createCerts() {
 			"-out", filepath.Join(dir, "apiserver_ca.crt"),
 			"-days", "365",
 			"-nodes",
-			"-subj", fmt.Sprintf("/C=/ST=/L=/O=/OU=/CN=%s-certificate-authority", Name),
+			"-subj", fmt.Sprintf("/C=un/ST=st/L=l/O=o/OU=ou/CN=%s-certificate-authority", Name),
 		)
 	} else {
 		log.Printf("Skipping generate CA cert.  File already exists.")
@@ -193,7 +193,7 @@ func createCerts() {
 			"-newkey", "rsa:2048",
 			"-nodes",
 			"-keyout", filepath.Join(dir, "apiserver.key"),
-			"-subj", fmt.Sprintf("/C=/ST=/L=/O=/OU=/CN=%s.%s.svc", Name, Namespace),
+			"-subj", fmt.Sprintf("/C=un/ST=st/L=l/O=o/OU=ou/CN=%s.%s.svc", Name, Namespace),
 		)
 	} else {
 		log.Printf("Skipping generate apiserver csr.  File already exists.")
