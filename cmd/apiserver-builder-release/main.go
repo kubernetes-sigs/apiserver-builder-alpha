@@ -26,6 +26,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -35,6 +36,7 @@ var output string
 var dovendor bool
 var test bool
 var version string
+var kubernetesVersion string
 var commit string
 var userLocalVendor bool
 var useBazel bool
@@ -59,6 +61,7 @@ func main() {
 
 	vendorCmd.Flags().StringVar(&commit, "commit", "", "apiserver-builder commit")
 	vendorCmd.Flags().StringVar(&version, "version", "", "version name")
+	vendorCmd.Flags().StringVar(&kubernetesVersion, "kubernetesVersion", "1.7.5", "version of kubernetes libs")
 	vendorCmd.Flags().StringVar(&cachevendordir, "vendordir", "",
 		"if specified, use this directory for setting up vendor instead of creating a tmp directory.")
 	vendorCmd.Flags().BoolVar(&userLocalVendor, "use-local-vendor", true, "if true, run use the local vendored code")
@@ -230,7 +233,29 @@ func RunCmd(cmd *exec.Cmd, gopath string) {
 }
 
 func Build(input, output, goos, goarch string) {
-	cmd := exec.Command("go", "build", "-o", output, input)
+	var cmd *exec.Cmd
+	if strings.HasSuffix(output, "apiserver-boot") {
+		commit, err := exec.Command("git", "rev-parse", "HEAD").CombinedOutput()
+		if err != nil {
+			log.Fatalf("%v", err)
+		}
+
+		t := time.Now().Local()
+		p := "github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/version"
+		ldflags := []string{
+			fmt.Sprintf("-X %s.apiserverBuilderVersion=%s", p, version),
+			fmt.Sprintf("-X %s.kubernetesVendorVersion=%s", p, kubernetesVersion),
+			fmt.Sprintf("-X %s.goos=%s", p, goos),
+			fmt.Sprintf("-X %s.goarch=%s", p, goarch),
+			fmt.Sprintf("-X %s.gitCommit=%s", p, commit),
+			fmt.Sprintf("-X %s.buildDate=%s", p, t.Format("2006-01-02-15:04:05")),
+		}
+		cmd = exec.Command("go", "build",
+			"-ldflags", strings.Join(ldflags, " "),
+			"-o", output, input)
+	} else {
+		cmd = exec.Command("go", "build", "-o", output, input)
+	}
 
 	// CGO_ENABLED=0 for statically compile binaries
 	cmd.Env = []string{"CGO_ENABLED=0"}
@@ -434,7 +459,7 @@ func BuildLocalVendor(tooldir string) {
 	os.MkdirAll(filepath.Join(tooldir, "src"), 0700)
 	c := exec.Command("cp", "-R", "-H",
 		filepath.Join("vendor"),
-		filepath.Join(tooldir, "src", "vendor"))
+		filepath.Join(tooldir, "src"))
 	RunCmd(c, "")
 	os.MkdirAll(filepath.Join(tooldir, "src", "vendor", "github.com", "kubernetes-incubator", "apiserver-builder"), 0700)
 	c = exec.Command("cp", "-R", "-H",

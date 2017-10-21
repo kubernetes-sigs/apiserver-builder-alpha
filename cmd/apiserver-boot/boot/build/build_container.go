@@ -21,9 +21,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"io/ioutil"
+
 	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
-	"io/ioutil"
 )
 
 var Image string

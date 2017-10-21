@@ -20,8 +20,9 @@ import (
 	"io"
 	"text/template"
 
-	"k8s.io/gengo/generator"
 	"path"
+
+	"k8s.io/gengo/generator"
 )
 
 type installGenerator struct {

@@ -152,9 +152,9 @@ func buildResourceConfig() {
 		ControllerSecretMount: ControllerSecretMount,
 		ControllerSecret:      ControllerSecret,
 		ControllerSecretEnv:   ControllerSecretEnv,
-    LocalIp:               LocalIp,
-    ImagePullSecrets:      ImagePullSecrets,
-    ServiceAccount:        ServiceAccount,
+		LocalIp:               LocalIp,
+		ImagePullSecrets:      ImagePullSecrets,
+		ServiceAccount:        ServiceAccount,
 	}
 	path := filepath.Join(ResourceConfigDir, "apiserver.yaml")
 
@@ -260,9 +260,9 @@ type resourceConfigTemplateArgs struct {
 	ControllerSecret      string
 	ControllerSecretMount string
 	ControllerSecretEnv   []string
-  LocalIp               string
-  ServiceAccount        string
-  ImagePullSecrets      []string
+	LocalIp               string
+	ServiceAccount        string
+	ImagePullSecrets      []string
 }
 
 var resourceConfigTemplate = `
