@@ -377,7 +377,6 @@ import (
 	"log"
 
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
-	"k8s.io/client-go/rest"
 
 	"{{.Repo}}/pkg/apis/{{.Group}}/{{.Version}}"
 	"{{.Repo}}/pkg/controller/sharedinformers"
@@ -393,17 +392,10 @@ type {{.Kind}}ControllerImpl struct {
 }
 
 // Init initializes the controller and is called by the generated code
-// Registers eventhandlers to enqueue events
-// config - client configuration for talking to the apiserver
-// si - informer factory shared across all controllers for listening to events and indexing resource properties
-// queue - message queue for handling new events.  unique to this controller.
-func (c *{{.Kind}}ControllerImpl) Init(
-	config *rest.Config,
-	si *sharedinformers.SharedInformers,
-    reconcileKey func(key string) error) {
-
-	// Set the informer and lister for subscribing to events and indexing {{.Resource}} labels
-	c.lister = si.Factory.{{title .Group}}().{{title .Version}}().{{plural .Kind}}().Lister()
+// Register watches for additional resource types here.
+func (c *{{.Kind}}ControllerImpl) Init(arguments sharedinformers.ControllerInitArguments) {
+	// Use the lister for indexing {{.Resource}} labels
+	c.lister = arguments.GetSharedInformers().Factory.{{title .Group}}().{{title .Version}}().{{plural .Kind}}().Lister()
 }
 
 // Reconcile handles enqueued messages

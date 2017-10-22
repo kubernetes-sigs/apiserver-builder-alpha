@@ -68,6 +68,7 @@ func (c *SharedInformersDefaults) Watch(
 	name string, i cache.SharedIndexInformer,
 	f func(interface{}) (string, error), r func(string) error) {
 	q := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), name)
+
 	queue := &QueueWorker{q, 10, name, r}
 	if c.WorkerQueues == nil {
 		c.WorkerQueues = map[string]*QueueWorker{}

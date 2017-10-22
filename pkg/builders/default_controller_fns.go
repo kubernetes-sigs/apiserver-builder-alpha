@@ -20,3 +20,9 @@ type DefaultControllerFns struct {
 }
 
 func (DefaultControllerFns) Run(stopCh <-chan struct{}) {}
+
+type Controller interface {
+}
+
+type ControllerArgs interface {
+}

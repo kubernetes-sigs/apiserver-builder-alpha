@@ -22,7 +22,6 @@ import (
 	extensionsv1beta1listers "k8s.io/client-go/listers/extensions/v1beta1"
 
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
-	"k8s.io/client-go/rest"
 
 	olympusv1beta1 "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/olympus/v1beta1"
 	listers "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/listers_generated/olympus/v1beta1"
@@ -37,6 +36,7 @@ type PoseidonControllerImpl struct {
 	// lister indexes properties about Poseidon
 	lister listers.PoseidonLister
 
+	// lister indexes properties about Deployments
 	deploymentLister extensionsv1beta1listers.DeploymentLister
 }
 
@@ -45,20 +45,18 @@ type PoseidonControllerImpl struct {
 // config - client configuration for talking to the apiserver
 // si - informer factory shared across all controllers for listening to events and indexing resource properties
 // queue - message queue for handling new events.  unique to this controller.
-func (c *PoseidonControllerImpl) Init(
-	config *rest.Config,
-	si *sharedinformers.SharedInformers,
-	r func(key string) error) {
+func (c *PoseidonControllerImpl) Init(arguments sharedinformers.ControllerInitArguments) {
 
 	// Set the informer and lister for subscribing to events and indexing poseidons labels
-	i := si.Factory.Olympus().V1beta1().Poseidons()
+	i := arguments.GetSharedInformers().Factory.Olympus().V1beta1().Poseidons()
 	c.lister = i.Lister()
 
-	// For watching Deployments
-	log.Printf("Register Poseidon controller for Deployment events")
-	di := si.KubernetesFactory.Extensions().V1beta1().Deployments()
+	// For listing Deployments
+	di := arguments.GetSharedInformers().KubernetesFactory.Extensions().V1beta1().Deployments()
 	c.deploymentLister = di.Lister()
-	si.Watch("PoseidonPod", di.Informer(), c.DeploymentToPoseidon, r)
+
+	// For watching Deployments
+	arguments.Watch("PoseidonPod", di.Informer(), c.DeploymentToPoseidon)
 }
 
 func (c *PoseidonControllerImpl) DeploymentToPoseidon(i interface{}) (string, error) {
