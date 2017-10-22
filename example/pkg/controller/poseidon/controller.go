@@ -41,17 +41,10 @@ type PoseidonControllerImpl struct {
 }
 
 // Init initializes the controller and is called by the generated code
-// Registers eventhandlers to enqueue events
-// config - client configuration for talking to the apiserver
-// si - informer factory shared across all controllers for listening to events and indexing resource properties
-// queue - message queue for handling new events.  unique to this controller.
 func (c *PoseidonControllerImpl) Init(arguments sharedinformers.ControllerInitArguments) {
-
-	// Set the informer and lister for subscribing to events and indexing poseidons labels
 	i := arguments.GetSharedInformers().Factory.Olympus().V1beta1().Poseidons()
 	c.lister = i.Lister()
 
-	// For listing Deployments
 	di := arguments.GetSharedInformers().KubernetesFactory.Extensions().V1beta1().Deployments()
 	c.deploymentLister = di.Lister()
 
