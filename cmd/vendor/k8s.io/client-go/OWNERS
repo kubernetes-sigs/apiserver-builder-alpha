@@ -5,6 +5,7 @@ approvers:
 - lavalamp
 - smarterclayton
 - sttts
+- liggitt
 reviewers:
 - thockin
 - lavalamp
@@ -23,7 +24,6 @@ reviewers:
 - davidopp
 - pmorie
 - sttts
-- kargakis
 - dchen1107
 - saad-ali
 - zmerlynn

@@ -33,17 +33,17 @@ import (
 	"bytes"
 	"net/http"
 	"os"
-    "path/filepath"
-    "time"
+	"path/filepath"
+	"time"
 
 	"github.com/golang/glog"
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/validators"
-	"k8s.io/apimachinery/pkg/openapi"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apiserver/pkg/util/logs"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	openapi "k8s.io/kube-openapi/pkg/common"
 )
 
 var GetOpenApiDefinition openapi.GetOpenAPIDefinitions

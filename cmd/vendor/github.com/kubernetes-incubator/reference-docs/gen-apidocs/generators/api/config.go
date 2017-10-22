@@ -50,6 +50,10 @@ func (config *Config) genConfigFromTags(specs []*loads.Document) {
 		if strings.HasSuffix(definition.Name, "Status") {
 			continue
 		}
+		if strings.HasPrefix(definition.Description(), "Deprecated. Please use") {
+			// Don't look at deprecated types
+			continue
+		}
 		config.initDefExample(definition) // Init the example yaml
 		g := definition.Group
 		groupsMap[g] = append(groupsMap[g], definition)
@@ -323,12 +327,15 @@ func (c *Config) CleanUp() {
 		sort.Sort(d.AppearsIn)
 		sort.Sort(d.Fields)
 		dedup := SortDefinitionsByName{}
-		last := ""
+		var last *Definition
 		for _, i := range d.AppearsIn {
-			if i.Name == last {
+			if last != nil &&
+				i.Name == last.Name &&
+				i.Group.String() == last.Group.String() &&
+				i.Version.String() == last.Version.String() {
 				continue
 			}
-			last = i.Name
+			last = i
 			dedup = append(dedup, i)
 		}
 		d.AppearsIn = dedup

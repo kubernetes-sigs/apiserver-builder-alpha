@@ -41,7 +41,7 @@ import (
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
-	apitesting "k8s.io/apimachinery/pkg/api/testing"
+	fuzzer "k8s.io/apimachinery/pkg/api/testing/fuzzer"
 	metainternalversion "k8s.io/apimachinery/pkg/apis/meta/internalversion"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -331,7 +331,7 @@ func handleInternal(storage map[string]rest.Storage, admissionControl admission.
 		}
 	}
 
-	handler := genericapifilters.WithAudit(mux, requestContextMapper, auditSink, auditpolicy.FakeChecker(auditinternal.LevelRequestResponse), func(r *http.Request, requestInfo *request.RequestInfo) bool {
+	handler := genericapifilters.WithAudit(mux, requestContextMapper, auditSink, auditpolicy.FakeChecker(auditinternal.LevelRequestResponse, nil), func(r *http.Request, requestInfo *request.RequestInfo) bool {
 		// simplified long-running check
 		return requestInfo.Verb == "watch" || requestInfo.Verb == "proxy"
 	})
@@ -490,11 +490,7 @@ func (storage *SimpleRESTStorage) Get(ctx request.Context, id string, options *m
 	if id == "binary" {
 		return storage.stream, storage.errors["get"]
 	}
-	copied, err := scheme.Copy(&storage.item)
-	if err != nil {
-		panic(err)
-	}
-	return copied, storage.errors["get"]
+	return storage.item.DeepCopy(), storage.errors["get"]
 }
 
 func (storage *SimpleRESTStorage) checkContext(ctx request.Context) {
@@ -748,11 +744,7 @@ func (storage *SimpleTypedStorage) New() runtime.Object {
 
 func (storage *SimpleTypedStorage) Get(ctx request.Context, id string, options *metav1.GetOptions) (runtime.Object, error) {
 	storage.checkContext(ctx)
-	copied, err := scheme.Copy(storage.item)
-	if err != nil {
-		panic(err)
-	}
-	return copied, storage.errors["get"]
+	return storage.item.DeepCopyObject(), storage.errors["get"]
 }
 
 func (storage *SimpleTypedStorage) checkContext(ctx request.Context) {
@@ -1877,7 +1869,21 @@ func TestGetTable(t *testing.T) {
 			expected: &metav1alpha1.Table{
 				TypeMeta: metav1.TypeMeta{Kind: "Table", APIVersion: "meta.k8s.io/v1alpha1"},
 				ColumnDefinitions: []metav1alpha1.TableColumnDefinition{
-					{Name: "Name", Type: "string", Description: metaDoc["name"]},
+					{Name: "Name", Type: "string", Format: "name", Description: metaDoc["name"]},
+					{Name: "Created At", Type: "date", Description: metaDoc["creationTimestamp"]},
+				},
+				Rows: []metav1alpha1.TableRow{
+					{Cells: []interface{}{"foo1", now.Time.UTC().Format(time.RFC3339)}, Object: runtime.RawExtension{Raw: encodedBody}},
+				},
+			},
+		},
+		{
+			accept: runtime.ContentTypeJSON + ";as=Table;v=v1alpha1;g=meta.k8s.io",
+			params: url.Values{"includeObject": []string{"Metadata"}},
+			expected: &metav1alpha1.Table{
+				TypeMeta: metav1.TypeMeta{Kind: "Table", APIVersion: "meta.k8s.io/v1alpha1"},
+				ColumnDefinitions: []metav1alpha1.TableColumnDefinition{
+					{Name: "Name", Type: "string", Format: "name", Description: metaDoc["name"]},
 					{Name: "Created At", Type: "date", Description: metaDoc["creationTimestamp"]},
 				},
 				Rows: []metav1alpha1.TableRow{
@@ -1901,18 +1907,20 @@ func TestGetTable(t *testing.T) {
 		}
 		if test.statusCode != 0 {
 			if resp.StatusCode != test.statusCode {
-				t.Errorf("%d: unexpected response: %#v", resp)
+				t.Errorf("%d: unexpected response: %#v", i, resp)
 			}
 			continue
 		}
 		if resp.StatusCode != http.StatusOK {
-			t.Errorf("%d: unexpected response: %#v", resp)
+			t.Errorf("%d: unexpected response: %#v", i, resp)
 		}
 		var itemOut metav1alpha1.Table
-		if _, err = extractBody(resp, &itemOut); err != nil {
+		body, err := extractBody(resp, &itemOut)
+		if err != nil {
 			t.Fatal(err)
 		}
 		if !reflect.DeepEqual(test.expected, &itemOut) {
+			t.Log(body)
 			t.Errorf("%d: did not match: %s", i, diff.ObjectReflectDiff(test.expected, &itemOut))
 		}
 	}
@@ -2128,14 +2136,24 @@ func TestGetWithOptions(t *testing.T) {
 			expectedPath: "",
 		},
 		{
+			name:         "with root slash",
+			requestURL:   "/namespaces/default/simple/id/?param1=test1&param2=test2",
+			expectedPath: "/",
+		},
+		{
 			name:         "with path",
 			requestURL:   "/namespaces/default/simple/id/a/different/path?param1=test1&param2=test2",
-			expectedPath: "a/different/path",
+			expectedPath: "/a/different/path",
+		},
+		{
+			name:         "with path with trailing slash",
+			requestURL:   "/namespaces/default/simple/id/a/different/path/?param1=test1&param2=test2",
+			expectedPath: "/a/different/path/",
 		},
 		{
 			name:         "as subresource",
 			requestURL:   "/namespaces/default/simple/id/subresource/another/different/path?param1=test1&param2=test2",
-			expectedPath: "another/different/path",
+			expectedPath: "/another/different/path",
 		},
 		{
 			name:         "cluster-scoped basic",
@@ -2147,13 +2165,13 @@ func TestGetWithOptions(t *testing.T) {
 			name:         "cluster-scoped basic with path",
 			rootScoped:   true,
 			requestURL:   "/simple/id/a/cluster/path?param1=test1&param2=test2",
-			expectedPath: "a/cluster/path",
+			expectedPath: "/a/cluster/path",
 		},
 		{
 			name:         "cluster-scoped basic as subresource",
 			rootScoped:   true,
 			requestURL:   "/simple/id/subresource/another/cluster/path?param1=test1&param2=test2",
-			expectedPath: "another/cluster/path",
+			expectedPath: "/another/cluster/path",
 		},
 	}
 
@@ -2548,7 +2566,7 @@ func TestConnectWithOptions(t *testing.T) {
 func TestConnectWithOptionsAndPath(t *testing.T) {
 	responseText := "Hello World"
 	itemID := "theID"
-	testPath := "a/b/c/def"
+	testPath := "/a/b/c/def"
 	connectStorage := &ConnecterRESTStorage{
 		connectHandler: &OutputConnect{
 			response: responseText,
@@ -2564,7 +2582,7 @@ func TestConnectWithOptionsAndPath(t *testing.T) {
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
-	resp, err := http.Get(server.URL + "/" + prefix + "/" + testGroupVersion.Group + "/" + testGroupVersion.Version + "/namespaces/default/simple/" + itemID + "/connect/" + testPath + "?param1=value1&param2=value2")
+	resp, err := http.Get(server.URL + "/" + prefix + "/" + testGroupVersion.Group + "/" + testGroupVersion.Version + "/namespaces/default/simple/" + itemID + "/connect" + testPath + "?param1=value1&param2=value2")
 
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -3228,91 +3246,6 @@ func TestCreateChecksDecode(t *testing.T) {
 	}
 }
 
-// TestUpdateREST tests that you can add new rest implementations to a pre-existing
-// web service.
-func TestUpdateREST(t *testing.T) {
-	makeGroup := func(storage map[string]rest.Storage) *APIGroupVersion {
-		return &APIGroupVersion{
-			Storage:   storage,
-			Root:      "/" + prefix,
-			Creater:   scheme,
-			Convertor: scheme,
-			Copier:    scheme,
-			Defaulter: scheme,
-			Typer:     scheme,
-			Linker:    selfLinker,
-
-			Admit:   admissionControl,
-			Context: requestContextMapper,
-			Mapper:  namespaceMapper,
-
-			GroupVersion:           newGroupVersion,
-			OptionsExternalVersion: &newGroupVersion,
-
-			Serializer:     codecs,
-			ParameterCodec: parameterCodec,
-		}
-	}
-
-	makeStorage := func(paths ...string) map[string]rest.Storage {
-		storage := map[string]rest.Storage{}
-		for _, s := range paths {
-			storage[s] = &SimpleRESTStorage{}
-		}
-		return storage
-	}
-
-	testREST := func(t *testing.T, container *restful.Container, barCode int) {
-		handler := genericapifilters.WithRequestInfo(container, newTestRequestInfoResolver(), requestContextMapper)
-		handler = request.WithRequestContext(handler, requestContextMapper)
-
-		w := httptest.NewRecorder()
-		handler.ServeHTTP(w, &http.Request{Method: "GET", URL: &url.URL{Path: "/" + prefix + "/" + newGroupVersion.Group + "/" + newGroupVersion.Version + "/namespaces/test/foo/test"}})
-		if w.Code != http.StatusOK {
-			t.Fatalf("expected OK: %#v", w)
-		}
-
-		w = httptest.NewRecorder()
-		handler.ServeHTTP(w, &http.Request{Method: "GET", URL: &url.URL{Path: "/" + prefix + "/" + newGroupVersion.Group + "/" + newGroupVersion.Version + "/namespaces/test/bar/test"}})
-		if w.Code != barCode {
-			t.Errorf("expected response code %d for GET to bar but received %d", barCode, w.Code)
-		}
-	}
-
-	storage1 := makeStorage("foo")
-	group1 := makeGroup(storage1)
-
-	storage2 := makeStorage("bar")
-	group2 := makeGroup(storage2)
-
-	container := restful.NewContainer()
-
-	// install group1.  Ensure that
-	// 1. Foo storage is accessible
-	// 2. Bar storage is not accessible
-	if err := group1.InstallREST(container); err != nil {
-		t.Fatal(err)
-	}
-	testREST(t, container, http.StatusNotFound)
-
-	// update with group2.  Ensure that
-	// 1.  Foo storage is still accessible
-	// 2.  Bar storage is now accessible
-	if err := group2.UpdateREST(container); err != nil {
-		t.Fatal(err)
-	}
-	testREST(t, container, http.StatusOK)
-
-	// try to update a group that does not have an existing webservice with a matching prefix
-	// should not affect the existing registered webservice
-	invalidGroup := makeGroup(storage1)
-	invalidGroup.Root = "bad"
-	if err := invalidGroup.UpdateREST(container); err == nil {
-		t.Fatal("expected an error from UpdateREST when updating a non-existing prefix but got none")
-	}
-	testREST(t, container, http.StatusOK)
-}
-
 func TestParentResourceIsRequired(t *testing.T) {
 	storage := &SimpleTypedStorage{
 		baseType: &genericapitesting.SimpleRoot{}, // a root scoped type
@@ -3834,7 +3767,7 @@ func TestCreateTimeout(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
-	itemOut := expectApiStatus(t, "POST", server.URL+"/"+prefix+"/"+testGroupVersion.Group+"/"+testGroupVersion.Version+"/namespaces/default/foo?timeout=4ms", data, apierrs.StatusServerTimeout)
+	itemOut := expectApiStatus(t, "POST", server.URL+"/"+prefix+"/"+testGroupVersion.Group+"/"+testGroupVersion.Version+"/namespaces/default/foo?timeout=4ms", data, http.StatusGatewayTimeout)
 	if itemOut.Status != metav1.StatusFailure || itemOut.Reason != metav1.StatusReasonTimeout {
 		t.Errorf("Unexpected status %#v", itemOut)
 	}
@@ -3945,11 +3878,7 @@ func (storage *SimpleXGSubresourceRESTStorage) New() runtime.Object {
 }
 
 func (storage *SimpleXGSubresourceRESTStorage) Get(ctx request.Context, id string, options *metav1.GetOptions) (runtime.Object, error) {
-	copied, err := scheme.Copy(&storage.item)
-	if err != nil {
-		panic(err)
-	}
-	return copied, nil
+	return storage.item.DeepCopyObject(), nil
 }
 
 func TestXGSubresource(t *testing.T) {
@@ -4104,7 +4033,7 @@ func newTestRequestInfoResolver() *request.RequestInfoFactory {
 const benchmarkSeed = 100
 
 func benchmarkItems(b *testing.B) []example.Pod {
-	clientapiObjectFuzzer := apitesting.FuzzerFor(examplefuzzer.Funcs(b, codecs), rand.NewSource(benchmarkSeed))
+	clientapiObjectFuzzer := fuzzer.FuzzerFor(examplefuzzer.Funcs, rand.NewSource(benchmarkSeed), codecs)
 	items := make([]example.Pod, 3)
 	for i := range items {
 		clientapiObjectFuzzer.Fuzz(&items[i])

@@ -30,10 +30,10 @@ import (
 
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/cmd/server"
-	openapi "k8s.io/apimachinery/pkg/openapi"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	genericoptions "k8s.io/apiserver/pkg/server/options"
 	"k8s.io/client-go/rest"
+	openapi "k8s.io/kube-openapi/pkg/common"
 )
 
 type TestEnvironment struct {

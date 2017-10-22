@@ -70,7 +70,6 @@ func PrintInfo(config *api.Config) {
 				}
 			}
 		}
-		panic("Definitions with operations missing from the ToC")
 	}
 
 	//fmt.Printf("Old definitions:\n")

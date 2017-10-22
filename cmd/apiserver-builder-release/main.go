@@ -282,13 +282,16 @@ func Build(input, output, goos, goarch string) {
 
 var VendoredBuildPackages = []string{
 	"github.com/kubernetes-incubator/reference-docs/gen-apidocs",
-	"k8s.io/kubernetes/cmd/libs/go2idl/client-gen",
-	"k8s.io/kubernetes/cmd/libs/go2idl/conversion-gen",
-	"k8s.io/kubernetes/cmd/libs/go2idl/deepcopy-gen",
-	"k8s.io/kubernetes/cmd/libs/go2idl/defaulter-gen",
-	"k8s.io/kubernetes/cmd/libs/go2idl/informer-gen",
-	"k8s.io/kubernetes/cmd/libs/go2idl/lister-gen",
-	"k8s.io/kubernetes/cmd/libs/go2idl/openapi-gen",
+	"k8s.io/code-generator/cmd/client-gen",
+	"k8s.io/code-generator/cmd/conversion-gen",
+	"k8s.io/code-generator/cmd/deepcopy-gen",
+	"k8s.io/code-generator/cmd/defaulter-gen",
+	//"k8s.io/code-generator/cmd/go-to-protobuf",
+	//"k8s.io/code-generator/cmd/import-boss",
+	"k8s.io/code-generator/cmd/informer-gen",
+	"k8s.io/code-generator/cmd/lister-gen",
+	"k8s.io/code-generator/cmd/openapi-gen",
+	//"k8s.io/code-generator/cmd/set-gen",
 }
 
 var OwnedBuildPackages = []string{

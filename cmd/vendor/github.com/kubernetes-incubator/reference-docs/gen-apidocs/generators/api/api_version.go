@@ -16,28 +16,49 @@ limitations under the License.
 
 package api
 
+import (
+	"regexp"
+)
+
 type ApiVersion string
 
 func (this ApiVersion) LessThan(that ApiVersion) bool {
-	v1 := 100
-	switch this {
-	case "v1":
-		v1 = 0
-	case "v1beta1":
-		v1 = 1
-	case "v1alpha1":
-		v1 = 2
+	re := regexp.MustCompile("(v\\d+)(alpha|beta|)(\\d*)")
+	thisMatches := re.FindStringSubmatch(string(this))
+	thatMatches := re.FindStringSubmatch(string(that))
+
+	a := []string{thisMatches[1]}
+	if len(thisMatches) > 2 {
+		a = []string{thisMatches[2], thisMatches[1], thisMatches[0]}
 	}
-	v2 := 100
-	switch that {
-	case "v1":
-		v2 = 0
-	case "v1beta1":
-		v2 = 1
-	case "v1alpha1":
-		v2 = 2
+
+	b := []string{thatMatches[1]}
+	if len(thatMatches) > 2 {
+		b = []string{thatMatches[2], thatMatches[1], thatMatches[0]}
 	}
-	return v1 < v2
+
+	for i := 0; i < len(a) && i < len(b); i++ {
+		v1 := ""
+		v2 := ""
+		if i < len(a) {
+			v1 = a[i]
+		}
+		if i < len(b) {
+			v2 = b[i]
+		}
+		// If the "beta" or "alpha" is missing, then it is ga (empty string comes before non-empty string)
+		if len(v1) == 0 || len(v2) == 0 {
+			return v1 < v2
+		}
+		// The string with the higher number comes first (or in the case of alpha/beta, beta comes first)
+		if v1 != v2 {
+			//fmt.Printf("Less than %v (%s %s) this: %s %v that: %s %v\n", v1 < v2, v1, v2, this, thisMatches, that, thatMatches)
+			return v1 > v2
+		}
+	}
+
+	// They have the same value
+	return false
 }
 func (a ApiVersion) String() string {
 	return string(a)

@@ -351,7 +351,7 @@ func (rs *Ruleset) Pluralize(word string) string {
 
 // returns the singular form of a plural word
 func (rs *Ruleset) Singularize(word string) string {
-	if len(word) == 0 {
+	if len(word) <= 1 {
 		return word
 	}
 	if rs.isUncountable(word) {

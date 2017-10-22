@@ -8,25 +8,25 @@ CMD_VENDOR="../cmd/vendor"
 
 # Install generators from other repos
 if [ ! -f bin/client-gen ] ; then
-    go build -o bin/client-gen $CMD_VENDOR/k8s.io/kubernetes/cmd/libs/go2idl/client-gen
+    go build -o bin/client-gen $CMD_VENDOR/k8s.io/code-generator/cmd/client-gen
 fi
 if [ ! -f bin/bin/conversion-gen ] ; then
-    go build -o bin/conversion-gen $CMD_VENDOR/k8s.io/kubernetes/cmd/libs/go2idl/conversion-gen
+    go build -o bin/conversion-gen $CMD_VENDOR/k8s.io/code-generator/cmd/conversion-gen
 fi
 if [ ! -f bin/bin/deepcopy-gen ] ; then
-    go build -o bin/deepcopy-gen $CMD_VENDOR/k8s.io/kubernetes/cmd/libs/go2idl/deepcopy-gen
+    go build -o bin/deepcopy-gen $CMD_VENDOR/k8s.io/code-generator/cmd/deepcopy-gen
 fi
 if [ ! -f bin/openapi-gen ] ; then
-    go build -o bin/openapi-gen $CMD_VENDOR/k8s.io/kubernetes/cmd/libs/go2idl/openapi-gen
+    go build -o bin/openapi-gen $CMD_VENDOR/k8s.io/code-generator/cmd/openapi-gen
 fi
 if [ ! -f bin/defaulter-gen ] ; then
-    go build -o bin/defaulter-gen $CMD_VENDOR/k8s.io/kubernetes/cmd/libs/go2idl/defaulter-gen
+    go build -o bin/defaulter-gen $CMD_VENDOR/k8s.io/code-generator/cmd/defaulter-gen
 fi
 if [ ! -f bin/lister-gen ] ; then
-    go build -o bin/lister-gen $CMD_VENDOR/k8s.io/kubernetes/cmd/libs/go2idl/lister-gen
+    go build -o bin/lister-gen $CMD_VENDOR/k8s.io/code-generator/cmd/lister-gen
 fi
 if [ ! -f bin/informer-gen ] ; then
-    go build -o bin/informer-gen $CMD_VENDOR/k8s.io/kubernetes/cmd/libs/go2idl/informer-gen
+    go build -o bin/informer-gen $CMD_VENDOR/k8s.io/code-generator/cmd/informer-gen
 fi
 if [ ! -f bin/gen-apidocs ] ; then
     go build -o bin/gen-apidocs $CMD_VENDOR/github.com/kubernetes-incubator/reference-docs/gen-apidocs

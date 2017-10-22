@@ -365,7 +365,7 @@ func (h *etcdHelper) GetToList(ctx context.Context, key string, resourceVersion 
 		return err
 	}
 	trace.Step("Object decoded")
-	if err := h.versioner.UpdateList(listObj, response.Index); err != nil {
+	if err := h.versioner.UpdateList(listObj, response.Index, ""); err != nil {
 		return err
 	}
 	return nil
@@ -445,7 +445,7 @@ func (h *etcdHelper) List(ctx context.Context, key string, resourceVersion strin
 		return err
 	}
 	trace.Step("Node list decoded")
-	if err := h.versioner.UpdateList(listObj, index); err != nil {
+	if err := h.versioner.UpdateList(listObj, index, ""); err != nil {
 		return err
 	}
 	return nil
@@ -612,12 +612,7 @@ func (h *etcdHelper) getFromCache(index uint64, filter storage.FilterFunc) (runt
 		}
 		// We should not return the object itself to avoid polluting the cache if someone
 		// modifies returned values.
-		objCopy, err := h.copier.Copy(obj.(runtime.Object))
-		if err != nil {
-			glog.Errorf("Error during DeepCopy of cached object: %q", err)
-			// We can't return a copy, thus we report the object as not found.
-			return nil, false
-		}
+		objCopy := obj.(runtime.Object).DeepCopyObject()
 		metrics.ObserveCacheHit()
 		return objCopy.(runtime.Object), true
 	}
@@ -630,11 +625,7 @@ func (h *etcdHelper) addToCache(index uint64, obj runtime.Object) {
 	defer func() {
 		metrics.ObserveAddCache(startTime)
 	}()
-	objCopy, err := h.copier.Copy(obj)
-	if err != nil {
-		glog.Errorf("Error during DeepCopy of cached object: %q", err)
-		return
-	}
+	objCopy := obj.DeepCopyObject()
 	isOverwrite := h.cache.Add(index, objCopy)
 	if !isOverwrite {
 		metrics.ObserveNewEntry()
