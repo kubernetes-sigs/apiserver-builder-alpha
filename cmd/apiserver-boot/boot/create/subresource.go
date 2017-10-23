@@ -165,7 +165,7 @@ import (
 	"{{ .Repo }}/pkg/apis/{{ .Group }}"
 )
 
-// +genclient=true
+// +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +subresource-request

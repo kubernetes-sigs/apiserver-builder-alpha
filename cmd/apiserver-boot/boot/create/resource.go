@@ -194,7 +194,7 @@ import (
 	"{{ .Repo }}/pkg/apis/{{.Group}}"
 )
 
-// +genclient=true
+// +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 {{- if .NonNamespacedKind }}
 // +nonNamespaced=true{{ end }}

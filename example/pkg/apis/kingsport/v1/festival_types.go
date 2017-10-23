@@ -28,7 +28,7 @@ import (
 	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/kingsport"
 )
 
-// +genclient=true
+// +genclient
 // +nonNamespaced=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 

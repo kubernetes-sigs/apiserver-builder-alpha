@@ -25,7 +25,7 @@ import (
 	"k8s.io/apiserver/pkg/registry/rest"
 )
 
-// +genclient=true
+// +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +subresource-request

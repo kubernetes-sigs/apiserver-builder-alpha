@@ -31,7 +31,7 @@ import (
 // Generating code from university_types.go file will generate storage and status REST endpoints for
 // University.
 
-// +genclient=true
+// +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +k8s:openapi-gen=true
