@@ -71,7 +71,7 @@ type completedConfig struct {
 
 // Complete fills in any fields not set that are required to have valid data. It's mutating the receiver.
 func (c *Config) Complete() completedConfig {
-	c.GenericConfig.Complete()
+	c.GenericConfig.Complete(nil)
 
 	c.GenericConfig.Version = &version.Info{
 		Major: "1",
@@ -93,7 +93,7 @@ func (c *Config) SkipComplete() completedConfig {
 
 // NewFunc returns a new instance of Server from the given config.
 func (c completedConfig) New() (*Server, error) {
-	genericServer, err := c.Config.GenericConfig.SkipComplete().
+	genericServer, err := c.Config.GenericConfig.Complete(nil).
 		New("aggregated-apiserver", genericapiserver.EmptyDelegate) // completion is done in Complete, no need for a second time
 	if err != nil {
 		return nil, err
