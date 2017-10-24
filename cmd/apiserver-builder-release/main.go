@@ -61,7 +61,7 @@ func main() {
 
 	vendorCmd.Flags().StringVar(&commit, "commit", "", "apiserver-builder commit")
 	vendorCmd.Flags().StringVar(&version, "version", "", "version name")
-	vendorCmd.Flags().StringVar(&kubernetesVersion, "kubernetesVersion", "1.7.5", "version of kubernetes libs")
+	vendorCmd.Flags().StringVar(&kubernetesVersion, "kubernetesVersion", "1.8.1", "version of kubernetes libs")
 	vendorCmd.Flags().StringVar(&cachevendordir, "vendordir", "",
 		"if specified, use this directory for setting up vendor instead of creating a tmp directory.")
 	vendorCmd.Flags().BoolVar(&userLocalVendor, "use-local-vendor", true, "if true, run use the local vendored code")
