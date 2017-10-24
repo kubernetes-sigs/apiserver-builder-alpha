@@ -71,8 +71,9 @@ type Struct struct {
 	// Name is the name of the type
 	Name string
 	// GenClient
-	GenClient   bool
-	GenDeepCopy bool
+	GenClient     bool
+	GenDeepCopy   bool
+	NonNamespaced bool
 
 	GenUnversioned bool
 	// Fields is the list of fields appearing in the struct
@@ -566,16 +567,21 @@ func (b *APIsBuilder) ParseDomain() {
 	}
 }
 
+type GenUnversionedType struct {
+	Type     *types.Type
+	Resource *APIResource
+}
+
 func (b *APIsBuilder) ParseStructs(apigroup *APIGroup) {
-	remaining := []*types.Type{}
+	remaining := []GenUnversionedType{}
 	for _, version := range apigroup.Versions {
 		for _, resource := range version.Resources {
-			remaining = append(remaining, resource.Type)
+			remaining = append(remaining, GenUnversionedType{resource.Type, resource})
 		}
 	}
 	for _, version := range b.SubByGroupVersionKind[apigroup.Group] {
 		for _, kind := range version {
-			remaining = append(remaining, kind)
+			remaining = append(remaining, GenUnversionedType{kind, nil})
 		}
 	}
 
@@ -587,27 +593,33 @@ func (b *APIsBuilder) ParseStructs(apigroup *APIGroup) {
 		remaining = remaining[:len(remaining)-1]
 
 		// Already processed this type.  Skip it
-		if done.Has(next.Name.Name) {
+		if done.Has(next.Type.Name.Name) {
 			continue
 		}
-		done.Insert(next.Name.Name)
+		done.Insert(next.Type.Name.Name)
 
 		// Generate the struct and append to the list
-		result, additionalTypes := apigroup.DoType(next)
+		result, additionalTypes := apigroup.DoType(next.Type)
 
 		// This is a resource, so generate the client
-		if b.GenClient(next) {
+		if b.GenClient(next.Type) {
 			result.GenClient = true
 			result.GenDeepCopy = true
 		}
 
-		if b.GenDeepCopy(next) {
+		if next.Resource != nil {
+			result.NonNamespaced = IsNonNamespaced(next.Type)
+		}
+
+		if b.GenDeepCopy(next.Type) {
 			result.GenDeepCopy = true
 		}
 		apigroup.Structs = append(apigroup.Structs, result)
 
 		// Add the newly discovered subtypes
-		remaining = append(remaining, additionalTypes...)
+		for _, at := range additionalTypes {
+			remaining = append(remaining, GenUnversionedType{at, nil})
+		}
 	}
 }
 

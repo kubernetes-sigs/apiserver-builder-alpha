@@ -20,7 +20,6 @@ import (
 	"fmt"
 
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
-	"k8s.io/client-go/rest"
 
 	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic/v1beta1"
 	listers "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/listers_generated/miskatonic/v1beta1"

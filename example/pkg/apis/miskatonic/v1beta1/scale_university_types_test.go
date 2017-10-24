@@ -52,7 +52,7 @@ var _ = Describe("University", func() {
 
 	Describe("when sending a scale request", func() {
 		It("should set the faculty count", func() {
-			client = cs.MiskatonicV1beta1Client.Universities("university-test-scale")
+			client = cs.MiskatonicV1beta1().Universities("university-test-scale")
 			_, err := client.Create(&instance)
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -60,7 +60,7 @@ var _ = Describe("University", func() {
 				Faculty: 30,
 			}
 			scale.Name = instance.Name
-			restClient := cs.MiskatonicV1beta1Client.RESTClient()
+			restClient := cs.MiskatonicV1beta1().RESTClient()
 			err = restClient.Post().Namespace("university-test-scale").
 				Name(instance.Name).
 				Resource("universities").

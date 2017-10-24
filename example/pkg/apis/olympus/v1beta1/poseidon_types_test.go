@@ -45,7 +45,7 @@ var _ = Describe("Poseidon", func() {
 	Describe("when sending a storage request", func() {
 		Context("for a valid config", func() {
 			It("should provide CRUD access to the object", func() {
-				client = cs.OlympusV1beta1Client.Poseidons("poseidon-test-valid")
+				client = cs.OlympusV1beta1().Poseidons("poseidon-test-valid")
 
 				By("returning success from the create request")
 				actual, err := client.Create(&instance)

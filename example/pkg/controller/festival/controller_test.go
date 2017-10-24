@@ -1,4 +1,3 @@
-
 /*
 Copyright YEAR The Kubernetes Authors.
 
@@ -14,8 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
-
 
 package festival_test
 
@@ -49,7 +46,7 @@ var _ = Describe("Festival controller", func() {
 
 	Describe("when creating a new object", func() {
 		It("invoke the reconcile method", func() {
-			client = cs.KingsportV1Client.Festivals()
+			client = cs.KingsportV1().Festivals()
 			before = make(chan struct{})
 			after = make(chan struct{})
 

@@ -37,7 +37,7 @@ var _ = Describe("Student", func() {
 
 	Describe("when sending a storage request", func() {
 		It("should return the instance with an incremented the ID", func() {
-			client := cs.MiskatonicV1beta1Client.Students("test-create-delete-students")
+			client := cs.MiskatonicV1beta1().Students("test-create-delete-students")
 			actual, err := client.Create(&instance)
 			Expect(err).NotTo(HaveOccurred())
 			expected.Spec.ID = instance.Spec.ID + 1

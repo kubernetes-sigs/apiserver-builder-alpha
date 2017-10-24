@@ -47,7 +47,7 @@ var _ = Describe("University controller", func() {
 
 	Describe("when creating a new object", func() {
 		It("invoke the reconcile method", func() {
-			client = cs.MiskatonicV1beta1Client.Universities("university-controller-test-handler")
+			client = cs.MiskatonicV1beta1().Universities("university-controller-test-handler")
 			before = make(chan struct{})
 			after = make(chan struct{})
 

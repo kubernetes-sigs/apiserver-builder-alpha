@@ -45,7 +45,7 @@ var _ = Describe("Deepone", func() {
 	Describe("when sending a storage request", func() {
 		Context("for a valid config", func() {
 			It("should provide CRUD access to the object", func() {
-				client = cs.InnsmouthV1Client.DeepOnes("deepone-test-valid")
+				client = cs.InnsmouthV1().DeepOnes("deepone-test-valid")
 
 				By("returning success from the create request")
 				actual, err := client.Create(&instance)

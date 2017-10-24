@@ -45,7 +45,7 @@ var _ = Describe("Festival", func() {
 	Describe("when sending a storage request", func() {
 		Context("for a valid config", func() {
 			It("should provide CRUD access to the object", func() {
-				client = cs.KingsportV1Client.Festivals()
+				client = cs.KingsportV1().Festivals()
 
 				By("returning success from the create request")
 				actual, err := client.Create(&instance)

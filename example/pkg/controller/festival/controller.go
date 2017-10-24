@@ -20,7 +20,6 @@ import (
 	"log"
 
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
-	"k8s.io/client-go/rest"
 
 	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/kingsport/v1"
 	listers "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/listers_generated/kingsport/v1"
