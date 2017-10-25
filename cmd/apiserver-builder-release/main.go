@@ -175,13 +175,13 @@ func RunBuild(cmd *cobra.Command, args []string) {
 			"//cmd/apiregister-gen",
 			"//cmd/apiserver-boot",
 			"//cmd/vendor/github.com/kubernetes-incubator/reference-docs/gen-apidocs",
-			"//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/client-gen",
-			"//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/conversion-gen",
-			"//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/deepcopy-gen",
-			"//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/defaulter-gen",
-			"//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/informer-gen",
-			"//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/lister-gen",
-			"//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/openapi-gen",
+			"//cmd/vendor/k8s.io/code-generator/cmd/client-gen",
+			"//cmd/vendor/k8s.io/code-generator/cmd/conversion-gen",
+			"//cmd/vendor/k8s.io/code-generator/cmd/deepcopy-gen",
+			"//cmd/vendor/k8s.io/code-generator/cmd/defaulter-gen",
+			"//cmd/vendor/k8s.io/code-generator/cmd/informer-gen",
+			"//cmd/vendor/k8s.io/code-generator/cmd/lister-gen",
+			"//cmd/vendor/k8s.io/code-generator/cmd/openapi-gen",
 		}...)
 		PackageTar("", "", dir, vendor)
 	}
