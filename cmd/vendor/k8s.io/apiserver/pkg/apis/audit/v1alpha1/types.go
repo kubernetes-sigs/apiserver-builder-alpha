@@ -28,6 +28,13 @@ const (
 	// Header to hold the audit ID as the request is propagated through the serving hierarchy. The
 	// Audit-ID header should be set by the first server to receive the request (e.g. the federation
 	// server or kube-aggregator).
+	//
+	// Audit ID is also returned to client by http response header.
+	// It's not guaranteed Audit-Id http header is sent for all requests. When kube-apiserver didn't
+	// audit the events according to the audit policy, no Audit-ID is returned. Also, for request to
+	// pods/exec, pods/attach, pods/proxy, kube-apiserver works like a proxy and redirect the request
+	// to kubelet node, users will only get http headers sent from kubelet node, so no Audit-ID is
+	// sent when users run command like "kubectl exec" or "kubectl attach".
 	HeaderAuditID = "Audit-ID"
 )
 
@@ -201,6 +208,10 @@ type PolicyRule struct {
 	//  "/healthz*" - Log all health checks
 	// +optional
 	NonResourceURLs []string `json:"nonResourceURLs,omitempty" protobuf:"bytes,7,rep,name=nonResourceURLs"`
+
+	// OmitStages specify events generated in which stages will not be emitted to backend.
+	// An empty list means no restrictions will apply.
+	OmitStages []Stage `json:"omitStages,omitempty" protobuf:"bytes,8,rep,name=omitStages"`
 }
 
 // GroupResources represents resource kinds in an API group.
@@ -209,10 +220,17 @@ type GroupResources struct {
 	// The empty string represents the core API group.
 	// +optional
 	Group string `json:"group,omitempty" protobuf:"bytes,1,opt,name=group"`
-	// Resources is a list of resources within the API group.
-	// Any empty list implies every resource kind in the API group.
+	// Resources is a list of resources within the API group. Subresources are
+	// matched using a "/" to indicate the subresource. For example, "pods/logs"
+	// would match request to the logs subresource of pods. The top level resource
+	// does not match subresources, "pods" doesn't match "pods/logs".
 	// +optional
 	Resources []string `json:"resources,omitempty" protobuf:"bytes,2,rep,name=resources"`
+	// ResourceNames is a list of resource instance names that the policy matches.
+	// Using this field requires Resources to be specified.
+	// An empty list implies that every instance of the resource is matched.
+	// +optional
+	ResourceNames []string `json:"resourceNames,omitempty" protobuf:"bytes,3,rep,name=resourceNames"`
 }
 
 // ObjectReference contains enough information to let you inspect or modify the referred object.

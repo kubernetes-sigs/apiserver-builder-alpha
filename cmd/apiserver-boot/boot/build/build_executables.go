@@ -24,7 +24,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
 )
 
@@ -86,8 +85,7 @@ func BazelBuild(cmd *cobra.Command, args []string) {
 	}
 
 	if Gazelle {
-		c := exec.Command("gazelle", "update",
-			"-go_prefix", util.Repo, "-external", "vendored", "pkg", "cmd")
+		c := exec.Command("bazel", "run", "//:gazelle")
 		fmt.Printf("%s\n", strings.Join(c.Args, " "))
 		c.Stderr = os.Stderr
 		c.Stdout = os.Stdout

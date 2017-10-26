@@ -13,6 +13,9 @@ import (
 	"github.com/spf13/pflag"
 )
 
+var _ = fmt.Println
+var _ = os.Stderr
+
 var tp, te, tt, t1, tr []string
 var rootPersPre, echoPre, echoPersPre, timesPersPre []string
 var flagb1, flagb2, flagb3, flagbr, flagbp bool
@@ -163,22 +166,20 @@ func flagInit() {
 	cmdRootWithRun.ResetFlags()
 	cmdSubNoRun.ResetFlags()
 	cmdCustomFlags.ResetFlags()
+	cmdRootNoRun.PersistentFlags().StringVarP(&flags2a, "strtwo", "t", "two", strtwoParentHelp)
+	cmdEcho.Flags().IntVarP(&flagi1, "intone", "i", 123, "help message for flag intone")
+	cmdTimes.Flags().IntVarP(&flagi2, "inttwo", "j", 234, "help message for flag inttwo")
+	cmdPrint.Flags().IntVarP(&flagi3, "intthree", "i", 345, "help message for flag intthree")
+	cmdCustomFlags.Flags().IntVar(&flagi4, "intfour", 456, "help message for flag intfour")
+	cmdEcho.PersistentFlags().StringVarP(&flags1, "strone", "s", "one", "help message for flag strone")
+	cmdEcho.PersistentFlags().BoolVarP(&flagbp, "persistentbool", "p", false, "help message for flag persistentbool")
+	cmdTimes.PersistentFlags().StringVarP(&flags2b, "strtwo", "t", "2", strtwoChildHelp)
+	cmdPrint.PersistentFlags().StringVarP(&flags3, "strthree", "s", "three", "help message for flag strthree")
+	cmdEcho.Flags().BoolVarP(&flagb1, "boolone", "b", true, "help message for flag boolone")
+	cmdTimes.Flags().BoolVarP(&flagb2, "booltwo", "c", false, "help message for flag booltwo")
+	cmdPrint.Flags().BoolVarP(&flagb3, "boolthree", "b", true, "help message for flag boolthree")
 	cmdVersion1.ResetFlags()
 	cmdVersion2.ResetFlags()
-
-	cmdRootNoRun.PersistentFlags().StringVarP(&flags2a, "strtwo", "t", "two", strtwoParentHelp)
-	cmdCustomFlags.Flags().IntVar(&flagi4, "intfour", 456, "help message for flag intfour")
-	cmdEcho.Flags().BoolVarP(&flagb1, "boolone", "b", true, "help message for flag boolone")
-	cmdEcho.Flags().IntVarP(&flagi1, "intone", "i", 123, "help message for flag intone")
-	cmdEcho.PersistentFlags().BoolVarP(&flagbp, "persistentbool", "p", false, "help message for flag persistentbool")
-	cmdEcho.PersistentFlags().StringVarP(&flags1, "strone", "s", "one", "help message for flag strone")
-	cmdPrint.Flags().IntVarP(&flagi3, "intthree", "i", 345, "help message for flag intthree")
-	cmdTimes.Flags().BoolVarP(&flagb2, "booltwo", "c", false, "help message for flag booltwo")
-	cmdTimes.Flags().IntVarP(&flagi2, "inttwo", "j", 234, "help message for flag inttwo")
-	cmdTimes.Flags().StringVarP(&flags2b, "strtwo", "t", "2", strtwoChildHelp)
-	cmdTimes.PersistentFlags().StringVarP(&flags2b, "strtwo", "t", "2", strtwoChildHelp)
-	cmdPrint.Flags().BoolVarP(&flagb3, "boolthree", "b", true, "help message for flag boolthree")
-	cmdPrint.PersistentFlags().StringVarP(&flags3, "strthree", "s", "three", "help message for flag strthree")
 }
 
 func commandInit() {
@@ -570,7 +571,7 @@ func TestChildCommandFlags(t *testing.T) {
 	if r.Error == nil {
 		t.Errorf("invalid input should generate error")
 	}
-	if !strings.Contains(r.Error.Error(), "invalid syntax") {
+	if !strings.Contains(r.Error.Error(), "invalid argument \"10E\" for i10E") {
 		t.Errorf("Wrong error message displayed, \n %s", r.Error)
 	}
 }
@@ -611,7 +612,7 @@ func TestSubcommandExecuteC(t *testing.T) {
 		Use: "echo message",
 		Run: func(c *Command, args []string) {
 			msg := strings.Join(args, " ")
-			c.Println(msg)
+			c.Println(msg, msg)
 		},
 	}
 
@@ -676,7 +677,7 @@ func TestPersistentFlags(t *testing.T) {
 	fullSetupTest("echo times -s again -c -p test here")
 
 	if strings.Join(tt, " ") != "test here" {
-		t.Errorf("flags didn't leave proper args remaining. %s given", tt)
+		t.Errorf("flags didn't leave proper args remaining..%s given", tt)
 	}
 
 	if flags1 != "again" {
@@ -857,6 +858,7 @@ func TestFlagAccess(t *testing.T) {
 	}
 	if inherited.Lookup("strtwo") != nil {
 		t.Errorf("InheritedFlags shouldn not contain overwritten flag strtwo")
+
 	}
 }
 
@@ -914,14 +916,15 @@ func TestRootUnknownCommand(t *testing.T) {
 
 func TestRootUnknownCommandSilenced(t *testing.T) {
 	r := noRRSetupTestSilenced("bogus")
+	s := "Run 'cobra-test --help' for usage.\n"
 
 	if r.Output != "" {
-		t.Errorf("Unexpected response.\nExpecting to be: \n\"\"\n Got:\n %q\n", r.Output)
+		t.Errorf("Unexpected response.\nExpecting to be: \n\"\"\n Got:\n %q\n", s, r.Output)
 	}
 
 	r = noRRSetupTestSilenced("--strtwo=a bogus")
 	if r.Output != "" {
-		t.Errorf("Unexpected response.\nExpecting to be:\n\"\"\nGot:\n %q\n", r.Output)
+		t.Errorf("Unexpected response.\nExpecting to be:\n\"\"\nGot:\n %q\n", s, r.Output)
 	}
 }
 
@@ -988,7 +991,7 @@ func TestFlagsBeforeCommand(t *testing.T) {
 
 	// With parsing error properly reported
 	x = fullSetupTest("-i10E echo")
-	if !strings.Contains(x.Error.Error(), "invalid syntax") {
+	if !strings.Contains(x.Error.Error(), "invalid argument \"10E\" for i10E") {
 		t.Errorf("Wrong error message displayed, \n %s", x.Error)
 	}
 
@@ -1154,9 +1157,6 @@ func TestFlagOnPflagCommandLine(t *testing.T) {
 	r := fullSetupTest("--help")
 
 	checkResultContains(t, r, flagName)
-
-	// reset CommandLine flagset
-	pflag.CommandLine = pflag.NewFlagSet(os.Args[0], pflag.ExitOnError)
 }
 
 func TestAddTemplateFunctions(t *testing.T) {
@@ -1184,25 +1184,5 @@ func TestUsageIsNotPrintedTwice(t *testing.T) {
 	r := simpleTester(cmd, "")
 	if strings.Count(r.Output, "Usage:") != 1 {
 		t.Error("Usage output is not printed exactly once")
-	}
-}
-
-func BenchmarkInheritedFlags(b *testing.B) {
-	initialize()
-	cmdEcho.AddCommand(cmdTimes)
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		cmdTimes.InheritedFlags()
-	}
-}
-
-func BenchmarkLocalFlags(b *testing.B) {
-	initialize()
-	cmdEcho.AddCommand(cmdTimes)
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		cmdTimes.LocalFlags()
 	}
 }

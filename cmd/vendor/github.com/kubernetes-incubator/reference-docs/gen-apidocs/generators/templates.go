@@ -28,7 +28,11 @@ Group        | Version     | Kind
 {{.Description}}
 
 {{if .AppearsIn}}<aside class="notice">
-Appears In {{range $appearsin := .AppearsIn}} {{$appearsin.HrefLink}} {{end}}</aside>{{end}}
+Appears In:
+
+<ul> {{range $appearsin := .AppearsIn}}
+<li>{{$appearsin.FullHrefLink}}</li>{{end}}
+</ul></aside>{{end}}
 
 Field        | Description
 ------------ | -----------
@@ -93,7 +97,11 @@ Group        | Version     | Kind
 {{.Definition.Description}}
 
 {{if .Definition.AppearsIn}}<aside class="notice">
-Appears In {{range $appearsin := .Definition.AppearsIn}}{{$appearsin.HrefLink}} {{end}}</aside>{{end}}
+Appears In:
+
+<ul> {{range $appearsin := .Definition.AppearsIn}}
+<li>{{$appearsin.FullHrefLink}}</li>{{end}}
+</ul> </aside>{{end}}
 
 Field        | Description
 ------------ | -----------
@@ -103,7 +111,11 @@ Field        | Description
 {{if .Definition.Inline}}{{range $inline := .Definition.Inline}}### {{$inline.Name}} {{$inline.Version}} {{$inline.Group}}
 
 {{if $inline.AppearsIn}}<aside class="notice">
-Appears In {{range $appearsin := $inline.AppearsIn}}{{$appearsin.HrefLink}} {{end}}</aside>{{end}}
+Appears In:
+
+<ul>{{range $appearsin := $inline.AppearsIn}}
+<li>{{$appearsin.FullHrefLink}}</li>{{end}}
+</ul></aside>{{end}}
 
 Field        | Description
 ------------ | -----------

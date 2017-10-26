@@ -1,20 +1,13 @@
-package(default_visibility = ["//visibility:public"])
-
-licenses(["notice"])
-
-load(
-    "@io_bazel_rules_go//go:def.bzl",
-    "go_library",
-)
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
     srcs = ["interface.go"],
     importpath = "k8s.io/client-go/informers/autoscaling",
-    tags = ["automanaged"],
+    visibility = ["//visibility:public"],
     deps = [
         "//vendor/k8s.io/client-go/informers/autoscaling/v1:go_default_library",
-        "//vendor/k8s.io/client-go/informers/autoscaling/v2alpha1:go_default_library",
+        "//vendor/k8s.io/client-go/informers/autoscaling/v2beta1:go_default_library",
         "//vendor/k8s.io/client-go/informers/internalinterfaces:go_default_library",
     ],
 )

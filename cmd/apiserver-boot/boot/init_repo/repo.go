@@ -81,6 +81,9 @@ func createBazelWorkspace() {
 	}
 	path := filepath.Join(dir, "WORKSPACE")
 	util.WriteIfNotFound(path, "bazel-workspace-template", workspaceTemplate, nil)
+	path = filepath.Join(dir, "BUILD.bazel")
+	util.WriteIfNotFound(path, "bazel-build-template",
+		buildTemplate, buildTemplateArguments{util.Repo})
 }
 
 type controllerManagerTemplateArguments struct {
@@ -235,10 +238,34 @@ package apis
 var workspaceTemplate = `
 http_archive(
     name = "io_bazel_rules_go",
-    url = "https://github.com/bazelbuild/rules_go/releases/download/0.5.5/rules_go-0.5.5.tar.gz",
-    sha256 = "ca58b0b856dc95473b93f2228ab117913b82a6617fc0deabd107346e3981522a",
+    url = "https://github.com/bazelbuild/rules_go/releases/download/0.6.0/rules_go-0.6.0.tar.gz",
+    sha256 = "ba6feabc94a5d205013e70792accb6cce989169476668fbaf98ea9b342e13b59",
 )
-load("@io_bazel_rules_go//go:def.bzl", "go_repositories")
+load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+go_rules_dependencies()
+go_register_toolchains()
 
-go_repositories()
+load("@io_bazel_rules_go//proto:def.bzl", "proto_register_toolchains")
+proto_register_toolchains()
+`
+
+type buildTemplateArguments struct {
+	Repo string
+}
+
+var buildTemplate = `
+# gazelle:proto disable
+# gazelle:exclude vendor
+load("@io_bazel_rules_go//go:def.bzl", "gazelle")
+
+gazelle(
+    name = "gazelle",
+    command = "fix",
+    prefix = "{{.Repo}}",
+    external = "vendored",
+    args = [
+        "-build_file_name",
+        "BUILD,BUILD.bazel",
+    ],
+)
 `

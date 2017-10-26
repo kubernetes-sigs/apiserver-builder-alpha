@@ -13,5 +13,6 @@ go_library(
         "//example/pkg/client/informers_generated/externalversions:go_default_library",
         "//pkg/controller:go_default_library",
         "//vendor/k8s.io/client-go/rest:go_default_library",
+        "//vendor/k8s.io/client-go/tools/cache:go_default_library",
     ],
 )

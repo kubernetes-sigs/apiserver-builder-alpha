@@ -122,7 +122,8 @@ func Resource(resource string) schema.GroupResource {
 
 {{ range $s := .Structs -}}
 {{ if $s.GenUnversioned -}}
-{{ if $s.GenClient }}// +genclient=true{{end}}
+{{ if $s.GenClient }}// +genclient{{end}}
+{{ if $s.GenClient }}// +genclient{{ if $s.NonNamespaced }}:nonNamespaced{{end}}{{end}}
 {{ if $s.GenDeepCopy }}// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object{{end}}
 
 type {{ $s.Name }} struct {

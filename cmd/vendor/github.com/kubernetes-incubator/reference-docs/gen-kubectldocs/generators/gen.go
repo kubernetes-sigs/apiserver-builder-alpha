@@ -18,15 +18,15 @@ package generators
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 	"text/template"
 
-	"flag"
 	"gopkg.in/yaml.v2"
-	"path/filepath"
 )
 
 var KubernetesVersion = flag.String("kubernetes-version", "", "Version of Kubernetes to generate docs for.")
@@ -35,16 +35,8 @@ const JsonOutputFile = "manifest.json"
 
 var GenKubectlDir = flag.String("gen-kubectl-dir", "gen-kubectldocs/generators", "Directory containing kubectl files")
 
-func getYamlFile() string {
-	return filepath.Join(*GenKubectlDir, *KubernetesVersion, "kubectl.yaml")
-}
-
 func getTocFile() string {
 	return filepath.Join(*GenKubectlDir, *KubernetesVersion, "toc.yaml")
-}
-
-func getTemplateFile(name string) string {
-	return filepath.Join(*GenKubectlDir, name)
 }
 
 func getStaticIncludesDir() string {
@@ -52,23 +44,7 @@ func getStaticIncludesDir() string {
 }
 
 func GenerateFiles() {
-	spec := KubectlSpec{}
-
-	if len(getYamlFile()) < 1 {
-		fmt.Printf("Must specify --yaml-file.\n")
-		os.Exit(2)
-	}
-
-	contents, err := ioutil.ReadFile(getYamlFile())
-	if err != nil {
-		fmt.Printf("Failed to read yaml file %s: %v", getYamlFile(), err)
-	}
-
-	err = yaml.Unmarshal(contents, &spec)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	spec := GetSpec()
 
 	toc := ToC{}
 	if len(getTocFile()) < 1 {
@@ -76,7 +52,7 @@ func GenerateFiles() {
 		os.Exit(2)
 	}
 
-	contents, err = ioutil.ReadFile(getTocFile())
+	contents, err := ioutil.ReadFile(getTocFile())
 	if err != nil {
 		fmt.Printf("Failed to read yaml file %s: %v", getTocFile(), err)
 	}

@@ -18,6 +18,7 @@ package builders
 
 import (
 	"fmt"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apiserver/pkg/endpoints/request"
@@ -119,13 +120,11 @@ func (b *versionedResourceBuilder) Build(
 	optionsGetter generic.RESTOptionsGetter) rest.StandardStorage {
 
 	// Set a default strategy
-	wcs := 1000
 	store := &StorageWrapper{registry.Store{
-		Copier:            Scheme,
-		NewFunc:           b.Unversioned.New,     // Use the unversioned type
-		NewListFunc:       b.Unversioned.NewList, // Use the unversioned type
-		QualifiedResource: b.getGroupResource(group),
-		WatchCacheSize:    &wcs,
+		Copier:                   Scheme,
+		NewFunc:                  b.Unversioned.New,     // Use the unversioned type
+		NewListFunc:              b.Unversioned.NewList, // Use the unversioned type
+		DefaultQualifiedResource: b.getGroupResource(group),
 	}}
 
 	// Use default, requires

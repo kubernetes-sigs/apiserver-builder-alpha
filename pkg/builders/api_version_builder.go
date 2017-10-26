@@ -17,6 +17,8 @@ limitations under the License.
 package builders
 
 import (
+	"reflect"
+
 	"github.com/golang/glog"
 	"k8s.io/apimachinery/pkg/apimachinery/announced"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,7 +26,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apiserver/pkg/registry/generic"
 	"k8s.io/apiserver/pkg/registry/rest"
-	"reflect"
 )
 
 type VersionedApiBuilder struct {

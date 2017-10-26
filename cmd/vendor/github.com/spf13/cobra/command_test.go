@@ -1,14 +1,9 @@
 package cobra
 
 import (
-	"bytes"
-	"fmt"
 	"os"
 	"reflect"
-	"strings"
 	"testing"
-
-	"github.com/spf13/pflag"
 )
 
 // test to ensure hidden commands run as intended
@@ -119,7 +114,7 @@ func TestStripFlags(t *testing.T) {
 	}
 }
 
-func TestDisableFlagParsing(t *testing.T) {
+func Test_DisableFlagParsing(t *testing.T) {
 	as := []string{"-v", "-race", "-file", "foo.go"}
 	targs := []string{}
 	cmdPrint := &Command{
@@ -139,20 +134,6 @@ func TestDisableFlagParsing(t *testing.T) {
 	}
 }
 
-func TestInitHelpFlagMergesFlags(t *testing.T) {
-	usage := "custom flag"
-	baseCmd := Command{Use: "testcmd"}
-	baseCmd.PersistentFlags().Bool("help", false, usage)
-	cmd := Command{Use: "do"}
-	baseCmd.AddCommand(&cmd)
-
-	cmd.initHelpFlag()
-	actual := cmd.Flags().Lookup("help").Usage
-	if actual != usage {
-		t.Fatalf("Expected the help flag from the base command with usage '%s', but got the default with usage '%s'", usage, actual)
-	}
-}
-
 func TestCommandsAreSorted(t *testing.T) {
 	EnableCommandSorting = true
 
@@ -161,11 +142,11 @@ func TestCommandsAreSorted(t *testing.T) {
 
 	var tmpCommand = &Command{Use: "tmp"}
 
-	for _, name := range originalNames {
+	for _, name := range(originalNames) {
 		tmpCommand.AddCommand(&Command{Use: name})
 	}
 
-	for i, c := range tmpCommand.Commands() {
+	for i, c := range(tmpCommand.Commands()) {
 		if expectedNames[i] != c.Name() {
 			t.Errorf("expected: %s, got: %s", expectedNames[i], c.Name())
 		}
@@ -181,106 +162,15 @@ func TestEnableCommandSortingIsDisabled(t *testing.T) {
 
 	var tmpCommand = &Command{Use: "tmp"}
 
-	for _, name := range originalNames {
+	for _, name := range(originalNames) {
 		tmpCommand.AddCommand(&Command{Use: name})
 	}
 
-	for i, c := range tmpCommand.Commands() {
+	for i, c := range(tmpCommand.Commands()) {
 		if originalNames[i] != c.Name() {
 			t.Errorf("expected: %s, got: %s", originalNames[i], c.Name())
 		}
 	}
 
 	EnableCommandSorting = true
-}
-
-func TestSetOutput(t *testing.T) {
-	cmd := &Command{}
-	cmd.SetOutput(nil)
-	if out := cmd.OutOrStdout(); out != os.Stdout {
-		t.Fatalf("expected setting output to nil to revert back to stdout, got %v", out)
-	}
-}
-
-func TestFlagErrorFunc(t *testing.T) {
-	cmd := &Command{
-		Use: "print",
-		RunE: func(cmd *Command, args []string) error {
-			return nil
-		},
-	}
-	expectedFmt := "This is expected: %s"
-
-	cmd.SetFlagErrorFunc(func(c *Command, err error) error {
-		return fmt.Errorf(expectedFmt, err)
-	})
-	cmd.SetArgs([]string{"--bogus-flag"})
-	cmd.SetOutput(new(bytes.Buffer))
-
-	err := cmd.Execute()
-
-	expected := fmt.Sprintf(expectedFmt, "unknown flag: --bogus-flag")
-	if err.Error() != expected {
-		t.Errorf("expected %v, got %v", expected, err.Error())
-	}
-}
-
-// TestSortedFlags checks,
-// if cmd.LocalFlags() is unsorted when cmd.Flags().SortFlags set to false.
-//
-// Source: https://github.com/spf13/cobra/issues/404
-func TestSortedFlags(t *testing.T) {
-	cmd := &Command{}
-	cmd.Flags().SortFlags = false
-	names := []string{"C", "B", "A", "D"}
-	for _, name := range names {
-		cmd.Flags().Bool(name, false, "")
-	}
-
-	i := 0
-	cmd.LocalFlags().VisitAll(func(f *pflag.Flag) {
-		if i == len(names) {
-			return
-		}
-		if isStringInStringSlice(f.Name, names) {
-			if names[i] != f.Name {
-				t.Errorf("Incorrect order. Expected %v, got %v", names[i], f.Name)
-			}
-			i++
-		}
-	})
-}
-
-// contains checks, if s is in ss.
-func isStringInStringSlice(s string, ss []string) bool {
-	for _, v := range ss {
-		if v == s {
-			return true
-		}
-	}
-	return false
-}
-
-// TestHelpFlagInHelp checks,
-// if '--help' flag is shown in help for child (executing `parent help child`),
-// that has no other flags.
-//
-// Source: https://github.com/spf13/cobra/issues/302
-func TestHelpFlagInHelp(t *testing.T) {
-	output := new(bytes.Buffer)
-	parent := &Command{Use: "parent", Long: "long", Run: func(*Command, []string) { return }}
-	parent.SetOutput(output)
-
-	child := &Command{Use: "child", Long: "long", Run: func(*Command, []string) { return }}
-	parent.AddCommand(child)
-
-	parent.SetArgs([]string{"help", "child"})
-	err := parent.Execute()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if !strings.Contains(output.String(), "[flags]") {
-		t.Fatalf("\nExpecting to contain: %v\nGot: %v", "[flags]", output.String())
-	}
 }

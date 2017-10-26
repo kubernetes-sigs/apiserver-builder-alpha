@@ -1,20 +1,4 @@
-package(default_visibility = ["//visibility:public"])
-
-licenses(["notice"])
-
-load(
-    "@io_bazel_rules_go//go:def.bzl",
-    "go_library",
-    "go_test",
-)
-
-go_test(
-    name = "go_default_test",
-    srcs = ["unstructured_test.go"],
-    importpath = "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
-    library = ":go_default_library",
-    tags = ["automanaged"],
-)
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
@@ -23,7 +7,7 @@ go_library(
         "zz_generated.deepcopy.go",
     ],
     importpath = "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
-    tags = ["automanaged"],
+    visibility = ["//visibility:public"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
@@ -35,4 +19,12 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/util/json:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/runtime:go_default_library",
     ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["unstructured_test.go"],
+    importpath = "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
+    library = ":go_default_library",
+    deps = ["//vendor/github.com/stretchr/testify/assert:go_default_library"],
 )

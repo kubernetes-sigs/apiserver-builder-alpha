@@ -128,7 +128,6 @@ func (g *APIGroupBuilder) Install(
 			GroupName:                  g.Name,
 			RootScopedKinds:            sets.NewString(append(g.RootScopedKinds, "APIService")...),
 			VersionPreferenceOrder:     g.GetVersionPreferenceOrder(),
-			ImportPrefix:               g.ImportPrefix,
 			AddInternalObjectsToScheme: g.UnVersioned.SchemaBuilder.AddToScheme,
 		},
 		g.VersionToSchemeFunc(),

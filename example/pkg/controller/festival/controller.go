@@ -20,7 +20,6 @@ import (
 	"log"
 
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
-	"k8s.io/client-go/rest"
 
 	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/kingsport/v1"
 	listers "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/listers_generated/kingsport/v1"
@@ -36,18 +35,8 @@ type FestivalControllerImpl struct {
 }
 
 // Init initializes the controller and is called by the generated code
-// Registers eventhandlers to enqueue events
-// config - client configuration for talking to the apiserver
-// si - informer factory shared across all controllers for listening to events and indexing resource properties
-// queue - message queue for handling new events.  unique to this controller.
-func (c *FestivalControllerImpl) Init(
-	config *rest.Config,
-	si *sharedinformers.SharedInformers,
-	r func(key string) error) {
-
-	// Set the informer and lister for subscribing to events and indexing festivals labels
-	i := si.Factory.Kingsport().V1().Festivals()
-	c.lister = i.Lister()
+func (c *FestivalControllerImpl) Init(arguments sharedinformers.ControllerInitArguments) {
+	c.lister = arguments.GetSharedInformers().Factory.Kingsport().V1().Festivals().Lister()
 }
 
 // Reconcile handles enqueued messages

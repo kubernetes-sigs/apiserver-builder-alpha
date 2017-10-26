@@ -1,4 +1,3 @@
-
 /*
 Copyright YEAR The Kubernetes Authors.
 
@@ -15,23 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
-
 package poseidon_test
 
 import (
 	"testing"
 
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/test"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/rest"
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/test"
 
 	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis"
 	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/clientset_generated/clientset"
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/openapi"
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/controller/sharedinformers"
 	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/controller/poseidon"
+	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/controller/sharedinformers"
+	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/openapi"
 )
 
 var testenv *test.TestEnvironment

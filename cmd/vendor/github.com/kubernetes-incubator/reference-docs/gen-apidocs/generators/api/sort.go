@@ -24,6 +24,9 @@ func (a SortDefinitionsByName) Len() int      { return len(a) }
 func (a SortDefinitionsByName) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a SortDefinitionsByName) Less(i, j int) bool {
 	if a[i].Name == a[j].Name {
+		if a[i].Version.String() == a[j].Version.String() {
+			return a[i].Group.String() < a[j].Group.String()
+		}
 		return a[i].Version.LessThan(a[j].Version)
 	}
 	return a[i].Name < a[j].Name

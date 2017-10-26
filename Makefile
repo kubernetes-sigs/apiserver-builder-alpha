@@ -15,6 +15,17 @@
 # from cmd/
 #  bash -c "find vendor/github.com/kubernetes-incubator/apiserver-builder -name BUILD.bazel| xargs sed -i='' s'|//pkg|//vendor/github.com/kubernetes-incubator/apiserver-builder/pkg|g'"
 
+# from /
+
+gazelle:
+	find vendor -name BUILD | xargs rm
+	find vendor -name BUILD.bazel | xargs rm
+	gazelle update -go_prefix github.com/pwittrock/testing -external vendored .
+	bash -c "find vendor/ -name BUILD.bazel |  xargs sed -i '' s'|//k8s.io/|//vendor/k8s.io/|g'"
+	bash -c "find vendor/ -name BUILD |  xargs sed -i '' s'|//k8s.io/|//vendor/k8s.io/|g'"
+	bash -c "find vendor/ -name BUILD.bazel |  xargs sed -i '' s'|cgo = True,|cgo = False,|g'"
+	bash -c "find vendor/ -name BUILD |  xargs sed -i '' s'|cgo = True,|cgo = False,|g'"
+
 NAME=apiserver-builder
 VENDOR=kubernetes-incubator
 VERSION=$(shell cat VERSION)

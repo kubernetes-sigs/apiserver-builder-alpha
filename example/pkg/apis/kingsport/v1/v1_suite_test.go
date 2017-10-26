@@ -1,4 +1,3 @@
-
 /*
 Copyright YEAR The Kubernetes Authors.
 
@@ -15,16 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
-
 package v1_test
 
 import (
 	"testing"
 
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/test"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/test"
 	"k8s.io/client-go/rest"
 
 	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis"

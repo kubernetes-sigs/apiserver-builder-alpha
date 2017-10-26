@@ -1,11 +1,16 @@
-package(default_visibility = ["//visibility:public"])
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
-licenses(["notice"])
-
-load(
-    "@io_bazel_rules_go//go:def.bzl",
-    "go_library",
-    "go_test",
+go_library(
+    name = "go_default_library",
+    srcs = ["oidc.go"],
+    importpath = "k8s.io/client-go/plugin/pkg/client/auth/oidc",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/golang/glog:go_default_library",
+        "//vendor/golang.org/x/oauth2:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/util/net:go_default_library",
+        "//vendor/k8s.io/client-go/rest:go_default_library",
+    ],
 )
 
 go_test(
@@ -13,17 +18,4 @@ go_test(
     srcs = ["oidc_test.go"],
     importpath = "k8s.io/client-go/plugin/pkg/client/auth/oidc",
     library = ":go_default_library",
-    tags = ["automanaged"],
-)
-
-go_library(
-    name = "go_default_library",
-    srcs = ["oidc.go"],
-    importpath = "k8s.io/client-go/plugin/pkg/client/auth/oidc",
-    tags = ["automanaged"],
-    deps = [
-        "//vendor/github.com/golang/glog:go_default_library",
-        "//vendor/golang.org/x/oauth2:go_default_library",
-        "//vendor/k8s.io/client-go/rest:go_default_library",
-    ],
 )

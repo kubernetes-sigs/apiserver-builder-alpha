@@ -1,4 +1,3 @@
-
 /*
 Copyright YEAR The Kubernetes Authors.
 
@@ -14,8 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
-
 
 package poseidon_test
 
@@ -49,7 +46,7 @@ var _ = Describe("Poseidon controller", func() {
 
 	Describe("when creating a new object", func() {
 		It("invoke the reconcile method", func() {
-			client = cs.OlympusV1beta1Client.Poseidons("poseidon-controller-test-handler")
+			client = cs.OlympusV1beta1().Poseidons("poseidon-controller-test-handler")
 			before = make(chan struct{})
 			after = make(chan struct{})
 

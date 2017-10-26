@@ -1,4 +1,3 @@
-
 /*
 Copyright YEAR The Kubernetes Authors.
 
@@ -14,8 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
-
 
 package v1_test
 
@@ -48,7 +45,7 @@ var _ = Describe("Festival", func() {
 	Describe("when sending a storage request", func() {
 		Context("for a valid config", func() {
 			It("should provide CRUD access to the object", func() {
-				client = cs.KingsportV1Client.Festivals()
+				client = cs.KingsportV1().Festivals()
 
 				By("returning success from the create request")
 				actual, err := client.Create(&instance)

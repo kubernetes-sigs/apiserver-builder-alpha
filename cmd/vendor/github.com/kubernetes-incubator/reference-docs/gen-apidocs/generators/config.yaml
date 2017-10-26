@@ -1,5 +1,6 @@
 example_location: "examples"
 api_groups:
+  - "ApiExtensions"
   - "Apps"
   - "Authentication"
   - "Authorization"
@@ -11,6 +12,7 @@ api_groups:
   - "Meta"
   - "Policy"
   - "Rbac"
+  - "Scheduling"
   - "Settings"
   - "Storage"
   - "RbacAuthorization"
@@ -38,14 +40,13 @@ resource_categories:
       group: core
       description_warning: "Containers are only ever created within the context of a <a href=\"#pod-v1-core\">Pod</a>.  This is usually done using a Controller.  See Controllers: <a href=\"#deployment-v1beta1-apps\">Deployment</a>, <a href=\"#job-v1-batch\">Job</a>, or <a href=\"#statefulset-v1beta1-apps\">StatefulSet</a>"
     - name: CronJob
-      version: v2alpha1
+      version: v1beta1
       group: batch
-      description_warning: "Alpha objects should not be used in production and may not be compatible with future versions of the resource type."
     - name: DaemonSet
-      version: v1beta1
-      group: extensions
+      version: v1beta2
+      group: apps
     - name: Deployment
-      version: v1beta1
+      version: v1beta2
       group: apps
     - name: Job
       version: v1
@@ -55,15 +56,15 @@ resource_categories:
       group: core
       description_warning: "It is recommended that users create Pods only through a Controller, and not directly.  See Controllers: <a href=\"#deployment-v1beta1-apps\">Deployment</a>, <a href=\"#job-v1-batch\">Job</a>, or <a href=\"#statefulset-v1beta1-apps\">StatefulSet</a>."
     - name: ReplicaSet
-      version: v1beta1
-      group: extensions
+      version: v1beta2
+      group: apps
       description_warning: "In many cases it is recommended to create a <a href=\"#deployment-v1beta1-apps\">Deployment</a> instead of ReplicaSet."
     - name: ReplicationController
       version: v1
       group: core
       description_warning: "In many cases it is recommended to create a <a href=\"#deployment-v1beta1-apps\">Deployment</a> instead of a ReplicationController."
     - name: StatefulSet
-      version: v1beta1
+      version: v1beta2
       group: apps
   - name: "Service Apis"
     include: "servicediscovery"
@@ -100,8 +101,11 @@ resource_categories:
     include: "meta"
     resources:
     - name: ControllerRevision
-      version: v1beta1
+      version: v1beta2
       group: apps
+    - name: CustomResourceDefinition
+      version: v1beta1
+      group: apiextensions
     - name: Event
       version: v1
       group: core
@@ -123,9 +127,10 @@ resource_categories:
     - name: PodDisruptionBudget
       version: v1beta1
       group: policy
-    - name: ThirdPartyResource
-      version: v1beta1
-      group: extensions
+    - name: PriorityClass
+      version: v1alpha1
+      group: scheduling
+      description_warning: "Alpha objects should not be used in production and may not be compatible with future versions of the resource type."
     - name: PodPreset
       version: v1alpha1
       group: settings
@@ -146,10 +151,10 @@ resource_categories:
       version: v1beta1
       group: certificates
     - name: ClusterRole
-      version: v1beta1
+      version: v1
       group: rbac
     - name: ClusterRoleBinding
-      version: v1beta1
+      version: v1
       group: rbac
     - name: ComponentStatus
       version: v1
@@ -171,12 +176,15 @@ resource_categories:
       version: v1
       group: core
     - name: Role
-      version: v1beta1
+      version: v1
       group: rbac
     - name: RoleBinding
-      version: v1beta1
+      version: v1
       group: rbac
     - name: SelfSubjectAccessReview
+      version: v1
+      group: authorization
+    - name: SelfSubjectRulesReview
       version: v1
       group: authorization
     - name: ServiceAccount

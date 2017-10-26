@@ -5,11 +5,11 @@ MAINTAINER Phillip Wittrock <pwittroc@google.com>
 
 RUN apt-get update && apt-get install -y npm git && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN echo "v1.4"
+RUN echo "v1.7"
 RUN git clone --depth=1 https://github.com/Birdrock/brodocs.git
 WORKDIR brodocs
 RUN npm install
-RUN node brodoc.js
+# RUN node brodoc.js
 
 COPY runbrodocs.sh .
 

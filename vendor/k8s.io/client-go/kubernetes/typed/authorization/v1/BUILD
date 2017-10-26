@@ -1,11 +1,4 @@
-package(default_visibility = ["//visibility:public"])
-
-licenses(["notice"])
-
-load(
-    "@io_bazel_rules_go//go:def.bzl",
-    "go_library",
-)
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
@@ -17,11 +10,13 @@ go_library(
         "localsubjectaccessreview_expansion.go",
         "selfsubjectaccessreview.go",
         "selfsubjectaccessreview_expansion.go",
+        "selfsubjectrulesreview.go",
+        "selfsubjectrulesreview_expansion.go",
         "subjectaccessreview.go",
         "subjectaccessreview_expansion.go",
     ],
     importpath = "k8s.io/client-go/kubernetes/typed/authorization/v1",
-    tags = ["automanaged"],
+    visibility = ["//visibility:public"],
     deps = [
         "//vendor/k8s.io/api/authorization/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime/serializer:go_default_library",

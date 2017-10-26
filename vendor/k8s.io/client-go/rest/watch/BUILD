@@ -1,12 +1,4 @@
-package(default_visibility = ["//visibility:public"])
-
-licenses(["notice"])
-
-load(
-    "@io_bazel_rules_go//go:def.bzl",
-    "go_library",
-    "go_test",
-)
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
@@ -15,7 +7,7 @@ go_library(
         "encoder.go",
     ],
     importpath = "k8s.io/client-go/rest/watch",
-    tags = ["automanaged"],
+    visibility = ["//visibility:public"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
@@ -31,7 +23,6 @@ go_test(
         "encoder_test.go",
     ],
     importpath = "k8s.io/client-go/rest/watch_test",
-    tags = ["automanaged"],
     deps = [
         ":go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",

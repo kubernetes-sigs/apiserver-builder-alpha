@@ -33,17 +33,12 @@ import (
 	"bytes"
 	"net/http"
 	"os"
-    "path/filepath"
-    "time"
 
 	"github.com/golang/glog"
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/validators"
-	"k8s.io/apimachinery/pkg/openapi"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apiserver/pkg/util/logs"
-	"k8s.io/client-go/informers"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
+	openapi "k8s.io/kube-openapi/pkg/common"
 )
 
 var GetOpenApiDefinition openapi.GetOpenAPIDefinitions
@@ -131,7 +126,7 @@ func NewCommandStartServer(etcdPath string, out, errOut io.Writer, builders []*b
 		"Print the openapi json and exit")
 	flags.BoolVar(&o.RunDelegatedAuth, "delegated-auth", true,
 		"Setup delegated auth")
-	flags.StringVar(&o.Kubeconfig, "kubeconfig", "", "Kubeconfig of apiserver to talk to.")
+	//flags.StringVar(&o.Kubeconfig, "kubeconfig", "", "Kubeconfig of apiserver to talk to.")
 	o.RecommendedOptions.AddFlags(flags)
 	return cmd, o
 }
@@ -174,17 +169,17 @@ func (o ServerOptions) Config() (*apiserver.Config, error) {
 		return nil, err
 	}
 
-	if serverConfig.SharedInformerFactory == nil && len(o.Kubeconfig) > 0 {
-		path, _ := filepath.Abs(o.Kubeconfig)
-		glog.Infof("Creating shared informer factory from kubeconfig %s", path)
-		config, err := clientcmd.BuildConfigFromFlags("", o.Kubeconfig)
-		clientset, err := kubernetes.NewForConfig(config)
-		if err != nil {
-			glog.Errorf("Couldn't create clientset due to %v. SharedInformerFactory will not be set.", err)
-			return nil, err
-		}
-		serverConfig.SharedInformerFactory = informers.NewSharedInformerFactory(clientset, 10*time.Minute)
-	}
+	//if serverConfig.SharedInformerFactory == nil && len(o.Kubeconfig) > 0 {
+	//	path, _ := filepath.Abs(o.Kubeconfig)
+	//	glog.Infof("Creating shared informer factory from kubeconfig %s", path)
+	//	config, err := clientcmd.BuildConfigFromFlags("", o.Kubeconfig)
+	//	clientset, err := kubernetes.NewForConfig(config)
+	//	if err != nil {
+	//		glog.Errorf("Couldn't create clientset due to %v. SharedInformerFactory will not be set.", err)
+	//		return nil, err
+	//	}
+	//	serverConfig.SharedInformerFactory = informers.NewSharedInformerFactory(clientset, 10*time.Minute)
+	//}
 
 	if o.RunDelegatedAuth {
 		err := applyOptions(

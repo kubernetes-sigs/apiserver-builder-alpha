@@ -30,7 +30,7 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
-// +genclient=true
+// +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Poseidon

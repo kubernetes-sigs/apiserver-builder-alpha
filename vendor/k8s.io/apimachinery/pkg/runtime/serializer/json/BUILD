@@ -1,20 +1,4 @@
-package(default_visibility = ["//visibility:public"])
-
-licenses(["notice"])
-
-load(
-    "@io_bazel_rules_go//go:def.bzl",
-    "go_library",
-    "go_test",
-)
-
-go_test(
-    name = "go_default_test",
-    srcs = ["meta_test.go"],
-    importpath = "k8s.io/apimachinery/pkg/runtime/serializer/json",
-    library = ":go_default_library",
-    tags = ["automanaged"],
-)
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
@@ -23,10 +7,10 @@ go_library(
         "meta.go",
     ],
     importpath = "k8s.io/apimachinery/pkg/runtime/serializer/json",
-    tags = ["automanaged"],
+    visibility = ["//visibility:public"],
     deps = [
         "//vendor/github.com/ghodss/yaml:go_default_library",
-        "//vendor/github.com/ugorji/go/codec:go_default_library",
+        "//vendor/github.com/json-iterator/go:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime/serializer/recognizer:go_default_library",
@@ -36,10 +20,16 @@ go_library(
 )
 
 go_test(
+    name = "go_default_test",
+    srcs = ["meta_test.go"],
+    importpath = "k8s.io/apimachinery/pkg/runtime/serializer/json",
+    library = ":go_default_library",
+)
+
+go_test(
     name = "go_default_xtest",
     srcs = ["json_test.go"],
     importpath = "k8s.io/apimachinery/pkg/runtime/serializer/json_test",
-    tags = ["automanaged"],
     deps = [
         ":go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",

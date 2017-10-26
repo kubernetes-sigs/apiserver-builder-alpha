@@ -1,24 +1,4 @@
-package(default_visibility = ["//visibility:public"])
-
-licenses(["notice"])
-
-load(
-    "@io_bazel_rules_go//go:def.bzl",
-    "go_library",
-    "go_test",
-)
-
-go_test(
-    name = "go_default_test",
-    srcs = ["register_test.go"],
-    importpath = "k8s.io/apimachinery/pkg/apis/meta/internalversion",
-    library = ":go_default_library",
-    tags = ["automanaged"],
-    deps = [
-        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/diff:go_default_library",
-    ],
-)
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
@@ -27,10 +7,11 @@ go_library(
         "doc.go",
         "register.go",
         "types.go",
+        "zz_generated.conversion.go",
         "zz_generated.deepcopy.go",
     ],
     importpath = "k8s.io/apimachinery/pkg/apis/meta/internalversion",
-    tags = ["automanaged"],
+    visibility = ["//visibility:public"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1alpha1:go_default_library",
@@ -41,5 +22,21 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime/serializer:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/validation/field:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "register_test.go",
+        "roundtrip_test.go",
+    ],
+    importpath = "k8s.io/apimachinery/pkg/apis/meta/internalversion",
+    library = ":go_default_library",
+    deps = [
+        "//vendor/k8s.io/apimachinery/pkg/api/testing/roundtrip:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/apis/meta/fuzzer:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/util/diff:go_default_library",
     ],
 )

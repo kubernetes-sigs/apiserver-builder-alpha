@@ -38,12 +38,17 @@ func GetDefinitionVersionKind(s spec.Schema) (string, string, string) {
 
 		var group, version, kind string
 		if name[len(name)-3] == "api" {
-			// e.g. "io.k8s.kubernetes.pkg.api.v1.Pod"
+			// e.g. "io.k8s.apimachinery.pkg.api.resource.Quantity"
 			group = "core"
 			version = name[len(name)-2]
 			kind = name[len(name)-1]
+		} else if name[len(name)-4] == "api" {
+			// e.g. "io.k8s.api.core.v1.Pod"
+			group = name[len(name)-3]
+			version = name[len(name)-2]
+			kind = name[len(name)-1]
 		} else if name[len(name)-4] == "apis" {
-			// e.g. "io.k8s.kubernetes.pkg.apis.extensions.v1beta1.Deployment"
+			// e.g. "io.k8s.apimachinery.pkg.apis.meta.v1.Status"
 			group = name[len(name)-3]
 			version = name[len(name)-2]
 			kind = name[len(name)-1]

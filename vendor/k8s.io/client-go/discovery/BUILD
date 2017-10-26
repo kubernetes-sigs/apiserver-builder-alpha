@@ -1,12 +1,4 @@
-package(default_visibility = ["//visibility:public"])
-
-licenses(["notice"])
-
-load(
-    "@io_bazel_rules_go//go:def.bzl",
-    "go_library",
-    "go_test",
-)
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
@@ -17,7 +9,7 @@ go_library(
         "unstructured.go",
     ],
     importpath = "k8s.io/client-go/discovery",
-    tags = ["automanaged"],
+    visibility = ["//visibility:public"],
     deps = [
         "//vendor/github.com/emicklei/go-restful-swagger12:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
@@ -45,7 +37,6 @@ go_test(
         "restmapper_test.go",
     ],
     importpath = "k8s.io/client-go/discovery_test",
-    tags = ["automanaged"],
     deps = [
         ":go_default_library",
         "//vendor/github.com/emicklei/go-restful-swagger12:go_default_library",

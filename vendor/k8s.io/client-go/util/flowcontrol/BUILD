@@ -1,11 +1,18 @@
-package(default_visibility = ["//visibility:public"])
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
-licenses(["notice"])
-
-load(
-    "@io_bazel_rules_go//go:def.bzl",
-    "go_library",
-    "go_test",
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "backoff.go",
+        "throttle.go",
+    ],
+    importpath = "k8s.io/client-go/util/flowcontrol",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/juju/ratelimit:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/util/clock:go_default_library",
+        "//vendor/k8s.io/client-go/util/integer:go_default_library",
+    ],
 )
 
 go_test(
@@ -16,21 +23,5 @@ go_test(
     ],
     importpath = "k8s.io/client-go/util/flowcontrol",
     library = ":go_default_library",
-    tags = ["automanaged"],
     deps = ["//vendor/k8s.io/apimachinery/pkg/util/clock:go_default_library"],
-)
-
-go_library(
-    name = "go_default_library",
-    srcs = [
-        "backoff.go",
-        "throttle.go",
-    ],
-    importpath = "k8s.io/client-go/util/flowcontrol",
-    tags = ["automanaged"],
-    deps = [
-        "//vendor/github.com/juju/ratelimit:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/clock:go_default_library",
-        "//vendor/k8s.io/client-go/util/integer:go_default_library",
-    ],
 )
