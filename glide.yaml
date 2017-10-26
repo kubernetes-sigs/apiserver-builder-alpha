@@ -26,8 +26,8 @@ import:
   version: 44145f04b68cf362d9c4df2182967c2275eaefed
 - package: github.com/spf13/cobra
   version: f62e98d28ab7ad31d707ba837a966378465c7b57
-- package: github.com/spf13/cobra/doc
-  version: f62e98d28ab7ad31d707ba837a966378465c7b57
+  subpackages:
+  - doc
 - package: github.com/spf13/pflag
   version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
 - package: github.com/spf13/viper
@@ -40,8 +40,6 @@ import:
   version: release-5.0
 - package: k8s.io/api
   version: release-1.8
-- package: k8s.io/apiextensions-apiserver
-  version: release-1.8
 - package: k8s.io/kube-openapi
 - package: k8s.io/gengo
   version: 9e661e9308f078838e266cca1c673922088c0ea4
@@ -49,3 +47,5 @@ import:
   version: v1.4.0
 - package: github.com/onsi/gomega
   version: v1.2.0
+- package: k8s.io/apiextensions-apiserver
+  version: release-1.8
