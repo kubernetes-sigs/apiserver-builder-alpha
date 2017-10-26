@@ -1,20 +1,4 @@
-package(default_visibility = ["//visibility:public"])
-
-load(
-    "@io_bazel_rules_go//go:def.bzl",
-    "go_library",
-    "go_test",
-)
-
-go_test(
-    name = "go_default_test",
-    srcs = [
-        "cache_test.go",
-        "round_trippers_test.go",
-        "transport_test.go",
-    ],
-    library = ":go_default_library",
-)
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
@@ -24,6 +8,8 @@ go_library(
         "round_trippers.go",
         "transport.go",
     ],
+    importpath = "k8s.io/client-go/transport",
+    visibility = ["//visibility:public"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/gregjones/httpcache:go_default_library",
@@ -33,18 +19,13 @@ go_library(
     ],
 )
 
-filegroup(
-    name = "package-srcs",
-    srcs = glob(["**"]),
-    tags = ["automanaged"],
-    visibility = ["//visibility:private"],
-)
-
-filegroup(
-    name = "all-srcs",
+go_test(
+    name = "go_default_test",
     srcs = [
-        ":package-srcs",
-        "//staging/src/k8s.io/client-go/transport/spdy:all-srcs",
+        "cache_test.go",
+        "round_trippers_test.go",
+        "transport_test.go",
     ],
-    tags = ["automanaged"],
+    importpath = "k8s.io/client-go/transport",
+    library = ":go_default_library",
 )
