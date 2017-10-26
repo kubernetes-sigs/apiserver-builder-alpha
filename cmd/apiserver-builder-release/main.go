@@ -319,7 +319,7 @@ func BuildVendorTar(dir string) {
 	srcdir := filepath.Join(dir)
 	filepath.Walk(srcdir, TarFile{
 		tw,
-		0555,
+		0644,
 		filepath.Join(srcdir, "src"),
 		"",
 	}.Do)
