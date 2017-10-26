@@ -40,6 +40,8 @@ import:
   version: release-5.0
 - package: k8s.io/api
   version: release-1.8
+- package: k8s.io/apiextensions-apiserver
+  version: release-1.8
 - package: k8s.io/kube-openapi
 - package: k8s.io/gengo
   version: 9e661e9308f078838e266cca1c673922088c0ea4
