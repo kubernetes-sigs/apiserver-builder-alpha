@@ -255,6 +255,7 @@ type buildTemplateArguments struct {
 
 var buildTemplate = `
 # gazelle:proto disable
+# gazelle:exclude vendor
 load("@io_bazel_rules_go//go:def.bzl", "gazelle")
 
 gazelle(
