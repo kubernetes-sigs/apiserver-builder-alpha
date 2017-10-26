@@ -81,6 +81,9 @@ func createBazelWorkspace() {
 	}
 	path := filepath.Join(dir, "WORKSPACE")
 	util.WriteIfNotFound(path, "bazel-workspace-template", workspaceTemplate, nil)
+	path = filepath.Join(dir, "BUILD.bazel")
+	util.WriteIfNotFound(path, "bazel-build-template",
+		buildTemplate, buildTemplateArguments{util.Repo})
 }
 
 type controllerManagerTemplateArguments struct {
@@ -246,7 +249,22 @@ load("@io_bazel_rules_go//proto:def.bzl", "proto_register_toolchains")
 proto_register_toolchains()
 `
 
-var BUILD = `
-load("@io_bazel_rules_go//proto:def.bzl", "proto_register_toolchains")
-proto_register_toolchains()
+type buildTemplateArguments struct {
+	Repo string
+}
+
+var buildTemplate = `
+# gazelle:proto disable
+load("@io_bazel_rules_go//go:def.bzl", "gazelle")
+
+gazelle(
+    name = "gazelle",
+    command = "fix",
+    prefix = "{{.Repo}}",
+    external = "vendored",
+    args = [
+        "-build_file_name",
+        "BUILD,BUILD.bazel",
+    ],
+)
 `
