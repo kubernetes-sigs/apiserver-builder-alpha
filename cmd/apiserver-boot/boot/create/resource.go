@@ -198,7 +198,7 @@ import (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 {{- if .NonNamespacedKind }}
 // +genclient:nonNamespaced
-{{ end }}
+{{- end }}
 
 // {{.Kind}}
 // +k8s:openapi-gen=true
@@ -315,7 +315,7 @@ var _ = Describe("{{.Kind}}", func() {
 	Describe("when sending a storage request", func() {
 		Context("for a valid config", func() {
 			It("should provide CRUD access to the object", func() {
-				client = cs.{{ title .Group}}{{title .Version}}Client.{{plural .Kind}}({{ if not .NonNamespacedKind }}"{{lower .Kind}}-test-valid"{{ end }})
+				client = cs.{{ title .Group}}{{title .Version}}().{{plural .Kind}}({{ if not .NonNamespacedKind }}"{{lower .Kind}}-test-valid"{{ end }})
 
 				By("returning success from the create request")
 				actual, err := client.Create(&instance)
@@ -495,7 +495,7 @@ var _ = Describe("{{ .Kind }} controller", func() {
 
 	Describe("when creating a new object", func() {
 		It("invoke the reconcile method", func() {
-			client = cs.{{title .Group}}{{title .Version}}Client.{{ plural .Kind }}({{ if not .NonNamespacedKind }}"{{lower .Kind }}-controller-test-handler"{{ end }})
+			client = cs.{{title .Group}}{{title .Version}}().{{ plural .Kind }}({{ if not .NonNamespacedKind }}"{{lower .Kind }}-controller-test-handler"{{ end }})
 			before = make(chan struct{})
 			after = make(chan struct{})
 
