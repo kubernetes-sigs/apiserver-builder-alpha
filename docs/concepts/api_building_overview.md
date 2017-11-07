@@ -356,9 +356,11 @@ Reconcile logic may include:
 - creating, updating or deleting other objects in the Kubernetes cluster (e.g. Kubernetes APIs such as Pod)
 - creating, updating or deleting resources outside the Kubernetes cluster (e.g. cloud provider resources such as CloudSQL).
 
-**Note:** there is no *deletion* hook defined.  To define deletion logic, a [Finalizer](#Delete) must be set
-on the Object during creation.  This will cause a DeletionTimestamp to be set on the object when it is deleted,
+**Note:** there is no *deletion* hook defined.  To define deletion logic, a [Finalizer](#delete) must be set
+on the Object during creation in `PrepareForCreate`.  This will cause a DeletionTimestamp to be set on the object when it is deleted,
 resulting in the Reconcile method being invoked.
+
+In Reconcile() for deletion, the corresponding finalizer must be removed (and updated to the storage). Otherwise, the object will never be deleted.
 
 ### Using API extensions to manage resources external to the cluster
 
