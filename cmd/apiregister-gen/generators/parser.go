@@ -85,7 +85,7 @@ type Field struct {
 	Name string
 	// For versioned Kubernetes types, this is the versioned package
 	VersionedPackage string
-	// For versioned Kubernetes types, this is theun versioned package
+	// For versioned Kubernetes types, this is the unversioned package
 	UnversionedImport string
 	UnversionedType   string
 }
@@ -691,14 +691,27 @@ func (apigroup *APIGroup) DoType(t *types.Type) (*Struct, []*types.Type) {
 							t = t.Elem
 							hasElem = true
 						}
-						uImportName := path.Base(path.Dir(t.Name.Package))
-						uImport = path.Dir(t.Name.Package)
+						// Come up with the alias the package is imported under
+						// Concatenate with directory package to reduce naming collisions
+						uImportName := path.Base(path.Dir(t.Name.Package)) + path.Base(t.Name.Package)
+
+                        // Create the import statement
+						uImport = fmt.Sprintf("%s \"%s\"", uImportName, t.Name.Package)
+
+						// Create the field type name - should be <pkgalias>.<TypeName>
 						uType = uImportName + "." + t.Name.Name
 						if hasElem {
 							uType = strings.Replace(member.Type.String(), path.Dir(uImport)+"/", "", 1)
 							uType = strings.Replace(uType, "/"+path.Base(t.Name.Package), "", 1)
 						}
-						fmt.Printf("\nDifferent Package Parent Package: %s Child Package: %s Name: %s : %s : %s\n%s : %s\n\n", t.Name.Package, member.Type.Name.Package, member.Type.Kind, member.Type.String(), path.Dir(uImport), uImport, uType)
+						fmt.Printf("\nDifferent Package Parent Package: %s\nChild Package: %s\nName: %s : %s : %s\n%s %s : %s\n\n",
+						    t.Name.Package,
+                            member.Type.Name.Package,
+                            member.Type.Kind,
+                            member.Type.String(),
+                            path.Dir(uImport),
+                            uImportName, uImport,
+                            uType)
 					}
 				}
 			}

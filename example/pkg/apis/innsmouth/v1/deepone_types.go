@@ -18,6 +18,7 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+    "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/innsmouth/common"
 )
 
 // +genclient
@@ -45,6 +46,9 @@ type DeepOneSpec struct {
 	SamplePointerList []*SampleListPointerElem         `json:"sample_pointer_list,omitempty"`
 	SampleMap         map[string]SampleMapElem         `json:"sample_map,omitempty"`
 	SamplePointerMap  map[string]*SampleMapPointerElem `json:"sample_pointer_map,omitempty"`
+
+	// Example of using a constant
+	Const common.CustomType `json:"const,omitempty"`
 }
 
 type SampleListElem struct {
