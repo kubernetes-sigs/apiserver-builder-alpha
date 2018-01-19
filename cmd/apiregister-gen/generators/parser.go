@@ -685,33 +685,56 @@ func (apigroup *APIGroup) DoType(t *types.Type) (*Struct, []*types.Type) {
 					default:
 						// Use unversioned types for everything else
 						t := member.Type
-						hasElem := false
+
 						if t.Elem != nil {
-							// Handle Pointers, Maps, Slices correctly
+							// Handle Pointers, Maps, Slices
+
+							// We need to parse the package from the Type String
 							t = t.Elem
-							hasElem = true
-						}
-						// Come up with the alias the package is imported under
-						// Concatenate with directory package to reduce naming collisions
-						uImportName := path.Base(path.Dir(t.Name.Package)) + path.Base(t.Name.Package)
+							str := member.Type.String()
+							startPkg := strings.LastIndexAny(str, "*]")
+							endPkg := strings.LastIndexAny(str, ".")
+							pkg := str[startPkg+1 : endPkg]
+							name := str[endPkg+1:]
+							prefix := str[:startPkg+1]
 
-                        // Create the import statement
-						uImport = fmt.Sprintf("%s \"%s\"", uImportName, t.Name.Package)
+							uImportBase := path.Base(pkg)
+							uImportName := path.Base(path.Dir(pkg)) + uImportBase
+							uImport = fmt.Sprintf("%s \"%s\"", uImportName, pkg)
 
-						// Create the field type name - should be <pkgalias>.<TypeName>
-						uType = uImportName + "." + t.Name.Name
-						if hasElem {
-							uType = strings.Replace(member.Type.String(), path.Dir(uImport)+"/", "", 1)
-							uType = strings.Replace(uType, "/"+path.Base(t.Name.Package), "", 1)
+							uType = prefix + uImportName + "." + name
+
+							fmt.Printf("\nDifferent Parent Package: %s\nChild Package: %s\nKind: %s (Kind.String() %s)\nImport stmt: %s\nType: %s\n\n",
+								pkg,
+								member.Type.Name.Package,
+								member.Type.Kind,
+								member.Type.String(),
+								uImport,
+								uType)
+						} else {
+							// Handle non- Pointer, Maps, Slices
+							pkg := t.Name.Package
+							name := t.Name.Name
+
+							// Come up with the alias the package is imported under
+							// Concatenate with directory package to reduce naming collisions
+							uImportBase := path.Base(pkg)
+							uImportName := path.Base(path.Dir(pkg)) + uImportBase
+
+							// Create the import statement
+							uImport = fmt.Sprintf("%s \"%s\"", uImportName, pkg)
+
+							// Create the field type name - should be <pkgalias>.<TypeName>
+							uType = uImportName + "." + name
+
+							fmt.Printf("\nDifferent Parent Package: %s\nChild Package: %s\nKind: %s (Kind.String() %s)\nImport stmt: %s\nType: %s\n\n",
+								pkg,
+								member.Type.Name.Package,
+								member.Type.Kind,
+								member.Type.String(),
+								uImport,
+								uType)
 						}
-						fmt.Printf("\nDifferent Package Parent Package: %s\nChild Package: %s\nName: %s : %s : %s\n%s %s : %s\n\n",
-						    t.Name.Package,
-                            member.Type.Name.Package,
-                            member.Type.Kind,
-                            member.Type.String(),
-                            path.Dir(uImport),
-                            uImportName, uImport,
-                            uType)
 					}
 				}
 			}
