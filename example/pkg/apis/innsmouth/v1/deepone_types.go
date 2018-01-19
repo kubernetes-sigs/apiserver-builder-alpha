@@ -17,8 +17,8 @@ limitations under the License.
 package v1
 
 import (
+	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/innsmouth/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-    "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/innsmouth/common"
 )
 
 // +genclient
@@ -48,7 +48,14 @@ type DeepOneSpec struct {
 	SamplePointerMap  map[string]*SampleMapPointerElem `json:"sample_pointer_map,omitempty"`
 
 	// Example of using a constant
-	Const common.CustomType `json:"const,omitempty"`
+	Const      common.CustomType            `json:"const,omitempty"`
+	ConstPtr   *common.CustomType           `json:"constPtr,omitempty"`
+	ConstSlice []common.CustomType          `json:"constSlice,omitempty"`
+	ConstMap   map[string]common.CustomType `json:"constMap,omitempty"`
+
+	// TODO: Fix issues with deep copy to make these work
+	//ConstSlicePtr []*common.CustomType          `json:"constSlicePtr,omitempty"`
+	//ConstMapPtr map[string]*common.CustomType `json:"constMapPtr,omitempty"`
 }
 
 type SampleListElem struct {
