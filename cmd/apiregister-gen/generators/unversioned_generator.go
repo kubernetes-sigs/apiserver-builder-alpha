@@ -245,7 +245,7 @@ func (s *storage{{.Kind}}) Get{{.Kind}}(ctx request.Context, id string, options 
 
 func (s *storage{{.Kind}}) Create{{.Kind}}(ctx request.Context, object *{{.Kind}}) (*{{.Kind}}, error) {
 	st := s.GetStandardStorage()
-	obj, err := st.Create(ctx, object, false)
+	obj, err := st.Create(ctx, object, nil, true)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +254,7 @@ func (s *storage{{.Kind}}) Create{{.Kind}}(ctx request.Context, object *{{.Kind}
 
 func (s *storage{{.Kind}}) Update{{.Kind}}(ctx request.Context, object *{{.Kind}}) (*{{.Kind}}, error) {
 	st := s.GetStandardStorage()
-	obj, _, err := st.Update(ctx, object.Name, rest.DefaultUpdatedObjectInfo(object, builders.Scheme))
+	obj, _, err := st.Update(ctx, object.Name, rest.DefaultUpdatedObjectInfo(object), nil, nil)
 	if err != nil {
 		return nil, err
 	}
