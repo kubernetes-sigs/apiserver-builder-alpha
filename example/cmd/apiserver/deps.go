@@ -1,5 +1,5 @@
 /*
-Copyright 2016 The Kubernetes Authors.
+Copyright 2017 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,11 +17,12 @@ limitations under the License.
 package main
 
 import (
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis"
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/openapi"
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/cmd/server"
-)
+	_ "github.com/go-openapi/loads"
+	_ "github.com/go-openapi/runtime"
+	_ "github.com/go-openapi/validate"
+	_ "github.com/spf13/viper"
+	_ "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
 
-func main() {
-	server.StartApiServer("/registry/sample.kubernetes.io", apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions, "Api", "v0")
-}
+	_ "k8s.io/apimachinery/pkg/apis/meta/v1"
+	_ "k8s.io/client-go/plugin/pkg/client/auth" // Enable cloud provider auth
+)
