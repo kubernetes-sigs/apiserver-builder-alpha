@@ -2,15 +2,9 @@ package inflect
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
-
-// assert helper
-
-func assertEqual(t *testing.T, a, b string) {
-	if a != b {
-		t.Errorf("inflect: expected %v got %v", a, b)
-	}
-}
 
 // test data
 
@@ -73,6 +67,7 @@ var SingularToPlural = map[string]string{
 	"equipment":   "equipment",
 	"bus":         "buses",
 	"status":      "statuses",
+	"Status":      "Statuses",
 	"status_code": "status_codes",
 	"mouse":       "mice",
 	"louse":       "lice",
@@ -100,6 +95,7 @@ var CapitalizeMixture = map[string]string{
 	"special_guest":         "Special_guest",
 	"applicationController": "ApplicationController",
 	"Area51Controller":      "Area51Controller",
+	"id":                    "ID",
 }
 
 var CamelToUnderscore = map[string]string{
@@ -141,6 +137,7 @@ var ClassNameToForeignKeyWithoutUnderscore = map[string]string{
 var ClassNameToTableName = map[string]string{
 	"PrimarySpokesman": "primary_spokesmen",
 	"NodeChild":        "node_children",
+	"Alias":            "aliases",
 }
 
 var StringToParameterized = map[string]string{
@@ -190,6 +187,7 @@ var UnderscoreToHuman = map[string]string{
 	"employee_salary": "Employee salary",
 	"employee_id":     "Employee",
 	"underground":     "Underground",
+	"óbito":           "Óbito",
 }
 
 var MixtureToTitleCase = map[string]string{
@@ -315,31 +313,36 @@ var AcronymCases = []*AcronymCase{
 
 // tests
 
+func Test_LoadViaFile(t *testing.T) {
+	require.Equal(t, "feedback", Pluralize("feedback"))
+	require.Equal(t, "buffalo!", Singularize("buffalos!"))
+}
+
 func TestForeignKeyToAttribute(t *testing.T) {
-	assertEqual(t, "PersonID", ForeignKeyToAttribute("person_id"))
-	assertEqual(t, "ID", ForeignKeyToAttribute("id"))
+	require.Equal(t, "PersonID", ForeignKeyToAttribute("person_id"))
+	require.Equal(t, "ID", ForeignKeyToAttribute("id"))
 }
 
 func TestPluralizeWithSize(t *testing.T) {
-	assertEqual(t, "plurals", PluralizeWithSize("plurals", 2))
-	assertEqual(t, "plurals", PluralizeWithSize("plurals", 0))
-	assertEqual(t, "plural", PluralizeWithSize("plurals", 1))
+	require.Equal(t, "plurals", PluralizeWithSize("plurals", 2))
+	require.Equal(t, "plurals", PluralizeWithSize("plurals", 0))
+	require.Equal(t, "plural", PluralizeWithSize("plurals", 1))
 }
 
 func TestPluralizePlurals(t *testing.T) {
-	assertEqual(t, "plurals", Pluralize("plurals"))
-	assertEqual(t, "Plurals", Pluralize("Plurals"))
+	require.Equal(t, "plurals", Pluralize("plurals"))
+	require.Equal(t, "Plurals", Pluralize("Plurals"))
 }
 
 func TestPluralizeEmptyString(t *testing.T) {
-	assertEqual(t, "", Pluralize(""))
+	require.Equal(t, "", Pluralize(""))
 }
 
 func TestUncountables(t *testing.T) {
 	for word := range Uncountables() {
-		assertEqual(t, word, Singularize(word))
-		assertEqual(t, word, Pluralize(word))
-		assertEqual(t, Pluralize(word), Singularize(word))
+		require.Equal(t, word, Singularize(word))
+		require.Equal(t, word, Pluralize(word))
+		require.Equal(t, Pluralize(word), Singularize(word))
 	}
 }
 
@@ -349,66 +352,73 @@ func TestUncountableWordIsNotGreedy(t *testing.T) {
 
 	AddUncountable(uncountableWord)
 
-	assertEqual(t, uncountableWord, Singularize(uncountableWord))
-	assertEqual(t, uncountableWord, Pluralize(uncountableWord))
-	assertEqual(t, Pluralize(uncountableWord), Singularize(uncountableWord))
-	assertEqual(t, "sponsor", Singularize(countableWord))
-	assertEqual(t, "sponsors", Pluralize(countableWord))
-	assertEqual(t, "sponsor", Singularize(Pluralize(countableWord)))
+	require.Equal(t, uncountableWord, Singularize(uncountableWord))
+	require.Equal(t, uncountableWord, Pluralize(uncountableWord))
+	require.Equal(t, Pluralize(uncountableWord), Singularize(uncountableWord))
+	require.Equal(t, "sponsor", Singularize(countableWord))
+	require.Equal(t, "sponsors", Pluralize(countableWord))
+	require.Equal(t, "sponsor", Singularize(Pluralize(countableWord)))
 }
 
 func TestPluralizeSingular(t *testing.T) {
 	for singular, plural := range SingularToPlural {
-		assertEqual(t, plural, Pluralize(singular))
-		assertEqual(t, Capitalize(plural), Capitalize(Pluralize(singular)))
+		require.Equal(t, plural, Pluralize(singular))
+		require.Equal(t, Capitalize(plural), Capitalize(Pluralize(singular)))
 	}
 }
 
 func TestSingularizePlural(t *testing.T) {
 	for singular, plural := range SingularToPlural {
-		assertEqual(t, singular, Singularize(plural))
-		assertEqual(t, Capitalize(singular), Capitalize(Singularize(plural)))
+		require.Equal(t, singular, Singularize(plural))
+		require.Equal(t, Capitalize(singular), Capitalize(Singularize(plural)))
+	}
+}
+
+func TestSingularizeSingular(t *testing.T) {
+	for singular, _ := range SingularToPlural {
+		require.Equal(t, singular, Singularize(singular))
+		require.Equal(t, Capitalize(singular), Capitalize(Singularize(singular)))
 	}
 }
 
 func TestPluralizePlural(t *testing.T) {
 	for _, plural := range SingularToPlural {
-		assertEqual(t, plural, Pluralize(plural))
-		assertEqual(t, Capitalize(plural), Capitalize(Pluralize(plural)))
+		require.Equal(t, plural, Pluralize(plural))
+		require.Equal(t, Capitalize(plural), Capitalize(Pluralize(plural)))
 	}
 }
 
 func TestOverwritePreviousInflectors(t *testing.T) {
-	assertEqual(t, "series", Singularize("series"))
+	require.Equal(t, "series", Singularize("series"))
 	AddSingular("series", "serie")
-	assertEqual(t, "serie", Singularize("series"))
+	require.Equal(t, "serie", Singularize("series"))
 	AddUncountable("series") // reset
 }
 
 func TestTitleize(t *testing.T) {
 	for before, titleized := range MixtureToTitleCase {
-		assertEqual(t, titleized, Titleize(before))
+		require.Equal(t, titleized, Titleize(before))
 	}
 }
 
 func TestCapitalize(t *testing.T) {
 	for lower, capitalized := range CapitalizeMixture {
-		assertEqual(t, capitalized, Capitalize(lower))
+		require.Equal(t, capitalized, Capitalize(lower))
 	}
 }
 
 func TestCamelize(t *testing.T) {
 	for camel, underscore := range CamelToUnderscore {
-		assertEqual(t, camel, Camelize(underscore))
+		require.Equal(t, camel, Camelize(underscore))
 	}
 }
 
 func TestCamelizeWithLowerDowncasesTheFirstLetter(t *testing.T) {
-	assertEqual(t, "capital", CamelizeDownFirst("Capital"))
+	require.Equal(t, "capital", CamelizeDownFirst("Capital"))
 }
 
 func TestCamelizeWithUnderscores(t *testing.T) {
-	assertEqual(t, "CamelCase", Camelize("Camel_Case"))
+	require.Equal(t, "CamelCase", Camelize("Camel_Case"))
 }
 
 // func TestAcronyms(t *testing.T) {
@@ -422,128 +432,128 @@ func TestCamelizeWithUnderscores(t *testing.T) {
 //     AddAcronym("SSL")
 //     // each in table
 //     for _,x := range AcronymCases {
-//         assertEqual(t, x.camel, Camelize(x.under))
-//         assertEqual(t, x.camel, Camelize(x.camel))
-//         assertEqual(t, x.under, Underscore(x.under))
-//         assertEqual(t, x.under, Underscore(x.camel))
-//         assertEqual(t, x.title, Titleize(x.under))
-//         assertEqual(t, x.title, Titleize(x.camel))
-//         assertEqual(t, x.human, Humanize(x.under))
+//         require.Equal(t, x.camel, Camelize(x.under))
+//         require.Equal(t, x.camel, Camelize(x.camel))
+//         require.Equal(t, x.under, Underscore(x.under))
+//         require.Equal(t, x.under, Underscore(x.camel))
+//         require.Equal(t, x.title, Titleize(x.under))
+//         require.Equal(t, x.title, Titleize(x.camel))
+//         require.Equal(t, x.human, Humanize(x.under))
 //     }
 // }
 
 // func TestAcronymOverride(t *testing.T) {
 //     AddAcronym("API")
 //     AddAcronym("LegacyApi")
-//     assertEqual(t, "LegacyApi", Camelize("legacyapi"))
-//     assertEqual(t, "LegacyAPI", Camelize("legacy_api"))
-//     assertEqual(t, "SomeLegacyApi", Camelize("some_legacyapi"))
-//     assertEqual(t, "Nonlegacyapi", Camelize("nonlegacyapi"))
+//     require.Equal(t, "LegacyApi", Camelize("legacyapi"))
+//     require.Equal(t, "LegacyAPI", Camelize("legacy_api"))
+//     require.Equal(t, "SomeLegacyApi", Camelize("some_legacyapi"))
+//     require.Equal(t, "Nonlegacyapi", Camelize("nonlegacyapi"))
 // }
 
 // func TestAcronymsCamelizeLower(t *testing.T) {
 //     AddAcronym("API")
 //     AddAcronym("HTML")
-//     assertEqual(t, "htmlAPI", CamelizeDownFirst("html_api"))
-//     assertEqual(t, "htmlAPI", CamelizeDownFirst("htmlAPI"))
-//     assertEqual(t, "htmlAPI", CamelizeDownFirst("HTMLAPI"))
+//     require.Equal(t, "htmlAPI", CamelizeDownFirst("html_api"))
+//     require.Equal(t, "htmlAPI", CamelizeDownFirst("htmlAPI"))
+//     require.Equal(t, "htmlAPI", CamelizeDownFirst("HTMLAPI"))
 // }
 
 func TestUnderscoreAcronymSequence(t *testing.T) {
 	AddAcronym("API")
 	AddAcronym("HTML5")
 	AddAcronym("HTML")
-	assertEqual(t, "html5_html_api", Underscore("HTML5HTMLAPI"))
+	require.Equal(t, "html5_html_api", Underscore("HTML5HTMLAPI"))
 }
 
 func TestUnderscore(t *testing.T) {
 	for camel, underscore := range CamelToUnderscore {
-		assertEqual(t, underscore, Underscore(camel))
+		require.Equal(t, underscore, Underscore(camel))
 	}
 	for camel, underscore := range CamelToUnderscoreWithoutReverse {
-		assertEqual(t, underscore, Underscore(camel))
+		require.Equal(t, underscore, Underscore(camel))
 	}
 }
 
 func TestForeignKey(t *testing.T) {
 	for klass, foreignKey := range ClassNameToForeignKeyWithUnderscore {
-		assertEqual(t, foreignKey, ForeignKey(klass))
+		require.Equal(t, foreignKey, ForeignKey(klass))
 	}
 	for word, foreignKey := range PluralToForeignKeyWithUnderscore {
-		assertEqual(t, foreignKey, ForeignKey(word))
+		require.Equal(t, foreignKey, ForeignKey(word))
 	}
 	for klass, foreignKey := range ClassNameToForeignKeyWithoutUnderscore {
-		assertEqual(t, foreignKey, ForeignKeyCondensed(klass))
+		require.Equal(t, foreignKey, ForeignKeyCondensed(klass))
 	}
 }
 
 func TestTableize(t *testing.T) {
 	for klass, table := range ClassNameToTableName {
-		assertEqual(t, table, Tableize(klass))
+		require.Equal(t, table, Tableize(klass))
 	}
 }
 
 func TestParameterize(t *testing.T) {
 	for str, parameterized := range StringToParameterized {
-		assertEqual(t, parameterized, Parameterize(str))
+		require.Equal(t, parameterized, Parameterize(str))
 	}
 }
 
 func TestParameterizeAndNormalize(t *testing.T) {
 	for str, parameterized := range StringToParameterizedAndNormalized {
-		assertEqual(t, parameterized, Parameterize(str))
+		require.Equal(t, parameterized, Parameterize(str))
 	}
 }
 
 func TestParameterizeWithCustomSeparator(t *testing.T) {
 	for str, parameterized := range StringToParameterizeWithUnderscore {
-		assertEqual(t, parameterized, ParameterizeJoin(str, "_"))
+		require.Equal(t, parameterized, ParameterizeJoin(str, "_"))
 	}
 }
 
 func TestTypeify(t *testing.T) {
 	for klass, table := range ClassNameToTableName {
-		assertEqual(t, klass, Typeify(table))
-		assertEqual(t, klass, Typeify("table_prefix."+table))
+		require.Equal(t, klass, Typeify(table))
+		require.Equal(t, klass, Typeify("table_prefix."+table))
 	}
 }
 
 func TestTypeifyWithLeadingSchemaName(t *testing.T) {
-	assertEqual(t, "FooBar", Typeify("schema.foo_bar"))
+	require.Equal(t, "FooBar", Typeify("schema.foo_bar"))
 }
 
 func TestHumanize(t *testing.T) {
 	for underscore, human := range UnderscoreToHuman {
-		assertEqual(t, human, Humanize(underscore))
+		require.Equal(t, human, Humanize(underscore))
 	}
 }
 
 func TestHumanizeByString(t *testing.T) {
 	AddHuman("col_rpted_bugs", "reported bugs")
-	assertEqual(t, "90 reported bugs recently", Humanize("90 col_rpted_bugs recently"))
+	require.Equal(t, "90 reported bugs recently", Humanize("90 col_rpted_bugs recently"))
 }
 
 func TestOrdinal(t *testing.T) {
 	for number, ordinalized := range OrdinalNumbers {
-		assertEqual(t, ordinalized, Ordinalize(number))
+		require.Equal(t, ordinalized, Ordinalize(number))
 	}
 }
 
 func TestDasherize(t *testing.T) {
 	for underscored, dasherized := range UnderscoresToDashes {
-		assertEqual(t, dasherized, Dasherize(underscored))
+		require.Equal(t, dasherized, Dasherize(underscored))
 	}
 }
 
 func TestUnderscoreAsReverseOfDasherize(t *testing.T) {
 	for underscored := range UnderscoresToDashes {
-		assertEqual(t, underscored, Underscore(Dasherize(underscored)))
+		require.Equal(t, underscored, Underscore(Dasherize(underscored)))
 	}
 }
 
 func TestUnderscoreToLowerCamel(t *testing.T) {
 	for underscored, lower := range UnderscoreToLowerCamel {
-		assertEqual(t, lower, CamelizeDownFirst(underscored))
+		require.Equal(t, lower, CamelizeDownFirst(underscored))
 	}
 }
 
@@ -554,21 +564,21 @@ func Test_clear_all(t *testing.T) {
 func TestIrregularityBetweenSingularAndPlural(t *testing.T) {
 	for singular, plural := range Irregularities {
 		AddIrregular(singular, plural)
-		assertEqual(t, singular, Singularize(plural))
-		assertEqual(t, plural, Pluralize(singular))
+		require.Equal(t, singular, Singularize(plural))
+		require.Equal(t, plural, Pluralize(singular))
 	}
 }
 
 func TestPluralizeOfIrregularity(t *testing.T) {
 	for singular, plural := range Irregularities {
 		AddIrregular(singular, plural)
-		assertEqual(t, plural, Pluralize(plural))
+		require.Equal(t, plural, Pluralize(plural))
 	}
 }
 
 func Test_Address(t *testing.T) {
-	assertEqual(t, "address", Singularize("address"))
-	assertEqual(t, "addresses", Pluralize("address"))
-	assertEqual(t, "address", Singularize("addresses"))
-	assertEqual(t, "addresses", Pluralize("addresses"))
+	require.Equal(t, "address", Singularize("address"))
+	require.Equal(t, "addresses", Pluralize("address"))
+	require.Equal(t, "address", Singularize("addresses"))
+	require.Equal(t, "addresses", Pluralize("addresses"))
 }

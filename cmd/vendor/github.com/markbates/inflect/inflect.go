@@ -1,7 +1,13 @@
 package inflect
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -19,12 +25,11 @@ type Rule struct {
 // a Ruleset is the config of pluralization rules
 // you can extend the rules with the Add* methods
 type Ruleset struct {
-	uncountables   map[string]bool
-	plurals        []*Rule
-	singulars      []*Rule
-	humans         []*Rule
-	acronyms       []*Rule
-	acronymMatcher *regexp.Regexp
+	uncountables map[string]bool
+	plurals      []*Rule
+	singulars    []*Rule
+	humans       []*Rule
+	acronyms     []*Rule
 }
 
 // create a blank ruleset. Unless you are going to
@@ -54,6 +59,7 @@ func NewDefaultRuleset() *Ruleset {
 	rs.AddPlural("viri", "viri")
 	rs.AddPlural("alias", "aliases")
 	rs.AddPlural("status", "statuses")
+	rs.AddPlural("Status", "Statuses")
 	rs.AddPlural("bus", "buses")
 	rs.AddPlural("buffalo", "buffaloes")
 	rs.AddPlural("tomato", "tomatoes")
@@ -130,17 +136,21 @@ func NewDefaultRuleset() *Ruleset {
 	rs.AddPluralExact("oxen", "oxen", true)
 	rs.AddPluralExact("quiz", "quizzes", true)
 	rs.AddSingular("s", "")
+	rs.AddSingular("ss", "ss")
 	rs.AddSingular("news", "news")
 	rs.AddSingular("ta", "tum")
 	rs.AddSingular("ia", "ium")
 	rs.AddSingular("analyses", "analysis")
 	rs.AddSingular("bases", "basis")
+	rs.AddSingularExact("basis", "basis", true)
 	rs.AddSingular("diagnoses", "diagnosis")
+	rs.AddSingularExact("diagnosis", "diagnosis", true)
 	rs.AddSingular("parentheses", "parenthesis")
 	rs.AddSingular("prognoses", "prognosis")
 	rs.AddSingular("synopses", "synopsis")
 	rs.AddSingular("theses", "thesis")
 	rs.AddSingular("analyses", "analysis")
+	rs.AddSingularExact("analysis", "analysis", true)
 	rs.AddSingular("aves", "afe")
 	rs.AddSingular("bves", "bfe")
 	rs.AddSingular("cves", "cfe")
@@ -200,15 +210,25 @@ func NewDefaultRuleset() *Ruleset {
 	rs.AddSingular("mice", "mouse")
 	rs.AddSingular("lice", "louse")
 	rs.AddSingular("buses", "bus")
+	rs.AddSingularExact("bus", "bus", true)
 	rs.AddSingular("oes", "o")
 	rs.AddSingular("shoes", "shoe")
 	rs.AddSingular("crises", "crisis")
+	rs.AddSingularExact("crisis", "crisis", true)
 	rs.AddSingular("axes", "axis")
+	rs.AddSingularExact("axis", "axis", true)
 	rs.AddSingular("testes", "testis")
+	rs.AddSingularExact("testis", "testis", true)
 	rs.AddSingular("octopi", "octopus")
+	rs.AddSingularExact("octopus", "octopus", true)
 	rs.AddSingular("viri", "virus")
+	rs.AddSingularExact("virus", "virus", true)
 	rs.AddSingular("statuses", "status")
+	rs.AddSingular("Statuses", "Status")
+	rs.AddSingularExact("status", "status", true)
+	rs.AddSingularExact("Status", "Status", true)
 	rs.AddSingular("aliases", "alias")
+	rs.AddSingularExact("alias", "alias", true)
 	rs.AddSingularExact("oxen", "ox", true)
 	rs.AddSingular("vertices", "vertex")
 	rs.AddSingular("indices", "index")
@@ -223,6 +243,8 @@ func NewDefaultRuleset() *Ruleset {
 	rs.AddIrregular("sex", "sexes")
 	rs.AddIrregular("move", "moves")
 	rs.AddIrregular("zombie", "zombies")
+	rs.AddIrregular("Status", "Statuses")
+	rs.AddIrregular("status", "statuses")
 	rs.AddUncountable("equipment")
 	rs.AddUncountable("information")
 	rs.AddUncountable("rice")
@@ -285,7 +307,7 @@ func (rs *Ruleset) AddHuman(suffix, replacement string) {
 	rs.humans = append([]*Rule{r}, rs.humans...)
 }
 
-// Add any inconsistant pluralizing/sinularizing rules
+// Add any inconsistent pluralizing/singularizing rules
 // to the set here.
 func (rs *Ruleset) AddIrregular(singular, plural string) {
 	delete(rs.uncountables, singular)
@@ -332,12 +354,17 @@ func (rs *Ruleset) Pluralize(word string) string {
 	if len(word) == 0 {
 		return word
 	}
-	if rs.isUncountable(word) {
+	lWord := strings.ToLower(word)
+	if rs.isUncountable(lWord) {
 		return word
 	}
 	for _, rule := range rs.plurals {
 		if rule.exact {
-			if word == rule.suffix {
+			if lWord == rule.suffix {
+				// Capitalized word
+				if lWord[0] != word[0] && lWord[1:] == word[1:] {
+					return Capitalize(rule.replacement)
+				}
 				return rule.replacement
 			}
 		} else {
@@ -354,12 +381,17 @@ func (rs *Ruleset) Singularize(word string) string {
 	if len(word) <= 1 {
 		return word
 	}
-	if rs.isUncountable(word) {
+	lWord := strings.ToLower(word)
+	if rs.isUncountable(lWord) {
 		return word
 	}
 	for _, rule := range rs.singulars {
 		if rule.exact {
-			if word == rule.suffix {
+			if lWord == rule.suffix {
+				// Capitalized word
+				if lWord[0] != word[0] && lWord[1:] == word[1:] {
+					return Capitalize(rule.replacement)
+				}
 				return rule.replacement
 			}
 		} else {
@@ -373,11 +405,17 @@ func (rs *Ruleset) Singularize(word string) string {
 
 // uppercase first character
 func (rs *Ruleset) Capitalize(word string) string {
+	if strings.ToLower(word) == "id" {
+		return "ID"
+	}
 	return strings.ToUpper(word[:1]) + word[1:]
 }
 
 // "dino_party" -> "DinoParty"
 func (rs *Ruleset) Camelize(word string) string {
+	if strings.ToLower(word) == "id" {
+		return "ID"
+	}
 	words := splitAtCaseChangeWithTitlecase(word)
 	return strings.Join(words, "")
 }
@@ -388,21 +426,21 @@ func (rs *Ruleset) CamelizeDownFirst(word string) string {
 	return strings.ToLower(word[:1]) + word[1:]
 }
 
-// Captitilize every word in sentance "hello there" -> "Hello There"
+// Capitalize every word in sentence "hello there" -> "Hello There"
 func (rs *Ruleset) Titleize(word string) string {
 	words := splitAtCaseChangeWithTitlecase(word)
 	return strings.Join(words, " ")
 }
 
 func (rs *Ruleset) safeCaseAcronyms(word string) string {
-	// convert an acroymn like HTML into Html
+	// convert an acronym like HTML into Html
 	for _, rule := range rs.acronyms {
 		word = strings.Replace(word, rule.suffix, rule.replacement, -1)
 	}
 	return word
 }
 
-func (rs *Ruleset) seperatedWords(word, sep string) string {
+func (rs *Ruleset) separatedWords(word, sep string) string {
 	word = rs.safeCaseAcronyms(word)
 	words := splitAtCaseChange(word)
 	return strings.Join(words, sep)
@@ -410,10 +448,10 @@ func (rs *Ruleset) seperatedWords(word, sep string) string {
 
 // lowercase underscore version "BigBen" -> "big_ben"
 func (rs *Ruleset) Underscore(word string) string {
-	return rs.seperatedWords(word, "_")
+	return rs.separatedWords(word, "_")
 }
 
-// First letter of sentance captitilized
+// First letter of sentence capitalized
 // Uses custom friendly replacements via AddHuman()
 func (rs *Ruleset) Humanize(word string) string {
 	word = replaceLast(word, "_id", "") // strip foreign key kinds
@@ -421,8 +459,10 @@ func (rs *Ruleset) Humanize(word string) string {
 	for _, rule := range rs.humans {
 		word = strings.Replace(word, rule.suffix, rule.replacement, -1)
 	}
-	sentance := rs.seperatedWords(word, " ")
-	return strings.ToUpper(sentance[:1]) + sentance[1:]
+	sentence := rs.separatedWords(word, " ")
+
+	r, n := utf8.DecodeRuneInString(sentence)
+	return string(unicode.ToUpper(r)) + sentence[n:]
 }
 
 // an underscored foreign key name "Person" -> "person_id"
@@ -447,7 +487,7 @@ func (rs *Ruleset) Parameterize(word string) string {
 	return ParameterizeJoin(word, "-")
 }
 
-// param safe dasherized names with custom seperator
+// param safe dasherized names with custom separator
 func (rs *Ruleset) ParameterizeJoin(word, sep string) string {
 	word = strings.ToLower(word)
 	word = rs.Asciify(word)
@@ -489,7 +529,7 @@ var lookalikes map[string]*regexp.Regexp = map[string]*regexp.Regexp{
 	"y":  regexp.MustCompile(`ý|ÿ`),
 }
 
-// transforms latin characters like é -> e
+// transforms Latin characters like é -> e
 func (rs *Ruleset) Asciify(word string) string {
 	for repl, regex := range lookalikes {
 		word = regex.ReplaceAllString(word, repl)
@@ -507,7 +547,7 @@ func (rs *Ruleset) Typeify(word string) string {
 
 // "SomeText" -> "some-text"
 func (rs *Ruleset) Dasherize(word string) string {
-	return rs.seperatedWords(word, "-")
+	return rs.separatedWords(word, "-")
 }
 
 // "1031" -> "1031st"
@@ -540,14 +580,46 @@ func (rs *Ruleset) ForeignKeyToAttribute(str string) string {
 	return w
 }
 
+func (rs *Ruleset) LoadReader(r io.Reader) error {
+	m := map[string]string{}
+	err := json.NewDecoder(r).Decode(&m)
+	if err != nil {
+		return fmt.Errorf("could not decode inflection JSON from reader: %s", err)
+	}
+	for s, p := range m {
+		defaultRuleset.AddIrregular(s, p)
+	}
+	return nil
+}
+
 /////////////////////////////////////////
 // the default global ruleset
 //////////////////////////////////////////
 
 var defaultRuleset *Ruleset
 
+func LoadReader(r io.Reader) error {
+	return defaultRuleset.LoadReader(r)
+}
+
 func init() {
 	defaultRuleset = NewDefaultRuleset()
+
+	pwd, _ := os.Getwd()
+	cfg := filepath.Join(pwd, "inflections.json")
+	if p := os.Getenv("INFLECT_PATH"); p != "" {
+		cfg = p
+	}
+	if _, err := os.Stat(cfg); err == nil {
+		b, err := ioutil.ReadFile(cfg)
+		if err != nil {
+			fmt.Printf("could not read inflection file %s (%s)\n", cfg, err)
+			return
+		}
+		if err = defaultRuleset.LoadReader(bytes.NewReader(b)); err != nil {
+			fmt.Println(err)
+		}
+	}
 }
 
 func Uncountables() map[string]bool {
