@@ -114,7 +114,10 @@ func (b DefaultStorageStrategy) GetAttrs(obj runtime.Object) (labels.Set, fields
 	switch t := obj.(type) {
 	case HasObjectMeta:
 		apiserver := obj.(HasObjectMeta)
-		return labels.Set(apiserver.GetObjectMeta().Labels), b.GetSelectableFields(apiserver), false, nil
+		return labels.Set(apiserver.GetObjectMeta().Labels),
+			b.GetSelectableFields(apiserver),
+			apiserver.GetObjectMeta().Initializers != nil,
+			nil
 	default:
 		return nil, nil, false, fmt.Errorf(
 			"Cannot get attributes for object type %v which does not implement HasObjectMeta.", t)
