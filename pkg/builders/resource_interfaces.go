@@ -66,6 +66,7 @@ type StorageBuilder interface {
 	Validate(ctx request.Context, obj runtime.Object) field.ErrorList
 	ValidateUpdate(ctx request.Context, obj, old runtime.Object) field.ErrorList
 	GetAttrs(obj runtime.Object) (labels.Set, fields.Set, bool, error)
+	TriggerFunc(obj runtime.Object) []storage.MatchValue
 	GetSelectableFields(obj HasObjectMeta) fields.Set
 	BasicMatch(label labels.Selector, field fields.Selector) storage.SelectionPredicate
 }
