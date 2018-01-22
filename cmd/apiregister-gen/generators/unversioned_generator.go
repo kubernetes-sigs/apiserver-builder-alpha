@@ -74,17 +74,19 @@ var (
 	{{ range $api := .UnversionedResources -}}
 	Internal{{ $api.Kind }} = builders.NewInternalResource(
 		"{{ $api.Resource }}",
+        "{{ $api.Kind }}",
 		func() runtime.Object { return &{{ $api.Kind }}{} },
 		func() runtime.Object { return &{{ $api.Kind }}List{} },
 	)
 	Internal{{ $api.Kind }}Status = builders.NewInternalResourceStatus(
 		"{{ $api.Resource }}",
+        "{{ $api.Kind }}Status",
 		func() runtime.Object { return &{{ $api.Kind }}{} },
 		func() runtime.Object { return &{{ $api.Kind }}List{} },
 	)
 	{{ range $subresource := .Subresources -}}
 	Internal{{$subresource.REST}} = builders.NewInternalSubresource(
-		"{{$subresource.Resource}}", "{{$subresource.Path}}",
+		"{{$subresource.Resource}}", "{{$subresource.Request}}", "{{$subresource.Path}}",
 		func() runtime.Object { return &{{$subresource.Request}}{} },
 	)
 	{{ end -}}
