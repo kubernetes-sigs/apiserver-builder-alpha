@@ -76,8 +76,7 @@ apiserver-boot init repo --domain <your-domain>
 ```
 
 **Note:** You can skip vendoring by running with `--install-deps=false`, and install
-the vendored deps separately with `apiserver-boot init glide`.  To install dependencies
-using glide instead of using the bundled vendor, supply the `--fetch` flag.
+the vendored deps separately with `apiserver-boot init dep`. 
 
 ## Create an API resource
 
