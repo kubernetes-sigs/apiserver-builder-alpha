@@ -75,6 +75,7 @@ type SchemeFns interface {
 	DefaultingFunction(obj interface{})
 	GetConversionFunctions() []interface{}
 	Register(scheme *runtime.Scheme) error
+	FieldSelectorConversion(label, value string) (string, string, error)
 }
 
 type StandardStorageProvider interface {
