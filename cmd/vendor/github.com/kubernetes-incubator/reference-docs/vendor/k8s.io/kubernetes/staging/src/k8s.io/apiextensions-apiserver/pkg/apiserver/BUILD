@@ -13,6 +13,7 @@ go_library(
         "customresource_discovery_controller.go",
         "customresource_handler.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiextensions-apiserver/pkg/apiserver",
     deps = [
         "//vendor/github.com/go-openapi/spec:go_default_library",
         "//vendor/github.com/go-openapi/strfmt:go_default_library",

@@ -17,11 +17,8 @@ go_library(
         "patch.go",
         "uid_cache.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/controller/garbagecollector",
     deps = [
-        "//pkg/controller:go_default_library",
-        "//pkg/controller/garbagecollector/metaonly:go_default_library",
-        "//pkg/util/reflector/prometheus:go_default_library",
-        "//pkg/util/workqueue/prometheus:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/golang/groupcache/lru:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
@@ -43,17 +40,19 @@ go_library(
         "//vendor/k8s.io/client-go/tools/cache:go_default_library",
         "//vendor/k8s.io/client-go/util/retry:go_default_library",
         "//vendor/k8s.io/client-go/util/workqueue:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller/garbagecollector/metaonly:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/reflector/prometheus:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/workqueue/prometheus:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["garbagecollector_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/controller/garbagecollector",
     library = ":go_default_library",
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/api/install:go_default_library",
-        "//pkg/controller/garbagecollector/metaonly:go_default_library",
         "//vendor/github.com/stretchr/testify/assert:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/meta:go_default_library",
@@ -69,6 +68,9 @@ go_test(
         "//vendor/k8s.io/client-go/kubernetes/fake:go_default_library",
         "//vendor/k8s.io/client-go/rest:go_default_library",
         "//vendor/k8s.io/client-go/util/workqueue:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/install:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller/garbagecollector/metaonly:go_default_library",
     ],
 )
 

@@ -8,8 +8,8 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["config.go"],
+    importpath = "k8s.io/kubernetes/pkg/kubeapiserver/authenticator",
     deps = [
-        "//pkg/serviceaccount:go_default_library",
         "//vendor/github.com/go-openapi/spec:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/authentication/authenticator:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/authentication/authenticatorfactory:go_default_library",
@@ -31,6 +31,7 @@ go_library(
         "//vendor/k8s.io/client-go/plugin/pkg/client/auth/gcp:go_default_library",
         "//vendor/k8s.io/client-go/plugin/pkg/client/auth/oidc:go_default_library",
         "//vendor/k8s.io/client-go/util/cert:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/serviceaccount:go_default_library",
     ],
 )
 

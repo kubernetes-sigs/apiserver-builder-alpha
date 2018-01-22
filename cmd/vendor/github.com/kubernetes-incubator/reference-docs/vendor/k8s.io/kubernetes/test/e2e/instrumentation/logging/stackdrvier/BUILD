@@ -12,10 +12,8 @@ go_library(
         "soak.go",
         "utils.go",
     ],
+    importpath = "k8s.io/kubernetes/test/e2e/instrumentation/logging/stackdrvier",
     deps = [
-        "//test/e2e/framework:go_default_library",
-        "//test/e2e/instrumentation/common:go_default_library",
-        "//test/e2e/instrumentation/logging/utils:go_default_library",
         "//vendor/github.com/onsi/ginkgo:go_default_library",
         "//vendor/golang.org/x/net/context:go_default_library",
         "//vendor/golang.org/x/oauth2/google:go_default_library",
@@ -24,6 +22,9 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/util/json:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/uuid:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/e2e/framework:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/e2e/instrumentation/common:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/e2e/instrumentation/logging/utils:go_default_library",
     ],
 )
 

@@ -9,19 +9,21 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["http.go"],
+    importpath = "k8s.io/kubernetes/pkg/probe/http",
     deps = [
-        "//pkg/probe:go_default_library",
-        "//pkg/version:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/net:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/probe:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/version:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["http_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/probe/http",
     library = ":go_default_library",
-    deps = ["//pkg/probe:go_default_library"],
+    deps = ["//vendor/k8s.io/kubernetes/pkg/probe:go_default_library"],
 )
 
 filegroup(

@@ -9,11 +9,9 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["storage_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/registry/autoscaling/horizontalpodautoscaler/storage",
     library = ":go_default_library",
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/apis/autoscaling:go_default_library",
-        "//pkg/registry/registrytest:go_default_library",
         "//vendor/k8s.io/api/autoscaling/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/fields:go_default_library",
@@ -21,22 +19,26 @@ go_test(
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/registry/generic:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/storage/etcd/testing:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/autoscaling:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/registry/registrytest:go_default_library",
     ],
 )
 
 go_library(
     name = "go_default_library",
     srcs = ["storage.go"],
+    importpath = "k8s.io/kubernetes/pkg/registry/autoscaling/horizontalpodautoscaler/storage",
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/apis/autoscaling:go_default_library",
-        "//pkg/registry/autoscaling/horizontalpodautoscaler:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/endpoints/request:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/registry/generic:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/registry/generic/registry:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/registry/rest:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/autoscaling:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/registry/autoscaling/horizontalpodautoscaler:go_default_library",
     ],
 )
 

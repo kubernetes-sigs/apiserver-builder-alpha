@@ -9,11 +9,13 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["group_version.go"],
+    importpath = "k8s.io/kubernetes/pkg/api/util",
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["group_version_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/api/util",
     library = ":go_default_library",
 )
 

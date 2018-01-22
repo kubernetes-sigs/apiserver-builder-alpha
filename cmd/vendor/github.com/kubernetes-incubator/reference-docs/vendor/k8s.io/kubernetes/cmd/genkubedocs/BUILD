@@ -8,21 +8,23 @@ load(
 
 go_binary(
     name = "genkubedocs",
+    importpath = "k8s.io/kubernetes/cmd/genkubedocs",
     library = ":go_default_library",
 )
 
 go_library(
     name = "go_default_library",
     srcs = ["gen_kube_docs.go"],
+    importpath = "k8s.io/kubernetes/cmd/genkubedocs",
     deps = [
-        "//cmd/cloud-controller-manager/app:go_default_library",
-        "//cmd/genutils:go_default_library",
-        "//cmd/kube-apiserver/app:go_default_library",
-        "//cmd/kube-controller-manager/app:go_default_library",
-        "//cmd/kube-proxy/app:go_default_library",
-        "//cmd/kubelet/app:go_default_library",
-        "//plugin/cmd/kube-scheduler/app:go_default_library",
         "//vendor/github.com/spf13/cobra/doc:go_default_library",
+        "//vendor/k8s.io/kubernetes/cmd/cloud-controller-manager/app:go_default_library",
+        "//vendor/k8s.io/kubernetes/cmd/genutils:go_default_library",
+        "//vendor/k8s.io/kubernetes/cmd/kube-apiserver/app:go_default_library",
+        "//vendor/k8s.io/kubernetes/cmd/kube-controller-manager/app:go_default_library",
+        "//vendor/k8s.io/kubernetes/cmd/kube-proxy/app:go_default_library",
+        "//vendor/k8s.io/kubernetes/cmd/kubelet/app:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/cmd/kube-scheduler/app:go_default_library",
     ],
 )
 

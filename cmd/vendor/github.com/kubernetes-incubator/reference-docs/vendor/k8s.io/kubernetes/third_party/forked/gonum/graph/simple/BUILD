@@ -15,8 +15,9 @@ go_test(
         "edgeholder_test.go",
         "undirected_test.go",
     ],
+    importpath = "k8s.io/kubernetes/third_party/forked/gonum/graph/simple",
     library = ":go_default_library",
-    deps = ["//third_party/forked/gonum/graph:go_default_library"],
+    deps = ["//vendor/k8s.io/kubernetes/third_party/forked/gonum/graph:go_default_library"],
 )
 
 go_library(
@@ -27,9 +28,10 @@ go_library(
         "simple.go",
         "undirected.go",
     ],
+    importpath = "k8s.io/kubernetes/third_party/forked/gonum/graph/simple",
     deps = [
-        "//third_party/forked/gonum/graph:go_default_library",
         "//vendor/golang.org/x/tools/container/intsets:go_default_library",
+        "//vendor/k8s.io/kubernetes/third_party/forked/gonum/graph:go_default_library",
     ],
 )
 

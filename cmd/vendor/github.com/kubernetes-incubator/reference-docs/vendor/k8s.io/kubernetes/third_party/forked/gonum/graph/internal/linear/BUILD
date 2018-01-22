@@ -10,7 +10,8 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["linear.go"],
-    deps = ["//third_party/forked/gonum/graph:go_default_library"],
+    importpath = "k8s.io/kubernetes/third_party/forked/gonum/graph/internal/linear",
+    deps = ["//vendor/k8s.io/kubernetes/third_party/forked/gonum/graph:go_default_library"],
 )
 
 filegroup(

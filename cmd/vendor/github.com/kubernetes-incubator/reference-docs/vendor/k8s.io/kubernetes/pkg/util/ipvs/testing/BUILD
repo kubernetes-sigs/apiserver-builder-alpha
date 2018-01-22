@@ -10,8 +10,9 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["fake.go"],
+    importpath = "k8s.io/kubernetes/pkg/util/ipvs/testing",
     tags = ["automanaged"],
-    deps = ["//pkg/util/ipvs:go_default_library"],
+    deps = ["//vendor/k8s.io/kubernetes/pkg/util/ipvs:go_default_library"],
 )
 
 filegroup(

@@ -9,14 +9,15 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["portworx_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/volume/portworx",
     library = ":go_default_library",
     deps = [
-        "//pkg/util/mount:go_default_library",
-        "//pkg/volume:go_default_library",
-        "//pkg/volume/testing:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
         "//vendor/k8s.io/client-go/util/testing:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/mount:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/volume:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/volume/testing:go_default_library",
     ],
 )
 
@@ -27,12 +28,8 @@ go_library(
         "portworx.go",
         "portworx_util.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/volume/portworx",
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/util/mount:go_default_library",
-        "//pkg/util/strings:go_default_library",
-        "//pkg/volume:go_default_library",
-        "//pkg/volume/util/volumehelper:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/libopenstorage/openstorage/api:go_default_library",
         "//vendor/github.com/libopenstorage/openstorage/api/client:go_default_library",
@@ -43,6 +40,11 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/mount:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/strings:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/volume:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/volume/util/volumehelper:go_default_library",
     ],
 )
 

@@ -10,6 +10,7 @@ go_test(
     name = "go_default_test",
     srcs = ["serving_test.go"],
     data = glob(["testdata/**"]),
+    importpath = "k8s.io/apiserver/pkg/server/options",
     library = ":go_default_library",
     deps = [
         "//vendor/github.com/stretchr/testify/assert:go_default_library",
@@ -39,6 +40,7 @@ go_library(
         "server_run_options.go",
         "serving.go",
     ],
+    importpath = "k8s.io/apiserver/pkg/server/options",
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/pborman/uuid:go_default_library",

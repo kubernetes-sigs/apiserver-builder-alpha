@@ -9,8 +9,8 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["ttl_controller.go"],
+    importpath = "k8s.io/kubernetes/pkg/controller/ttl",
     deps = [
-        "//pkg/controller:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
@@ -24,6 +24,7 @@ go_library(
         "//vendor/k8s.io/client-go/listers/core/v1:go_default_library",
         "//vendor/k8s.io/client-go/tools/cache:go_default_library",
         "//vendor/k8s.io/client-go/util/workqueue:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller:go_default_library",
     ],
 )
 
@@ -43,6 +44,7 @@ filegroup(
 go_test(
     name = "go_default_test",
     srcs = ["ttl_controller_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/controller/ttl",
     library = ":go_default_library",
     deps = [
         "//vendor/github.com/stretchr/testify/assert:go_default_library",

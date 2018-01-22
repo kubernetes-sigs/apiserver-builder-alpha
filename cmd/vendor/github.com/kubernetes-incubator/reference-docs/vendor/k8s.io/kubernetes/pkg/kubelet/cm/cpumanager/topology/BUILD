@@ -6,10 +6,11 @@ go_library(
         "doc.go",
         "topology.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/cm/cpumanager/topology",
     visibility = ["//visibility:public"],
     deps = [
-        "//pkg/kubelet/cm/cpuset:go_default_library",
         "//vendor/github.com/google/cadvisor/info/v1:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/cm/cpuset:go_default_library",
     ],
 )
 
@@ -30,6 +31,7 @@ filegroup(
 go_test(
     name = "go_default_test",
     srcs = ["topology_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/cm/cpumanager/topology",
     library = ":go_default_library",
     deps = ["//vendor/github.com/google/cadvisor/info/v1:go_default_library"],
 )

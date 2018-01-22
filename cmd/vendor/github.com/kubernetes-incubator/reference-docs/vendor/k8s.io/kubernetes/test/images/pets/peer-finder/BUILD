@@ -10,6 +10,7 @@ load(
 
 go_binary(
     name = "peer-finder",
+    importpath = "k8s.io/kubernetes/test/images/pets/peer-finder",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -17,6 +18,7 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["peer-finder.go"],
+    importpath = "k8s.io/kubernetes/test/images/pets/peer-finder",
     tags = ["automanaged"],
     deps = ["//vendor/k8s.io/apimachinery/pkg/util/sets:go_default_library"],
 )

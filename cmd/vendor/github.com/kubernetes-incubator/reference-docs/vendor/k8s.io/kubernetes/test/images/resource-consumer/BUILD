@@ -8,6 +8,7 @@ load(
 
 go_binary(
     name = "resource-consumer",
+    importpath = "k8s.io/kubernetes/test/images/resource-consumer",
     library = ":go_default_library",
 )
 
@@ -18,7 +19,8 @@ go_library(
         "resource_consumer_handler.go",
         "utils.go",
     ],
-    deps = ["//test/images/resource-consumer/common:go_default_library"],
+    importpath = "k8s.io/kubernetes/test/images/resource-consumer",
+    deps = ["//vendor/k8s.io/kubernetes/test/images/resource-consumer/common:go_default_library"],
 )
 
 filegroup(

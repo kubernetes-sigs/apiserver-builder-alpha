@@ -20,6 +20,7 @@ go_library(
         ],
         "//conditions:default": [],
     }),
+    importpath = "k8s.io/kubernetes/pkg/util/bandwidth",
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library",
     ] + select({
@@ -42,11 +43,12 @@ go_test(
         ],
         "//conditions:default": [],
     }),
+    importpath = "k8s.io/kubernetes/pkg/util/bandwidth",
     library = ":go_default_library",
     deps = [
-        "//pkg/api:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
     ] + select({
         "@io_bazel_rules_go//go/platform:linux_amd64": [
             "//vendor/k8s.io/utils/exec:go_default_library",

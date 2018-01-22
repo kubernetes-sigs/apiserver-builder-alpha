@@ -13,12 +13,8 @@ go_library(
         "replenishment_controller.go",
         "resource_quota_controller.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/controller/resourcequota",
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/api/v1:go_default_library",
-        "//pkg/controller:go_default_library",
-        "//pkg/quota:go_default_library",
-        "//pkg/quota/evaluator/core:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/equality:go_default_library",
@@ -37,6 +33,11 @@ go_library(
         "//vendor/k8s.io/client-go/listers/core/v1:go_default_library",
         "//vendor/k8s.io/client-go/tools/cache:go_default_library",
         "//vendor/k8s.io/client-go/util/workqueue:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api/v1:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/quota:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/quota/evaluator/core:go_default_library",
     ],
 )
 
@@ -46,12 +47,9 @@ go_test(
         "replenishment_controller_test.go",
         "resource_quota_controller_test.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/controller/resourcequota",
     library = ":go_default_library",
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/controller:go_default_library",
-        "//pkg/quota/generic:go_default_library",
-        "//pkg/quota/install:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
@@ -63,6 +61,10 @@ go_test(
         "//vendor/k8s.io/client-go/informers:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes/fake:go_default_library",
         "//vendor/k8s.io/client-go/testing:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/quota/generic:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/quota/install:go_default_library",
     ],
 )
 

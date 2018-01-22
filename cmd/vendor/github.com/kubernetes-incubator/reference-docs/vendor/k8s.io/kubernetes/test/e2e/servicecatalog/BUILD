@@ -6,10 +6,9 @@ go_library(
         "framework.go",
         "podpreset.go",
     ],
+    importpath = "k8s.io/kubernetes/test/e2e/servicecatalog",
     visibility = ["//visibility:public"],
     deps = [
-        "//test/e2e/framework:go_default_library",
-        "//test/utils/image:go_default_library",
         "//vendor/github.com/onsi/ginkgo:go_default_library",
         "//vendor/github.com/onsi/gomega:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
@@ -18,6 +17,8 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/e2e/framework:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/utils/image:go_default_library",
     ],
 )
 

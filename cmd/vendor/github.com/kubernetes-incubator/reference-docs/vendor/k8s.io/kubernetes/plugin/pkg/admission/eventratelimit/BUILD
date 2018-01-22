@@ -14,11 +14,10 @@ go_test(
         "admission_test.go",
         "cache_test.go",
     ],
+    importpath = "k8s.io/kubernetes/plugin/pkg/admission/eventratelimit",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//plugin/pkg/admission/eventratelimit/apis/eventratelimit:go_default_library",
         "//vendor/github.com/hashicorp/golang-lru:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
@@ -26,6 +25,8 @@ go_test(
         "//vendor/k8s.io/apiserver/pkg/admission:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/authentication/user:go_default_library",
         "//vendor/k8s.io/client-go/util/flowcontrol:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/admission/eventratelimit/apis/eventratelimit:go_default_library",
     ],
 )
 
@@ -39,13 +40,9 @@ go_library(
         "doc.go",
         "limitenforcer.go",
     ],
+    importpath = "k8s.io/kubernetes/plugin/pkg/admission/eventratelimit",
     tags = ["automanaged"],
     deps = [
-        "//pkg/api:go_default_library",
-        "//plugin/pkg/admission/eventratelimit/apis/eventratelimit:go_default_library",
-        "//plugin/pkg/admission/eventratelimit/apis/eventratelimit/install:go_default_library",
-        "//plugin/pkg/admission/eventratelimit/apis/eventratelimit/v1alpha1:go_default_library",
-        "//plugin/pkg/admission/eventratelimit/apis/eventratelimit/validation:go_default_library",
         "//vendor/github.com/hashicorp/golang-lru:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apimachinery/announced:go_default_library",
@@ -54,6 +51,11 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/runtime/serializer:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/admission:go_default_library",
         "//vendor/k8s.io/client-go/util/flowcontrol:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/admission/eventratelimit/apis/eventratelimit:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/admission/eventratelimit/apis/eventratelimit/install:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/admission/eventratelimit/apis/eventratelimit/v1alpha1:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/admission/eventratelimit/apis/eventratelimit/validation:go_default_library",
     ],
 )
 

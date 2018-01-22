@@ -13,13 +13,14 @@ go_test(
         "kube_docker_client_test.go",
         "legacy_test.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/dockershim/libdocker",
     library = ":go_default_library",
     deps = [
-        "//pkg/util/hash:go_default_library",
         "//vendor/github.com/docker/docker/api/types:go_default_library",
         "//vendor/github.com/stretchr/testify/assert:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/hash:go_default_library",
     ],
 )
 
@@ -33,9 +34,8 @@ go_library(
         "kube_docker_client.go",
         "legacy.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/dockershim/libdocker",
     deps = [
-        "//pkg/kubelet/container:go_default_library",
-        "//pkg/kubelet/metrics:go_default_library",
         "//vendor/github.com/docker/distribution/reference:go_default_library",
         "//vendor/github.com/docker/docker/api/types:go_default_library",
         "//vendor/github.com/docker/docker/api/types/container:go_default_library",
@@ -49,6 +49,8 @@ go_library(
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/clock:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/container:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/metrics:go_default_library",
     ],
 )
 

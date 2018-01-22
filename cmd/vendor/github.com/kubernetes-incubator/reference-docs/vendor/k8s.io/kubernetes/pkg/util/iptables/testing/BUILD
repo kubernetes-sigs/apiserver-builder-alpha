@@ -8,7 +8,8 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["fake.go"],
-    deps = ["//pkg/util/iptables:go_default_library"],
+    importpath = "k8s.io/kubernetes/pkg/util/iptables/testing",
+    deps = ["//vendor/k8s.io/kubernetes/pkg/util/iptables:go_default_library"],
 )
 
 filegroup(
