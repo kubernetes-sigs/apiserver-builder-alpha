@@ -12,10 +12,9 @@ go_test(
         "main_test.go",
         "replicaset_test.go",
     ],
+    importpath = "k8s.io/kubernetes/test/integration/replicaset",
     tags = ["integration"],
     deps = [
-        "//pkg/controller/replicaset:go_default_library",
-        "//test/integration/framework:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/api/extensions/v1beta1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
@@ -25,6 +24,8 @@ go_test(
         "//vendor/k8s.io/client-go/kubernetes:go_default_library",
         "//vendor/k8s.io/client-go/rest:go_default_library",
         "//vendor/k8s.io/client-go/tools/cache:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller/replicaset:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/integration/framework:go_default_library",
     ],
 )
 

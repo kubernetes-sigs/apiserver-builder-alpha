@@ -18,6 +18,7 @@ go_test(
         ],
         "//conditions:default": [],
     }),
+    importpath = "k8s.io/kubernetes/pkg/util/ipvs",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = select({
@@ -42,6 +43,7 @@ go_library(
         ],
         "//conditions:default": [],
     }),
+    importpath = "k8s.io/kubernetes/pkg/util/ipvs",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/utils/exec:go_default_library",

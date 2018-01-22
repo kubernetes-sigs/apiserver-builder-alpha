@@ -9,9 +9,8 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["initialization.go"],
+    importpath = "k8s.io/kubernetes/plugin/pkg/admission/initialization",
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/kubeapiserver/admission/configuration:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/api/admissionregistration/v1alpha1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
@@ -26,6 +25,8 @@ go_library(
         "//vendor/k8s.io/apiserver/pkg/features:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/util/feature:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubeapiserver/admission/configuration:go_default_library",
     ],
 )
 
@@ -45,6 +46,7 @@ filegroup(
 go_test(
     name = "go_default_test",
     srcs = ["initialization_test.go"],
+    importpath = "k8s.io/kubernetes/plugin/pkg/admission/initialization",
     library = ":go_default_library",
     deps = [
         "//vendor/k8s.io/api/admissionregistration/v1alpha1:go_default_library",

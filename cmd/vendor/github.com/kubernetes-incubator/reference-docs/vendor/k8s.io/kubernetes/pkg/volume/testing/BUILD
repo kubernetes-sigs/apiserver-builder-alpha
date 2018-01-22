@@ -11,13 +11,8 @@ go_library(
         "mock_volume.go",
         "testing.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/volume/testing",
     deps = [
-        "//pkg/cloudprovider:go_default_library",
-        "//pkg/util/io:go_default_library",
-        "//pkg/util/mount:go_default_library",
-        "//pkg/util/strings:go_default_library",
-        "//pkg/volume:go_default_library",
-        "//pkg/volume/util/volumehelper:go_default_library",
         "//vendor/github.com/stretchr/testify/mock:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library",
@@ -26,6 +21,12 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/util/uuid:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes:go_default_library",
         "//vendor/k8s.io/client-go/util/testing:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/cloudprovider:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/io:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/mount:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/strings:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/volume:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/volume/util/volumehelper:go_default_library",
     ],
 )
 

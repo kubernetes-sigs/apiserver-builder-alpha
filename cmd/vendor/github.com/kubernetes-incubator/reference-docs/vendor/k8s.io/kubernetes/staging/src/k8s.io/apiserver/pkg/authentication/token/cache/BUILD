@@ -14,6 +14,7 @@ go_test(
         "cache_test.go",
         "cached_token_authenticator_test.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/authentication/token/cache",
     library = ":go_default_library",
     tags = ["automanaged"],
     deps = [
@@ -31,6 +32,7 @@ go_library(
         "cache_striped.go",
         "cached_token_authenticator.go",
     ],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/apiserver/pkg/authentication/token/cache",
     tags = ["automanaged"],
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/util/cache:go_default_library",

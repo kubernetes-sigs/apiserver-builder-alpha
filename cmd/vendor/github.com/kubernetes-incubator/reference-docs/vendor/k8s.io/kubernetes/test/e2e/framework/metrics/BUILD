@@ -16,16 +16,17 @@ go_library(
         "metrics_grabber.go",
         "scheduler_metrics.go",
     ],
+    importpath = "k8s.io/kubernetes/test/e2e/framework/metrics",
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/master/ports:go_default_library",
-        "//pkg/util/system:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/prometheus/common/expfmt:go_default_library",
         "//vendor/github.com/prometheus/common/model:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/fields:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/master/ports:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/system:go_default_library",
     ],
 )
 

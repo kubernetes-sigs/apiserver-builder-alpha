@@ -9,29 +9,31 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["bootstrap_test.go"],
+    importpath = "k8s.io/kubernetes/plugin/pkg/auth/authenticator/token/bootstrap",
     library = ":go_default_library",
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/bootstrap/api:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/authentication/user:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/bootstrap/api:go_default_library",
     ],
 )
 
 go_library(
     name = "go_default_library",
     srcs = ["bootstrap.go"],
+    importpath = "k8s.io/kubernetes/plugin/pkg/auth/authenticator/token/bootstrap",
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/bootstrap/api:go_default_library",
-        "//pkg/client/listers/core/internalversion:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/sets:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/authentication/user:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/bootstrap/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/client/listers/core/internalversion:go_default_library",
     ],
 )
 

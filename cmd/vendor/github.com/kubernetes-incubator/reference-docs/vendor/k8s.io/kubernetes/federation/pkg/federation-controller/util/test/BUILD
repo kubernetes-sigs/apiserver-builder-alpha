@@ -8,11 +8,8 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["test_helper.go"],
+    importpath = "k8s.io/kubernetes/federation/pkg/federation-controller/util/test",
     deps = [
-        "//federation/apis/federation/v1beta1:go_default_library",
-        "//federation/pkg/federation-controller/util:go_default_library",
-        "//federation/pkg/federation-controller/util/finalizers:go_default_library",
-        "//pkg/api:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/stretchr/testify/assert:go_default_library",
         "//vendor/github.com/stretchr/testify/require:go_default_library",
@@ -22,6 +19,10 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
         "//vendor/k8s.io/client-go/testing:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/apis/federation/v1beta1:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/pkg/federation-controller/util:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/pkg/federation-controller/util/finalizers:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
     ],
 )
 

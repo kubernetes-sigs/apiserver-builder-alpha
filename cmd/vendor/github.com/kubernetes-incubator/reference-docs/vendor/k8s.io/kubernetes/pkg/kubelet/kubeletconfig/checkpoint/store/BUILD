@@ -12,16 +12,17 @@ go_test(
         "fsstore_test.go",
         "store_test.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/kubeletconfig/checkpoint/store",
     library = ":go_default_library",
     deps = [
-        "//pkg/kubelet/kubeletconfig/checkpoint:go_default_library",
-        "//pkg/kubelet/kubeletconfig/util/files:go_default_library",
-        "//pkg/kubelet/kubeletconfig/util/test:go_default_library",
-        "//pkg/util/filesystem:go_default_library",
         "//vendor/github.com/davecgh/go-spew/spew:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/types:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/kubeletconfig/checkpoint:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/kubeletconfig/util/files:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/kubeletconfig/util/test:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/filesystem:go_default_library",
     ],
 )
 
@@ -32,11 +33,12 @@ go_library(
         "fsstore.go",
         "store.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/kubeletconfig/checkpoint/store",
     deps = [
-        "//pkg/kubelet/kubeletconfig/checkpoint:go_default_library",
-        "//pkg/kubelet/kubeletconfig/util/files:go_default_library",
-        "//pkg/kubelet/kubeletconfig/util/log:go_default_library",
-        "//pkg/util/filesystem:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/kubeletconfig/checkpoint:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/kubeletconfig/util/files:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/kubeletconfig/util/log:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/filesystem:go_default_library",
     ],
 )
 

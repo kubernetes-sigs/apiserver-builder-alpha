@@ -9,20 +9,22 @@ load(
 go_test(
     name = "go_default_test",
     srcs = ["pv_validation_test.go"],
+    importpath = "k8s.io/kubernetes/pkg/volume/validation",
     library = ":go_default_library",
     deps = [
-        "//pkg/api:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
     ],
 )
 
 go_library(
     name = "go_default_library",
     srcs = ["pv_validation.go"],
+    importpath = "k8s.io/kubernetes/pkg/volume/validation",
     deps = [
-        "//pkg/api:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/validation/field:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
     ],
 )
 

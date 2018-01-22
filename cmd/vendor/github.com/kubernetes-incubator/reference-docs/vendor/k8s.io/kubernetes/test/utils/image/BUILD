@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["manifest.go"],
+    importpath = "k8s.io/kubernetes/test/utils/image",
     tags = ["automanaged"],
 )
 

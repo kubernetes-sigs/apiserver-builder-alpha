@@ -11,10 +11,8 @@ go_library(
         "doc.go",
         "namespace_controller.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/controller/namespace",
     deps = [
-        "//pkg/controller:go_default_library",
-        "//pkg/controller/namespace/deletion:go_default_library",
-        "//pkg/util/metrics:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
@@ -27,6 +25,9 @@ go_library(
         "//vendor/k8s.io/client-go/listers/core/v1:go_default_library",
         "//vendor/k8s.io/client-go/tools/cache:go_default_library",
         "//vendor/k8s.io/client-go/util/workqueue:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller/namespace/deletion:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/metrics:go_default_library",
     ],
 )
 

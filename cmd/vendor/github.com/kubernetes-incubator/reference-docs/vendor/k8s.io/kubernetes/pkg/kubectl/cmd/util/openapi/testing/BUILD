@@ -10,6 +10,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["openapi.go"],
+    importpath = "k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi/testing",
     tags = ["automanaged"],
     deps = [
         "//vendor/github.com/googleapis/gnostic/OpenAPIv2:go_default_library",

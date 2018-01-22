@@ -11,11 +11,8 @@ go_library(
         "network.go",
         "plugins.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/network",
     deps = [
-        "//pkg/kubelet/apis/kubeletconfig:go_default_library",
-        "//pkg/kubelet/container:go_default_library",
-        "//pkg/kubelet/network/hostport:go_default_library",
-        "//pkg/util/sysctl:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
@@ -23,6 +20,10 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/util/sets:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/validation:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/apis/kubeletconfig:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/container:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/network/hostport:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/sysctl:go_default_library",
         "//vendor/k8s.io/utils/exec:go_default_library",
     ],
 )

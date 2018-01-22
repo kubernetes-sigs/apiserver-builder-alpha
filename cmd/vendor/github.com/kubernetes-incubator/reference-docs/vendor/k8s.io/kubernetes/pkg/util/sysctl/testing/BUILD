@@ -8,7 +8,8 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["fake.go"],
-    deps = ["//pkg/util/sysctl:go_default_library"],
+    importpath = "k8s.io/kubernetes/pkg/util/sysctl/testing",
+    deps = ["//vendor/k8s.io/kubernetes/pkg/util/sysctl:go_default_library"],
 )
 
 filegroup(

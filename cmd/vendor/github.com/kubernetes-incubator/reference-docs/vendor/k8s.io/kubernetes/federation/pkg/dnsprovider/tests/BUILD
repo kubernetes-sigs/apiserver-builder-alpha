@@ -8,9 +8,10 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["commontests.go"],
+    importpath = "k8s.io/kubernetes/federation/pkg/dnsprovider/tests",
     deps = [
-        "//federation/pkg/dnsprovider:go_default_library",
-        "//federation/pkg/dnsprovider/rrstype:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/pkg/dnsprovider:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/pkg/dnsprovider/rrstype:go_default_library",
     ],
 )
 
