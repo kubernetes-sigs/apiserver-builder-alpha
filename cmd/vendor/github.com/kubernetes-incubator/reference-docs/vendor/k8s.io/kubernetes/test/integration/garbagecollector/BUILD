@@ -9,11 +9,9 @@ go_test(
     name = "go_default_test",
     size = "large",
     srcs = ["garbage_collector_test.go"],
+    importpath = "k8s.io/kubernetes/test/integration/garbagecollector",
     tags = ["integration"],
     deps = [
-        "//cmd/kube-apiserver/app/testing:go_default_library",
-        "//pkg/controller/garbagecollector:go_default_library",
-        "//test/integration:go_default_library",
         "//vendor/github.com/coreos/pkg/capnslog:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1:go_default_library",
@@ -32,6 +30,9 @@ go_test(
         "//vendor/k8s.io/client-go/informers:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes:go_default_library",
         "//vendor/k8s.io/client-go/tools/cache:go_default_library",
+        "//vendor/k8s.io/kubernetes/cmd/kube-apiserver/app/testing:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller/garbagecollector:go_default_library",
+        "//vendor/k8s.io/kubernetes/test/integration:go_default_library",
     ],
 )
 

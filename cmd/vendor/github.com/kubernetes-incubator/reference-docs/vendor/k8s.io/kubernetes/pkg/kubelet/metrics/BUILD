@@ -8,10 +8,11 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["metrics.go"],
+    importpath = "k8s.io/kubernetes/pkg/kubelet/metrics",
     deps = [
-        "//pkg/kubelet/container:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/prometheus/client_golang/prometheus:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/kubelet/container:go_default_library",
     ],
 )
 

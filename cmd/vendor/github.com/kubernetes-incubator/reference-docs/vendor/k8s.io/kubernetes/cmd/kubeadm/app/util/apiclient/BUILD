@@ -15,9 +15,8 @@ go_library(
         "init_dryrun.go",
         "wait.go",
     ],
+    importpath = "k8s.io/kubernetes/cmd/kubeadm/app/util/apiclient",
     deps = [
-        "//cmd/kubeadm/app/constants:go_default_library",
-        "//pkg/registry/core/service/ipallocator:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/api/extensions/v1beta1:go_default_library",
         "//vendor/k8s.io/api/rbac/v1beta1:go_default_library",
@@ -34,6 +33,8 @@ go_library(
         "//vendor/k8s.io/client-go/rest:go_default_library",
         "//vendor/k8s.io/client-go/testing:go_default_library",
         "//vendor/k8s.io/client-go/tools/clientcmd:go_default_library",
+        "//vendor/k8s.io/kubernetes/cmd/kubeadm/app/constants:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/registry/core/service/ipallocator:go_default_library",
     ],
 )
 
@@ -56,6 +57,7 @@ go_test(
         "dryrunclient_test.go",
         "init_dryrun_test.go",
     ],
+    importpath = "k8s.io/kubernetes/cmd/kubeadm/app/util/apiclient",
     library = ":go_default_library",
     deps = [
         "//vendor/k8s.io/api/core/v1:go_default_library",

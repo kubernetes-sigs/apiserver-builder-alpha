@@ -12,17 +12,8 @@ go_library(
         "configurator.go",
         "server.go",
     ],
+    importpath = "k8s.io/kubernetes/plugin/cmd/kube-scheduler/app",
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/controller:go_default_library",
-        "//pkg/features:go_default_library",
-        "//pkg/util/configz:go_default_library",
-        "//plugin/cmd/kube-scheduler/app/options:go_default_library",
-        "//plugin/pkg/scheduler:go_default_library",
-        "//plugin/pkg/scheduler/algorithmprovider:go_default_library",
-        "//plugin/pkg/scheduler/api:go_default_library",
-        "//plugin/pkg/scheduler/api/latest:go_default_library",
-        "//plugin/pkg/scheduler/factory:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/prometheus/client_golang/prometheus:go_default_library",
         "//vendor/github.com/spf13/cobra:go_default_library",
@@ -44,6 +35,16 @@ go_library(
         "//vendor/k8s.io/client-go/tools/leaderelection:go_default_library",
         "//vendor/k8s.io/client-go/tools/leaderelection/resourcelock:go_default_library",
         "//vendor/k8s.io/client-go/tools/record:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/controller:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/features:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/configz:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/cmd/kube-scheduler/app/options:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/scheduler:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/scheduler/algorithmprovider:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/scheduler/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/scheduler/api/latest:go_default_library",
+        "//vendor/k8s.io/kubernetes/plugin/pkg/scheduler/factory:go_default_library",
     ],
 )
 
@@ -66,5 +67,6 @@ filegroup(
 go_test(
     name = "go_default_test",
     srcs = ["configurator_test.go"],
+    importpath = "k8s.io/kubernetes/plugin/cmd/kube-scheduler/app",
     library = ":go_default_library",
 )

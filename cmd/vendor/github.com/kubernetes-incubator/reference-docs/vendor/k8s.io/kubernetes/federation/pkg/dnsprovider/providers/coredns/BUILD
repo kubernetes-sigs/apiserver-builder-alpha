@@ -17,27 +17,29 @@ go_library(
         "zone.go",
         "zones.go",
     ],
+    importpath = "k8s.io/kubernetes/federation/pkg/dnsprovider/providers/coredns",
     deps = [
-        "//federation/pkg/dnsprovider:go_default_library",
-        "//federation/pkg/dnsprovider/providers/coredns/stubs:go_default_library",
-        "//federation/pkg/dnsprovider/rrstype:go_default_library",
         "//vendor/github.com/coreos/etcd/client:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/miekg/coredns/middleware/etcd/msg:go_default_library",
         "//vendor/golang.org/x/net/context:go_default_library",
         "//vendor/gopkg.in/gcfg.v1:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/pkg/dnsprovider:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/pkg/dnsprovider/providers/coredns/stubs:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/pkg/dnsprovider/rrstype:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["coredns_test.go"],
+    importpath = "k8s.io/kubernetes/federation/pkg/dnsprovider/providers/coredns",
     library = ":go_default_library",
     deps = [
-        "//federation/pkg/dnsprovider:go_default_library",
-        "//federation/pkg/dnsprovider/providers/coredns/stubs:go_default_library",
-        "//federation/pkg/dnsprovider/rrstype:go_default_library",
-        "//federation/pkg/dnsprovider/tests:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/pkg/dnsprovider:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/pkg/dnsprovider/providers/coredns/stubs:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/pkg/dnsprovider/rrstype:go_default_library",
+        "//vendor/k8s.io/kubernetes/federation/pkg/dnsprovider/tests:go_default_library",
     ],
 )
 

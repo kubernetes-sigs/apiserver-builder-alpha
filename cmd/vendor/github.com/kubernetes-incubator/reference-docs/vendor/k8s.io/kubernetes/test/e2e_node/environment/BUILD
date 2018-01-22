@@ -8,13 +8,15 @@ load(
 
 go_binary(
     name = "environment",
+    importpath = "k8s.io/kubernetes/test/e2e_node/environment",
     library = ":go_default_library",
 )
 
 go_library(
     name = "go_default_library",
     srcs = ["conformance.go"],
-    deps = ["//pkg/kubelet/cadvisor:go_default_library"],
+    importpath = "k8s.io/kubernetes/test/e2e_node/environment",
+    deps = ["//vendor/k8s.io/kubernetes/pkg/kubelet/cadvisor:go_default_library"],
 )
 
 filegroup(

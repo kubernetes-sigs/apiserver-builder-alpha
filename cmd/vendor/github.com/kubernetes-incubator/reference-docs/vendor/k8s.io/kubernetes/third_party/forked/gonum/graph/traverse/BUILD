@@ -13,10 +13,11 @@ go_library(
         "traverse.go",
         "visit_depth_first.go",
     ],
+    importpath = "k8s.io/kubernetes/third_party/forked/gonum/graph/traverse",
     deps = [
-        "//third_party/forked/gonum/graph:go_default_library",
-        "//third_party/forked/gonum/graph/internal/linear:go_default_library",
         "//vendor/golang.org/x/tools/container/intsets:go_default_library",
+        "//vendor/k8s.io/kubernetes/third_party/forked/gonum/graph:go_default_library",
+        "//vendor/k8s.io/kubernetes/third_party/forked/gonum/graph/internal/linear:go_default_library",
     ],
 )
 

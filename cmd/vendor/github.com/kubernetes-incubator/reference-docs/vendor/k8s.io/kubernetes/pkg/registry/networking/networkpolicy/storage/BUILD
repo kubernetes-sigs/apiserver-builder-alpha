@@ -8,14 +8,15 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["storage.go"],
+    importpath = "k8s.io/kubernetes/pkg/registry/networking/networkpolicy/storage",
     deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/apis/networking:go_default_library",
-        "//pkg/registry/networking/networkpolicy:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/registry/generic:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/registry/generic/registry:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/registry/rest:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/api:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/networking:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/registry/networking/networkpolicy:go_default_library",
     ],
 )
 

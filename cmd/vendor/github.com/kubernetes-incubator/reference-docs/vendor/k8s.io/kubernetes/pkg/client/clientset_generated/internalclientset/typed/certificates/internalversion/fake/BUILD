@@ -13,9 +13,8 @@ go_library(
         "fake_certificatesigningrequest.go",
         "fake_certificatesigningrequest_expansion.go",
     ],
+    importpath = "k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset/typed/certificates/internalversion/fake",
     deps = [
-        "//pkg/apis/certificates:go_default_library",
-        "//pkg/client/clientset_generated/internalclientset/typed/certificates/internalversion:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/labels:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
@@ -23,6 +22,8 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/watch:go_default_library",
         "//vendor/k8s.io/client-go/rest:go_default_library",
         "//vendor/k8s.io/client-go/testing:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/apis/certificates:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset/typed/certificates/internalversion:go_default_library",
     ],
 )
 

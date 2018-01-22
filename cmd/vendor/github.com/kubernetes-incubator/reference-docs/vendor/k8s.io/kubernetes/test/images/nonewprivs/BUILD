@@ -10,6 +10,7 @@ load(
 
 go_binary(
     name = "nonewprivs",
+    importpath = "k8s.io/kubernetes/test/images/nonewprivs",
     library = ":go_default_library",
     tags = ["automanaged"],
 )
@@ -17,6 +18,7 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["nnp.go"],
+    importpath = "k8s.io/kubernetes/test/images/nonewprivs",
     tags = ["automanaged"],
 )
 

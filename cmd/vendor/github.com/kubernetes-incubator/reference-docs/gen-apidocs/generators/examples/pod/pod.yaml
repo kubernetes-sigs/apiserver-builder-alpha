@@ -6,6 +6,7 @@ sample: |
     name: pod-example
   spec:
     containers:
-    - image: ubuntu:trusty
+    - name: ubuntu
+      image: ubuntu:trusty
       command: ["echo"]
       args: ["Hello World"]

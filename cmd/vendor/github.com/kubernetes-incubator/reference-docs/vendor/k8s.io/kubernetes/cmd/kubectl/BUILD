@@ -18,6 +18,7 @@ go_binary(
             "-static",
         ],
     }),
+    importpath = "k8s.io/kubernetes/cmd/kubectl",
     library = ":go_default_library",
     visibility = [
         "//build/visible_to:COMMON_release",
@@ -28,8 +29,9 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["kubectl.go"],
+    importpath = "k8s.io/kubernetes/cmd/kubectl",
     visibility = ["//visibility:private"],
-    deps = ["//cmd/kubectl/app:go_default_library"],
+    deps = ["//vendor/k8s.io/kubernetes/cmd/kubectl/app:go_default_library"],
 )
 
 filegroup(

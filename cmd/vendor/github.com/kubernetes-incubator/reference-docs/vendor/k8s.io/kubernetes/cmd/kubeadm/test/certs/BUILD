@@ -8,7 +8,8 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["util.go"],
-    deps = ["//cmd/kubeadm/app/phases/certs/pkiutil:go_default_library"],
+    importpath = "k8s.io/kubernetes/cmd/kubeadm/test/certs",
+    deps = ["//vendor/k8s.io/kubernetes/cmd/kubeadm/app/phases/certs/pkiutil:go_default_library"],
 )
 
 filegroup(

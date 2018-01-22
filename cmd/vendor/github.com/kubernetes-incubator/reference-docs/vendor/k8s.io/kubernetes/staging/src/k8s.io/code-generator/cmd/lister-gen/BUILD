@@ -8,12 +8,14 @@ load(
 
 go_binary(
     name = "lister-gen",
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/code-generator/cmd/lister-gen",
     library = ":go_default_library",
 )
 
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
+    importpath = "k8s.io/kubernetes/staging/src/k8s.io/code-generator/cmd/lister-gen",
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/spf13/pflag:go_default_library",
