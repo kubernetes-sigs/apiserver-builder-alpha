@@ -42,14 +42,6 @@ func TestServeError(t *testing.T) {
 	// assert.Equal(t, "application/json", recorder.Header().Get("content-type"))
 	assert.Equal(t, `{"code":404,"message":"Not found"}`, recorder.Body.String())
 
-	// renders mapped status code from error when present
-	err = InvalidTypeName("someType")
-	recorder = httptest.NewRecorder()
-	ServeError(recorder, nil, err)
-	assert.Equal(t, http.StatusUnprocessableEntity, recorder.Code)
-	// assert.Equal(t, "application/json", recorder.Header().Get("content-type"))
-	assert.Equal(t, `{"code":601,"message":"someType is an invalid type name"}`, recorder.Body.String())
-
 	// defaults to internal server error
 	err = fmt.Errorf("some error")
 	recorder = httptest.NewRecorder()

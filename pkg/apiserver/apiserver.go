@@ -25,7 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/version"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
+	"github.com/najena/kubebuilder/pkg/builders"
 )
 
 type Installer struct {

@@ -21,27 +21,15 @@
 #  version = "2.4.0"
 
 # Uncomment to update deps with dep tool
-# ignored = ["github.com/kubernetes-incubator/apiserver-builder","github.com/kubernetes-incubator/apiserver-builder/cmd"]
+# ignored = ["github.com/najena/kubebuilder","github.com/najena/kubebuilder/cmd"]
 
 # Comment to update deps with dep tool
 [[constraint]]
-  version = "v0.1-alpha.28"
-  name = "github.com/kubernetes-incubator/apiserver-builder"
+  version = "v1.8-alpha.0"
+  name = "github.com/najena/kubebuilder"
 
 [[constraint]]
   name = "github.com/emicklei/go-restful"
-
-[[constraint]]
-  name = "github.com/go-openapi/loads"
-
-[[constraint]]
-  name = "github.com/go-openapi/runtime"
-
-[[constraint]]
-  name = "github.com/go-openapi/spec"
-
-[[constraint]]
-  name = "github.com/go-openapi/validate"
 
 [[constraint]]
   name = "github.com/golang/glog"
@@ -79,12 +67,19 @@
   name = "k8s.io/apiextensions-apiserver"
 
 [[constraint]]
+  name = "github.com/kubernetes-sig-testing/frameworks"
+
+[[constraint]]
   branch = "release-1.9"
   name = "k8s.io/apimachinery"
 
 [[constraint]]
   branch = "release-1.9"
   name = "k8s.io/apiserver"
+
+[[constraint]]
+  branch = "release-1.9"
+  name = "k8s.io/kube-aggregator"
 
 [[constraint]]
   branch = "release-6.0"
@@ -95,3 +90,47 @@
 
 [[constraint]]
   name = "k8s.io/kube-openapi"
+
+[[constraint]]
+  name = "github.com/go-openapi/swag"
+  revision = "f3f9494671f93fcff853e3c6e9e948b3eb71e590"
+
+[[constraint]]
+  name = "github.com/go-openapi/analysis"
+  revision = "b44dc874b601d9e4e2f6e19140e794ba24bead3b"
+
+[[constraint]]
+  name = "github.com/go-openapi/errors"
+  revision = "d24ebc2075bad502fac3a8ae27aa6dd58e1952dc"
+
+[[constraint]]
+  name = "github.com/go-openapi/jsonpointer"
+  revision = "46af16f9f7b149af66e5d1bd010e3574dc06de98"
+
+[[constraint]]
+  name = "github.com/go-openapi/jsonreference"
+  revision = "13c6e3589ad90f49bd3e3bbe2c2cb3d7a4142272"
+
+[[constraint]]
+  name = "github.com/go-openapi/loads"
+  revision = "a80dea3052f00e5f032e860dd7355cd0cc67e24d"
+
+[[constraint]]
+  name = "github.com/go-openapi/runtime"
+  revision = "11e322eeecc1032d5a0a96c566ed53f2b5c26e22"
+
+[[constraint]]
+  name = "github.com/go-openapi/spec"
+  revision = "7abd5745472fff5eb3685386d5fb8bf38683154d"
+
+[[constraint]]
+  name = "github.com/go-openapi/strfmt"
+  revision = "d65c7fdb29eca313476e529628176fe17e58c488"
+
+[[constraint]]
+  name = "github.com/go-openapi/validate"
+  revision = "deaf2c9013bc1a7f4c774662259a506ba874d80f"
+
+[[constraint]]
+  name = "github.com/mailru/easyjson"
+  revision = "2f5df55504ebc322e4d52d34df6a1f5b503bf26d"

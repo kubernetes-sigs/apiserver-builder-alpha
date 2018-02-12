@@ -1,37 +1,31 @@
-## `apiserver-builder`
+This is not a Google project
 
-[![Build Status](https://travis-ci.org/kubernetes-incubator/apiserver-builder.svg?branch=master)](https://travis-ci.org/kubernetes-incubator/apiserver-builder "Travis")
-[![Go Report Card](https://goreportcard.com/badge/github.com/kubernetes-incubator/apiserver-builder)](https://goreportcard.com/report/github.com/kubernetes-incubator/apiserver-builder)
+**Note:** Don't use `go get` / `go install`, instead you MUST download a tar binary release or create your
+own release using the release program.
 
-**Note**: This project is still only a proof of concept, and is not production ready.
+## `kubebuilder`
 
-Apiserver Builder is a collection of libraries and tools to build native
-Kubernetes extensions using Kubernetes apiserver code.
+Kubebuilder is a framework for building Kubernetes APIs.
 
-## Motivation
+**Note:** kubebuilder does not exist as an example to *copy-paste*, but instead provides powerful libraries and tools
+to simplify building and publishing Kubernetes APIs from scratch.
 
-*Addon apiservers* are a Kubernetes extension point allowing fully featured Kubernetes
-APIs to be developed on the same api-machinery used to build the core Kubernetes APIS,
-but with the flexibility of being distributed and installed separately from
-the Kubernetes project.  This allows APIs to be developed outside of the
-Kubernetes repo and installed separately as a package.
+## TL;DR
 
-Building addon apiservers directly on the raw api-machinery libraries requires non-trivial
-code that must be maintained and rebased as the raw libraries change. The goal of this project is
-to make building apiservers in *Go* simple and accessible to everyone in the
-Kubernetes community.
+**First:** Download the latest [release](https://github.com/najena/kubebuilder/releases) and
+extract the tar.gz into /usr/local/kubebuilder and update your PATH to include
+/usr/local/kubebuilder/bin.
 
-apiserver-builder provides libraries, code generators, and tooling to make it possible to build
-and run a basic apiserver in an afternoon, while providing all of the hooks to offer the
-same capabilities when building from scratch.
+```sh
+# Initialize your project
+kubebuilder init --domain example.com
 
-## Highlights
+# Create a new API and controller
+kubebuilder create resource --group bar --version v1alpha1  --kind Foo
 
-- Tools to bootstrap type definitions, controllers, tests and documentation for new resources
-- Tools to build and run the extension control plane standalone and in minikube and remote clusters.
-- Easily watch and update Kubernetes API types from your controller
-- Easily add new resources and subresources
-- Provides sane defaults for most values, but can be overridden
+# Install and run your API into the cluster for your current kubeconfig context
+kubebuilder run local
+```
 
 ## Guides
 
@@ -43,46 +37,75 @@ Download the latest release and install on your PATH.
 
 [installation guide](docs/installing.md)
 
-#### Building APIs concept guide
+#### Tooling and development workflow overview
 
-Conceptual information on how APIs and the Kubernetes control plane is structure and how to
-build new API extensions using apiserver-builder.
-
-If you want to get straight to building something without knowing all the details of what is going on,
-skip ahead to the tools guide and come back to this later.
-
-[api building concept guide](docs/concepts/api_building_overview.md)
-
-
-#### Tools user guide
-
-Instructions on how to use the tools packaged with apiserver-builder to build and run a new apiserver.
+Instructions on how to use the tools packaged with kubebuilder to build APIs from scratch.
 
 [tools guide](docs/tools_user_guide.md)
 
-#### Step by step example
+// TODO: Write these
 
-List of commints showing `apiserver-boot` commands run and the corresponding changes:
+- Creating a new project
+- Creating a new resource and controller
+- Configuring and running integration tests
+- Running locally against a cluster
+- Building container images from Docker files
+- Implementing custom installation logic
+- Adding examples to reference documentation
+- Installing reference docs server with the APIs
+- Installing using apiserver aggregation instead of CRDs
+- Building using Bazel
 
-https://github.com/kubernetes-incubator/apiserver-builder/commits/example-simple
+#### Libraries and API coding guides
 
-#### Coding and libraries user guide
+Instructions for how to build.
 
-Instructions for how to implement custom APIs on top of the apiserver-builder libraries.
+- [Creating a new resource and controller](adding_resources.md)
+- [Watching other resources from your resource controller](watching_additional_resources.md)
+- [Adding RBAC rules for your resource controller](declaring_rbac_rules_for_controllers.md)
+- [Creating a non-namespaced resource](adding_non_namespaced_resources.md)
 
-[libraries guide](docs/libraries_user_guide.md)
+// TODO: Write these
 
-#### Concept guides
+- Customizing generated CRDs
 
-Conceptual information on addon apiservers, such as how auth works and how they interact
-with the main Kubernetes API server and API aggregator.
+## Motivation
 
-[Concepts](docs/concepts/README.md)
+Building Kubernetes tools and APIs involves making a lot of decisions
+and writing a lot of boilerplate.
 
-## Additional material
+In order to facilitate easily building Kubernetes APIs and tools using
+the canonical approach, this framework provides a collection of
+Kubernetes development tools to minimize toil.
 
-##### Using delegated auth with minikube
 
-Instructions on how to run an apiserver using delegated auth with a minikube cluster
+Kubebuilder attempts to facilitate the following developer workflow for building APIs
 
-Details [here](https://github.com/kubernetes-incubator/apiserver-builder/blob/master/docs/using_minikube.md)
+1. Create a new project directory
+2. Create one or more resource APIs as CRDs and then add fields to the resources
+3. Implement reconcile loops in controllers and watch additional resources
+4. Test by running against a cluster (self-installs CRDs automatically)
+5. Update bootstrapped integration tests to test new fields and business logic
+6. Build and publish a container from the provided Dockerfile
+7. Build and publish reference documentation for new APIs
+
+### Scope
+
+The current scope is focused on building APIs as CRDs or extension apiservers with controllers.
+
+### Philosophy
+
+- Prefer using go *interfaces* over relying on *code generation*
+- Prefer using *code generation* over *1 time init* of stubs
+- Prefer *1 time init* of stubs over handwritten boilerplate
+
+### Techniques
+
+- Provide higher level libraries on top of low level client libraries
+  - Protect developers from breaking changes in low level libraries
+    by providing high-level abstractions.
+  - Start minimal and provide progressive discovery of functionality
+  - Provide sane defaults and allow users to override when they exist
+- Provide code generators to maintain common boilerplate that can't be addressed by interfaces
+  - Driven off of `//+` comments
+- Provide bootstrapping commands to initialize new packages

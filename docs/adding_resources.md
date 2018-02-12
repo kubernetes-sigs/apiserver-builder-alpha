@@ -1,21 +1,21 @@
 # Adding resources
 
 Resources live under `pkg/apis/<group>/<version>/<resource>_types.go`.
-It is recommended to use `apiserver-boot` to create new groups,
+It is recommended to use `kubebuilder` to create new groups,
 versions, and resources.
 
-## Creating a resource with apiserver-boot
+## Creating a resource with kubebuilder
 
-Provide your domain + the api group and version + the resource Kind.
-The resource name will be the pluralized lowercased kind.
+Provide your the api group and version + the resource Kind.
+The resource name will be the pluralized lowercase kind.
 
-`apiserver-boot create group version resource --group <group> --version <version> --kind <Kind>`
+`kubebuilder create resource --group <group> --version <version> --kind <Kind>`
 
 ## Anatomy of a resource
 
 A resource has a go struct which defines the *Kind* schema, and is
 annotated with comment directives used by the code generator to
-wire the storage and REST endpoints.
+generate the CRD definition and go clients.
 
 Example:
 
@@ -56,15 +56,7 @@ type FooStatus struct {
 // +resource:path=foos
 ```
 
-This tells the code generator to generate the REST
-storage endpoints for this resource.
-
-```go
-// +k8s:openapi-gen=true
-```
-
-This tells the code generator to include this
-resource in the openapi spec published by the apiserver
+This tells the code generator to generate the CRD.
 
 ```go
 // Foo defines some thing
@@ -129,42 +121,29 @@ the code to also listen for changes to other resource types that your
 kind manages.
 
 ```go
-// +controller:group=bar,version=v1beta1,kind=Foo,resource=foos
+// +controller:group=bar,version=v1alpha1,kind=Foo,resource=foos
 type FooControllerImpl struct {
-	// informer listens for events about Foos
-	informer cache.SharedIndexInformer
+	builders.DefaultControllerFns
 
-	// lister indexes properties about Foos
-	ulister listers.FooLister
+	// lister indexes properties about Foo
+	lister listers.FooLister
 }
 
 // Init initializes the controller and is called by the generated code
-// config - client configuration for talking to the apiserver
-// si - informer factory shared across all controllers for listening to events and indexing resource properties
-// queue - message queue for handling new events.  unique to this controller.
-func (c *FooControllerImpl) Init(
-	config *rest.Config,
-	si *sharedinformers.SharedInformers,
-	queue workqueue.RateLimitingInterface) {
-
-	// Get the informer and lister for subscribing to foo events and querying foos from
-	// the lister cache
-	i := si.Factory.Bar().V1beta1().Foo()
-	c.informer = i.Informer()
-	c.lister = i.Lister()
-
-	// Add an event handler to enqueue a message for foo adds / updates
-	c.informer.AddEventHandler(&controller.QueueingEventHandler{queue})
+// Register watches for additional resource types here.
+func (c *FooControllerImpl) Init(arguments sharedinformers.ControllerInitArguments) {
+	// Use the lister for indexing foos labels
+	c.lister = arguments.GetSharedInformers().Factory.Bar().V1alpha1().Foos().Lister()
 }
 
 // Reconcile handles enqueued messages
-func (c *UniversityControllerImpl) Reconcile(u *v1beta1.Foo) error {
-    // Put your event handling code here
-	fmt.Printf("Running reconcile Foo for %s\n", u.Name)
+func (c *FooControllerImpl) Reconcile(u *v1alpha1.Foo) error {
+	// Implement controller logic here
+	log.Printf("Running reconcile Foo for %s\n", u.Name)
 	return nil
 }
 
-func (c *FooControllerImpl) Get(namespace, name string) (*v1beta1.Foo, error) {
+func (c *FooControllerImpl) Get(namespace, name string) (*v1alpha1.Foo, error) {
 	return c.lister.Foos(namespace).Get(name)
 }
 ```
@@ -172,13 +151,12 @@ func (c *FooControllerImpl) Get(namespace, name string) (*v1beta1.Foo, error) {
 ### Breakdown of example
 
 ```go
-// +controller:group=bar,version=v1beta1,kind=Foo,resource=foos
+// +controller:group=bar,version=v1alpha1,kind=Foo,resource=foos
 type FooControllerImpl struct {
-	// informer listens for events about Foos
-	informer cache.SharedIndexInformer
+	builders.DefaultControllerFns
 
-	// lister indexes properties about Foos
-	ulister listers.FooLister
+	// lister indexes properties about Foo
+	lister listers.FooLister
 }
 ```
 
@@ -186,33 +164,24 @@ This declares a new controller that responds to events on Foo resources
 
 ```go
 // Init initializes the controller and is called by the generated code
-// config - client configuration for talking to the apiserver
-// si - informer factory shared across all controllers for listening to events and indexing resource properties
-// queue - message queue for handling new events.  unique to this controller.
-func (c *FooControllerImpl) Init(
-	config *rest.Config,
-	si *sharedinformers.SharedInformers,
-	queue workqueue.RateLimitingInterface) {
-
-	// Get the informer and lister for subscribing to foo events and querying foos from
-	// the lister cache
-	i := si.Factory.Bar().V1beta1().Foo()
-	c.informer = i.Informer()
-	c.lister = i.Lister()
-
-	// Add an event handler to enqueue a message for foo adds / updates
-	c.informer.AddEventHandler(&controller.QueueingEventHandler{queue})
+// Register watches for additional resource types here.
+func (c *FooControllerImpl) Init(arguments sharedinformers.ControllerInitArguments) {
+	// Use the lister for indexing foos labels
+	c.lister = arguments.GetSharedInformers().Factory.Bar().V1alpha1().Foos().Lister()
 }
+
 ```
 
-This registers a new EventHandler for Add and Update events to Foo resources
-and queues messages in response.
+This registers a new EventHandler for Add and Update events to Foo
+resources and queues messages in response.  To add event handlers for
+other resource types see
+[watching additional resources from your controller](watching_additional_resources.md)
 
 ```go
 // Reconcile handles enqueued messages
-func (c *UniversityControllerImpl) Reconcile(u *v1beta1.Foo) error {
-    // Put your event handling code here
-	fmt.Printf("Running reconcile Foo for %s\n", u.Name)
+func (c *FooControllerImpl) Reconcile(u *v1alpha1.Foo) error {
+	// Implement controller logic here
+	log.Printf("Running reconcile Foo for %s\n", u.Name)
 	return nil
 }
 ```
@@ -221,17 +190,18 @@ This function is called when messages are dequeued.  It should read the
 actual state and reconcile it with the desired state.
 
 ```go
-func (c *FooControllerImpl) Get(namespace, name string) (*v1beta1.Foo, error) {
+func (c *FooControllerImpl) Get(namespace, name string) (*v1alpha1.Foo, error) {
 	return c.lister.Foos(namespace).Get(name)
 }
 ```
 
-This function looks up a Foo object for a namespace + name.  It is executed
-just before the Reconcile method to lookup the Foo object.
+This function looks up a Foo object for a namespace + name.  It is
+executed just before the Reconcile method to lookup the Foo object.
 
 ## Generating the wiring
 
 To generate the REST endpoint and storage wiring for your resource,
-run `apiserver-boot build generated` from the go package root directory.
+run `kubebuilder build generated` from the go package root directory.
 
-This will also generate go client code to read and write your resources under `pkg/client`.
+This will also generate go client code to read and write your resources
+under `pkg/client`.

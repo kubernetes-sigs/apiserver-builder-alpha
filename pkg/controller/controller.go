@@ -20,13 +20,16 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
+	"github.com/najena/kubebuilder/pkg/builders"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/workqueue"
+
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 
 // QueueingEventHandler queues the key for the object on add and update events
@@ -80,7 +83,7 @@ func (q *QueueWorker) Run(shutdown <-chan struct{}) {
 	defer runtime.HandleCrash()
 
 	// Every second, process all messages in the Queue until it is time to shutdown
-	go wait.Until(q.ProcessAllMessages, time.Second, shutdown)
+	go wait.Until(q.processAllMessages, time.Second, shutdown)
 
 	go func() {
 		<-shutdown
@@ -91,16 +94,16 @@ func (q *QueueWorker) Run(shutdown <-chan struct{}) {
 	}()
 }
 
-// ProcessAllMessages tries to process all messages in the Queue
-func (q *QueueWorker) ProcessAllMessages() {
+// processAllMessages tries to process all messages in the Queue
+func (q *QueueWorker) processAllMessages() {
 	for done := false; !done; {
 		// Process all messages in the Queue
-		done = q.ProcessMessage()
+		done = q.processMessage()
 	}
 }
 
-// ProcessMessage tries to process the next message in the Queue, and requeues on an error
-func (q *QueueWorker) ProcessMessage() bool {
+// processMessage tries to process the next message in the Queue, and requeues on an error
+func (q *QueueWorker) processMessage() bool {
 	key, quit := q.Queue.Get()
 	if quit {
 		// Queue is empty

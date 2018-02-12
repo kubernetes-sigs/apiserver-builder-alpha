@@ -17,26 +17,28 @@ limitations under the License.
 package server
 
 import (
+	_ "github.com/go-openapi/loads"
+	_ "k8s.io/apimachinery/pkg/apis/meta/v1"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
+
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
+	"net/http"
+	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/apiserver"
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
+	"github.com/golang/glog"
+	"github.com/najena/kubebuilder/pkg/apiserver"
+	"github.com/najena/kubebuilder/pkg/builders"
+	"github.com/najena/kubebuilder/pkg/validators"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/wait"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	genericoptions "k8s.io/apiserver/pkg/server/options"
-
-	"bytes"
-	"net/http"
-	"os"
-
-	"github.com/golang/glog"
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/validators"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apiserver/pkg/util/logs"
 	openapi "k8s.io/kube-openapi/pkg/common"
 )
