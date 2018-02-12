@@ -19,7 +19,7 @@ package resource
 import (
 	"path/filepath"
 
-	"github.com/najena/kubebuilder/cmd/kubebuilder/util"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/util"
 )
 
 func doDockerfile(dir string, args resourceTemplateArgs) bool {

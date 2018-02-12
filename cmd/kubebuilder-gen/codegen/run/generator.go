@@ -18,8 +18,8 @@ package run
 
 import (
 	"github.com/golang/glog"
-	"github.com/najena/kubebuilder/cmd/kubebuilder-gen/codegen"
-	"github.com/najena/kubebuilder/cmd/kubebuilder-gen/codegen/internal/parse"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder-gen/codegen"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder-gen/codegen/internal/parse"
 	"k8s.io/gengo/args"
 	"k8s.io/gengo/generator"
 	"k8s.io/gengo/namer"

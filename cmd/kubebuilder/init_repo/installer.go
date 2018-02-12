@@ -20,7 +20,7 @@ import (
 	"path/filepath"
 
 	"fmt"
-	"github.com/najena/kubebuilder/cmd/kubebuilder/util"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/util"
 )
 
 func createInstaller(boilerplate string) {
@@ -47,8 +47,8 @@ import (
     "flag"
     "log"
 
-    "github.com/najena/kubebuilder/pkg/install"
-    controllerlib "github.com/najena/kubebuilder/pkg/controller"
+    "github.com/kubernetes-sigs/kubebuilder/pkg/install"
+    controllerlib "github.com/kubernetes-sigs/kubebuilder/pkg/controller"
 
 	"{{ .Repo }}/pkg/apis"
 )

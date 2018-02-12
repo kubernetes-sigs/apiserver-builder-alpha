@@ -21,8 +21,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	createutil "github.com/najena/kubebuilder/cmd/kubebuilder/create/util"
-	"github.com/najena/kubebuilder/cmd/kubebuilder/util"
+	createutil "github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/create/util"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/util"
 )
 
 type resourceTemplateArgs struct {

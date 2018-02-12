@@ -21,12 +21,12 @@
 #  version = "2.4.0"
 
 # Uncomment to update deps with dep tool
-# ignored = ["github.com/najena/kubebuilder","github.com/najena/kubebuilder/cmd"]
+# ignored = ["github.com/kubernetes-sigs/kubebuilder","github.com/kubernetes-sigs/kubebuilder/cmd"]
 
 # Comment to update deps with dep tool
 [[constraint]]
   version = "v1.8-alpha.0"
-  name = "github.com/najena/kubebuilder"
+  name = "github.com/kubernetes-sigs/kubebuilder"
 
 [[constraint]]
   name = "github.com/emicklei/go-restful"

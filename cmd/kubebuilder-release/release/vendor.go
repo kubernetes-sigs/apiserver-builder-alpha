@@ -27,7 +27,7 @@ import (
 	"path/filepath"
 )
 
-var repo = filepath.Join("github.com", "najena", "kubebuilder")
+var repo = filepath.Join("github.com", "kubernetes-sigs", "kubebuilder")
 
 var vendorCmd = &cobra.Command{
 	Use:   "vendor",
@@ -65,7 +65,7 @@ func BuildLocalVendor(tooldir string) {
 	RunCmd(c, "")
 
 	c = exec.Command("bash", "-c",
-		fmt.Sprintf("find %s -name BUILD.bazel| xargs sed -i='' s'|//pkg|//vendor/github.com/najena/kubebuilder/pkg|g'",
+		fmt.Sprintf("find %s -name BUILD.bazel| xargs sed -i='' s'|//pkg|//vendor/github.com/kubernetes-sigs/kubebuilder/pkg|g'",
 			filepath.Join(tooldir, "src", "vendor", repo, "pkg"),
 		))
 	RunCmd(c, "")

@@ -26,7 +26,7 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
-	"github.com/najena/kubebuilder/cmd/kubebuilder/util"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/util"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/util/sets"
 )

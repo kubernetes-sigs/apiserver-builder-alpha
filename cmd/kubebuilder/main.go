@@ -24,13 +24,13 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/najena/kubebuilder/cmd/kubebuilder/build"
-	"github.com/najena/kubebuilder/cmd/kubebuilder/create"
-	"github.com/najena/kubebuilder/cmd/kubebuilder/init_repo"
-	"github.com/najena/kubebuilder/cmd/kubebuilder/run"
-	"github.com/najena/kubebuilder/cmd/kubebuilder/update"
-	"github.com/najena/kubebuilder/cmd/kubebuilder/util"
-	"github.com/najena/kubebuilder/cmd/kubebuilder/version"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/build"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/create"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/init_repo"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/run"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/update"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/util"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/version"
 )
 
 func main() {

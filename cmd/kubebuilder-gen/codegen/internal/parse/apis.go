@@ -22,7 +22,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/najena/kubebuilder/cmd/kubebuilder-gen/codegen"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder-gen/codegen"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/gengo/types"
 )

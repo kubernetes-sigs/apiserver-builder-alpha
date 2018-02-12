@@ -22,7 +22,7 @@ import (
 
 	"fmt"
 
-	"github.com/najena/kubebuilder/cmd/kubebuilder-gen/codegen"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder-gen/codegen"
 	"k8s.io/gengo/generator"
 )
 
@@ -37,7 +37,7 @@ func (d *apiGenerator) Imports(c *generator.Context) []string {
 	imports := []string{
 		"k8s.io/apimachinery/pkg/runtime/schema",
 		"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1",
-		"github.com/najena/kubebuilder/pkg/builders",
+		"github.com/kubernetes-sigs/kubebuilder/pkg/builders",
 		"rbacv1 \"k8s.io/api/rbac/v1\"",
 	}
 	for _, group := range d.apis.Groups {

@@ -22,7 +22,7 @@ import (
 	"path/filepath"
 
 	"fmt"
-	"github.com/najena/kubebuilder/cmd/kubebuilder/util"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/util"
 	"github.com/spf13/cobra"
 )
 

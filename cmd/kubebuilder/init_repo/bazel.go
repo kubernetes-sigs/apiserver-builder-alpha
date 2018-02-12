@@ -17,7 +17,7 @@ limitations under the License.
 package init_repo
 
 import (
-	"github.com/najena/kubebuilder/cmd/kubebuilder/util"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/util"
 )
 
 // createBazelWorkspace creates new WORKSPACE and BUILD.bazel files at the root

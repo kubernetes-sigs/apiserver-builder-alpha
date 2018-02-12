@@ -18,20 +18,20 @@ package main
 
 import (
 	"github.com/golang/glog"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder-gen/codegen/run"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder-gen/internal/controllergen"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder-gen/internal/resourcegen"
 	"k8s.io/apiserver/pkg/util/logs"
-    "github.com/najena/kubebuilder/cmd/kubebuilder-gen/internal/controllergen"
-    "github.com/najena/kubebuilder/cmd/kubebuilder-gen/internal/resourcegen"
-    "github.com/najena/kubebuilder/cmd/kubebuilder-gen/codegen/run"
 )
 
 func main() {
 	logs.InitLogs()
 	defer logs.FlushLogs()
 
-    (&run.CodeGenerator{OutputFileBaseName: "zz_generated.kubebuilder"}).
-	    AddControllerGenerator(&controllergen.Generator{}).
-        AddResourceGenerator(&resourcegen.Generator{}).
-	    Execute()
+	(&run.CodeGenerator{OutputFileBaseName: "zz_generated.kubebuilder"}).
+		AddControllerGenerator(&controllergen.Generator{}).
+		AddResourceGenerator(&resourcegen.Generator{}).
+		Execute()
 
 	glog.V(2).Info("Completed successfully.")
 }

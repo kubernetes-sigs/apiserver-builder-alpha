@@ -21,8 +21,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	createutil "github.com/najena/kubebuilder/cmd/kubebuilder/create/util"
-	"github.com/najena/kubebuilder/cmd/kubebuilder/util"
+	createutil "github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/create/util"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/util"
 )
 
 func doControllerTest(dir string, args resourceTemplateArgs) bool {
@@ -48,7 +48,7 @@ import (
     . "github.com/onsi/ginkgo"
     . "github.com/onsi/gomega"
     "k8s.io/client-go/rest"
-    "github.com/najena/kubebuilder/pkg/test"
+    "github.com/kubernetes-sigs/kubebuilder/pkg/test"
 
     "{{ .Repo }}/pkg/apis"
     "{{ .Repo }}/pkg/client/clientset_generated/clientset"

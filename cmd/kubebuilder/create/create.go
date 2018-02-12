@@ -17,8 +17,8 @@ limitations under the License.
 package create
 
 import (
-	"github.com/najena/kubebuilder/cmd/kubebuilder/create/resource"
-	"github.com/najena/kubebuilder/cmd/kubebuilder/create/util"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/create/resource"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/create/util"
 	"github.com/spf13/cobra"
 )
 

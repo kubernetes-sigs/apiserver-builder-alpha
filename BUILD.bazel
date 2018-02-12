@@ -4,7 +4,7 @@ load("@io_bazel_rules_go//go:def.bzl", "gazelle")
 gazelle(
     name = "gazelle",
     command = "fix",
-    prefix = "github.com/najena/kubebuilder",
+    prefix = "github.com/kubernetes-sigs/kubebuilder",
     external = "vendored",
     args = [
         "-build_file_name",

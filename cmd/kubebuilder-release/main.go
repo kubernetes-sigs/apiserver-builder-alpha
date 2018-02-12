@@ -16,7 +16,7 @@ limitations under the License.
 
 package main
 
-import "github.com/najena/kubebuilder/cmd/kubebuilder-release/release"
+import "github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder-release/release"
 
 func main() {
 	release.Run()

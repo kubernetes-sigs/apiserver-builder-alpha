@@ -32,9 +32,9 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/golang/glog"
-	"github.com/najena/kubebuilder/pkg/apiserver"
-	"github.com/najena/kubebuilder/pkg/builders"
-	"github.com/najena/kubebuilder/pkg/validators"
+	"github.com/kubernetes-sigs/kubebuilder/pkg/apiserver"
+	"github.com/kubernetes-sigs/kubebuilder/pkg/builders"
+	"github.com/kubernetes-sigs/kubebuilder/pkg/validators"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/wait"
 	genericapiserver "k8s.io/apiserver/pkg/server"

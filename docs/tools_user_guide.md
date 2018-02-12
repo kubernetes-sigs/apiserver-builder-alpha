@@ -17,7 +17,7 @@ New API workflow:
 ## Download the latest release
 
 Make sure you downloaded and installed the latest release as described
-[here](https://github.com/najena/kubebuilder/blob/master/docs/installing.md)
+[here](https://github.com/kubernetes-sigs/kubebuilder/blob/master/docs/installing.md)
 
 ## Create your Go project
 

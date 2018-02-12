@@ -26,7 +26,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/najena/kubebuilder/cmd/kubebuilder/build"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/build"
 	"k8s.io/client-go/util/homedir"
 )
 

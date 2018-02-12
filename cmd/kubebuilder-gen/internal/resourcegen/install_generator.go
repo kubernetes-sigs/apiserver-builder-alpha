@@ -21,7 +21,7 @@ import (
 	"path"
 	"text/template"
 
-	"github.com/najena/kubebuilder/cmd/kubebuilder-gen/codegen"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder-gen/codegen"
 	"k8s.io/gengo/generator"
 )
 

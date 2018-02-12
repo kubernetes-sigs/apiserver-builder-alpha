@@ -21,7 +21,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/najena/kubebuilder/cmd/kubebuilder/util"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/util"
 )
 
 func runCreateApiserver(boilerplate string) {
@@ -57,7 +57,7 @@ import (
 	_ "k8s.io/apimachinery/pkg/apis/meta/v1"
 	_ "github.com/go-openapi/loads"
 
-	"github.com/najena/kubebuilder/pkg/cmd/server"
+	"github.com/kubernetes-sigs/kubebuilder/pkg/cmd/server"
 	_ "k8s.io/client-go/plugin/pkg/client/auth" // Enable cloud provider auth
 
 	"{{.Repo}}/pkg/apis"

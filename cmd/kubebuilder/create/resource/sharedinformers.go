@@ -17,7 +17,7 @@ limitations under the License.
 package resource
 
 import (
-	"github.com/najena/kubebuilder/cmd/kubebuilder/util"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/util"
 	"path/filepath"
 )
 

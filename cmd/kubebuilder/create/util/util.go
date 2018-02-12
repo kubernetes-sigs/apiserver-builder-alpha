@@ -24,7 +24,7 @@ import (
 	"github.com/markbates/inflect"
 	"github.com/spf13/cobra"
 
-	"github.com/najena/kubebuilder/cmd/kubebuilder/util"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/util"
 )
 
 var (

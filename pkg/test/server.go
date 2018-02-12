@@ -23,7 +23,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/kubernetes-sig-testing/frameworks/integration"
-	"github.com/najena/kubebuilder/pkg/install"
+	"github.com/kubernetes-sigs/kubebuilder/pkg/install"
 )
 
 type TestEnvironment struct {

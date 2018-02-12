@@ -20,7 +20,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/najena/kubebuilder/cmd/kubebuilder-gen/codegen"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder-gen/codegen"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/gengo/types"

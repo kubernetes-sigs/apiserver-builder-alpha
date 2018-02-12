@@ -181,7 +181,7 @@ func Build(input, output, goos, goarch string) {
 		}
 
 		t := time.Now().Local()
-		p := "github.com/najena/kubebuilder/cmd/kubebuilder/version"
+		p := "github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/version"
 		ldflags := []string{
 			fmt.Sprintf("-X %s.kubeBuilderVersion=%s", p, version),
 			fmt.Sprintf("-X %s.kubernetesVendorVersion=%s", p, kubernetesVersion),

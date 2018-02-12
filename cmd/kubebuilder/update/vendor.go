@@ -20,7 +20,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/emicklei/go-restful/log"
-	"github.com/najena/kubebuilder/cmd/kubebuilder/init_repo"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/init_repo"
 )
 
 var vendorCmd = &cobra.Command{

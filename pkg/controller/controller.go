@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/najena/kubebuilder/pkg/builders"
+	"github.com/kubernetes-sigs/kubebuilder/pkg/builders"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"

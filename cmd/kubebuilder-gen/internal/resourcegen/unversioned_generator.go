@@ -20,7 +20,7 @@ import (
 	"io"
 	"text/template"
 
-	"github.com/najena/kubebuilder/cmd/kubebuilder-gen/codegen"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder-gen/codegen"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/gengo/generator"
 )
@@ -35,7 +35,7 @@ var _ generator.Generator = &unversionedGenerator{}
 func (d *unversionedGenerator) Imports(c *generator.Context) []string {
 	imports := sets.NewString(
 		"fmt",
-		"github.com/najena/kubebuilder/pkg/builders",
+		"github.com/kubernetes-sigs/kubebuilder/pkg/builders",
 		"k8s.io/apimachinery/pkg/apis/meta/internalversion",
 		"k8s.io/apimachinery/pkg/runtime",
 		"k8s.io/apimachinery/pkg/runtime/schema",

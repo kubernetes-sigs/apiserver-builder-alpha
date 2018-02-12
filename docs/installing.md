@@ -2,7 +2,7 @@
 
 Installation instructions:
 
-- Download the latest [release](https://github.com/najena/kubebuilder/releases)
+- Download the latest [release](https://github.com/kubernetes-sigs/kubebuilder/releases)
 - Extract to `/usr/local/kubebuilder/`
   - Create this directory if it does not already exist
 - Add `/usr/local/kubebuilder/bin` to your path

@@ -21,8 +21,8 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder-gen/codegen"
 	"github.com/markbates/inflect"
-	"github.com/najena/kubebuilder/cmd/kubebuilder-gen/codegen"
 	"k8s.io/gengo/generator"
 )
 
@@ -36,7 +36,7 @@ var _ generator.Generator = &controllerGenerator{}
 func (d *controllerGenerator) Imports(c *generator.Context) []string {
 	im := []string{
 		"github.com/golang/glog",
-		"github.com/najena/kubebuilder/pkg/controller",
+		"github.com/kubernetes-sigs/kubebuilder/pkg/controller",
 		"k8s.io/apimachinery/pkg/api/errors",
 		"k8s.io/client-go/rest",
 		"k8s.io/client-go/tools/cache",

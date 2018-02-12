@@ -12,7 +12,7 @@ to simplify building and publishing Kubernetes APIs from scratch.
 
 ## TL;DR
 
-**First:** Download the latest [release](https://github.com/najena/kubebuilder/releases) and
+**First:** Download the latest [release](https://github.com/kubernetes-sigs/kubebuilder/releases) and
 extract the tar.gz into /usr/local/kubebuilder and update your PATH to include
 /usr/local/kubebuilder/bin.
 

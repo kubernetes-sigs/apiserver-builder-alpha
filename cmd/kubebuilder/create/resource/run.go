@@ -21,10 +21,10 @@ import (
 	"log"
 	"os"
 
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/build"
+	createutil "github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/create/util"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/util"
 	"github.com/markbates/inflect"
-	"github.com/najena/kubebuilder/cmd/kubebuilder/build"
-	createutil "github.com/najena/kubebuilder/cmd/kubebuilder/create/util"
-	"github.com/najena/kubebuilder/cmd/kubebuilder/util"
 	"github.com/spf13/cobra"
 )
 

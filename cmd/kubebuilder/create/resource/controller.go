@@ -21,8 +21,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	createutil "github.com/najena/kubebuilder/cmd/kubebuilder/create/util"
-	"github.com/najena/kubebuilder/cmd/kubebuilder/util"
+	createutil "github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/create/util"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/util"
 )
 
 func doController(dir string, args resourceTemplateArgs) bool {
@@ -40,7 +40,7 @@ package {{ lower .Kind }}
 import (
     "log"
 
-    "github.com/najena/kubebuilder/pkg/builders"
+    "github.com/kubernetes-sigs/kubebuilder/pkg/builders"
 
     "{{.Repo}}/pkg/apis/{{.Group}}/{{.Version}}"
     "{{.Repo}}/pkg/controller/sharedinformers"

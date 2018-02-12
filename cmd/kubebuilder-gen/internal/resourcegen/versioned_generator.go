@@ -20,7 +20,7 @@ import (
 	"io"
 	"text/template"
 
-	"github.com/najena/kubebuilder/cmd/kubebuilder-gen/codegen"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder-gen/codegen"
 	"k8s.io/gengo/generator"
 )
 
@@ -46,7 +46,7 @@ func (d *versionedGenerator) Imports(c *generator.Context) []string {
 		"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1",
 		"metav1 \"k8s.io/apimachinery/pkg/apis/meta/v1\"",
 		"k8s.io/apimachinery/pkg/runtime",
-		"github.com/najena/kubebuilder/pkg/builders",
+		"github.com/kubernetes-sigs/kubebuilder/pkg/builders",
 		"k8s.io/apimachinery/pkg/runtime/schema",
 		d.apigroup.Pkg.Path,
 	}

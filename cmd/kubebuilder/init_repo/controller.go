@@ -20,7 +20,7 @@ import (
 	"path/filepath"
 
 	"fmt"
-	"github.com/najena/kubebuilder/cmd/kubebuilder/util"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/util"
 )
 
 func createControllerManager(boilerplate string) {
@@ -47,8 +47,8 @@ import (
 	"flag"
 	"log"
 
-	controllerlib "github.com/najena/kubebuilder/pkg/controller"
-	"github.com/najena/kubebuilder/pkg/install"
+	controllerlib "github.com/kubernetes-sigs/kubebuilder/pkg/controller"
+	"github.com/kubernetes-sigs/kubebuilder/pkg/install"
 	extensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 
 	"{{ .Repo }}/pkg/controller"

@@ -21,8 +21,8 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder-gen/codegen"
 	"github.com/markbates/inflect"
-	"github.com/najena/kubebuilder/cmd/kubebuilder-gen/codegen"
 	"k8s.io/gengo/generator"
 )
 
@@ -41,7 +41,7 @@ func (d *controllersGenerator) Imports(c *generator.Context) []string {
 	repo := d.Controllers[0].Repo
 	im := []string{
 		"k8s.io/client-go/rest",
-		"github.com/najena/kubebuilder/pkg/controller",
+		"github.com/kubernetes-sigs/kubebuilder/pkg/controller",
 		repo + "/pkg/controller/sharedinformers",
 	}
 
