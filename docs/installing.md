@@ -2,7 +2,7 @@
 
 Installation instructions:
 
-- Download the latest [release](https://github.com/kubernetes-sigs/kubebuilder/releases)
+- Download the latest [release](https://github.com/kubernetes-incubator/apiserver-builder/releases/tag/kubebuilder-v1.9-alpha.11)
 - Extract to `/usr/local/kubebuilder/`
   - Create this directory if it does not already exist
 - Add `/usr/local/kubebuilder/bin` to your path
