@@ -172,8 +172,14 @@ run the tests under `./pkg/...` and `./cmd/...`
 
 ```sh
 docker build . -f Dockerfile.install -t <install-image>:<version>
+docker push <install-image>:<version>
+
 docker build . -f Dockerfile.controller -t <controller-image>:<version>
+docker push <controller-image>:<version>
+
 docker build . -f Dockerfile.docs -t <docs-image>:<version>
+docker push <docs-image>:<version>
+
 kubectl run <my-image> --image <my-image>
 ```
 
