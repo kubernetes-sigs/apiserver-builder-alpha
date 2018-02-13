@@ -1,4 +1,4 @@
-This is not a Google project
+Note: This is a heavily modified version of apiserver-builder, and not interchangeable.
 
 **Note:** Don't use `go get` / `go install`, instead you MUST download a tar binary release or create your
 own release using the release program.
