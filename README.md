@@ -16,6 +16,8 @@ to simplify building and publishing Kubernetes APIs from scratch.
 extract the tar.gz into /usr/local/kubebuilder and update your PATH to include
 /usr/local/kubebuilder/bin.
 
+Create a project under a new GOPATH.
+
 ```sh
 # Initialize your project
 kubebuilder init --domain example.com
@@ -43,7 +45,7 @@ Instructions on how to use the tools packaged with kubebuilder to build APIs fro
 
 [tools guide](docs/tools_user_guide.md)
 
-// TODO: Write these
+// Coming soon
 
 - Creating a new project
 - Creating a new resource and controller
@@ -60,10 +62,10 @@ Instructions on how to use the tools packaged with kubebuilder to build APIs fro
 
 Instructions for how to build.
 
-- [Creating a new resource and controller](adding_resources.md)
-- [Watching other resources from your resource controller](watching_additional_resources.md)
-- [Adding RBAC rules for your resource controller](declaring_rbac_rules_for_controllers.md)
-- [Creating a non-namespaced resource](adding_non_namespaced_resources.md)
+- [Creating a new resource and controller](docs/adding_resources.md)
+- [Watching other resources from your resource controller](docs/watching_additional_resources.md)
+- [Adding RBAC rules for your resource controller](docs/declaring_rbac_rules_for_controllers.md)
+- [Creating a non-namespaced resource](docs/adding_non_namespaced_resources.md)
 
 // TODO: Write these
 
