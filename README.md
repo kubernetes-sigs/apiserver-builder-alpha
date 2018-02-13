@@ -1,4 +1,7 @@
-Note: This is a heavily modified version of apiserver-builder, and not interchangeable.
+
+**IMPORTANT: This is an EAP, not a finished product.**
+
+This is a heavily modified version of apiserver-builder for CRDs, and is not interchangeable.
 
 **Note:** Don't use `go get` / `go install`, instead you MUST download a tar binary release or create your
 own release using the release program.
