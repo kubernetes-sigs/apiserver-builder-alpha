@@ -19,7 +19,7 @@ package release
 import (
 	"archive/tar"
 	"compress/gzip"
-	"fmt"
+//	"fmt"
 	"github.com/spf13/cobra"
 	"log"
 	"os"
@@ -64,12 +64,12 @@ func BuildLocalVendor(tooldir string) {
 		filepath.Join(tooldir, "src", "vendor", repo, "pkg"))
 	RunCmd(c, "")
 
-	c = exec.Command("bash", "-c",
-		fmt.Sprintf("find %s -name BUILD.bazel| xargs sed -i='' s'|//pkg|//vendor/github.com/kubernetes-sigs/kubebuilder/pkg|g'",
+/*	c = exec.Command("bash", "-c",
+		fmt.Sprintf("find %s -name BUILD.bazel| xargs sed -i s'|//pkg|//vendor/github.com/kubernetes-sigs/kubebuilder/pkg|g'",
 			filepath.Join(tooldir, "src", "vendor", repo, "pkg"),
 		))
 	RunCmd(c, "")
-
+*/
 	c = exec.Command("cp", "-R", "-H",
 		filepath.Join("Gopkg.toml"),
 		filepath.Join(tooldir, "src", "Gopkg.toml"))
