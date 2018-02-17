@@ -137,7 +137,7 @@ var _ = Describe("{{ .Kind }} controller", func() {
             Expect(err).ShouldNot(HaveOccurred())
 
             // Wait for reconcile to happen
-            Eventually(after).Should(BeClosed())
+            Eventually(after, "10s", "100ms").Should(BeClosed())
 
             // INSERT YOUR CODE HERE - test conditions post reconcile
         })
