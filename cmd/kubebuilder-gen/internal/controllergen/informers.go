@@ -119,10 +119,10 @@ type ControllerInitArguments interface {
     // than the watched resource), and enqueue it to be reconciled.
     // watchName: name of the informer.  may appear in logs
     // resourceInformer: gotten from the SharedInformer.  controls which resource type is watched
-    // getReconcileKey: takes an instance of the watched resource and returns
-    //                                      a key for the reconciled resource type to enqueue.
+    // getReconcileKeys: takes an instance of the watched resource and returns
+    //                   a slice of keys for the reconciled resource type to enqueue.
     Watch(watchName string, resourceInformer cache.SharedIndexInformer,
-            getReconcileKey func(interface{}) (string, error))
+            getReconcileKeys func(interface{}) ([]string, error))
 }
 
 type ControllerInitArgumentsImpl struct {
@@ -149,7 +149,7 @@ func (c ControllerInitArgumentsImpl) GetRestConfig() *rest.Config {
 //                                      a key for the reconciled resource type to enqueue.
 func (c ControllerInitArgumentsImpl) Watch(
     watchName string, resourceInformer cache.SharedIndexInformer,
-    getReconcileKey func(interface{}) (string, error)) {
+    getReconcileKey func(interface{}) ([]string, error)) {
     c.Si.Watch(watchName, resourceInformer, getReconcileKey, c.Rk)
 }
 

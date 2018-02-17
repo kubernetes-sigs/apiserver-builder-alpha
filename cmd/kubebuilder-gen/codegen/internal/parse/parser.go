@@ -60,6 +60,7 @@ func NewAPIs(context *generator.Context, arguments *args.GeneratorArgs) *APIs {
 	b.parseControllers()
 	b.parseRBAC()
 	b.parseAPIs()
+	b.parseJSONSchemaProps()
 	return b
 }
 

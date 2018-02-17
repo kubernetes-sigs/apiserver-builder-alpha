@@ -27,7 +27,8 @@ func doDockerfile(dir string, args resourceTemplateArgs) bool {
 	docs := util.WriteIfNotFound(filepath.Join(dir, "Dockerfile.docs"), "docs-docker-template", docsDockerfileTemplate, args)
 	controller := util.WriteIfNotFound(filepath.Join(dir, "Dockerfile.controller"), "controller-docker-template", controllerDockerfileTemplate, args)
 	apiserver := util.WriteIfNotFound(filepath.Join(dir, "Dockerfile.apiserver"), "apiserver-docker-template", apiserverDockerfileTemplate, args)
-	return install || docs || controller || apiserver
+	pod := util.WriteIfNotFound(filepath.Join(dir, "install.yaml"), "install-template", installPodTemplate, args)
+	return install || docs || controller || apiserver || pod
 }
 
 var installDockerfileTemplate = `# Instructions to install API using the installer
@@ -146,4 +147,35 @@ RUN ./runbrodocs.sh
 # Publish docs in a container
 FROM nginx
 COPY --from=brodocs build/ /usr/share/nginx/html
+`
+
+var installPodTemplate = `
+# EDIT ME by replacing "<project>/<apis-name>" with your image
+# Steps to install
+# kubectl create serviceaccount installer
+# kubectl create clusterrolebinding installer-cluster-admin-binding --clusterrole=cluster-admin --serviceaccount=default:installer
+# kubectl create -f install.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: <apis-name>
+  labels:
+    run: <apis-name>
+spec:
+  template:
+    metadata:
+      labels:
+        run: <apis-name>
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: installer
+      containers:
+      - args:
+        - ./installer
+        - --controller-image=gcr.io/<project>/<apis-name>-controller:v1
+        - --docs-image=gcr.io/<project>/<apis-name>-docs:v1
+        - --name=<apis-name>
+        image: gcr.io/<project>/<apis-name>-install:v1
+        imagePullPolicy: Always
+        name: <apis-name>
 `

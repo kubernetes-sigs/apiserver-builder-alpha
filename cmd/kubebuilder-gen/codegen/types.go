@@ -18,6 +18,7 @@ package codegen
 
 import (
 	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -151,6 +152,10 @@ type APIResource struct {
 	StatusStrategy string
 	// NonNamespaced indicates that the resource kind is non namespaced
 	NonNamespaced bool
+
+	JSONSchemaProps    v1beta1.JSONSchemaProps
+	Validation         string
+	ValidationComments string
 }
 
 type APISubresource struct {

@@ -82,9 +82,17 @@ var (
             {{ else -}}
             Scope: "Namespaced",
             {{ end -}}
+            Validation: &v1beta1.CustomResourceValidation{
+                OpenAPIV3Schema: &{{.Validation}},
+            },
         },
     }
-    {{ end -}}
+/*
+JSON Schema
+{{.ValidationComments}}
+*/
+
+{{ end -}}
 
     // Collect CRDs in this group version
     CRDs = []v1beta1.CustomResourceDefinition{
@@ -193,5 +201,4 @@ type {{$subresource.Request}}List struct {
     Items           []{{$subresource.Request}} ` + "`json:\"items\"`" + `
 }
 {{ end }}{{ end -}}
-
 `

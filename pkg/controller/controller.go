@@ -35,21 +35,28 @@ import (
 // QueueingEventHandler queues the key for the object on add and update events
 type QueueingEventHandler struct {
 	Queue         workqueue.RateLimitingInterface
-	ObjToKey      func(obj interface{}) (string, error)
+	ObjToKey      func(obj interface{}) ([]string, error)
 	EnqueueDelete bool
 }
 
 func (c *QueueingEventHandler) enqueue(obj interface{}) {
-	fn := c.ObjToKey
-	if c.ObjToKey == nil {
-		fn = cache.DeletionHandlingMetaNamespaceKeyFunc
+	var keys []string
+	var err error
+	if c.ObjToKey != nil {
+		keys, err = c.ObjToKey(obj)
+	} else {
+		var key string
+		key, err = cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
+		keys = []string{key}
 	}
-	key, err := fn(obj)
+
 	if err != nil {
 		glog.Errorf("Couldn't get key for object %+v: %v", obj, err)
 		return
 	}
-	c.Queue.Add(key)
+	for _, key := range keys {
+		c.Queue.Add(key)
+	}
 }
 
 func (c *QueueingEventHandler) OnAdd(obj interface{}) {
