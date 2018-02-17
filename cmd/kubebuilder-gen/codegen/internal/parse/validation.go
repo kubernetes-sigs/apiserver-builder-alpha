@@ -34,13 +34,11 @@ func (b *APIs) parseJSONSchemaProps() {
 		for _, version := range group.Versions {
 			for _, resource := range version.Resources {
 				if IsAPIResource(resource.Type) {
-					fmt.Printf("Resource: %+v\n\n", resource.Kind)
 					resource.JSONSchemaProps, resource.Validation = b.typeToJSONSchemaProps(resource.Type)
 					j, err := json.MarshalIndent(resource.JSONSchemaProps, "", "    ")
 					if err != nil {
 						log.Fatalf("Could not Marshall validation %v\n", err)
 					}
-					fmt.Printf("JSON RESOURCE: %s\n\n", string(j))
 					resource.ValidationComments = string(j)
 				}
 			}
@@ -192,8 +190,6 @@ func (b *APIs) getMembers(t *types.Type) (map[string]v1beta1.JSONSchemaProps, ma
 	members := map[string]v1beta1.JSONSchemaProps{}
 	result := map[string]string{}
 	for _, member := range t.Members {
-		fmt.Printf("Field %s - ", member.Name)
-
 		tags := jsonRegex.FindStringSubmatch(member.Tags)
 		if len(tags) == 0 {
 			// Skip fields without json tags
