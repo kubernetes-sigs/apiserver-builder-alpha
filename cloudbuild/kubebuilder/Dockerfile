@@ -2,6 +2,7 @@ FROM golang:stretch
 
 RUN pwd
 RUN ls -l -R
+RUN ls -l -R /workspace
 
 #RUN mkdir -p src/googlecloudplatform
 #WORKDIR $GOPATH/src/googlecloudplatform
