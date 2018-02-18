@@ -1,8 +1,8 @@
 steps:
 - name: "golang:stretch"
-  args: ["ls", "-l"]
+  args: ["ls", "-l", "$GOPATH"]
 - name: "golang:stretch"
-  args: ["ls", "-l"]
+  args: ["mdir", "-p", "$GOPATH/src/github.com/googlecloudplatform"]
   dir: "/go"
 - name: "golang:stretch"
-  args: ["env"]
+  args: ['bash', '-c', 'ln -s . $GOPATH/src/github.com/googlecloudplatform/kubebuilder && go build github.com/googlecloudplatform/kubebuilder/cmd/kubebuilder']
