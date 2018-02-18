@@ -1,0 +1,7 @@
+- name: "golang:stretch"
+  args: ["ls", "-l"]
+- name: "golang:stretch"
+  args: ["ls", "-l"]
+  dir: "/go"
+- name: "golang:stretch"
+  args: ["env"]
