@@ -1,4 +1,5 @@
 FROM golang:stretch
 
-RUN ls
+RUN pwd
+RUN ls -l -R
 
