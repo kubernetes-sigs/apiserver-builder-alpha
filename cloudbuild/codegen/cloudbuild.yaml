@@ -1,4 +1,0 @@
-steps:
-- name: 'gcr.io/cloud-builders/go'
-  args: ['get', 'github.com/kubernetes/code-generator/cmd/client-gen']
-  env: ['GOPATH=.']

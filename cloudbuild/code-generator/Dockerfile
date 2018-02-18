@@ -2,12 +2,11 @@ FROM golang:stretch
 
 RUN mkdir -p src/k8s.io
 WORKDIR $GOPATH/src/k8s.io
-RUN git clone https://github.com/kubernetes/kubernetes --depth=1 -b release-1.9
-RUN ls
+RUN git clone https://github.com/kubernetes/code-generator --depth=1 -b release-1.9
+
 WORKDIR $GOPATH
-RUN env
-ENV GOARC amd64
 ENV CGO 0
+ENV GOARCH amd64
 
 ENV GOOS darwin
 RUN mkdir -p bin/darwin
