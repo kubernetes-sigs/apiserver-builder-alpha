@@ -390,9 +390,9 @@ Flow:
   
 apiserver-builder can build the needed containers and yaml config to using:
 
-- `apiserver-boot apiserver-boot build container`: cross-compile the go binaries into a
+- `apiserver-boot build container`: cross-compile the go binaries into a
   container image
-- `apiserver-boot apiserver-boot build config`: emit yaml configuration for running the
+- `apiserver-boot build config`: emit yaml configuration for running the
   apiserver, controller-manager and etcd in a cluster
  
 ![Extension apiservers](extensionserver.jpg "Extension apiservers")
