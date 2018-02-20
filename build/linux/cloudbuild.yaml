@@ -1,0 +1,27 @@
+steps:
+- name: "ubuntu"
+  args: ["mkdir", "-p", "/workspace/_output"]
+- name: "gcr.io/kubebuilder/thirdparty-linux:1.9"
+  args: ["tar", "-xzvf", "/kubebuilder_linux_amd64.tar.gz"]
+  dir: "_output"
+- name: "golang:1.10-stretch"
+  args: ["bash", "build/build_kubebuilder.sh"]
+  env:
+  - 'GOOS=linux'
+  - 'GOARCH=amd64'
+  - 'CGO=0'
+  - 'VERSION=v1.9-alpha.11'
+  - 'KUBERNETES_VERSION=v1.9'
+- name: "ubuntu"
+  args: ["bash", "build/build_vendor.sh"]
+- name: "ubuntu"
+  args: ["ls"]
+  dir: "_output/kubebuilder/bin"
+- name: "ubuntu"
+  args: ["bash", "build/package.sh"]
+  env:
+  - 'GOOS=linux'
+  - 'GOARCH=amd64'
+  - 'VERSION=v1.9-alpha.11'
+- name: 'gcr.io/cloud-builders/gsutil'
+  args: ['cp', 'kubebuilder-v1.9-alpha.11-linux-amd64.tar.gz', 'gs://kubebuilder-release/v1.9-alpha.11/kubebuilder-v1.9-alpha.11-linux-amd64.tar.gz']

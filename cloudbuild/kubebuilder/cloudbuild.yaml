@@ -1,5 +1,0 @@
-steps:
-- name: "golang:stretch"
-  args: ["ls", "/go"]
-- name: "golang:stretch"
-  args: ['bash', '-c', 'mkdir -p /go/src/github.com/kubernetes-sigs && ln -s $(pwd) /go/src/github.com/kubernetes-sigs/kubebuilder && ls /go/src/github.com/kubernetes-sigs/kubebuilder && env && go build github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder']
