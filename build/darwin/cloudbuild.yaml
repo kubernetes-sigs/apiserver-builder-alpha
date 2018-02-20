@@ -24,4 +24,4 @@ steps:
   - 'GOARCH=amd64'
   - 'VERSION=v1.9-alpha.11'
 - name: 'gcr.io/cloud-builders/gsutil'
-  args: ['cp', 'kubebuilder-v1.9-alpha.11-darwin-amd64.tar.gz', 'gs://kubebuilder-release/v1.9-alpha.11/kubebuilder-v1.9-alpha.11-darwin-amd64.tar.gz']
+  args: ['cp', 'kubebuilder-v1.9-alpha.11-darwin-amd64.tar.gz', 'gs://kubebuilder-release/kubebuilder-v1.9-alpha.11-darwin-amd64.tar.gz']

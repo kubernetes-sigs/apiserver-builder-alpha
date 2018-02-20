@@ -15,4 +15,4 @@ go build -o $DEST/kubebuilder \
  -ldflags "-X $X.kubeBuilderVersion=$VERSION -X $X.goos=$GOOS -X $X.goarch=$GOARCH -X $X.kubernetesVendorVersion=$KUBERNETES_VERSION" \
  github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder
 
-go build -o $DEST/kubebuilde-gen github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder-gen
+go build -o $DEST/kubebuilder-gen github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder-gen
