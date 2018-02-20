@@ -3,4 +3,4 @@ set -e
 set -x
 
 cd /workspace/_output/
-tar -zcvf /workspace/kubebuilder-$VERSION-$GOOS-$GOARCH.tar.gz kubebuilder
+tar -czvf /workspace/kubebuilder-$VERSION-$GOOS-$GOARCH.tar.gz kubebuilder

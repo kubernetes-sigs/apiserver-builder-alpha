@@ -26,7 +26,7 @@ import (
 
 	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/build"
 	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/create"
-	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/init_repo"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/initproject"
 	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/run"
 	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/update"
 	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/util"
@@ -52,7 +52,7 @@ func main() {
 	}
 	util.Repo = strings.Replace(wd, util.GoSrc+string(filepath.Separator), "", 1)
 
-	init_repo.AddInit(cmd)
+    initproject.AddInit(cmd)
 	create.AddCreate(cmd)
 	build.AddBuild(cmd)
 	run.AddRun(cmd)

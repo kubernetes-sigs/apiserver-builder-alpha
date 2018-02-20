@@ -20,7 +20,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/emicklei/go-restful/log"
-	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/init_repo"
+	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/initproject"
 )
 
 var vendorCmd = &cobra.Command{
@@ -38,7 +38,7 @@ func AddUpdateVendorCmd(cmd *cobra.Command) {
 }
 
 func RunUpdateVendor(cmd *cobra.Command, args []string) {
-	init_repo.Update = true
+    initproject.Update = true
 	log.Printf("Replacing vendored libraries managed by kubebuilder with the current version.")
-	init_repo.RunVendorInstall(cmd, args)
+    initproject.RunVendorInstall(cmd, args)
 }

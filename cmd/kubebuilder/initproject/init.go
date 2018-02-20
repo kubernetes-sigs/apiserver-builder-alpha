@@ -14,14 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package init_repo
+package initproject
 
 import (
+    "fmt"
 	"log"
 	"os"
 	"path/filepath"
 
-	"fmt"
 	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/util"
 	"github.com/spf13/cobra"
 )
@@ -36,21 +36,15 @@ kubebuilder init repo --domain mydomain
 	Run: runInitRepo,
 }
 
-var installDeps bool
 var domain string
 var copyright string
+var name string
 
 func AddInit(cmd *cobra.Command) {
 	cmd.AddCommand(repoCmd)
-	repoCmd.Flags().StringVar(&domain, "domain", "", "domain the api groups live under")
-
-	// Hide this flag by default
-	repoCmd.Flags().StringVar(&copyright, "copyright", "boilerplate.go.txt", "Location of copyright boilerplate file.")
-	repoCmd.Flags().
-		BoolVar(&installDeps, "install-deps", true, "if true, install the vendored deps packaged with kubebuilder.")
-	repoCmd.Flags().
-		BoolVar(&Update, "update", false, "if true, don't touch Gopkg.toml or Gopkg.lock, and replace versions of packages managed by kubebuilder.")
-	repoCmd.Flags().MarkHidden("install-deps")
+	repoCmd.Flags().StringVar(&domain, "domain", "", "domain for the API groups")
+    repoCmd.Flags().StringVar(&name, "name", "", "name of the project that will be used to create the deployed installation name.")
+    repoCmd.Flags().StringVar(&copyright, "copyright", "boilerplate.go.txt", "Location of copyright boilerplate file.")
 }
 
 func runInitRepo(cmd *cobra.Command, args []string) {
@@ -60,6 +54,7 @@ func runInitRepo(cmd *cobra.Command, args []string) {
 	cr := util.GetCopyright(copyright)
 
 	fmt.Printf("Initializing project structure...\n")
+    RunVendorInstall(nil, nil)
 	createBazelWorkspace()
 	createControllerManager(cr)
 	createInstaller(cr)
@@ -78,10 +73,6 @@ func runInitRepo(cmd *cobra.Command, args []string) {
 	}
 	os.MkdirAll("bin", 0700)
 
-	if installDeps {
-		RunVendorInstall(nil, nil)
-	}
-
 	createBoilerplate()
 	fmt.Printf("Next: Create a resource using `kubebuilder create resource`.\n")
 }
@@ -93,8 +84,3 @@ func execute(path, templateName, templateValue string, data interface{}) {
 	}
 	util.WriteIfNotFound(filepath.Join(dir, path), templateName, templateValue, data)
 }
-
-//# Build the reference documentation
-//FROM pwittrock/brodocs as brodocs
-//
-//RUN ./runbrodocs.sh

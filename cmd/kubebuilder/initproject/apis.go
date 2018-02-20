@@ -14,41 +14,38 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package init_repo
+package initproject
 
 import (
+	"fmt"
 	"path/filepath"
 )
 
-// createPackage creates a new go package with a doc.go file
-func createPackage(boilerplate, path string) {
-	pkg := filepath.Base(path)
+// createAPIs creates a new package under pkg/apis
+func createAPIs(boilerplate string) {
+	fmt.Printf("\t%s/\n", filepath.Join("pkg", "apis"))
 	execute(
-		filepath.Join(path, "doc.go"),
-		"pkg-template", packageDocTemplate,
-		packageDocTemplateArguments{
+		filepath.Join("pkg", "apis", "doc.go"),
+		"apis-template",
+		apisDocTemplate,
+		apisDocTemplateArguments{
 			boilerplate,
-			pkg,
-		})
+			domain,
+		},
+	)
 }
 
-type packageDocTemplateArguments struct {
+type apisDocTemplateArguments struct {
 	BoilerPlate string
-	Package     string
+	Domain      string
 }
 
-var packageDocTemplate = `
+var apisDocTemplate = `
 {{.BoilerPlate}}
 
+//
+// +domain={{.Domain}}
 
-package {{.Package}}
+package apis
 
 `
-
-func createBoilerplate() {
-	execute(
-		filepath.Join("boilerplate.go.txt"),
-		"boilerplate-template", boilerplateTemplate, nil)
-}
-
-var boilerplateTemplate = ``

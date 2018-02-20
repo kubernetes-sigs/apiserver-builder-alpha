@@ -14,12 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package init_repo
+package initproject
 
 import (
+    "fmt"
 	"path/filepath"
 
-	"fmt"
 	"github.com/kubernetes-sigs/kubebuilder/cmd/kubebuilder/util"
 )
 

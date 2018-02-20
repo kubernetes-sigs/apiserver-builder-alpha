@@ -14,17 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package init_repo
+package initproject
 
 import (
 	"archive/tar"
 	"compress/gzip"
+    "fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 
-	"fmt"
 	"github.com/spf13/cobra"
 )
 
@@ -95,18 +95,15 @@ func RunVendorInstall(cmd *cobra.Command, args []string) {
 		deleteOld()
 	}
 
-	// Move up two directories from the location of the `kubebuilder`
-	// executable to find the `vendor` directory we package with our
-	// releases.
+    // Get the executable directory
 	e, err := os.Executable()
 	if err != nil {
 		log.Fatal("unable to get directory of kubebuilder tools")
 	}
-
-	e = filepath.Dir(filepath.Dir(e))
+	e = filepath.Dir(e)
 
 	// read the file
-	f := filepath.Join(e, "bin", "vendor.tar.gz")
+	f := filepath.Join(e, "vendor.tar.gz")
 	fr, err := os.Open(f)
 	if err != nil {
 		log.Fatalf("failed to read vendor tar file %s %v", f, err)
@@ -124,8 +121,10 @@ func RunVendorInstall(cmd *cobra.Command, args []string) {
 	tr := tar.NewReader(gr)
 
 	for file, err := tr.Next(); err == nil; file, err = tr.Next() {
-		p := filepath.Join(".", file.Name)
-
+        if file.FileInfo().IsDir() {
+            continue
+        }
+        p := filepath.Join(".", file.Name)
 		if Update && filepath.Dir(p) == "." {
 			continue
 		}
