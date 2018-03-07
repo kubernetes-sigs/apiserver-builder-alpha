@@ -269,7 +269,7 @@ certain fields.
 
 If unspecified in your type, a default ValidateUpdate will be provided
 by the apiserver-builder.  Can be overriden by specifying the function
-`<ResourceType>Strategy.PrepareForUpdate`.
+`<ResourceType>Strategy.ValidateUpdate`.
 
 *PrepareForUpdate*: Similar to PrepareForCreate, but for update operations.
 
