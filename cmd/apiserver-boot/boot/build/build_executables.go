@@ -53,7 +53,7 @@ apiserver-boot build executables --bazel --gazelle
 apiserver-boot build executables --bazel
 
 # Run Bazel without generating BUILD files or generated code
-apiserver-boot build executables --bazel --generated=false
+apiserver-boot build executables --bazel --generate=false
 `,
 	Run: RunBuildExecutables,
 }
