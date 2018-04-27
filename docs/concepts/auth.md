@@ -174,8 +174,8 @@ in-cluster non-human clients.
 
 In this case, addon API servers extract the token from the HTTP request,
 and verify it against another API server using a `TokenReview`. In common
-cases, this is the main Kubernetes API server.  This allows users who are
-can authentication with the main Kubernetes system to also authenticate
+cases, this is the main Kubernetes API server.  This allows users who
+can authenticate with the main Kubernetes system to also authenticate
 with addon API servers.
 
 By default, the addon API servers search for the connection information
