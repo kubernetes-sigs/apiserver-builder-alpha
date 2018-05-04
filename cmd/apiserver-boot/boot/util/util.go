@@ -89,7 +89,7 @@ func GetDomain() string {
 	r := regexp.MustCompile("\\+domain=(.*)")
 	l := r.FindSubmatch(b)
 	if len(l) < 2 {
-		log.Fatalf("pkg/apis/doc.go does not contain the domain (// +domain=.*)", l)
+		log.Fatalf("pkg/apis/doc.go does not contain the domain (// +domain=.*)")
 	}
 	Domain = string(l[1])
 	return Domain
