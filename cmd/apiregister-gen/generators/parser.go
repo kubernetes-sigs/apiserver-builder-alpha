@@ -485,16 +485,21 @@ func ParseSubresourceTag(c *APIResource, tag string) SubresourceTags {
 func (b *APIsBuilder) GetResourceTag(c *types.Type) string {
 	comments := Comments(c.CommentLines)
 	resource := comments.GetTag("resource", ":")
-	if len(resource) == 0 {
-		panic(errors.Errorf("Must specify +resource comment for type %v", c.Name))
+	kbResource := comments.GetTag("kubebuilder:resource", ":")
+	if len(resource) != 0 {
+		return resource
 	}
-	return resource
+	if len(kbResource) != 0 {
+		return kbResource
+	}
+	panic(errors.Errorf("Must specify +resource or kubebuilder:resource comment for type %v", c.Name))
 }
 
 func (b *APIsBuilder) GenClient(c *types.Type) bool {
 	comments := Comments(c.CommentLines)
 	resource := comments.GetTag("resource", ":")
-	return len(resource) > 0
+	kbResource := comments.GetTag("kubebuilder:resource", ":")
+	return len(resource) > 0 || len(kbResource) > 0
 }
 
 func (b *APIsBuilder) GenDeepCopy(c *types.Type) bool {
@@ -504,11 +509,15 @@ func (b *APIsBuilder) GenDeepCopy(c *types.Type) bool {
 
 func (b *APIsBuilder) GetControllerTag(c *types.Type) string {
 	comments := Comments(c.CommentLines)
-	resource := comments.GetTag("controller", ":")
-	if len(resource) == 0 {
-		panic(errors.Errorf("Must specify +controller comment for type %v", c.Name))
+	controller := comments.GetTag("controller", ":")
+	if len(controller) != 0 {
+		return controller
 	}
-	return resource
+	kbController := comments.GetTag("kubebuilder:controller", ":")
+	if len(kbController) != 0 {
+		return kbController
+	}
+	panic(errors.Errorf("Must specify +controller or +kubebuilder:controller comment for type %v", c.Name))
 }
 
 func (b *APIsBuilder) GetSubresourceTags(c *types.Type) []string {

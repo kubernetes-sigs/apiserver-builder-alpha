@@ -29,7 +29,7 @@ import (
 // IsAPIResource returns true if t has a +resource comment tag
 func IsAPIResource(t *types.Type) bool {
 	for _, c := range t.CommentLines {
-		if strings.Contains(c, "+resource") {
+		if strings.Contains(c, "+resource") || strings.Contains(c, "+kubebuilder:resource") {
 			return true
 		}
 	}
@@ -59,7 +59,7 @@ func IsNonNamespaced(t *types.Type) bool {
 
 func IsController(t *types.Type) bool {
 	for _, c := range t.CommentLines {
-		if strings.Contains(c, "+controller") {
+		if strings.Contains(c, "+controller") || strings.Contains(c, "+kubebuilder:controller") {
 			return true
 		}
 	}
