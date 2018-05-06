@@ -148,7 +148,6 @@ func RunApiserverMinikube() *exec.Cmd {
 		fmt.Sprintf("--kubeconfig=%s", config),
 		fmt.Sprintf("--authentication-kubeconfig=%s", config),
 		fmt.Sprintf("--authorization-kubeconfig=%s", config),
-		"--authentication-skip-lookup",
 		fmt.Sprintf("--audit-webhook-config-file=%s", config),
 	}
 
