@@ -17,8 +17,8 @@ Use the `--non-namespaced=true` flag when creating a resource:
 
 Non-namespaced resources have the following differences from namespaced resources:
 
-- nonNamespaced comment directive above the type
-  - `// +nonNamespaced=true` comment under `// +genclient=true`
+- nonNamespaced comment directive in `genclient`
+  - `// +genclient=nonNamespaced`
 - Strategy and StatusStrategy override NamespacedScoped to false
   - `func ({{.Kind}}Strategy) NamespaceScoped() bool { return false }`
   - `func ({{.Kind}}StatusStrategy) NamespaceScoped() bool { return false }`
