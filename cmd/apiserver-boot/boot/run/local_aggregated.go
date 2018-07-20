@@ -93,6 +93,9 @@ func RunLocalMinikube(cmd *cobra.Command, args []string) {
 		build.RunBuildExecutables(cmd, args)
 	}
 
+	// Indicate whether cmd quits
+	stopCh := make(chan struct{})
+
 	r := map[string]interface{}{}
 	for _, s := range toRun {
 		r[s] = nil
@@ -112,24 +115,38 @@ func RunLocalMinikube(cmd *cobra.Command, args []string) {
 	// Start etcd
 	if _, f := r["etcd"]; f {
 		etcd = "http://localhost:2379"
-		etcdCmd := RunEtcd()
-		defer etcdCmd.Process.Kill()
+		etcdCmd := RunEtcd(stopCh)
+		defer func() {
+			if etcdCmd.Process != nil {
+				etcdCmd.Process.Kill()
+			}
+		}()
 		time.Sleep(time.Second * 2)
 	}
 
 	// Start apiserver
 	if _, f := r["apiserver"]; f {
-		go RunApiserverMinikube()
+		apiCmd := RunApiserver(stopCh)
+		defer func() {
+			if apiCmd.Process != nil {
+				apiCmd.Process.Kill()
+			}
+		}()
 		time.Sleep(time.Second * 2)
 	}
 
 	// Start controller manager
 	if _, f := r["controller-manager"]; f {
-		go RunControllerManager()
+		controllerCmd := RunControllerManager(stopCh)
+		defer func() {
+			if controllerCmd.Process != nil {
+				controllerCmd.Process.Kill()
+			}
+		}()
 	}
 
 	fmt.Printf("to test the server run `kubectl api-versions`, if you specified --kubeconfig you must also provide the flag `--kubeconfig %s`\n", config)
-	select {} // wait forever
+	<-stopCh // wait forever
 }
 
 func RunApiserverMinikube() *exec.Cmd {
