@@ -98,6 +98,9 @@ func RunLocal(cmd *cobra.Command, args []string) {
 
 	WriteKubeConfig()
 
+	// Indicate whether cmd quits
+	stopCh := make(chan struct{})
+
 	r := map[string]interface{}{}
 	for _, s := range toRun {
 		r[s] = nil
@@ -106,27 +109,41 @@ func RunLocal(cmd *cobra.Command, args []string) {
 	// Start etcd
 	if _, f := r["etcd"]; f {
 		etcd = "http://localhost:2379"
-		etcdCmd := RunEtcd()
-		defer etcdCmd.Process.Kill()
+		etcdCmd := RunEtcd(stopCh)
+		defer func() {
+			if etcdCmd.Process != nil {
+				etcdCmd.Process.Kill()
+			}
+		}()
 		time.Sleep(time.Second * 2)
 	}
 
 	// Start apiserver
 	if _, f := r["apiserver"]; f {
-		go RunApiserver()
+		apiCmd := RunApiserver(stopCh)
+		defer func() {
+			if apiCmd.Process != nil {
+				apiCmd.Process.Kill()
+			}
+		}()
 		time.Sleep(time.Second * 2)
 	}
 
 	// Start controller manager
 	if _, f := r["controller-manager"]; f {
-		go RunControllerManager()
+		controllerCmd := RunControllerManager(stopCh)
+		defer func() {
+			if controllerCmd.Process != nil {
+				controllerCmd.Process.Kill()
+			}
+		}()
 	}
 
 	fmt.Printf("to test the server run `kubectl --kubeconfig %s api-versions`\n", config)
-	select {} // wait forever
+	<-stopCh // wait forever
 }
 
-func RunEtcd() *exec.Cmd {
+func RunEtcd(stopCh chan struct{}) *exec.Cmd {
 	etcdCmd := exec.Command("etcd")
 	if printetcd {
 		etcdCmd.Stderr = os.Stderr
@@ -136,16 +153,15 @@ func RunEtcd() *exec.Cmd {
 	fmt.Printf("%s\n", strings.Join(etcdCmd.Args, " "))
 	go func() {
 		err := etcdCmd.Run()
-		defer etcdCmd.Process.Kill()
 		if err != nil {
-			log.Fatalf("Failed to run etcd %v", err)
-			os.Exit(-1)
+			log.Printf("Failed to run etcd %v", err)
+			stopCh <- struct{}{}
 		}
 	}()
 	return etcdCmd
 }
 
-func RunApiserver() *exec.Cmd {
+func RunApiserver(stopCh chan struct{}) *exec.Cmd {
 	if len(server) == 0 {
 		server = "bin/apiserver"
 	}
@@ -168,17 +184,18 @@ func RunApiserver() *exec.Cmd {
 		apiserverCmd.Stdout = os.Stdout
 	}
 
-	err := apiserverCmd.Run()
-	if err != nil {
-		defer apiserverCmd.Process.Kill()
-		log.Fatalf("Failed to run apiserver %v", err)
-		os.Exit(-1)
-	}
+	go func() {
+		err := apiserverCmd.Run()
+		if err != nil {
+			log.Printf("Failed to run apiserver %v", err)
+			stopCh <- struct{}{}
+		}
+	}()
 
 	return apiserverCmd
 }
 
-func RunControllerManager() *exec.Cmd {
+func RunControllerManager(stopCh chan struct{}) *exec.Cmd {
 	if len(controllermanager) == 0 {
 		controllermanager = "bin/controller-manager"
 	}
@@ -191,12 +208,13 @@ func RunControllerManager() *exec.Cmd {
 		controllerManagerCmd.Stdout = os.Stdout
 	}
 
-	err := controllerManagerCmd.Run()
-	if err != nil {
-		defer controllerManagerCmd.Process.Kill()
-		log.Fatalf("Failed to run controller-manager %v", err)
-		os.Exit(-1)
-	}
+	go func() {
+		err := controllerManagerCmd.Run()
+		if err != nil {
+			log.Printf("Failed to run controller-manager %v", err)
+			stopCh <- struct{}{}
+		}
+	}()
 
 	return controllerManagerCmd
 }
