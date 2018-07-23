@@ -17,6 +17,7 @@ limitations under the License.
 package run
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -100,8 +101,9 @@ func RunLocal(cmd *cobra.Command, args []string) {
 
 	WriteKubeConfig()
 
-	// Indicate whether cmd quits
-	stopCh := make(chan struct{})
+	// parent context to indicate whether cmds quit
+	ctx, cancel := context.WithCancel(context.Background())
+	ctx = util.CancelWhenSignaled(ctx)
 
 	r := map[string]interface{}{}
 	for _, s := range toRun {
@@ -111,59 +113,38 @@ func RunLocal(cmd *cobra.Command, args []string) {
 	// Start etcd
 	if _, f := r["etcd"]; f {
 		etcd = "http://localhost:2379"
-		etcdCmd := RunEtcd(stopCh)
-		defer func() {
-			if etcdCmd.Process != nil {
-				etcdCmd.Process.Kill()
-			}
-		}()
+		RunEtcd(ctx, cancel)
 		time.Sleep(time.Second * 2)
 	}
 
 	// Start apiserver
 	if _, f := r["apiserver"]; f {
-		apiCmd := RunApiserver(stopCh)
-		defer func() {
-			if apiCmd.Process != nil {
-				apiCmd.Process.Kill()
-			}
-		}()
+		RunApiserver(ctx, cancel)
 		time.Sleep(time.Second * 2)
 	}
 
 	// Start controller manager
 	if _, f := r["controller-manager"]; f {
-		controllerCmd := RunControllerManager(stopCh)
-		defer func() {
-			if controllerCmd.Process != nil {
-				controllerCmd.Process.Kill()
-			}
-		}()
+		RunControllerManager(ctx, cancel)
 	}
 
 	fmt.Printf("to test the server run `kubectl --kubeconfig %s api-versions`\n", config)
-	<-stopCh // wait forever
+	<-ctx.Done() // wait forever
 }
 
-func RunEtcd(stopCh chan struct{}) *exec.Cmd {
+func RunEtcd(ctx context.Context, cancel context.CancelFunc) *exec.Cmd {
 	etcdCmd := exec.Command("etcd")
 	if printetcd {
 		etcdCmd.Stderr = os.Stderr
 		etcdCmd.Stdout = os.Stdout
 	}
 
-	fmt.Printf("%s\n", strings.Join(etcdCmd.Args, " "))
-	go func() {
-		err := etcdCmd.Run()
-		if err != nil {
-			log.Printf("Failed to run etcd %v", err)
-			stopCh <- struct{}{}
-		}
-	}()
+	go runCommon(etcdCmd, ctx, cancel)
+
 	return etcdCmd
 }
 
-func RunApiserver(stopCh chan struct{}) *exec.Cmd {
+func RunApiserver(ctx context.Context, cancel context.CancelFunc) *exec.Cmd {
 	if len(server) == 0 {
 		server = "bin/apiserver"
 	}
@@ -182,45 +163,58 @@ func RunApiserver(stopCh chan struct{}) *exec.Cmd {
 	apiserverCmd := exec.Command(server,
 		flags...,
 	)
-	fmt.Printf("%s\n", strings.Join(apiserverCmd.Args, " "))
 	if printapiserver {
 		apiserverCmd.Stderr = os.Stderr
 		apiserverCmd.Stdout = os.Stdout
 	}
 
-	go func() {
-		err := apiserverCmd.Run()
-		if err != nil {
-			log.Printf("Failed to run apiserver %v", err)
-			stopCh <- struct{}{}
-		}
-	}()
+	go runCommon(apiserverCmd, ctx, cancel)
 
 	return apiserverCmd
 }
 
-func RunControllerManager(stopCh chan struct{}) *exec.Cmd {
+func RunControllerManager(ctx context.Context, cancel context.CancelFunc) *exec.Cmd {
 	if len(controllermanager) == 0 {
 		controllermanager = "bin/controller-manager"
 	}
+
 	controllerManagerCmd := exec.Command(controllermanager,
 		fmt.Sprintf("--kubeconfig=%s", config),
 	)
-	fmt.Printf("%s\n", strings.Join(controllerManagerCmd.Args, " "))
 	if printcontrollermanager {
 		controllerManagerCmd.Stderr = os.Stderr
 		controllerManagerCmd.Stdout = os.Stdout
 	}
 
+	go runCommon(controllerManagerCmd, ctx, cancel)
+
+	return controllerManagerCmd
+}
+
+// run a command via goroutine
+func runCommon(cmd *exec.Cmd, ctx context.Context, cancel context.CancelFunc) {
+	stopCh := make(chan error)
+	cmdName := cmd.Args[0]
+
+	fmt.Printf("%s\n", strings.Join(cmd.Args, " "))
 	go func() {
-		err := controllerManagerCmd.Run()
+		err := cmd.Run()
 		if err != nil {
-			log.Printf("Failed to run controller-manager %v", err)
-			stopCh <- struct{}{}
+			log.Printf("Failed to run %s, error: %v\n", cmdName, err)
+			stopCh <- err
+		} else {
+			stopCh <- nil
 		}
 	}()
 
-	return controllerManagerCmd
+	select {
+	case <-stopCh:
+		// my command quited
+		cancel()
+	case <-ctx.Done():
+		// other commands quited
+		cmd.Process.Kill()
+	}
 }
 
 func WriteKubeConfig() {

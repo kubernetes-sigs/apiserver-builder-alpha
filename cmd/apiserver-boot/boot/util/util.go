@@ -17,6 +17,7 @@ limitations under the License.
 package util
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -26,6 +27,8 @@ import (
 	"regexp"
 	"strings"
 	"text/template"
+
+	"os/signal"
 
 	"github.com/markbates/inflect"
 )
@@ -138,4 +141,17 @@ func CheckInstall() {
 			"\napiserver-boot must be installed using a release tar.gz downloaded from the git repo.",
 			strings.Join(missing, ","))
 	}
+}
+
+func CancelWhenSignaled(parent context.Context) context.Context {
+	ctx, cancel := context.WithCancel(parent)
+
+	go func() {
+		signalChannel := make(chan os.Signal)
+		signal.Notify(signalChannel, os.Interrupt, os.Kill)
+		<-signalChannel
+		cancel()
+	}()
+
+	return ctx
 }
