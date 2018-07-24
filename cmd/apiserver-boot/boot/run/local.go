@@ -201,10 +201,10 @@ func runCommon(cmd *exec.Cmd, ctx context.Context, cancel context.CancelFunc) {
 		err := cmd.Run()
 		if err != nil {
 			log.Printf("Failed to run %s, error: %v\n", cmdName, err)
-			stopCh <- err
 		} else {
-			stopCh <- nil
+			log.Printf("Command %s quitted normally\n", cmdName)
 		}
+		stopCh <- err
 	}()
 
 	select {
@@ -213,7 +213,9 @@ func runCommon(cmd *exec.Cmd, ctx context.Context, cancel context.CancelFunc) {
 		cancel()
 	case <-ctx.Done():
 		// other commands quited
-		cmd.Process.Kill()
+		if cmd.Process != nil {
+			cmd.Process.Kill()
+		}
 	}
 }
 
