@@ -6,7 +6,7 @@ Requires the following to already be installed:
 - docker
 - openssl
 - base64
-- glide (optional)
+- dep (optional)
 - tar
 - cp
 

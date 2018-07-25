@@ -5,10 +5,6 @@ go:
 
 go_import_path: github.com/kubernetes-incubator/apiserver-builder
 
-cache:
-  directories:
-  - $HOME/.glide
-
 git:
   depth: 3
 
