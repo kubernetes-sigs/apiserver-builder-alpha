@@ -90,3 +90,16 @@ with the main Kubernetes API server and API aggregator.
 Instructions on how to run an apiserver using delegated auth with a minikube cluster
 
 Details [here](https://github.com/kubernetes-incubator/apiserver-builder/blob/master/docs/using_minikube.md)
+
+## Community, discussion, contribution, and support
+
+Learn how to engage with the Kubernetes community on the [community page](http://kubernetes.io/community/).
+
+You can reach the maintainers of this project at:
+
+- [Slack channel](https://kubernetes.slack.com/messages/kubebuilder)
+- [Mailing list](https://groups.google.com/forum/#!forum/kubebuilder)
+
+### Code of conduct
+
+Participation in the Kubernetes community is governed by the [Kubernetes Code of Conduct](code-of-conduct.md).
