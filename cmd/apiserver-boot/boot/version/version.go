@@ -58,8 +58,8 @@ func (v Version) Print() {
 
 var versionCmd = &cobra.Command{
 	Use:     "version",
-	Short:   "Print the apisever-builder version.",
-	Long:    `Print the apisever-builder version.`,
+	Short:   "Print the apiserver-builder version.",
+	Long:    `Print the apiserver-builder version.`,
 	Example: `apiserver-boot version`,
 	Run:     RunVersion,
 }
