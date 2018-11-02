@@ -41,8 +41,7 @@ func CreateInstallGenerator(apigroup *APIGroup, filename string) generator.Gener
 
 func (d *installGenerator) Imports(c *generator.Context) []string {
 	return []string{
-		"k8s.io/apimachinery/pkg/apimachinery/announced",
-		"k8s.io/apimachinery/pkg/apimachinery/registered",
+		`utilruntime "k8s.io/apimachinery/pkg/util/runtime"`,
 		"k8s.io/apimachinery/pkg/runtime",
 		path.Dir(d.apigroup.Pkg.Path),
 	}
@@ -58,11 +57,7 @@ func (d *installGenerator) Finalize(context *generator.Context, w io.Writer) err
 }
 
 var InstallAPITemplate = `
-func Install(
-	groupFactoryRegistry announced.APIGroupFactoryRegistry,
-	registry *registered.APIRegistrationManager,
-	scheme *runtime.Scheme) {
-
-	apis.Get{{ .GroupTitle }}APIBuilder().Install(groupFactoryRegistry, registry, scheme)
+func Install(scheme *runtime.Scheme) {
+	utilruntime.Must(apis.Get{{ .GroupTitle }}APIBuilder().AddToScheme(scheme))
 }
 `
