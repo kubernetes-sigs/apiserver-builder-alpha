@@ -19,73 +19,35 @@ package api
 import (
 	"flag"
 	"fmt"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"path/filepath"
+	"regexp"
 	"strings"
 
-	"github.com/go-openapi/spec"
 	"github.com/go-openapi/loads"
+	"github.com/go-openapi/spec"
 )
 
 var BuildOps = flag.Bool("build-operations", true, "If true build operations in the docs.")
 
-// OperationCategory defines a group of related operations
-type OperationCategory struct {
-	// Name is the display name of this group
-	Name string `yaml:",omitempty"`
-	// Operations are the collection of Operations in this group
-	OperationTypes []OperationType `yaml:"operation_types,omitempty"`
-	// Default is true if this is the default operation group for operations that do not match any other groups
-	Default bool `yaml:",omitempty"`
-
-	Operations []*Operation
-}
-
-// Operation defines a highlevel operation type such as Read, Replace, Patch
-type OperationType struct {
-	// Name is the display name of this operation
-	Name string `yaml:",omitempty"`
-	// Match is the regular expression of operation IDs that match this group where '${resource}' matches the resource name.
-	Match string `yaml:",omitempty"`
-}
-
 // GetOperationId returns the ID of the operation for the given definition
-func (ot OperationType) GetOperationId(definition string) string {
-	return strings.Replace(ot.Match, "${resource}", definition, -1)
-}
-
-type Operations map[string]*Operation
-
-type Operation struct {
-	item          spec.PathItem
-	op            *spec.Operation
-	ID            string
-	Type          OperationType
-	Path          string
-	HttpMethod    string
-	Definition    *Definition
-	BodyParams    Fields
-	QueryParams   Fields
-	PathParams    Fields
-	HttpResponses HttpResponses
-
-	ExampleConfig ExampleConfig
-}
-
-type ExampleText struct {
-	Tab  string
-	Type string
-	Text string
-	Msg  string
+func (ot OperationType) GetOperationId(d string) string {
+	return strings.Replace(ot.Match, "${resource}", d, -1)
 }
 
 func (o *Operation) GetExampleRequests() []ExampleText {
 	r := []ExampleText{}
 	for _, p := range GetExampleProviders() {
-		r = append(r, ExampleText{
-			Tab: p.GetTab(),
-			Type: p.GetRequestType(),
-			Text: p.GetRequest(o),
-			Msg:  p.GetRequestMessage(),
-		})
+		text := p.GetRequest(o)
+		if len(text) > 0 {
+			r = append(r, ExampleText{
+				Tab:  p.GetTab(),
+				Type: p.GetRequestType(),
+				Text: p.GetRequest(o),
+				Msg:  p.GetRequestMessage(),
+			})
+		}
 	}
 	return r
 }
@@ -93,12 +55,15 @@ func (o *Operation) GetExampleRequests() []ExampleText {
 func (o *Operation) GetExampleResponses() []ExampleText {
 	r := []ExampleText{}
 	for _, p := range GetExampleProviders() {
-		r = append(r, ExampleText{
-			Tab: p.GetTab(),
-			Type: p.GetResponseType(),
-			Text: p.GetResponse(o),
-			Msg: p.GetResponseMessage(),
-		})
+		text := p.GetResponse(o)
+		if len(text) > 0 {
+			r = append(r, ExampleText{
+				Tab:  p.GetTab(),
+				Type: p.GetResponseType(),
+				Text: p.GetResponse(o),
+				Msg:  p.GetResponseMessage(),
+			})
+		}
 	}
 	return r
 }
@@ -107,19 +72,11 @@ func (o *Operation) Description() string {
 	return o.op.Description
 }
 
-type HttpResponses []*HttpResponse
-
 func (a HttpResponses) Len() int      { return len(a) }
 func (a HttpResponses) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a HttpResponses) Less(i, j int) bool {
-	return a[i].Code < a[j].Code
-}
+func (a HttpResponses) Less(i, j int) bool { return a[i].Code < a[j].Code }
 
-type HttpResponse struct {
-	Field
-	Code string
-}
-
+// VisitOperations calls fn once for each operation found in the collection of Documents
 // VisitOperations calls fn once for each operation found in the collection of Documents
 func VisitOperations(specs []*loads.Document, fn func(operation Operation)) {
 	for _, d := range specs {
@@ -159,6 +116,72 @@ func getOperationsForItem(pathItem spec.PathItem) map[string]*spec.Operation {
 	}
 }
 
-func (operation *Operation) GetDisplayHttp() string {
-	return fmt.Sprintf("%s %s", operation.HttpMethod, operation.Path)
+func (o *Operation) GetDisplayHttp() string {
+	return fmt.Sprintf("%s %s", o.HttpMethod, o.Path)
+}
+
+func (o *Operation) VerifyBlackListed() {
+	switch {
+	case strings.Contains(o.ID, "connectCoreV1Patch"):
+	case strings.Contains(o.ID, "createCoreV1NamespacedPodBinding"):
+	case strings.Contains(o.ID, "getCodeVersion"):
+	case strings.Contains(o.ID, "logFileHandler"):
+	case strings.Contains(o.ID, "logFileListHandler"):
+	case strings.Contains(o.ID, "NamespacedPodAttach"):
+	case strings.Contains(o.ID, "NamespacedPodExec"):
+	case strings.Contains(o.ID, "replaceCoreV1NamespaceFinalize"):
+	case strings.Contains(o.ID, "V1beta1CertificateSigningRequestApproval"):
+	case strings.Contains(o.ID, "V1beta1NamespacedReplicationControllerDummyScale"):
+	default:
+		fmt.Printf("No Definition found for %s [%s].  \n", o.ID, o.Path)
+	}
+}
+
+func (o *Operation) GetMethod() string {
+	switch o.HttpMethod {
+	case "GET":
+		return "List"
+	case "POST":
+		return "Create"
+	case "PATCH":
+		return "Patch"
+	case "DELETE":
+		return "Delete"
+	case "PUT":
+		return "Update"
+	}
+	return ""
+}
+
+// /apis/<group>/<version>/namespaces/{namespace}/<resources>/{name}/<subresource>
+var matchNamespaced = regexp.MustCompile(
+	`^/apis/([A-Za-z0-9\.]+)/([A-Za-z0-9]+)/namespaces/\{namespace\}/([A-Za-z0-9\.]+)/\{name\}/([A-Za-z0-9\.]+)$`)
+var matchUnnamespaced = regexp.MustCompile(
+	`^/apis/([A-Za-z0-9\.]+)/([A-Za-z0-9]+)/([A-Za-z0-9\.]+)/\{name\}/([A-Za-z0-9\.]+)$`)
+
+func (o *Operation) GetGroupVersionKindSub() (string, string, string, string) {
+	if matchNamespaced.MatchString(o.Path) {
+		m := matchNamespaced.FindStringSubmatch(o.Path)
+		return strings.Split(m[1], ".")[0], m[2], m[3], m[4]
+	} else if matchUnnamespaced.MatchString(o.Path) {
+		m := matchUnnamespaced.FindStringSubmatch(o.Path)
+		return m[1], m[2], m[3], m[4]
+	}
+	return "", "", "", ""
+}
+
+// initExample reads the example config for an operation
+func (o *Operation) initExample(config *Config) {
+	path := o.Type.Name + ".yaml"
+	path = filepath.Join(*ConfigDir, config.ExampleLocation, o.Definition.Name, path)
+	path = strings.Replace(path, " ", "_", -1)
+	path = strings.ToLower(path)
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		return
+	}
+	err = yaml.Unmarshal(content, &o.ExampleConfig)
+	if err != nil {
+		panic(fmt.Sprintf("Could not Unmarshal ExampleConfig yaml: %s\n", content))
+	}
 }

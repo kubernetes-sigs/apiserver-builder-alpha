@@ -17,11 +17,20 @@ limitations under the License.
 package api
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-openapi/loads"
+)
+
+const (
+	patchStrategyKey = "x-kubernetes-patch-strategy"
+	patchMergeKeyKey = "x-kubernetes-patch-merge-key"
+	resourceNameKey  = "x-kubernetes-resource"
+	typeKey          = "x-kubernetes-group-version-kind"
 )
 
 // Loads all of the open-api documents
@@ -46,4 +55,100 @@ func LoadOpenApiSpec() []*loads.Document {
 		os.Exit(1)
 	}
 	return docs
+}
+
+// return the map from short group name to full group name
+func buildGroupMap(specs []*loads.Document) map[string]string {
+	mapping := map[string]string{}
+	mapping["apiregistration"] = "apiregistration.k8s.io"
+	mapping["apiextensions"] = "apiextensions.k8s.io"
+	mapping["certificates"] = "certificates.k8s.io"
+	mapping["meta"] = "meta"
+	mapping["core"] = "core"
+	mapping["extensions"] = "extensions"
+
+	for _, spec := range specs {
+		for name, spec := range spec.Spec().Definitions {
+			group, _, _ := GuessGVK(name)
+			if _, found := mapping[group]; found {
+				continue
+			}
+			// special groups where group name from extension is empty!
+			if group == "meta" || group == "core" {
+				continue
+			}
+
+			// full group not exposed as x-kubernetes- openapi extensions
+			// from kube-aggregator project or apiextensions-apiserver project
+			if group == "apiregistration" || group == "apiextensions" {
+				continue
+			}
+
+			if extension, found := spec.Extensions[typeKey]; found {
+				gvks, ok := extension.([]interface{})
+				if ok {
+					for _, item := range gvks {
+						gvk, ok := item.(map[string]interface{})
+						if ok {
+							mapping[group] = gvk["group"].(string)
+							break
+						}
+					}
+				}
+			}
+		}
+	}
+	return mapping
+}
+
+func LoadDefinitions(specs []*loads.Document, s *Definitions) {
+	groups := map[string]string{}
+	groupMapping := buildGroupMap(specs)
+	for _, spec := range specs {
+		for name, spec := range spec.Spec().Definitions {
+			resource := ""
+			if r, ok := spec.Extensions.GetString(resourceNameKey); ok {
+				resource = r
+			}
+
+			// This actually skips the following groupsi, i.e. old definitions
+			//  'io.k8s.kubernetes.pkg.api.*'
+			//  'io.k8s.kubernetes.pkg.apis.*'
+			if strings.HasPrefix(spec.Description, "Deprecated. Please use") {
+				continue
+			}
+
+			// NOTE:
+			if strings.Contains(name, "JSONSchemaPropsOrStringArray") {
+				continue
+			}
+
+			group, version, kind := GuessGVK(name)
+			if group == "" {
+				continue
+			} else if group == "error" {
+				panic(errors.New(fmt.Sprintf("Could not locate group for %s", name)))
+			}
+			groups[group] = ""
+
+			full_group, found := groupMapping[group]
+			if !found {
+				// fall back to group name if no mapping found
+				full_group = group
+			}
+
+			d := &Definition{
+				schema:        spec,
+				Name:          kind,
+				Version:       ApiVersion(version),
+				Kind:          ApiKind(kind),
+				Group:         ApiGroup(group),
+				GroupFullName: full_group,
+				ShowGroup:     true,
+				Resource:      resource,
+			}
+
+			s.All[d.Key()] = d
+		}
+	}
 }

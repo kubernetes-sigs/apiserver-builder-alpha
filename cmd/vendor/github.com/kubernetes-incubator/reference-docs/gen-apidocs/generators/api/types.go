@@ -17,8 +17,98 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
+	"strings"
+
+	"github.com/go-openapi/spec"
 )
+
+type ApiGroup string
+type ApiGroups []ApiGroup
+
+type ApiKind string
+
+type ApiVersion string
+type ApiVersions []ApiVersion
+func (a ApiVersion) String() string {
+	return string(a)
+}
+
+type SortDefinitionsByName []*Definition
+
+func (a SortDefinitionsByName) Len() int      { return len(a) }
+func (a SortDefinitionsByName) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a SortDefinitionsByName) Less(i, j int) bool {
+	if a[i].Name == a[j].Name {
+		if a[i].Version.String() == a[j].Version.String() {
+			return a[i].Group.String() < a[j].Group.String()
+		}
+		return a[i].Version.LessThan(a[j].Version)
+	}
+	return a[i].Name < a[j].Name
+}
+
+type SortDefinitionsByVersion []*Definition
+
+func (a SortDefinitionsByVersion) Len() int      { return len(a) }
+func (a SortDefinitionsByVersion) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a SortDefinitionsByVersion) Less(i, j int) bool {
+	switch {
+	case a[i].Version == a[j].Version:
+		return strings.Compare(a[i].Group.String(), a[j].Group.String()) < 0
+	default:
+		return a[i].Version.LessThan(a[j].Version)
+	}
+}
+
+type Definition struct {
+	// open-api schema for the definition
+	schema spec.Schema
+	// Display name of the definition (e.g. Deployment)
+	Name      string
+	Group     ApiGroup
+	ShowGroup bool
+
+	// Api version of the definition (e.g. v1beta1)
+	Version                 ApiVersion
+	Kind                    ApiKind
+	DescriptionWithEntities string
+	GroupFullName           string
+
+	// InToc is true if this definition should appear in the table of contents
+	InToc        bool
+	IsInlined    bool
+	IsOldVersion bool
+
+	FoundInField     bool
+	FoundInOperation bool
+
+	// Inline is a list of definitions that should appear inlined with this one in the documentations
+	Inline SortDefinitionsByName
+
+	// AppearsIn is a list of definition that this one appears in - e.g. PodSpec in Pod
+	AppearsIn SortDefinitionsByName
+
+	OperationCategories []*OperationCategory
+
+	// Fields is a list of fields in this definition
+	Fields Fields
+
+	OtherVersions SortDefinitionsByName
+	NewerVersions SortDefinitionsByName
+
+	Sample SampleConfig
+
+	FullName string
+	Resource string
+}
+
+// Definitions indexes open-api definitions
+type Definitions struct {
+	All    map[string]*Definition
+	ByKind map[string]SortDefinitionsByVersion
+}
+
+type DefinitionList []*Definition
 
 type Config struct {
 	ApiGroups           []ApiGroup          `yaml:"api_groups,omitempty"`
@@ -26,9 +116,8 @@ type Config struct {
 	OperationCategories []OperationCategory `yaml:"operation_categories,omitempty"`
 	ResourceCategories  []ResourceCategory  `yaml:"resource_categories,omitempty"`
 
-	// Used to map the group as the resource sees it to the group
-	// as the operation sees it
-	GroupMap            map[string]string
+	// Used to map the group as the resource sees it to the group as the operation sees it
+	GroupMap map[string]string
 
 	Definitions Definitions
 	Operations  Operations
@@ -36,45 +125,118 @@ type Config struct {
 
 // InlineDefinition defines a definition that should be inlined when displaying a Concept instead of appearing the in "Definitions"
 type InlineDefinition struct {
-	// Name is the name of the definition category
 	Name string `yaml:",omitempty"`
-	// Match the regular expression of defintion names that match this group where '${resource}' matches the resource name.
-	// e.g. if Match == "${resource}Spec" then DeploymentSpec would be inlined into the "Deployment" Concept
 	Match string `yaml:",omitempty"`
 }
 
-func (c Config) GetTopLevelConcepts() []string {
-	s := []string{}
-	for _, c := range c.ResourceCategories {
-		for _, r := range c.Resources {
-			s = append(s, r.Name)
-		}
-	}
-	return s
+type Field struct {
+	Name                    string
+	Type                    string
+	Description             string
+	DescriptionWithEntities string
+
+	Definition *Definition // Optional Definition for complex types
+
+	PatchStrategy string
+	PatchMergeKey string
 }
 
-/////////////////////////////////////////////////////
-// Resources
-/////////////////////////////////////////////////////
-type Resources []*Resource
+type Fields []*Field
 
-// ResourceCategory defines a category of Concepts
-type ResourceCategory struct {
+func (a Fields) Len() int           { return len(a) }
+func (a Fields) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a Fields) Less(i, j int) bool { return a[i].Name < a[j].Name }
+
+func (f Field) Link() string {
+	if f.Definition != nil {
+		return strings.Replace(f.Type, f.Definition.Name, f.Definition.MdLink(), -1)
+	} else {
+		return f.Type
+	}
+}
+
+func (f Field) FullLink() string {
+	if f.Definition != nil {
+		return strings.Replace(f.Type, f.Definition.Name, f.Definition.HrefLink(), -1)
+	} else {
+		return f.Type
+	}
+}
+
+// Operation defines a highlevel operation type such as Read, Replace, Patch
+type OperationType struct {
+	// Name is the display name of this operation
+	Name string `yaml:",omitempty"`
+	// Match is the regular expression of operation IDs that match this group where '${resource}' matches the resource name.
+	Match string `yaml:",omitempty"`
+}
+
+type ExampleText struct {
+	Tab  string
+	Type string
+	Text string
+	Msg  string
+}
+
+type HttpResponse struct {
+	Field
+	Code string
+}
+
+type HttpResponses []*HttpResponse
+
+type Operation struct {
+	item          spec.PathItem
+	op            *spec.Operation
+	ID            string
+	Type          OperationType
+	Path          string
+	HttpMethod    string
+	Definition    *Definition
+	BodyParams    Fields
+	QueryParams   Fields
+	PathParams    Fields
+	HttpResponses HttpResponses
+
+	ExampleConfig ExampleConfig
+}
+
+type Operations map[string]*Operation
+
+// OperationCategory defines a group of related operations
+type OperationCategory struct {
 	// Name is the display name of this group
 	Name string `yaml:",omitempty"`
-	// Include is the name of the _resource.md file to include in the index.html.md
-	Include string `yaml:",omitempty"`
-	// Resources are the collection of Resources in this group
-	Resources Resources `yaml:",omitempty"`
-	// LinkToMd is the relative path to the md file containing the contents that clicking on this should link to
-	LinkToMd string `yaml:"link_to_md,omitempty"`
+	// Operations are the collection of Operations in this group
+	OperationTypes []OperationType `yaml:"operation_types,omitempty"`
+	// Default is true if this is the default operation group for operations that do not match any other groups
+	Default bool `yaml:",omitempty"`
+
+	Operations []*Operation
 }
+
+type ExampleProvider interface {
+	GetTab() string
+	GetRequestMessage() string
+	GetResponseMessage() string
+	GetRequestType() string
+	GetResponseType() string
+	GetSampleType() string
+	GetSample(d *Definition) string
+	GetRequest(o *Operation) string
+	GetResponse(o *Operation) string
+}
+
+type EmptyExample struct{}
+type CurlExample struct{}
+type KubectlExample struct{}
 
 type Resource struct {
 	// Name is the display name of this Resource
 	Name    string `yaml:",omitempty"`
 	Version string `yaml:",omitempty"`
 	Group   string `yaml:",omitempty"`
+
 	// InlineDefinition is a list of definitions to show along side this resource when displaying it
 	InlineDefinition []string `yaml:inline_definition",omitempty"`
 	// DescriptionWarning is a warning message to show along side this resource when displaying it
@@ -94,6 +256,20 @@ type Resource struct {
 	Definition *Definition
 }
 
+type Resources []*Resource
+
+// ResourceCategory defines a category of Concepts
+type ResourceCategory struct {
+	// Name is the display name of this group
+	Name string `yaml:",omitempty"`
+	// Include is the name of the _resource.md file to include in the index.html.md
+	Include string `yaml:",omitempty"`
+	// Resources are the collection of Resources in this group
+	Resources Resources `yaml:",omitempty"`
+	// LinkToMd is the relative path to the md file containing the contents that clicking on this should link to
+	LinkToMd string `yaml:"link_to_md,omitempty"`
+}
+
 type ExampleConfig struct {
 	Name         string `yaml:",omitempty"`
 	Namespace    string `yaml:",omitempty"`
@@ -109,21 +285,3 @@ type SampleConfig struct {
 }
 
 type ResourceVisitor func(resource *Resource, d *Definition)
-
-// For each resource in the ToC, look up its definition and visit it.
-func (c *Config) VisitResourcesInToc(definitions Definitions, fn ResourceVisitor) {
-	missing := false
-	for _, cat := range c.ResourceCategories {
-		for _, resource := range cat.Resources {
-			if definition, found := definitions.GetByVersionKind(resource.Group, resource.Version, resource.Name); found {
-				fn(resource, definition)
-			} else {
-				fmt.Printf("Could not find definition for resource appearing in TOC: %s %s %s.\n", resource.Group, resource.Version, resource.Name)
-				missing = true
-			}
-		}
-	}
-	if missing {
-		fmt.Printf("All known definitions: %v\n", definitions.GetAllDefinitions())
-	}
-}

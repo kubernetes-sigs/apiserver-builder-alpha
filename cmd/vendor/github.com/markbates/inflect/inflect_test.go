@@ -96,6 +96,9 @@ var CapitalizeMixture = map[string]string{
 	"applicationController": "ApplicationController",
 	"Area51Controller":      "Area51Controller",
 	"id":                    "ID",
+	"SQL":                   "SQL",
+	"sql":                   "SQL",
+	"sQL":                   "SQL",
 }
 
 var CamelToUnderscore = map[string]string{
@@ -191,16 +194,18 @@ var UnderscoreToHuman = map[string]string{
 }
 
 var MixtureToTitleCase = map[string]string{
-	"active_record":      "Active Record",
-	"ActiveRecord":       "Active Record",
-	"action web service": "Action Web Service",
-	"Action Web Service": "Action Web Service",
-	"Action web service": "Action Web Service",
-	"actionwebservice":   "Actionwebservice",
-	"Actionwebservice":   "Actionwebservice",
-	"david's code":       "David's Code",
-	"David's code":       "David's Code",
-	"david's Code":       "David's Code",
+	"active_record":       "Active Record",
+	"ActiveRecord":        "Active Record",
+	"action web service":  "Action Web Service",
+	"Action Web Service":  "Action Web Service",
+	"Action web service":  "Action Web Service",
+	"actionwebservice":    "Actionwebservice",
+	"Actionwebservice":    "Actionwebservice",
+	"david's code":        "David's Code",
+	"David's code":        "David's Code",
+	"david's Code":        "David's Code",
+	"my_cool_URL_enabled": "My Cool URL Enabled",
+	"service_API_URL":     "Service API URL",
 }
 
 var OrdinalNumbers = map[string]string{
@@ -279,6 +284,7 @@ var Irregularities = map[string]string{
 	"child":  "children",
 	"sex":    "sexes",
 	"move":   "moves",
+	"human":  "humans",
 }
 
 type AcronymCase struct {
@@ -375,7 +381,7 @@ func TestSingularizePlural(t *testing.T) {
 }
 
 func TestSingularizeSingular(t *testing.T) {
-	for singular, _ := range SingularToPlural {
+	for singular := range SingularToPlural {
 		require.Equal(t, singular, Singularize(singular))
 		require.Equal(t, Capitalize(singular), Capitalize(Singularize(singular)))
 	}

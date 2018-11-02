@@ -17,20 +17,20 @@ limitations under the License.
 package generators
 
 import (
-	"io/ioutil"
-	"os"
+	// "io/ioutil"
+	// "os"
 	"sort"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	"k8s.io/kubernetes/pkg/kubectl/cmd"
-	cmdutil "k8s.io/kubernetes/pkg/kubectl/cmd/util"
+	// cmdutil "k8s.io/kubernetes/pkg/kubectl/cmd/util"
 )
 
 func GetSpec() KubectlSpec {
 	// Initialize a kubectl command that we can use to get the help documentation
-	kubectl := cmd.NewKubectlCommand(cmdutil.NewFactory(nil), os.Stdin, ioutil.Discard, ioutil.Discard)
+	kubectl := cmd.NewDefaultKubectlCommand()
 
 	// Create the structural representation
 	return NewKubectlSpec(kubectl)
