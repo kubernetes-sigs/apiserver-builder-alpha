@@ -18,10 +18,9 @@ package v1
 
 import (
 	"log"
+	"context"
 
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apiserver/pkg/endpoints/request"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
@@ -58,7 +57,7 @@ type FestivalStatus struct {
 }
 
 // Validate checks that an instance of Festival is well formed
-func (FestivalStrategy) Validate(ctx request.Context, obj runtime.Object) field.ErrorList {
+func (FestivalStrategy) Validate(ctx context.Context, obj runtime.Object) field.ErrorList {
 	o := obj.(*kingsport.Festival)
 	log.Printf("Validating fields for Festival %s\n", o.Name)
 	errors := field.ErrorList{}
