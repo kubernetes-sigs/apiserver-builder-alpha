@@ -32,6 +32,12 @@ var (
 
        etcd --config-file
        path to the server configuration file
+
+       etcd gateway
+       run the stateless pass-through etcd TCP connection forwarding proxy
+
+       etcd grpc-proxy
+       run the stateless etcd v3 gRPC L7 reverse proxy
 	`
 	flagsline = `
 member flags:
@@ -42,12 +48,14 @@ member flags:
 		path to the data directory.
 	--wal-dir ''
 		path to the dedicated wal directory.
-	--snapshot-count '10000'
+	--snapshot-count '100000'
 		number of committed transactions to trigger a snapshot to disk.
 	--heartbeat-interval '100'
 		time (in milliseconds) of a heartbeat interval.
 	--election-timeout '1000'
 		time (in milliseconds) for an election to timeout. See tuning documentation for details.
+	--initial-election-tick-advance 'true'
+		whether to fast-forward initial election ticks on boot for faster election.
 	--listen-peer-urls 'http://localhost:2380'
 		list of URLs to listen on for peer traffic.
 	--listen-client-urls 'http://localhost:2379'
@@ -60,6 +68,14 @@ member flags:
 		comma-separated whitelist of origins for CORS (cross-origin resource sharing).
 	--quota-backend-bytes '0'
 		raise alarms when backend size exceeds the given quota (0 defaults to low space quota).
+	--max-request-bytes '1572864'
+		maximum client request size in bytes the server will accept.
+	--grpc-keepalive-min-time '5s'
+		minimum duration interval that a client should wait before pinging server.
+	--grpc-keepalive-interval '2h'
+		frequency duration of server-to-client ping to check if a connection is alive (0 to disable).
+	--grpc-keepalive-timeout '20s'
+		additional duration of wait before closing a non-responsive connection (0 to disable).
 
 clustering flags:
 
@@ -88,6 +104,8 @@ clustering flags:
 		reject reconfiguration requests that would cause quorum loss.
 	--auto-compaction-retention '0'
 		auto compaction retention in hour. 0 means disable auto compaction.
+	--enable-v2
+		Accept etcd V2 client requests.
 
 proxy flags:
 	"proxy" supports v2 API only.
@@ -132,6 +150,8 @@ security flags:
 		path to the peer server TLS trusted CA file.
 	--peer-auto-tls 'false'
 		peer TLS using self-generated certificates if --peer-key-file and --peer-cert-file are not provided.
+	--cipher-suites ''
+		comma-separated list of supported TLS cipher suites between client/server and peers (empty will be auto-populated by Go).
 
 logging flags
 
@@ -155,5 +175,9 @@ profiling flags:
 		Enable runtime profiling data via HTTP server. Address is at client URL + "/debug/pprof/"
 	--metrics 'basic'
 	  Set level of detail for exported metrics, specify 'extensive' to include histogram metrics.
+
+auth flags:
+	--auth-token 'simple'
+		Specify a v3 authentication token type and its options ('simple' or 'jwt').
 `
 )

@@ -294,6 +294,104 @@ func TestWatchFutureRev(t *testing.T) {
 	}
 }
 
+func TestWatchRestore(t *testing.T) {
+	test := func(delay time.Duration) func(t *testing.T) {
+		return func(t *testing.T) {
+			b, tmpPath := backend.NewDefaultTmpBackend()
+			s := newWatchableStore(b, &lease.FakeLessor{}, nil)
+			defer cleanup(s, b, tmpPath)
+
+			testKey := []byte("foo")
+			testValue := []byte("bar")
+			rev := s.Put(testKey, testValue, lease.NoLease)
+
+			newBackend, newPath := backend.NewDefaultTmpBackend()
+			newStore := newWatchableStore(newBackend, &lease.FakeLessor{}, nil)
+			defer cleanup(newStore, newBackend, newPath)
+
+			w := newStore.NewWatchStream()
+			w.Watch(testKey, nil, rev-1)
+
+			time.Sleep(delay)
+
+			newStore.Restore(b)
+			select {
+			case resp := <-w.Chan():
+				if resp.Revision != rev {
+					t.Fatalf("rev = %d, want %d", resp.Revision, rev)
+				}
+				if len(resp.Events) != 1 {
+					t.Fatalf("failed to get events from the response")
+				}
+				if resp.Events[0].Kv.ModRevision != rev {
+					t.Fatalf("kv.rev = %d, want %d", resp.Events[0].Kv.ModRevision, rev)
+				}
+			case <-time.After(time.Second):
+				t.Fatal("failed to receive event in 1 second.")
+			}
+		}
+	}
+
+	t.Run("Normal", test(0))
+	t.Run("RunSyncWatchLoopBeforeRestore", test(time.Millisecond*120)) // longer than default waitDuration
+}
+
+// TestWatchRestoreSyncedWatcher tests such a case that:
+//   1. watcher is created with a future revision "math.MaxInt64 - 2"
+//   2. watcher with a future revision is added to "synced" watcher group
+//   3. restore/overwrite storage with snapshot of a higher lasat revision
+//   4. restore operation moves "synced" to "unsynced" watcher group
+//   5. choose the watcher from step 1, without panic
+func TestWatchRestoreSyncedWatcher(t *testing.T) {
+	b1, b1Path := backend.NewDefaultTmpBackend()
+	s1 := newWatchableStore(b1, &lease.FakeLessor{}, nil)
+	defer cleanup(s1, b1, b1Path)
+
+	b2, b2Path := backend.NewDefaultTmpBackend()
+	s2 := newWatchableStore(b2, &lease.FakeLessor{}, nil)
+	defer cleanup(s2, b2, b2Path)
+
+	testKey, testValue := []byte("foo"), []byte("bar")
+	rev := s1.Put(testKey, testValue, lease.NoLease)
+	startRev := rev + 2
+
+	// create a watcher with a future revision
+	// add to "synced" watcher group (startRev > s.store.currentRev)
+	w1 := s1.NewWatchStream()
+	w1.Watch(testKey, nil, startRev)
+
+	// make "s2" ends up with a higher last revision
+	s2.Put(testKey, testValue, lease.NoLease)
+	s2.Put(testKey, testValue, lease.NoLease)
+
+	// overwrite storage with higher revisions
+	if err := s1.Restore(b2); err != nil {
+		t.Fatal(err)
+	}
+
+	// wait for next "syncWatchersLoop" iteration
+	// and the unsynced watcher should be chosen
+	time.Sleep(2 * time.Second)
+
+	// trigger events for "startRev"
+	s1.Put(testKey, testValue, lease.NoLease)
+
+	select {
+	case resp := <-w1.Chan():
+		if resp.Revision != startRev {
+			t.Fatalf("resp.Revision expect %d, got %d", startRev, resp.Revision)
+		}
+		if len(resp.Events) != 1 {
+			t.Fatalf("len(resp.Events) expect 1, got %d", len(resp.Events))
+		}
+		if resp.Events[0].Kv.ModRevision != startRev {
+			t.Fatalf("resp.Events[0].Kv.ModRevision expect %d, got %d", startRev, resp.Events[0].Kv.ModRevision)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("failed to receive event in 1 second")
+	}
+}
+
 // TestWatchBatchUnsynced tests batching on unsynced watchers
 func TestWatchBatchUnsynced(t *testing.T) {
 	b, tmpPath := backend.NewDefaultTmpBackend()
@@ -321,8 +419,8 @@ func TestWatchBatchUnsynced(t *testing.T) {
 		}
 	}
 
-	s.store.mu.Lock()
-	defer s.store.mu.Unlock()
+	s.store.revMu.Lock()
+	defer s.store.revMu.Unlock()
 	if size := s.synced.size(); size != 1 {
 		t.Errorf("synced size = %d, want 1", size)
 	}

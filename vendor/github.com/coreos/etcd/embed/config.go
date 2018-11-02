@@ -20,24 +20,33 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"strings"
+	"time"
 
-	"github.com/coreos/etcd/discovery"
 	"github.com/coreos/etcd/etcdserver"
 	"github.com/coreos/etcd/pkg/cors"
 	"github.com/coreos/etcd/pkg/netutil"
+	"github.com/coreos/etcd/pkg/srv"
+	"github.com/coreos/etcd/pkg/tlsutil"
 	"github.com/coreos/etcd/pkg/transport"
 	"github.com/coreos/etcd/pkg/types"
+
 	"github.com/ghodss/yaml"
+	"google.golang.org/grpc"
 )
 
 const (
 	ClusterStateFlagNew      = "new"
 	ClusterStateFlagExisting = "existing"
 
-	DefaultName         = "default"
-	DefaultMaxSnapshots = 5
-	DefaultMaxWALs      = 5
+	DefaultName                  = "default"
+	DefaultMaxSnapshots          = 5
+	DefaultMaxWALs               = 5
+	DefaultMaxRequestBytes       = 1.5 * 1024 * 1024
+	DefaultGRPCKeepAliveMinTime  = 5 * time.Second
+	DefaultGRPCKeepAliveInterval = 2 * time.Hour
+	DefaultGRPCKeepAliveTimeout  = 20 * time.Second
 
 	DefaultListenPeerURLs   = "http://localhost:2380"
 	DefaultListenClientURLs = "http://localhost:2379"
@@ -80,9 +89,57 @@ type Config struct {
 	// TickMs is the number of milliseconds between heartbeat ticks.
 	// TODO: decouple tickMs and heartbeat tick (current heartbeat tick = 1).
 	// make ticks a cluster wide configuration.
-	TickMs            uint  `json:"heartbeat-interval"`
-	ElectionMs        uint  `json:"election-timeout"`
+	TickMs     uint `json:"heartbeat-interval"`
+	ElectionMs uint `json:"election-timeout"`
+
+	// InitialElectionTickAdvance is true, then local member fast-forwards
+	// election ticks to speed up "initial" leader election trigger. This
+	// benefits the case of larger election ticks. For instance, cross
+	// datacenter deployment may require longer election timeout of 10-second.
+	// If true, local node does not need wait up to 10-second. Instead,
+	// forwards its election ticks to 8-second, and have only 2-second left
+	// before leader election.
+	//
+	// Major assumptions are that:
+	//  - cluster has no active leader thus advancing ticks enables faster
+	//    leader election, or
+	//  - cluster already has an established leader, and rejoining follower
+	//    is likely to receive heartbeats from the leader after tick advance
+	//    and before election timeout.
+	//
+	// However, when network from leader to rejoining follower is congested,
+	// and the follower does not receive leader heartbeat within left election
+	// ticks, disruptive election has to happen thus affecting cluster
+	// availabilities.
+	//
+	// Disabling this would slow down initial bootstrap process for cross
+	// datacenter deployments. Make your own tradeoffs by configuring
+	// --initial-election-tick-advance at the cost of slow initial bootstrap.
+	//
+	// If single-node, it advances ticks regardless.
+	//
+	// See https://github.com/coreos/etcd/issues/9333 for more detail.
+	InitialElectionTickAdvance bool `json:"initial-election-tick-advance"`
+
 	QuotaBackendBytes int64 `json:"quota-backend-bytes"`
+	MaxRequestBytes   uint  `json:"max-request-bytes"`
+
+	// gRPC server options
+
+	// GRPCKeepAliveMinTime is the minimum interval that a client should
+	// wait before pinging server. When client pings "too fast", server
+	// sends goaway and closes the connection (errors: too_many_pings,
+	// http2.ErrCodeEnhanceYourCalm). When too slow, nothing happens.
+	// Server expects client pings only when there is any active streams
+	// (PermitWithoutStream is set false).
+	GRPCKeepAliveMinTime time.Duration `json:"grpc-keepalive-min-time"`
+	// GRPCKeepAliveInterval is the frequency of server-to-client ping
+	// to check if a connection is alive. Close a non-responsive connection
+	// after an additional duration of Timeout. 0 to disable.
+	GRPCKeepAliveInterval time.Duration `json:"grpc-keepalive-interval"`
+	// GRPCKeepAliveTimeout is the additional duration of wait
+	// before closing a non-responsive connection. 0 to disable.
+	GRPCKeepAliveTimeout time.Duration `json:"grpc-keepalive-timeout"`
 
 	// clustering
 
@@ -94,6 +151,7 @@ type Config struct {
 	InitialCluster      string `json:"initial-cluster"`
 	InitialClusterToken string `json:"initial-cluster-token"`
 	StrictReconfigCheck bool   `json:"strict-reconfig-check"`
+	EnableV2            bool   `json:"enable-v2"`
 
 	// security
 
@@ -102,11 +160,16 @@ type Config struct {
 	PeerTLSInfo   transport.TLSInfo
 	PeerAutoTLS   bool
 
+	// CipherSuites is a list of supported TLS cipher suites between
+	// client/server and peers. If empty, Go auto-populates the list.
+	// Note that cipher suites are prioritized in the given order.
+	CipherSuites []string `json:"cipher-suites"`
+
 	// debug
 
 	Debug        bool   `json:"debug"`
 	LogPkgLevels string `json:"log-package-levels"`
-	EnablePprof  bool
+	EnablePprof  bool   `json:"enable-pprof"`
 	Metrics      string `json:"metrics"`
 
 	// ForceNewCluster starts a new cluster even if previously started; unsafe.
@@ -117,6 +180,18 @@ type Config struct {
 	// The map key is the route path for the handler, and
 	// you must ensure it can't be conflicted with etcd's.
 	UserHandlers map[string]http.Handler `json:"-"`
+	// ServiceRegister is for registering users' gRPC services. A simple usage example:
+	//	cfg := embed.NewConfig()
+	//	cfg.ServerRegister = func(s *grpc.Server) {
+	//		pb.RegisterFooServer(s, &fooServer{})
+	//		pb.RegisterBarServer(s, &barServer{})
+	//	}
+	//	embed.StartEtcd(cfg)
+	ServiceRegister func(*grpc.Server) `json:"-"`
+
+	// auth
+
+	AuthToken string `json:"auth-token"`
 }
 
 // configYAML holds the config suitable for yaml parsing
@@ -152,13 +227,18 @@ func NewConfig() *Config {
 	lcurl, _ := url.Parse(DefaultListenClientURLs)
 	acurl, _ := url.Parse(DefaultAdvertiseClientURLs)
 	cfg := &Config{
-		CorsInfo:            &cors.CORSInfo{},
-		MaxSnapFiles:        DefaultMaxSnapshots,
-		MaxWalFiles:         DefaultMaxWALs,
-		Name:                DefaultName,
-		SnapCount:           etcdserver.DefaultSnapCount,
-		TickMs:              100,
-		ElectionMs:          1000,
+		CorsInfo:                   &cors.CORSInfo{},
+		MaxSnapFiles:               DefaultMaxSnapshots,
+		MaxWalFiles:                DefaultMaxWALs,
+		Name:                       DefaultName,
+		SnapCount:                  etcdserver.DefaultSnapCount,
+		MaxRequestBytes:            DefaultMaxRequestBytes,
+		GRPCKeepAliveMinTime:       DefaultGRPCKeepAliveMinTime,
+		GRPCKeepAliveInterval:      DefaultGRPCKeepAliveInterval,
+		GRPCKeepAliveTimeout:       DefaultGRPCKeepAliveTimeout,
+		TickMs:                     100,
+		ElectionMs:                 1000,
+		InitialElectionTickAdvance: true,
 		LPUrls:              []url.URL{*lpurl},
 		LCUrls:              []url.URL{*lcurl},
 		APUrls:              []url.URL{*apurl},
@@ -167,6 +247,8 @@ func NewConfig() *Config {
 		InitialClusterToken: "etcd-cluster",
 		StrictReconfigCheck: true,
 		Metrics:             "basic",
+		EnableV2:            true,
+		AuthToken:           "simple",
 	}
 	cfg.InitialCluster = cfg.InitialClusterFromName(cfg.Name)
 	return cfg
@@ -185,6 +267,8 @@ func (cfg *configYAML) configFromFile(path string) error {
 	if err != nil {
 		return err
 	}
+
+	defaultInitialCluster := cfg.InitialCluster
 
 	err = yaml.Unmarshal(b, cfg)
 	if err != nil {
@@ -229,7 +313,8 @@ func (cfg *configYAML) configFromFile(path string) error {
 		cfg.ACUrls = []url.URL(u)
 	}
 
-	if (cfg.Durl != "" || cfg.DNSCluster != "") && cfg.InitialCluster == cfg.InitialClusterFromName(cfg.Name) {
+	// If a discovery flag is set, clear default initial cluster set by InitialClusterFromName
+	if (cfg.Durl != "" || cfg.DNSCluster != "") && cfg.InitialCluster == defaultInitialCluster {
 		cfg.InitialCluster = ""
 	}
 	if cfg.ClusterState == "" {
@@ -251,6 +336,25 @@ func (cfg *configYAML) configFromFile(path string) error {
 	return cfg.Validate()
 }
 
+func updateCipherSuites(tls *transport.TLSInfo, ss []string) error {
+	if len(tls.CipherSuites) > 0 && len(ss) > 0 {
+		return fmt.Errorf("TLSInfo.CipherSuites is already specified (given %v)", ss)
+	}
+	if len(ss) > 0 {
+		cs := make([]uint16, len(ss))
+		for i, s := range ss {
+			var ok bool
+			cs[i], ok = tlsutil.GetCipherSuite(s)
+			if !ok {
+				return fmt.Errorf("unexpected TLS cipher suite %q", s)
+			}
+		}
+		tls.CipherSuites = cs
+	}
+	return nil
+}
+
+// Validate ensures that '*embed.Config' fields are properly configured.
 func (cfg *Config) Validate() error {
 	if err := checkBindURLs(cfg.LPUrls); err != nil {
 		return err
@@ -292,6 +396,7 @@ func (cfg *Config) Validate() error {
 
 // PeerURLsMapAndToken sets up an initial peer URLsMap and cluster token for bootstrap or discovery.
 func (cfg *Config) PeerURLsMapAndToken(which string) (urlsmap types.URLsMap, token string, err error) {
+	token = cfg.InitialClusterToken
 	switch {
 	case cfg.Durl != "":
 		urlsmap = types.URLsMap{}
@@ -300,11 +405,15 @@ func (cfg *Config) PeerURLsMapAndToken(which string) (urlsmap types.URLsMap, tok
 		urlsmap[cfg.Name] = cfg.APUrls
 		token = cfg.Durl
 	case cfg.DNSCluster != "":
-		var clusterStr string
-		clusterStr, token, err = discovery.SRVGetCluster(cfg.Name, cfg.DNSCluster, cfg.InitialClusterToken, cfg.APUrls)
-		if err != nil {
-			return nil, "", err
+		clusterStrs, cerr := srv.GetCluster("etcd-server", cfg.Name, cfg.DNSCluster, cfg.APUrls)
+		if cerr != nil {
+			plog.Errorf("couldn't resolve during SRV discovery (%v)", cerr)
+			return nil, "", cerr
 		}
+		for _, s := range clusterStrs {
+			plog.Noticef("got bootstrap from DNS for etcd-server at %s", s)
+		}
+		clusterStr := strings.Join(clusterStrs, ",")
 		if strings.Contains(clusterStr, "https://") && cfg.PeerTLSInfo.CAFile == "" {
 			cfg.PeerTLSInfo.ServerName = cfg.DNSCluster
 		}
@@ -319,7 +428,6 @@ func (cfg *Config) PeerURLsMapAndToken(which string) (urlsmap types.URLsMap, tok
 	default:
 		// We're statically configured, and cluster has appropriately been set.
 		urlsmap, err = types.NewURLsMap(cfg.InitialCluster)
-		token = cfg.InitialClusterToken
 	}
 	return urlsmap, token, err
 }
@@ -349,6 +457,44 @@ func (cfg Config) defaultClientHost() bool {
 	return len(cfg.ACUrls) == 1 && cfg.ACUrls[0].String() == DefaultAdvertiseClientURLs
 }
 
+func (cfg *Config) ClientSelfCert() (err error) {
+	if !cfg.ClientAutoTLS {
+		return nil
+	}
+	if !cfg.ClientTLSInfo.Empty() {
+		plog.Warningf("ignoring client auto TLS since certs given")
+		return nil
+	}
+	chosts := make([]string, len(cfg.LCUrls))
+	for i, u := range cfg.LCUrls {
+		chosts[i] = u.Host
+	}
+	cfg.ClientTLSInfo, err = transport.SelfCert(filepath.Join(cfg.Dir, "fixtures", "client"), chosts)
+	if err != nil {
+		return err
+	}
+	return updateCipherSuites(&cfg.ClientTLSInfo, cfg.CipherSuites)
+}
+
+func (cfg *Config) PeerSelfCert() (err error) {
+	if !cfg.PeerAutoTLS {
+		return nil
+	}
+	if !cfg.PeerTLSInfo.Empty() {
+		plog.Warningf("ignoring peer auto TLS since certs given")
+		return nil
+	}
+	phosts := make([]string, len(cfg.LPUrls))
+	for i, u := range cfg.LPUrls {
+		phosts[i] = u.Host
+	}
+	cfg.PeerTLSInfo, err = transport.SelfCert(filepath.Join(cfg.Dir, "fixtures", "peer"), phosts)
+	if err != nil {
+		return err
+	}
+	return updateCipherSuites(&cfg.PeerTLSInfo, cfg.CipherSuites)
+}
+
 // UpdateDefaultClusterFromName updates cluster advertise URLs with, if available, default host,
 // if advertise URLs are default values(localhost:2379,2380) AND if listen URL is 0.0.0.0.
 // e.g. advertise peer URL localhost:2380 or listen peer URL 0.0.0.0:2380
@@ -367,7 +513,7 @@ func (cfg *Config) UpdateDefaultClusterFromName(defaultInitialCluster string) (s
 	}
 
 	used := false
-	pip, pport, _ := net.SplitHostPort(cfg.LPUrls[0].Host)
+	pip, pport := cfg.LPUrls[0].Hostname(), cfg.LPUrls[0].Port()
 	if cfg.defaultPeerHost() && pip == "0.0.0.0" {
 		cfg.APUrls[0] = url.URL{Scheme: cfg.APUrls[0].Scheme, Host: fmt.Sprintf("%s:%s", defaultHostname, pport)}
 		used = true
@@ -377,7 +523,7 @@ func (cfg *Config) UpdateDefaultClusterFromName(defaultInitialCluster string) (s
 		cfg.InitialCluster = cfg.InitialClusterFromName(cfg.Name)
 	}
 
-	cip, cport, _ := net.SplitHostPort(cfg.LCUrls[0].Host)
+	cip, cport := cfg.LCUrls[0].Hostname(), cfg.LCUrls[0].Port()
 	if cfg.defaultClientHost() && cip == "0.0.0.0" {
 		cfg.ACUrls[0] = url.URL{Scheme: cfg.ACUrls[0].Scheme, Host: fmt.Sprintf("%s:%s", defaultHostname, cport)}
 		used = true
@@ -406,8 +552,7 @@ func checkBindURLs(urls []url.URL) error {
 			continue
 		}
 		if net.ParseIP(host) == nil {
-			err := fmt.Errorf("expected IP in URL for binding (%s)", url.String())
-			plog.Warning(err)
+			return fmt.Errorf("expected IP in URL for binding (%s)", url.String())
 		}
 	}
 	return nil
