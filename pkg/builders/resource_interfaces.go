@@ -17,12 +17,12 @@ limitations under the License.
 package builders
 
 import (
+	"context"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
-	"k8s.io/apiserver/pkg/endpoints/request"
 	"k8s.io/apiserver/pkg/registry/generic"
 	"k8s.io/apiserver/pkg/registry/rest"
 	"k8s.io/apiserver/pkg/storage"
@@ -61,10 +61,10 @@ type StorageBuilder interface {
 	AllowCreateOnUpdate() bool
 	AllowUnconditionalUpdate() bool
 	Canonicalize(obj runtime.Object)
-	PrepareForCreate(ctx request.Context, obj runtime.Object)
-	PrepareForUpdate(ctx request.Context, obj, old runtime.Object)
-	Validate(ctx request.Context, obj runtime.Object) field.ErrorList
-	ValidateUpdate(ctx request.Context, obj, old runtime.Object) field.ErrorList
+	PrepareForCreate(ctx context.Context, obj runtime.Object)
+	PrepareForUpdate(ctx context.Context, obj, old runtime.Object)
+	Validate(ctx context.Context, obj runtime.Object) field.ErrorList
+	ValidateUpdate(ctx context.Context, obj, old runtime.Object) field.ErrorList
 	GetAttrs(obj runtime.Object) (labels.Set, fields.Set, bool, error)
 	TriggerFunc(obj runtime.Object) []storage.MatchValue
 	GetSelectableFields(obj HasObjectMeta) fields.Set

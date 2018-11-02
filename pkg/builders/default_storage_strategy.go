@@ -17,6 +17,7 @@ limitations under the License.
 package builders
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 
@@ -24,7 +25,6 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
-	"k8s.io/apiserver/pkg/endpoints/request"
 	"k8s.io/apiserver/pkg/registry/generic"
 	"k8s.io/apiserver/pkg/registry/rest"
 	"k8s.io/apiserver/pkg/storage"
@@ -77,7 +77,7 @@ func (DefaultStorageStrategy) AllowUnconditionalUpdate() bool { return true }
 
 func (DefaultStorageStrategy) Canonicalize(obj runtime.Object) {}
 
-func (DefaultStorageStrategy) PrepareForCreate(ctx request.Context, obj runtime.Object) {
+func (DefaultStorageStrategy) PrepareForCreate(ctx context.Context, obj runtime.Object) {
 	switch t := obj.(type) {
 	default:
 	case HasObjectMetaSpecStatus:
@@ -87,7 +87,7 @@ func (DefaultStorageStrategy) PrepareForCreate(ctx request.Context, obj runtime.
 	}
 }
 
-func (DefaultStorageStrategy) PrepareForUpdate(ctx request.Context, obj, old runtime.Object) {
+func (DefaultStorageStrategy) PrepareForUpdate(ctx context.Context, obj, old runtime.Object) {
 	// Don't update the status if the resource has a Status
 	switch n := obj.(type) {
 	default:
@@ -103,11 +103,11 @@ func (DefaultStorageStrategy) PrepareForUpdate(ctx request.Context, obj, old run
 	}
 }
 
-func (DefaultStorageStrategy) Validate(ctx request.Context, obj runtime.Object) field.ErrorList {
+func (DefaultStorageStrategy) Validate(ctx context.Context, obj runtime.Object) field.ErrorList {
 	return field.ErrorList{}
 }
 
-func (DefaultStorageStrategy) ValidateUpdate(ctx request.Context, obj, old runtime.Object) field.ErrorList {
+func (DefaultStorageStrategy) ValidateUpdate(ctx context.Context, obj, old runtime.Object) field.ErrorList {
 	return field.ErrorList{}
 }
 
@@ -154,7 +154,7 @@ type DefaultStatusStorageStrategy struct {
 	DefaultStorageStrategy
 }
 
-func (DefaultStatusStorageStrategy) PrepareForUpdate(ctx request.Context, obj, old runtime.Object) {
+func (DefaultStatusStorageStrategy) PrepareForUpdate(ctx context.Context, obj, old runtime.Object) {
 	switch n := obj.(type) {
 	default:
 	case HasObjectMetaSpecStatus:
