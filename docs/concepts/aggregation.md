@@ -187,7 +187,7 @@ access the API servers directly.
 ### RBAC
 
 Kubernetes enables RBAC (**R**esource **B**ased **A**ccess **C**ontrol) by
-default.  Aggregated API servers commonly need serveral RBAC roles
+default.  Aggregated API servers commonly need several RBAC roles
 assinged to them in order to function properly.  See the [RBAC
 section](./auth.md#rbac) for more details.
 
