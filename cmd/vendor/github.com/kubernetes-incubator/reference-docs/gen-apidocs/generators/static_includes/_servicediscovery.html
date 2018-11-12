@@ -1,0 +1,14 @@
+<H1 id="-strong-service-apis-strong-"><STRONG>SERVICE APIs</STRONG></H1>
+
+<P>Service API resources are responsible for stitching your workloads together into an accessible Loadbalanced Service.  By default,
+<A href="#-strong-workloads-strong">Workloads</A> are only accessible within the cluster, and they must be exposed externally using a either
+a *LoadBalancer* or *NodePort* <A href="#service-v1-core">Service</A>.  For development, internally accessible
+Workloads can be accessed via proxy through the api master using the <code>kubectl proxy</code> command.</P>
+
+<P>Common resource types:</P>
+
+<UL>
+	<LI><A href="#service-v1-core">Services</A> for providing a single ip endpoint loadbalanced across multiple Workload replicas.</LI>
+	<LI><A href="#ingress-v1beta1-extensions">Ingress</A> for providing a https(s) endpoint http(s) routed to one or more *Services*.</LI>
+</UL>
+<HR />

@@ -32,7 +32,7 @@ inline_definitions:
   - name: EventSource
     match: ${resource}Source
 resource_categories:
-  - name: "Workloads Apis"
+  - name: "Workloads APIs"
     include: "workloads"
     resources:
     - name: Container
@@ -66,7 +66,7 @@ resource_categories:
     - name: StatefulSet
       version: v1
       group: apps
-  - name: "Service Apis"
+  - name: "Service APIs"
     include: "servicediscovery"
     resources:
     - name: Endpoints
@@ -78,7 +78,7 @@ resource_categories:
     - name: Service
       version: v1
       group: core
-  - name: "Config & Storage Apis"
+  - name: "Config and Storage APIs"
     include: "config"
     resources:
     - name: ConfigMap
@@ -98,9 +98,9 @@ resource_categories:
       version: v1
       group: core
     - name: VolumeAttachment
-      version: v1alpha1
+      version: v1beta1
       group: storage
-  - name: "Metadata Apis"
+  - name: "Metadata APIs"
     include: "meta"
     resources:
     - name: ControllerRevision
@@ -134,9 +134,8 @@ resource_categories:
       version: v1beta1
       group: policy
     - name: PriorityClass
-      version: v1alpha1
+      version: v1beta1
       group: scheduling
-      description_warning: "Alpha objects should not be used in production and may not be compatible with future versions of the resource type."
     - name: PodPreset
       version: v1alpha1
       group: settings
@@ -144,11 +143,11 @@ resource_categories:
     - name: PodSecurityPolicy
       version: v1beta1
       group: extensions
-  - name: "Cluster Apis"
+  - name: "Cluster APIs"
     include: "cluster"
     resources:
     - name: APIService
-      version: v1beta1
+      version: v1
       group: apiregistration
     - name: Binding
       version: v1
@@ -258,6 +257,6 @@ operation_categories:
     - name: Patch Scale
       match: patch${group}${version}(Namespaced)?${resource}Scale
     - name: Rollback
-      match: create${group}${version}(Namespaced)?${resource}RollbackRollback
+      match: create${group}${version}(Namespaced)?${resource}Rollback
     - name: Read Log
       match: read${group}${version}(Namespaced)?${resource}Log

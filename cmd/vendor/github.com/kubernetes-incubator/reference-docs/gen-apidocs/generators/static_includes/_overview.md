@@ -58,9 +58,9 @@ Patch will apply a change to a specific field.  How the change is merged is defi
 replaced or merged.  Merging lists will not preserve ordering.
 
 **Patches will never cause optimistic locking failures, and the last write will win.**  Patches are recommended
- when the full state is not read before an update, or when failing on optimistic locking is undesirable.  *When patching
- complex types, arrays and maps, how the patch is applied is defined on a per-field basis and may either replace
- the field's current value, or merge the contents into the current value.*
+when the full state is not read before an update, or when failing on optimistic locking is undesirable.  *When patching
+complex types, arrays and maps, how the patch is applied is defined on a per-field basis and may either replace
+the field's current value, or merge the contents into the current value.*
 
 #### Read
 

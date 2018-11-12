@@ -1,5 +1,5 @@
-hash: 0ed42f135e2b57df4a123b68366c0021a016e9a5b52ff88f31d47eecfb78d5dd
-updated: 2018-01-21T14:04:45.7433-08:00
+hash: 4bb574ae03e4c9faedbd24005f64cb8ec62fa00c9f7c7abc0c7147dbc1d0a746
+updated: 2018-11-02T12:12:46.397023+08:00
 imports:
 - name: github.com/emicklei/go-restful
   version: ff4f55a206334ef123e4f79bbf348980da81ca46
@@ -23,6 +23,8 @@ imports:
   version: 1d0bd113de87027671077d3c71eb3ac5d7dbba72
 - name: github.com/go-openapi/validate
   version: deaf2c9013bc1a7f4c774662259a506ba874d80f
+- name: github.com/gobuffalo/envy
+  version: e0b181c424e7ca1a36f6f2db4bdfd25ef3421e77
 - name: github.com/gogo/protobuf
   version: c0656edd0d9eab7c66d1eb0c568f9039345796f7
   subpackages:
@@ -32,18 +34,22 @@ imports:
   version: 44145f04b68cf362d9c4df2182967c2275eaefed
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
+- name: github.com/joho/godotenv
+  version: c0b86d615e06d6fa5f869364d68f774ba49a86e3
+- name: github.com/json-iterator/go
+  version: f2b4162afba35581b6d4a50d3b8f34e33c144682
 - name: github.com/kubernetes-incubator/reference-docs
-  version: 2991dafd4e5074507fcf86b8f2ae315427a8e829
+  version: f79cb2a1e53ecd00c9b8e51342e1db54099dad65
   subpackages:
   - gen-apidocs
 - name: github.com/markbates/inflect
-  version: a12c3aec81a6a938bf584a4bac567afed9256586
+  version: d582c680dc4d29c2279628ae00e743005bfcd4fe
 - name: github.com/onsi/ginkgo
   version: 9eda700730cba42af70d53180f9dcce9266bc2bc
 - name: github.com/onsi/gomega
   version: c893efa28eb45626cdaa76c9f653b62488858837
 - name: github.com/pkg/errors
-  version: a22138067af1c4942683050411a841ade67fe1eb
+  version: 059132a15dd08d6704c67711dae0cf35ab991756
 - name: github.com/spf13/cobra
   version: f62e98d28ab7ad31d707ba837a966378465c7b57
   subpackages:
@@ -52,27 +58,34 @@ imports:
   version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
 - name: github.com/spf13/viper
   version: 7fb2782df3d83e0036cc89f461ed0422628776f4
+- name: golang.org/x/tools
+  version: d51e88b5aec5e5af4b3c8a4083777f5d1623d846
+  subpackages:
+  - go/ast/astutil
+  - imports
+  - internal/fastwalk
+  - internal/gopathwalk
 - name: k8s.io/api
-  version: 006a217681ae70cbacdd66a5e2fca1a61a8ff28e
+  version: 475331a8afff5587f47d0470a93f79c60c573c03
 - name: k8s.io/apimachinery
-  version: 68f9c3a1feb3140df59c67ced62d3a5df8e6c9c2
+  version: f71dbbc36e126f5a371b85f6cca96bc8c57db2b6
   subpackages:
   - pkg/runtime/schema
   - pkg/util/runtime
   - pkg/util/sets
   - pkg/util/wait
 - name: k8s.io/apiserver
-  version: 2a1092aaa7202e8f9b188281ff9424a014ce61c2
+  version: f1efbe52ad282d7d18ca4e5580b35c08e3bf521f
   subpackages:
   - pkg/util/logs
 - name: k8s.io/client-go
-  version: 9389c055a838d4f208b699b3c7c51b70f2368861
+  version: 13596e875accbd333e0b5bd5fd9462185acd9958
   subpackages:
   - util/homedir
 - name: k8s.io/code-generator
-  version: 91d3f6a57905178524105a085085901bb73bd3dc
+  version: 3dcf91f64f638563e5106f21f50c31fa361c918d
 - name: k8s.io/gengo
-  version: 9e661e9308f078838e266cca1c673922088c0ea4
+  version: fdcf9f9480fdd5bf2b3c3df9bf4ecd22b25b87e2
   subpackages:
   - args
   - generator
@@ -80,5 +93,5 @@ imports:
   - parser
   - types
 - name: k8s.io/kube-openapi
-  version: 868f2f29720b192240e18284659231b440f9cda5
+  version: 0cf8f7e6ed1d2e3d47d02e3b6e559369af24d803
 testImports: []

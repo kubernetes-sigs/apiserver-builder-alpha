@@ -187,6 +187,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 				"-o", util.GoSrc,
 				"--go-header-file", copyright,
 				"-i", strings.Join(apis, ","),
+				"--report-filename", "violations.report",
 				"--output-package", filepath.Join(util.Repo, "pkg", "openapi"))...,
 		)
 		fmt.Printf("%s\n", strings.Join(c.Args, " "))

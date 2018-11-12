@@ -17,11 +17,12 @@ limitations under the License.
 package builders
 
 import (
+	"context"
 	"fmt"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apiserver/pkg/endpoints/request"
 	"k8s.io/apiserver/pkg/registry/generic"
 	"k8s.io/apiserver/pkg/registry/generic/registry"
 	"k8s.io/apiserver/pkg/registry/rest"
@@ -111,8 +112,8 @@ type StorageWrapper struct {
 	registry.Store
 }
 
-func (s StorageWrapper) Create(ctx request.Context, obj runtime.Object, createValidation rest.ValidateObjectFunc, includeUninitialized bool) (runtime.Object, error) {
-	return s.Store.Create(ctx, obj, createValidation, includeUninitialized)
+func (s StorageWrapper) Create(ctx context.Context, obj runtime.Object, createValidation rest.ValidateObjectFunc, options *metav1.CreateOptions) (runtime.Object, error) {
+	return s.Store.Create(ctx, obj, createValidation, options)
 }
 
 func (b *versionedResourceBuilder) Build(

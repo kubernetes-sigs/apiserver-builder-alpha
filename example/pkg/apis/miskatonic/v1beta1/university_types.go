@@ -17,6 +17,7 @@ limitations under the License.
 package v1beta1
 
 import (
+	"context"
 	"log"
 
 	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic"
@@ -25,7 +26,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
-	"k8s.io/apiserver/pkg/endpoints/request"
 )
 
 // Generating code from university_types.go file will generate storage and status REST endpoints for
@@ -94,7 +94,7 @@ type UniversityStatus struct {
 }
 
 // Resource Validation
-func (UniversityStrategy) Validate(ctx request.Context, obj runtime.Object) field.ErrorList {
+func (UniversityStrategy) Validate(ctx context.Context, obj runtime.Object) field.ErrorList {
 	university := obj.(*miskatonic.University)
 	log.Printf("Validating University %s\n", university.Name)
 	errors := field.ErrorList{}

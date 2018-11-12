@@ -30,21 +30,24 @@ import:
   version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
 - package: github.com/spf13/viper
   version: 7fb2782df3d83e0036cc89f461ed0422628776f4
+- package: github.com/json-iterator/go
+  version: f2b4162afba35581b6d4a50d3b8f34e33c144682
 - package: k8s.io/apimachinery
-  version: release-1.9
+  version: release-1.12
 - package: k8s.io/apiserver
-  version: release-1.9
+  version: release-1.12
 - package: k8s.io/client-go
-  version: release-6.0
+  version: release-9.0
 - package: k8s.io/api
-  version: release-1.9
+  version: release-1.12
 - package: k8s.io/kube-openapi
+  version: 0cf8f7e6ed1d2e3d47d02e3b6e559369af24d803
 - package: k8s.io/gengo
-  version: 9e661e9308f078838e266cca1c673922088c0ea4
+  version: fdcf9f9480fdd5bf2b3c3df9bf4ecd22b25b87e2
 - package: github.com/onsi/ginkgo
   version: v1.4.0
 - package: github.com/onsi/gomega
   version: v1.2.0
 - package: k8s.io/code-generator
-  version: release-1.9 
+  version: release-1.12
 - package: github.com/kubernetes-incubator/reference-docs/gen-apidocs

@@ -17,12 +17,9 @@ limitations under the License.
 package builders
 
 import (
-	"k8s.io/apimachinery/pkg/apimachinery/announced"
-	"k8s.io/apimachinery/pkg/apimachinery/registered"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apiserver/pkg/registry/generic"
 	"k8s.io/apiserver/pkg/registry/rest"
 	genericapiserver "k8s.io/apiserver/pkg/server"
@@ -71,15 +68,6 @@ func (g *APIGroupBuilder) GetVersionPreferenceOrder() []string {
 	return order
 }
 
-// VersionToSchemeFunc returns a map of version to AddToScheme function for all versioned Schemes
-func (g *APIGroupBuilder) VersionToSchemeFunc() announced.VersionToSchemeFunc {
-	f := announced.VersionToSchemeFunc{}
-	for _, v := range g.Versions {
-		v.registerVersionToScheme(f)
-	}
-	return f
-}
-
 func (g *APIGroupBuilder) GetLegacyCodec() []schema.GroupVersion {
 	versions := []schema.GroupVersion{}
 	for _, v := range g.Versions {
@@ -98,46 +86,35 @@ func (g *APIGroupBuilder) registerEndpoints(
 	}
 }
 
+func (g *APIGroupBuilder) registerVersionPriorities(scheme *runtime.Scheme) error {
+	gvs := make([]schema.GroupVersion, len(g.Versions))
+	for i, versionBuilder := range g.Versions {
+		gvs[i] = versionBuilder.GroupVersion
+	}
+	return scheme.SetVersionPriority(gvs...)
+}
+
 // Build returns a new NewDefaultAPIGroupInfo to install into a GenericApiServer
 func (g *APIGroupBuilder) Build(optionsGetter generic.RESTOptionsGetter) *genericapiserver.APIGroupInfo {
 
 	// Build a new group
 	i := genericapiserver.NewDefaultAPIGroupInfo(
 		g.Name,
-		Registry,
 		Scheme,
 		metav1.ParameterCodec,
 		Codecs)
 
-	// First group version is preferred
-	i.GroupMeta.GroupVersion = g.Versions[0].GroupVersion
-
-	// Register the endpoints with the group
 	g.registerEndpoints(optionsGetter, i.VersionedResourcesStorageMap)
 
 	return &i
 
 }
 
-func (g *APIGroupBuilder) Install(
-	groupFactoryRegistry announced.APIGroupFactoryRegistry,
-	registry *registered.APIRegistrationManager,
-	scheme *runtime.Scheme) {
-	if err := announced.NewGroupMetaFactory(
-		&announced.GroupMetaFactoryArgs{
-			GroupName:                  g.Name,
-			RootScopedKinds:            sets.NewString(append(g.RootScopedKinds, "APIService")...),
-			VersionPreferenceOrder:     g.GetVersionPreferenceOrder(),
-			AddInternalObjectsToScheme: g.UnVersioned.SchemaBuilder.AddToScheme,
-		},
-		g.VersionToSchemeFunc(),
-	).Announce(groupFactoryRegistry).RegisterAndEnable(registry, scheme); err != nil {
-		panic(err)
+func (g *APIGroupBuilder) AddToScheme(scheme *runtime.Scheme) error {
+	localSchemeBuilder := runtime.NewSchemeBuilder(g.registerVersionPriorities)
+	for _, versionBuilder := range g.Versions {
+		localSchemeBuilder.Register(versionBuilder.SchemaBuilder.AddToScheme)
 	}
-
-}
-
-// Announce installs the API group for an api server
-func (g *APIGroupBuilder) Announce() {
-	g.Install(GroupFactoryRegistry, Registry, Scheme)
+	localSchemeBuilder.Register(g.UnVersioned.SchemaBuilder.AddToScheme)
+	return localSchemeBuilder.AddToScheme(scheme)
 }

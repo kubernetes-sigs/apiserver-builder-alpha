@@ -1,0 +1,23 @@
+language: go
+go:
+  - 1.10.2
+
+install:
+- export PATH=$GOPATH/bin:$PATH
+- mkdir -p $GOPATH/src/k8s.io
+- pushd $GOPATH/src/k8s.io && git clone https://github.com/kubernetes/kubernetes.git && popd
+
+# Checkout the correct version of kubernetes and build generated files, and then
+# vendor all packages for resolving dependencies.
+- pushd $GOPATH/src/k8s.io/kubernetes && git checkout release-1.11 && make generated_files && cp -L -R vendor $GOPATH/src && rm -r vendor && popd
+
+# Fetch other dependencies if any
+- go get -v github.com/kubernetes-incubator/reference-docs/gen-compdocs
+
+# TODO: update API spec
+
+script:
+- make comp
+# TODO: uncomment the following to make other docs
+# - make api
+# - make cli

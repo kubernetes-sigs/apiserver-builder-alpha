@@ -153,7 +153,11 @@ func RunBuild(cmd *cobra.Command, args []string) {
 			BuildVendorTar(dir)
 
 			for _, pkg := range VendoredBuildPackages {
-				Build(filepath.Join("cmd", "vendor", pkg, "main.go"),
+				mainFilename := "main.go"
+				if strings.Contains(pkg, "kube-openapi") {
+					mainFilename = "openapi-gen.go"
+				}
+				Build(filepath.Join("cmd", "vendor", pkg, mainFilename),
 					filepath.Join(dir, "bin", filepath.Base(pkg)),
 					goos, goarch,
 				)
@@ -288,7 +292,7 @@ var VendoredBuildPackages = []string{
 	//"k8s.io/code-generator/cmd/import-boss",
 	"k8s.io/code-generator/cmd/informer-gen",
 	"k8s.io/code-generator/cmd/lister-gen",
-	"k8s.io/code-generator/cmd/openapi-gen",
+	"k8s.io/kube-openapi/cmd/openapi-gen",
 	//"k8s.io/code-generator/cmd/set-gen",
 }
 
@@ -362,7 +366,7 @@ func (t TarFile) Do(path string, info os.FileInfo, err error) error {
 	}
 
 	eval, err := filepath.EvalSymlinks(path)
-	if err != nil {
+	if err != nil && !os.IsNotExist(err) {
 		log.Fatal(err)
 	}
 	if eval != path {
@@ -398,9 +402,9 @@ func (t TarFile) Write(path string) error {
 	if err != nil {
 		log.Fatalf("failed to read file %s %v", path, err)
 	}
-	if len(body) == 0 {
-		return nil
-	}
+	// if len(body) == 0 {
+	// 	return nil
+	// }
 
 	hdr := &tar.Header{
 		Name: name,

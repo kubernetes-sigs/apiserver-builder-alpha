@@ -17,7 +17,7 @@ if [ ! -f bin/bin/deepcopy-gen ] ; then
     go build -o bin/deepcopy-gen $CMD_VENDOR/k8s.io/code-generator/cmd/deepcopy-gen
 fi
 if [ ! -f bin/openapi-gen ] ; then
-    go build -o bin/openapi-gen $CMD_VENDOR/k8s.io/code-generator/cmd/openapi-gen
+    go build -o bin/openapi-gen $CMD_VENDOR/k8s.io/kube-openapi/cmd/openapi-gen
 fi
 if [ ! -f bin/defaulter-gen ] ; then
     go build -o bin/defaulter-gen $CMD_VENDOR/k8s.io/code-generator/cmd/defaulter-gen

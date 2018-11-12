@@ -17,18 +17,17 @@ limitations under the License.
 package etcd3
 
 import (
+	"context"
 	"fmt"
 	"reflect"
-	"strconv"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/integration"
-	"golang.org/x/net/context"
 
-	apitesting "k8s.io/apimachinery/pkg/api/testing"
+	apitesting "k8s.io/apimachinery/pkg/api/apitesting"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
@@ -186,7 +185,7 @@ func TestWatchFromZero(t *testing.T) {
 	}
 
 	// Compact previous versions
-	revToCompact, err := strconv.Atoi(out.ResourceVersion)
+	revToCompact, err := store.versioner.ParseResourceVersion(out.ResourceVersion)
 	if err != nil {
 		t.Fatalf("Error converting %q to an int: %v", storedObj.ResourceVersion, err)
 	}
@@ -305,7 +304,7 @@ func TestWatchDeleteEventObjectHaveLatestRV(t *testing.T) {
 	var wres clientv3.WatchResponse
 	wres = <-etcdW
 
-	watchedDeleteRev, err := storage.ParseWatchResourceVersion(watchedDeleteObj.ResourceVersion)
+	watchedDeleteRev, err := store.versioner.ParseResourceVersion(watchedDeleteObj.ResourceVersion)
 	if err != nil {
 		t.Fatalf("ParseWatchResourceVersion failed: %v", err)
 	}

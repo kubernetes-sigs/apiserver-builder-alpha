@@ -17,11 +17,11 @@ limitations under the License.
 package v1beta1
 
 import (
+	"context"
 	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apiserver/pkg/endpoints/request"
 	"k8s.io/apiserver/pkg/registry/rest"
 )
 
@@ -44,7 +44,7 @@ type ScaleUniversityREST struct {
 	Registry miskatonic.UniversityRegistry
 }
 
-func (r *ScaleUniversityREST) Create(ctx request.Context, obj runtime.Object, createValidation rest.ValidateObjectFunc, includeUninitialized bool) (runtime.Object, error) {
+func (r *ScaleUniversityREST) Create(ctx context.Context, obj runtime.Object, createValidation rest.ValidateObjectFunc, options *metav1.CreateOptions) (runtime.Object, error) {
 	scale := obj.(*Scale)
 	u, err := r.Registry.GetUniversity(ctx, scale.Name, &metav1.GetOptions{})
 	if err != nil {
@@ -56,12 +56,12 @@ func (r *ScaleUniversityREST) Create(ctx request.Context, obj runtime.Object, cr
 }
 
 // Get retrieves the object from the storage. It is required to support Patch.
-func (r *ScaleUniversityREST) Get(ctx request.Context, name string, options *metav1.GetOptions) (runtime.Object, error) {
+func (r *ScaleUniversityREST) Get(ctx context.Context, name string, options *metav1.GetOptions) (runtime.Object, error) {
 	return nil, nil
 }
 
 // Update alters the status subset of an object.
-func (r *ScaleUniversityREST) Update(ctx request.Context, name string, objInfo rest.UpdatedObjectInfo, createValidation rest.ValidateObjectFunc, updateValidation rest.ValidateObjectUpdateFunc) (runtime.Object, bool, error) {
+func (r *ScaleUniversityREST) Update(ctx context.Context, name string, objInfo rest.UpdatedObjectInfo, createValidation rest.ValidateObjectFunc, updateValidation rest.ValidateObjectUpdateFunc, forceAllowCreate bool, options *metav1.UpdateOptions) (runtime.Object, bool, error) {
 	return nil, false, nil
 }
 

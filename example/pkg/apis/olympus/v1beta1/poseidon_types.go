@@ -19,11 +19,10 @@ package v1beta1
 import (
 	"fmt"
 	"log"
+	"context"
 
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apiserver/pkg/endpoints/request"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
@@ -60,7 +59,7 @@ type PoseidonStatus struct {
 }
 
 // Validate checks that an instance of Poseidon is well formed
-func (PoseidonStrategy) Validate(ctx request.Context, obj runtime.Object) field.ErrorList {
+func (PoseidonStrategy) Validate(ctx context.Context, obj runtime.Object) field.ErrorList {
 	o := obj.(*olympus.Poseidon)
 	log.Printf("Validating fields for Poseidon %s\n", o.Name)
 	errors := field.ErrorList{}

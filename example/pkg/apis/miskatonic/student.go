@@ -17,9 +17,9 @@ limitations under the License.
 package miskatonic
 
 import (
+	"context"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apiserver/pkg/endpoints/request"
 	"k8s.io/apiserver/pkg/registry/rest"
 )
 
@@ -28,28 +28,33 @@ import (
 
 var _ rest.CreaterUpdater = &StudentREST{}
 var _ rest.Patcher = &StudentREST{}
+var _ rest.Scoper = &StudentREST{}
 
 // +k8s:deepcopy-gen=false
 type StudentREST struct {
 	Registry StudentRegistry
 }
 
-func (r *StudentREST) Create(ctx request.Context, obj runtime.Object, createValidation rest.ValidateObjectFunc, includeUninitialized bool) (runtime.Object, error) {
+func (r *StudentREST) Create(ctx context.Context, obj runtime.Object, createValidation rest.ValidateObjectFunc, options *metav1.CreateOptions) (runtime.Object, error) {
 	s := obj.(*Student)
 	s.Spec.ID = s.Spec.ID + 1
 	return s, nil
 }
 
 // Get retrieves the object from the storage. It is required to support Patch.
-func (r *StudentREST) Get(ctx request.Context, name string, options *metav1.GetOptions) (runtime.Object, error) {
+func (r *StudentREST) Get(ctx context.Context, name string, options *metav1.GetOptions) (runtime.Object, error) {
 	return &Student{}, nil
 }
 
 // Update alters the status subset of an object.
-func (r *StudentREST) Update(ctx request.Context, name string, objInfo rest.UpdatedObjectInfo, createValidation rest.ValidateObjectFunc, updateValidation rest.ValidateObjectUpdateFunc) (runtime.Object, bool, error) {
+func (r *StudentREST) Update(ctx context.Context, name string, objInfo rest.UpdatedObjectInfo, createValidation rest.ValidateObjectFunc, updateValidation rest.ValidateObjectUpdateFunc, forceAllowCreate bool, options *metav1.UpdateOptions) (runtime.Object, bool, error) {
 	return nil, false, nil
 }
 
 func (r *StudentREST) New() runtime.Object {
 	return &Student{}
+}
+
+func (r *StudentREST) NamespaceScoped() bool {
+	return true
 }

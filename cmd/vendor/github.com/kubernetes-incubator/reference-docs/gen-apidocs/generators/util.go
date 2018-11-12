@@ -28,7 +28,7 @@ func PrintInfo(config *api.Config) {
 	definitions := config.Definitions
 
 	hasOrphaned := false
-	for name, d := range definitions.GetAllDefinitions() {
+	for name, d := range definitions.All {
 		if !d.FoundInField && !d.FoundInOperation {
 			if !strings.Contains(name, "meta.v1.APIVersions") && !strings.Contains(name, "meta.v1.Patch") {
 				hasOrphaned = true
@@ -38,7 +38,7 @@ func PrintInfo(config *api.Config) {
 	if hasOrphaned {
 		fmt.Printf("----------------------------------\n")
 		fmt.Printf("Orphaned Definitions:\n")
-		for name, d := range definitions.GetAllDefinitions() {
+		for name, d := range definitions.All {
 			if !d.FoundInField && !d.FoundInOperation {
 				if !strings.Contains(name, "meta.v1.APIVersions") && !strings.Contains(name, "meta.v1.Patch") {
 					fmt.Printf("[%s]\n", name)
@@ -51,7 +51,7 @@ func PrintInfo(config *api.Config) {
 	}
 
 	missingFromToc := false
-	for _, d := range definitions.GetAllDefinitions() {
+	for _, d := range definitions.All {
 		if !d.InToc && len(d.OperationCategories) > 0 && !d.IsOldVersion && !d.IsInlined {
 			missingFromToc = true
 		}
@@ -60,7 +60,7 @@ func PrintInfo(config *api.Config) {
 	if missingFromToc {
 		fmt.Printf("----------------------------------\n")
 		fmt.Printf("Definitions with Operations Missing from Toc (Excluding old version):\n")
-		for name, d := range definitions.GetAllDefinitions() {
+		for name, d := range definitions.All {
 			if !d.InToc && len(d.OperationCategories) > 0 && !d.IsOldVersion && !d.IsInlined {
 				fmt.Printf("[%s]\n", name)
 				for _, oc := range d.OperationCategories {
@@ -73,7 +73,7 @@ func PrintInfo(config *api.Config) {
 	}
 
 	//fmt.Printf("Old definitions:\n")
-	//for name, d := range definitions.GetAllDefinitions() {
+	//for name, d := range definitions.All {
 	//	if !d.InToc && len(d.OperationCategories) > 0 && d.IsOldVersion && !d.IsInlined {
 	//		fmt.Printf("[%s]\n", name)
 	//		for _, oc := range d.OperationCategories {
@@ -90,7 +90,7 @@ func PrintDebug(config *api.Config) {
 	definitions := config.Definitions
 
 	fmt.Printf("----------------------------------\n")
-	fmt.Printf("Operations with no Defintions:\n")
+	fmt.Printf("Operations with no Definitions:\n")
 	for _, o := range operations {
 		if o.Definition == nil {
 			fmt.Printf("%s\n", o.ID)
@@ -99,7 +99,7 @@ func PrintDebug(config *api.Config) {
 
 	fmt.Printf("----------------------------------\n")
 	fmt.Printf("\n\nDefinitions in Toc:\n")
-	for name, d := range definitions.GetAllDefinitions() {
+	for name, d := range definitions.All {
 		if d.InToc {
 			fmt.Printf("\n\n%s \n\tFields:\n", name)
 			for _, f := range d.Fields {
@@ -136,7 +136,7 @@ func PrintDebug(config *api.Config) {
 
 	fmt.Printf("----------------------------------\n")
 	fmt.Printf("\n\nOther Definitions:\n")
-	for name, d := range definitions.GetAllDefinitions() {
+	for name, d := range definitions.All {
 		if !d.InToc && d.FoundInField {
 			fmt.Printf("\n\n%s \n\tFields:\n", name)
 			for _, f := range d.Fields {

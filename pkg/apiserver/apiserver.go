@@ -17,8 +17,6 @@ limitations under the License.
 package apiserver
 
 import (
-	"k8s.io/apimachinery/pkg/apimachinery/announced"
-	"k8s.io/apimachinery/pkg/apimachinery/registered"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -26,18 +24,19 @@ import (
 	genericapiserver "k8s.io/apiserver/pkg/server"
 
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 )
 
 type Installer struct {
-	GroupFactoryRegistry announced.APIGroupFactoryRegistry
-	Registry             *registered.APIRegistrationManager
-	Scheme               *runtime.Scheme
+	Scheme *runtime.Scheme
 }
 
 func (c *Config) Init() *Config {
-	for _, builder := range builders.APIGroupBuilders {
-		builder.Announce()
+	localSchemeBuilder := runtime.NewSchemeBuilder()
+	for _, groupBuilder := range builders.APIGroupBuilders {
+		localSchemeBuilder.Register(groupBuilder.AddToScheme)
 	}
+	utilruntime.Must(localSchemeBuilder.AddToScheme(builders.Scheme))
 
 	// we need to add the options to empty v1
 	// TODO fix the server code to avoid this
@@ -94,7 +93,7 @@ func (c *Config) SkipComplete() completedConfig {
 // NewFunc returns a new instance of Server from the given config.
 func (c completedConfig) New() (*Server, error) {
 	genericServer, err := c.Config.GenericConfig.Complete(nil).
-		New("aggregated-apiserver", genericapiserver.EmptyDelegate) // completion is done in Complete, no need for a second time
+		New("aggregated-apiserver", genericapiserver.NewEmptyDelegate()) // completion is done in Complete, no need for a second time
 	if err != nil {
 		return nil, err
 	}

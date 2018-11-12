@@ -39,6 +39,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apiserver/pkg/util/logs"
 	openapi "k8s.io/kube-openapi/pkg/common"
+	openapinamer "k8s.io/apiserver/pkg/endpoints/openapi"
 )
 
 var GetOpenApiDefinition openapi.GetOpenAPIDefinitions
@@ -161,7 +162,9 @@ func (o ServerOptions) Config() (*apiserver.Config, error) {
 	err := applyOptions(
 		serverConfig,
 		o.RecommendedOptions.Etcd.ApplyTo,
-		o.RecommendedOptions.SecureServing.ApplyTo,
+		func (cfg *genericapiserver.Config) error {
+			return o.RecommendedOptions.SecureServing.ApplyTo(&cfg.SecureServing, &cfg.LoopbackClientConfig)
+		},
 		o.RecommendedOptions.Audit.ApplyTo,
 		o.RecommendedOptions.Features.ApplyTo,
 	)
@@ -184,8 +187,12 @@ func (o ServerOptions) Config() (*apiserver.Config, error) {
 	if o.RunDelegatedAuth {
 		err := applyOptions(
 			serverConfig,
-			o.RecommendedOptions.Authentication.ApplyTo,
-			o.RecommendedOptions.Authorization.ApplyTo,
+			func (cfg *genericapiserver.Config) error {
+				return o.RecommendedOptions.Authentication.ApplyTo(&cfg.Authentication, cfg.SecureServing, cfg.OpenAPIConfig)
+			},
+			func (cfg *genericapiserver.Config) error {
+				return o.RecommendedOptions.Authorization.ApplyTo(&cfg.Authorization)
+			},
 		)
 		if err != nil {
 			return nil, err
@@ -217,7 +224,7 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string)
 
 	config.Init()
 
-	config.GenericConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(GetOpenApiDefinition, builders.Scheme)
+	config.GenericConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(GetOpenApiDefinition, openapinamer.NewDefinitionNamer(builders.Scheme))
 	config.GenericConfig.OpenAPIConfig.Info.Title = title
 	config.GenericConfig.OpenAPIConfig.Info.Version = version
 

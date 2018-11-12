@@ -20,7 +20,6 @@ import (
 	"reflect"
 
 	"github.com/golang/glog"
-	"k8s.io/apimachinery/pkg/apimachinery/announced"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -54,11 +53,6 @@ func (s *VersionedApiBuilder) WithResources(resourceBuilders ...*versionedResour
 		s.SchemaBuilder.Register(b.SchemeFns.Register)
 	}
 	return s
-}
-
-// registerVersionToScheme registers the version to scheme mapping
-func (s *VersionedApiBuilder) registerVersionToScheme(to announced.VersionToSchemeFunc) {
-	to[s.GroupVersion.Version] = s.SchemaBuilder.AddToScheme
 }
 
 // registerTypes registers all of the types in this API version
@@ -99,8 +93,7 @@ func (s *VersionedApiBuilder) registerConversions(scheme *runtime.Scheme) error 
 func (s *VersionedApiBuilder) registerSelectorConversions(scheme *runtime.Scheme) error {
 	for _, k := range s.Kinds {
 		err := scheme.AddFieldLabelConversionFunc(
-			s.GroupVersion.String(),
-			k.Unversioned.GetKind(),
+			s.GroupVersion.WithKind(k.Unversioned.GetKind()),
 			k.SchemeFns.FieldSelectorConversion)
 		if err != nil {
 			glog.Errorf("Failed to add conversion functions %v", err)

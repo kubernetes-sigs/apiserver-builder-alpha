@@ -184,9 +184,9 @@ package {{.Version}}
 
 import (
 	"log"
+	"context"
 
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apiserver/pkg/endpoints/request"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -220,7 +220,7 @@ type {{.Kind}}Status struct {
 }
 
 // Validate checks that an instance of {{.Kind}} is well formed
-func ({{.Kind}}Strategy) Validate(ctx request.Context, obj runtime.Object) field.ErrorList {
+func ({{.Kind}}Strategy) Validate(ctx context.Context, obj runtime.Object) field.ErrorList {
 	o := obj.(*{{.Group}}.{{.Kind}})
 	log.Printf("Validating fields for {{.Kind}} %s\n", o.Name)
 	errors := field.ErrorList{}

@@ -41,11 +41,11 @@ func CreateUnversionedGenerator(apigroup *APIGroup, filename string) generator.G
 func (d *unversionedGenerator) Imports(c *generator.Context) []string {
 	imports := sets.NewString(
 		"fmt",
+		"context",
 		"github.com/kubernetes-incubator/apiserver-builder/pkg/builders",
 		"k8s.io/apimachinery/pkg/apis/meta/internalversion",
 		"k8s.io/apimachinery/pkg/runtime",
 		"k8s.io/apimachinery/pkg/runtime/schema",
-		"k8s.io/apiserver/pkg/endpoints/request",
 		"k8s.io/apiserver/pkg/registry/rest")
 
 	// Get imports for all fields
@@ -203,11 +203,11 @@ func (pc {{$api.Kind}}) GetGeneration() int64 {
 // Registry is an interface for things that know how to store {{.Kind}}.
 // +k8s:deepcopy-gen=false
 type {{.Kind}}Registry interface {
-	List{{.Kind}}s(ctx request.Context, options *internalversion.ListOptions) (*{{.Kind}}List, error)
-	Get{{.Kind}}(ctx request.Context, id string, options *metav1.GetOptions) (*{{.Kind}}, error)
-	Create{{.Kind}}(ctx request.Context, id *{{.Kind}}) (*{{.Kind}}, error)
-	Update{{.Kind}}(ctx request.Context, id *{{.Kind}}) (*{{.Kind}}, error)
-	Delete{{.Kind}}(ctx request.Context, id string) (bool, error)
+	List{{.Kind}}s(ctx context.Context, options *internalversion.ListOptions) (*{{.Kind}}List, error)
+	Get{{.Kind}}(ctx context.Context, id string, options *metav1.GetOptions) (*{{.Kind}}, error)
+	Create{{.Kind}}(ctx context.Context, id *{{.Kind}}) (*{{.Kind}}, error)
+	Update{{.Kind}}(ctx context.Context, id *{{.Kind}}) (*{{.Kind}}, error)
+	Delete{{.Kind}}(ctx context.Context, id string) (bool, error)
 }
 
 // NewRegistry returns a new Registry interface for the given Storage. Any mismatched types will panic.
@@ -222,7 +222,7 @@ type storage{{.Kind}} struct {
 	builders.StandardStorageProvider
 }
 
-func (s *storage{{.Kind}}) List{{.Kind}}s(ctx request.Context, options *internalversion.ListOptions) (*{{.Kind}}List, error) {
+func (s *storage{{.Kind}}) List{{.Kind}}s(ctx context.Context, options *internalversion.ListOptions) (*{{.Kind}}List, error) {
 	if options != nil && options.FieldSelector != nil && !options.FieldSelector.Empty() {
 		return nil, fmt.Errorf("field selector not supported yet")
 	}
@@ -234,7 +234,7 @@ func (s *storage{{.Kind}}) List{{.Kind}}s(ctx request.Context, options *internal
 	return obj.(*{{.Kind}}List), err
 }
 
-func (s *storage{{.Kind}}) Get{{.Kind}}(ctx request.Context, id string, options *metav1.GetOptions) (*{{.Kind}}, error) {
+func (s *storage{{.Kind}}) Get{{.Kind}}(ctx context.Context, id string, options *metav1.GetOptions) (*{{.Kind}}, error) {
 	st := s.GetStandardStorage()
 	obj, err := st.Get(ctx, id, options)
 	if err != nil {
@@ -243,50 +243,29 @@ func (s *storage{{.Kind}}) Get{{.Kind}}(ctx request.Context, id string, options 
 	return obj.(*{{.Kind}}), nil
 }
 
-func (s *storage{{.Kind}}) Create{{.Kind}}(ctx request.Context, object *{{.Kind}}) (*{{.Kind}}, error) {
+func (s *storage{{.Kind}}) Create{{.Kind}}(ctx context.Context, object *{{.Kind}}) (*{{.Kind}}, error) {
 	st := s.GetStandardStorage()
-	obj, err := st.Create(ctx, object, nil, true)
+	obj, err := st.Create(ctx, object, nil, &metav1.CreateOptions{})
 	if err != nil {
 		return nil, err
 	}
 	return obj.(*{{.Kind}}), nil
 }
 
-func (s *storage{{.Kind}}) Update{{.Kind}}(ctx request.Context, object *{{.Kind}}) (*{{.Kind}}, error) {
+func (s *storage{{.Kind}}) Update{{.Kind}}(ctx context.Context, object *{{.Kind}}) (*{{.Kind}}, error) {
 	st := s.GetStandardStorage()
-	obj, _, err := st.Update(ctx, object.Name, rest.DefaultUpdatedObjectInfo(object), nil, nil)
+	obj, _, err := st.Update(ctx, object.Name, rest.DefaultUpdatedObjectInfo(object), nil, nil, false, &metav1.UpdateOptions{})
 	if err != nil {
 		return nil, err
 	}
 	return obj.(*{{.Kind}}), nil
 }
 
-func (s *storage{{.Kind}}) Delete{{.Kind}}(ctx request.Context, id string) (bool, error) {
+func (s *storage{{.Kind}}) Delete{{.Kind}}(ctx context.Context, id string) (bool, error) {
 	st := s.GetStandardStorage()
-	_, sync, err := st.Delete(ctx, id, nil)
+	_, sync, err := st.Delete(ctx, id, &metav1.DeleteOptions{})
 	return sync, err
 }
 
 {{ end -}}
-`
-
-var installTemplate = `
-{{.BoilerPlate}}
-
-package install
-
-import (
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis"
-	"k8s.io/apimachinery/pkg/apimachinery/announced"
-	"k8s.io/apimachinery/pkg/apimachinery/registered"
-	"k8s.io/apimachinery/pkg/runtime"
-)
-
-func Install(
-	groupFactoryRegistry announced.APIGroupFactoryRegistry,
-	registry *registered.APIRegistrationManager,
-	scheme *runtime.Scheme) {
-
-	apis.{{ title .Group }}APIBuilder().Install(groupFactoryRegistry, registry, scheme)
-}
 `
