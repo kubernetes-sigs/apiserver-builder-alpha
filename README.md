@@ -1,6 +1,4 @@
-# **Note**: apiserver-builder is deprecated and has been replaced with [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder).
-
-Unless you absolutely need apiserver-aggregation, you should use Kubebuilder instead of apiserver-builder for
+Unless you absolutely need apiserver-aggregation, you should use [Kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) instead of apiserver-builder for
 building Kubernetes APIs.  Kubebuilder builds APIs using CRDs and addresses limitations and feedback from
 apiserver-builder.
 
