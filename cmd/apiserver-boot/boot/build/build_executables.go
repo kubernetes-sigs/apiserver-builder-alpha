@@ -61,7 +61,6 @@ apiserver-boot build executables --bazel --generate=false
 func AddBuildExecutables(cmd *cobra.Command) {
 	cmd.AddCommand(createBuildExecutablesCmd)
 
-	createBuildExecutablesCmd.Flags().BoolVar(&GenUnversionedClient, "gen-unversioned-client", true, "If true, generate unversioned clients.")
 	createBuildExecutablesCmd.Flags().StringVar(&vendorDir, "vendor-dir", "", "Location of directory containing vendor files.")
 	createBuildExecutablesCmd.Flags().BoolVar(&GenerateForBuild, "generate", true, "if true, generate code before building")
 	createBuildExecutablesCmd.Flags().StringVar(&goos, "goos", "", "if specified, set this GOOS")
@@ -69,6 +68,8 @@ func AddBuildExecutables(cmd *cobra.Command) {
 	createBuildExecutablesCmd.Flags().StringVar(&outputdir, "output", "bin", "if set, write the binaries to this directory")
 	createBuildExecutablesCmd.Flags().BoolVar(&Bazel, "bazel", false, "if true, use bazel to build.  May require updating build rules with gazelle.")
 	createBuildExecutablesCmd.Flags().BoolVar(&Gazelle, "gazelle", false, "if true, run gazelle before running bazel.")
+
+	createBuildExecutablesCmd.Flags().MarkDeprecated("gen-unversioned-client", "using internal clients in external systems is strongly not recommended")
 }
 
 func RunBuildExecutables(cmd *cobra.Command, args []string) {
