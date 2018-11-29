@@ -22,7 +22,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -30,6 +29,7 @@ import (
 	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"path"
 )
 
 var versionedAPIs []string
@@ -38,7 +38,6 @@ var codegenerators []string
 var copyright string
 var generators = sets.String{}
 var vendorDir string
-var GenUnversionedClient bool
 
 var generateCmd = &cobra.Command{
 	Use:   "generated",
@@ -60,8 +59,9 @@ func AddGenerate(cmd *cobra.Command) {
 	generateCmd.Flags().StringVar(&vendorDir, "vendor-dir", "", "Location of directory containing vendor files.")
 	generateCmd.Flags().StringArrayVar(&versionedAPIs, "api-versions", []string{}, "API version to generate code for.  Can be specified multiple times.  e.g. --api-versions foo/v1beta1 --api-versions bar/v1  defaults to all versions found under directories pkg/apis/<group>/<version>")
 	generateCmd.Flags().StringArrayVar(&codegenerators, "generator", []string{}, "list of generators to run.  e.g. --generator apiregister --generator conversion Valid values: [apiregister,conversion,client,deepcopy,defaulter,openapi]")
-	generateCmd.Flags().BoolVar(&GenUnversionedClient, "gen-unversioned-client", true, "If true, generate unversioned clients.")
 	generateCmd.AddCommand(generateCleanCmd)
+
+	generateCleanCmd.Flags().MarkDeprecated("gen-unversioned-client", "generate unversioned client is highly unrecommended, please use versioned client instead")
 }
 
 var generateCleanCmd = &cobra.Command{
@@ -116,7 +116,6 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	for _, u := range unversionedAPIs {
 		u = filepath.Join(util.Repo, "pkg", "apis", u)
 		unversioned = append(unversioned, "--input-dirs", u)
-		all = append(all, "--input-dirs", u)
 	}
 
 	if doGen("apiregister-gen") {
@@ -133,7 +132,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 
 	if doGen("conversion-gen") {
 		c := exec.Command(filepath.Join(root, "conversion-gen"),
-			append(all,
+			append(append(all, unversioned...),
 				"-o", util.GoSrc,
 				"--go-header-file", copyright,
 				"-O", "zz_generated.conversion",
@@ -148,7 +147,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 
 	if doGen("deepcopy-gen") {
 		c := exec.Command(filepath.Join(root, "deepcopy-gen"),
-			append(all,
+			append(append(all, unversioned...),
 				"-o", util.GoSrc,
 				"--go-header-file", copyright,
 				"-O", "zz_generated.deepcopy")...,
@@ -199,7 +198,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 
 	if doGen("defaulter-gen") {
 		c := exec.Command(filepath.Join(root, "defaulter-gen"),
-			append(all,
+			append(append(all, unversioned...),
 				"-o", util.GoSrc,
 				"--go-header-file", copyright,
 				"-O", "zz_generated.defaults",
@@ -231,7 +230,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 		}
 
 		toGen := versioned
-		if GenUnversionedClient {
+		if false /* generating unversioned client is deprecated */ {
 			toGen = all
 			c = exec.Command(filepath.Join(root, "client-gen"),
 				"-o", util.GoSrc,
@@ -267,8 +266,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 				"--go-header-file", copyright,
 				"--output-package", informerPkg,
 				"--listers-package", listerPkg,
-				"--versioned-clientset-package", filepath.Join(clientset, "clientset"),
-				"--internal-clientset-package", filepath.Join(clientset, "internalclientset"))...,
+				"--versioned-clientset-package", filepath.Join(clientset, "clientset"))...,
 		)
 		fmt.Printf("%s\n", strings.Join(c.Args, " "))
 		out, err = c.CombinedOutput()
