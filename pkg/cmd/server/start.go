@@ -37,9 +37,9 @@ import (
 	"github.com/golang/glog"
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/validators"
 	"k8s.io/apimachinery/pkg/util/wait"
+	openapinamer "k8s.io/apiserver/pkg/endpoints/openapi"
 	"k8s.io/apiserver/pkg/util/logs"
 	openapi "k8s.io/kube-openapi/pkg/common"
-	openapinamer "k8s.io/apiserver/pkg/endpoints/openapi"
 )
 
 var GetOpenApiDefinition openapi.GetOpenAPIDefinitions
@@ -93,6 +93,9 @@ func NewServerOptions(etcdPath string, out, errOut io.Writer, b []*builders.APIG
 		RunDelegatedAuth:   true,
 	}
 	o.RecommendedOptions.SecureServing.BindPort = 443
+
+	o.RecommendedOptions.Authorization.RemoteKubeConfigFileOptional = true
+	o.RecommendedOptions.Authentication.RemoteKubeConfigFileOptional = true
 
 	return o
 }
@@ -162,7 +165,7 @@ func (o ServerOptions) Config() (*apiserver.Config, error) {
 	err := applyOptions(
 		serverConfig,
 		o.RecommendedOptions.Etcd.ApplyTo,
-		func (cfg *genericapiserver.Config) error {
+		func(cfg *genericapiserver.Config) error {
 			return o.RecommendedOptions.SecureServing.ApplyTo(&cfg.SecureServing, &cfg.LoopbackClientConfig)
 		},
 		o.RecommendedOptions.Audit.ApplyTo,
@@ -187,10 +190,10 @@ func (o ServerOptions) Config() (*apiserver.Config, error) {
 	if o.RunDelegatedAuth {
 		err := applyOptions(
 			serverConfig,
-			func (cfg *genericapiserver.Config) error {
+			func(cfg *genericapiserver.Config) error {
 				return o.RecommendedOptions.Authentication.ApplyTo(&cfg.Authentication, cfg.SecureServing, cfg.OpenAPIConfig)
 			},
-			func (cfg *genericapiserver.Config) error {
+			func(cfg *genericapiserver.Config) error {
 				return o.RecommendedOptions.Authorization.ApplyTo(&cfg.Authorization)
 			},
 		)
@@ -238,7 +241,7 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string)
 	}
 
 	s := server.GenericAPIServer.PrepareRun()
-	err = validators.OpenAPI.SetSchema(readOpenapi(server.GenericAPIServer.Handler))
+	err = validators.OpenAPI.SetSchema(readOpenapi(config.GenericConfig.LoopbackClientConfig.BearerToken, server.GenericAPIServer.Handler))
 	if o.PrintOpenapi {
 		fmt.Printf("%s", validators.OpenAPI.OpenApi)
 		os.Exit(0)
@@ -252,8 +255,9 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string)
 	return nil
 }
 
-func readOpenapi(handler *genericapiserver.APIServerHandler) string {
+func readOpenapi(bearerToken string, handler *genericapiserver.APIServerHandler) string {
 	req, err := http.NewRequest("GET", "/swagger.json", nil)
+	req.Header.Set("Authorization", fmt.Sprintf("bearer %s", bearerToken))
 	if err != nil {
 		panic(fmt.Errorf("Could not create openapi request %v", err))
 	}
