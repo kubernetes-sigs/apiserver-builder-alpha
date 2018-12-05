@@ -57,6 +57,8 @@ var printapiserver bool
 var printcontrollermanager bool
 var printetcd bool
 var buildBin bool
+var ControllerArgs []string
+var ApiserverArgs []string
 
 var server string
 var controllermanager string
@@ -71,7 +73,8 @@ func AddLocal(cmd *cobra.Command) {
 	localCmd.Flags().StringVar(&server, "apiserver", "", "path to apiserver binary to run")
 	localCmd.Flags().StringVar(&controllermanager, "controller-manager", "", "path to controller-manager binary to run")
 	localCmd.Flags().StringVar(&etcd, "etcd", "", "if non-empty, use this etcd instead of starting a new one")
-
+	localCmd.Flags().StringSliceVar(&ControllerArgs, "controller-args", []string{}, "args passed to controller-manager")
+	localCmd.Flags().StringSliceVar(&ApiserverArgs, "apiserver-args", []string{}, "args passed to apiserver")
 	localCmd.Flags().StringVar(&config, "config", "kubeconfig", "path to the kubeconfig to write for using kubectl")
 
 	localCmd.Flags().BoolVar(&printapiserver, "print-apiserver", true, "if true, pipe the apiserver stdout and stderr")
@@ -158,7 +161,9 @@ func RunApiserver() *exec.Cmd {
 	if disableDelegatedAuth {
 		flags = append(flags, "--delegated-auth=false")
 	}
-
+	for _, arg := range ApiserverArgs {
+		flags = append(flags, arg)
+	}
 	apiserverCmd := exec.Command(server,
 		flags...,
 	)
@@ -182,9 +187,10 @@ func RunControllerManager() *exec.Cmd {
 	if len(controllermanager) == 0 {
 		controllermanager = "bin/controller-manager"
 	}
-	controllerManagerCmd := exec.Command(controllermanager,
-		fmt.Sprintf("--kubeconfig=%s", config),
-	)
+	flags := ControllerArgs
+	flags = append(flags, fmt.Sprintf("--kubeconfig=%s", config))
+	controllerManagerCmd := exec.Command(controllermanager, flags...)
+
 	fmt.Printf("%s\n", strings.Join(controllerManagerCmd.Args, " "))
 	if printcontrollermanager {
 		controllerManagerCmd.Stderr = os.Stderr
