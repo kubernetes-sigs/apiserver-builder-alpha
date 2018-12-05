@@ -272,7 +272,7 @@ type resourceConfigTemplateArgs struct {
 var resourceConfigTemplate = `
 {{ $config := . -}}
 {{ range $api := .Versions -}}
-apiVersion: apiregistration.k8s.io/v1beta1
+apiVersion: apiregistration.k8s.io/v1
 kind: APIService
 metadata:
   name: {{ $api.Version }}.{{ $api.Group }}.{{ $config.Domain }}
@@ -283,7 +283,6 @@ spec:
   version: {{ $api.Version }}
   group: {{ $api.Group }}.{{ $config.Domain }}
   groupPriorityMinimum: 2000
-  priority: 200
   service:
     name: {{ $config.Name }}
     namespace: {{ $config.Namespace }}
