@@ -42,6 +42,7 @@ var ControllerSecretMount string
 var ControllerSecretEnv []string
 var ImagePullSecrets []string
 var ServiceAccount string
+var StorageClass string
 
 var LocalMinikube bool
 var LocalIp string
@@ -81,6 +82,7 @@ func AddBuildResourceConfigFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&ServiceAccount, "service-account", "", "Name of service account that will be attached to deployed pod")
 	cmd.Flags().StringVar(&Image, "image", "", "name of the apiserver Image with tag")
 	cmd.Flags().StringVar(&ResourceConfigDir, "output", "config", "directory to output resourceconfig")
+	cmd.Flags().StringVar(&StorageClass, "storage-class", "standard", "storageclass of which etcd is using to store data")
 
 	cmd.Flags().BoolVar(&LocalMinikube, "local-minikube", false, "if true, generate config to run locally but aggregate through minikube.")
 	cmd.Flags().StringVar(&LocalIp, "local-ip", "10.0.2.2", "if using --local-minikube, this is the ip address minikube will look for the aggregated server at.")
@@ -155,6 +157,7 @@ func buildResourceConfig() {
 		LocalIp:               LocalIp,
 		ImagePullSecrets:      ImagePullSecrets,
 		ServiceAccount:        ServiceAccount,
+		StorageClass:          StorageClass,
 	}
 	path := filepath.Join(ResourceConfigDir, "apiserver.yaml")
 
@@ -262,6 +265,7 @@ type resourceConfigTemplateArgs struct {
 	ControllerSecretEnv   []string
 	LocalIp               string
 	ServiceAccount        string
+	StorageClass          string
 	ImagePullSecrets      []string
 }
 
@@ -431,7 +435,7 @@ spec:
   - metadata:
      name: etcd-data-dir
      annotations:
-        volume.beta.kubernetes.io/storage-class: standard
+        volume.beta.kubernetes.io/storage-class: {{.StorageClass}}
     spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
