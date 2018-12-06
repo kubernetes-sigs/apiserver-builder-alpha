@@ -1,85 +1,69 @@
+// Copyright 2018 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package lsp
 
 import (
-	"go/token"
-	"strconv"
-	"strings"
+	"context"
+	"sort"
 
-	"golang.org/x/tools/go/packages"
+	"golang.org/x/tools/internal/lsp/cache"
 	"golang.org/x/tools/internal/lsp/protocol"
+	"golang.org/x/tools/internal/lsp/source"
 )
 
-func (v *view) diagnostics(uri protocol.DocumentURI) (map[string][]protocol.Diagnostic, error) {
-	pkg, err := v.typeCheck(uri)
-	if err != nil {
-		return nil, err
-	}
-	reports := make(map[string][]protocol.Diagnostic)
-	for _, filename := range pkg.GoFiles {
-		reports[filename] = []protocol.Diagnostic{}
-	}
-	var parseErrors, typeErrors []packages.Error
-	for _, err := range pkg.Errors {
-		switch err.Kind {
-		case packages.ParseError:
-			parseErrors = append(parseErrors, err)
-		case packages.TypeError:
-			typeErrors = append(typeErrors, err)
-		default:
-			// ignore other types of errors
-			continue
+func (s *server) CacheAndDiagnose(ctx context.Context, uri protocol.DocumentURI, text string) {
+	f := s.view.GetFile(source.URI(uri))
+	f.SetContent([]byte(text))
+
+	go func() {
+		reports, err := source.Diagnostics(ctx, f)
+		if err != nil {
+			return // handle error?
 		}
-	}
-	// Don't report type errors if there are parse errors.
-	errors := typeErrors
-	if len(parseErrors) > 0 {
-		errors = parseErrors
-	}
-	for _, err := range errors {
-		pos := parseErrorPos(err)
-		line := float64(pos.Line) - 1
-		col := float64(pos.Column) - 1
-		diagnostic := protocol.Diagnostic{
-			// TODO(rstambler): Add support for diagnostic ranges.
-			Range: protocol.Range{
-				Start: protocol.Position{
-					Line:      line,
-					Character: col,
-				},
-				End: protocol.Position{
-					Line:      line,
-					Character: col,
-				},
-			},
-			Severity: protocol.SeverityError,
-			Source:   "LSP: Go compiler",
-			Message:  err.Msg,
+		for filename, diagnostics := range reports {
+			s.client.PublishDiagnostics(ctx, &protocol.PublishDiagnosticsParams{
+				URI:         protocol.DocumentURI(source.ToURI(filename)),
+				Diagnostics: toProtocolDiagnostics(s.view, diagnostics),
+			})
 		}
-		if _, ok := reports[pos.Filename]; ok {
-			reports[pos.Filename] = append(reports[pos.Filename], diagnostic)
-		}
-	}
-	return reports, nil
+	}()
 }
 
-func parseErrorPos(pkgErr packages.Error) (pos token.Position) {
-	split := strings.Split(pkgErr.Pos, ":")
-	if len(split) <= 1 {
-		return pos
-	}
-	pos.Filename = split[0]
-	line, err := strconv.ParseInt(split[1], 10, 64)
-	if err != nil {
-		return pos
-	}
-	pos.Line = int(line)
-	if len(split) == 3 {
-		col, err := strconv.ParseInt(split[2], 10, 64)
+func toProtocolDiagnostics(v *cache.View, diagnostics []source.Diagnostic) []protocol.Diagnostic {
+	reports := []protocol.Diagnostic{}
+	for _, diag := range diagnostics {
+		f := v.GetFile(source.ToURI(diag.Filename))
+		tok, err := f.GetToken()
 		if err != nil {
-			return pos
+			continue // handle error?
 		}
-		pos.Column = int(col)
+		pos := fromTokenPosition(tok, diag.Position)
+		if !pos.IsValid() {
+			continue // handle error?
+		}
+		reports = append(reports, protocol.Diagnostic{
+			Message: diag.Message,
+			Range: toProtocolRange(tok, source.Range{
+				Start: pos,
+				End:   pos,
+			}),
+			Severity: protocol.SeverityError, // all diagnostics have error severity for now
+			Source:   "LSP",
+		})
 	}
-	return pos
+	return reports
+}
 
+func sorted(d []protocol.Diagnostic) {
+	sort.Slice(d, func(i int, j int) bool {
+		if d[i].Range.Start.Line == d[j].Range.Start.Line {
+			if d[i].Range.Start.Character == d[j].Range.End.Character {
+				return d[i].Message < d[j].Message
+			}
+			return d[i].Range.Start.Character < d[j].Range.End.Character
+		}
+		return d[i].Range.Start.Line < d[j].Range.Start.Line
+	})
 }

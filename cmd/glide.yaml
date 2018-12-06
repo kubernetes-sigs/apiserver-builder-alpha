@@ -33,13 +33,13 @@ import:
 - package: github.com/json-iterator/go
   version: f2b4162afba35581b6d4a50d3b8f34e33c144682
 - package: k8s.io/apimachinery
-  version: release-1.12
+  version: kubernetes-1.12.3
 - package: k8s.io/apiserver
-  version: release-1.12
+  version: kubernetes-1.12.3
 - package: k8s.io/client-go
   version: release-9.0
 - package: k8s.io/api
-  version: release-1.12
+  version: kubernetes-1.12.3
 - package: k8s.io/kube-openapi
   version: 0cf8f7e6ed1d2e3d47d02e3b6e559369af24d803
 - package: k8s.io/gengo
@@ -49,5 +49,5 @@ import:
 - package: github.com/onsi/gomega
   version: v1.2.0
 - package: k8s.io/code-generator
-  version: release-1.12
+  version: kubernetes-1.12.3
 - package: github.com/kubernetes-incubator/reference-docs/gen-apidocs
