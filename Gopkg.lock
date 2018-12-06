@@ -791,7 +791,6 @@
   revision = "53feefa2559fb8dfa8d81baad31be332c97d6c77"
 
 [[projects]]
-  branch = "release-1.12"
   name = "k8s.io/api"
   packages = [
     "admission/v1beta1",
@@ -827,16 +826,16 @@
     "storage/v1alpha1",
     "storage/v1beta1"
   ]
-  revision = "475331a8afff5587f47d0470a93f79c60c573c03"
+  revision = "b503174bad5991eb66f18247f52e41c3258f6348"
+  version = "kubernetes-1.12.3"
 
 [[projects]]
-  branch = "release-1.12"
   name = "k8s.io/apiextensions-apiserver"
   packages = ["pkg/apis/apiextensions"]
-  revision = "ca1024863b48cf0701229109df75ac5f0bb4907e"
+  revision = "0cd23ebeb6882bd1cdc2cb15fc7b2d72e8a86a5b"
+  version = "kubernetes-1.12.3"
 
 [[projects]]
-  branch = "release-1.12"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/api/equality",
@@ -889,10 +888,10 @@
     "third_party/forked/golang/json",
     "third_party/forked/golang/reflect"
   ]
-  revision = "f71dbbc36e126f5a371b85f6cca96bc8c57db2b6"
+  revision = "eddba98df674a16931d2d4ba75edc3a389bf633a"
+  version = "kubernetes-1.12.3"
 
 [[projects]]
-  branch = "release-1.12"
   name = "k8s.io/apiserver"
   packages = [
     "pkg/admission",
@@ -989,7 +988,8 @@
     "plugin/pkg/authenticator/token/webhook",
     "plugin/pkg/authorizer/webhook"
   ]
-  revision = "f1efbe52ad282d7d18ca4e5580b35c08e3bf521f"
+  revision = "92fdef3a232a23afb9644f6151119b5961b9feab"
+  version = "kubernetes-1.12.3"
 
 [[projects]]
   branch = "release-9.0"
@@ -1168,6 +1168,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b37f8e8633bca3d54952d5a2e6196a12f2433f5a2b0d58d41378f2d0d88effe2"
+  inputs-digest = "9c50f7fcb2fa9091ddef0dcf398a8df4e626c1bf87cf578365d2d3e4776fc1bb"
   solver-name = "gps-cdcl"
   solver-version = 1

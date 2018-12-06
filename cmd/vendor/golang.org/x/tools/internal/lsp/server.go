@@ -10,15 +10,15 @@ import (
 	"sync"
 
 	"golang.org/x/tools/internal/jsonrpc2"
+	"golang.org/x/tools/internal/lsp/cache"
 	"golang.org/x/tools/internal/lsp/protocol"
+	"golang.org/x/tools/internal/lsp/source"
 )
 
 // RunServer starts an LSP server on the supplied stream, and waits until the
 // stream is closed.
 func RunServer(ctx context.Context, stream jsonrpc2.Stream, opts ...interface{}) error {
-	s := &server{
-		view: newView(),
-	}
+	s := &server{}
 	conn, client := protocol.RunServer(ctx, stream, s, opts...)
 	s.client = client
 	return conn.Wait(ctx)
@@ -30,7 +30,10 @@ type server struct {
 	initializedMu sync.Mutex
 	initialized   bool // set once the server has received "initialize" request
 
-	*view
+	signatureHelpEnabled bool
+	snippetsSupported    bool
+
+	view *cache.View
 }
 
 func (s *server) Initialize(ctx context.Context, params *protocol.InitializeParams) (*protocol.InitializeResult, error) {
@@ -39,15 +42,30 @@ func (s *server) Initialize(ctx context.Context, params *protocol.InitializePara
 	if s.initialized {
 		return nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidRequest, "server already initialized")
 	}
-	s.initialized = true
+	s.view = cache.NewView()
+	s.initialized = true // mark server as initialized now
+
+	// Check if the client supports snippets in completion items.
+	s.snippetsSupported = params.Capabilities.TextDocument.Completion.CompletionItem.SnippetSupport
+	s.signatureHelpEnabled = true
+
 	return &protocol.InitializeResult{
 		Capabilities: protocol.ServerCapabilities{
+			CompletionProvider: protocol.CompletionOptions{
+				TriggerCharacters: []string{"."},
+			},
+			DefinitionProvider:              true,
+			DocumentFormattingProvider:      true,
+			DocumentRangeFormattingProvider: true,
+			HoverProvider:                   true,
+			SignatureHelpProvider: protocol.SignatureHelpOptions{
+				TriggerCharacters: []string{"(", ","},
+			},
 			TextDocumentSync: protocol.TextDocumentSyncOptions{
 				Change:    float64(protocol.Full), // full contents of file sent on each update
 				OpenClose: true,
 			},
-			DocumentFormattingProvider:      true,
-			DocumentRangeFormattingProvider: true,
+			TypeDefinitionProvider: true,
 		},
 	}, nil
 }
@@ -95,7 +113,7 @@ func (s *server) ExecuteCommand(context.Context, *protocol.ExecuteCommandParams)
 }
 
 func (s *server) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocumentParams) error {
-	s.cacheAndDiagnoseFile(ctx, params.TextDocument.URI, params.TextDocument.Text)
+	s.CacheAndDiagnose(ctx, params.TextDocument.URI, params.TextDocument.Text)
 	return nil
 }
 
@@ -105,26 +123,9 @@ func (s *server) DidChange(ctx context.Context, params *protocol.DidChangeTextDo
 	}
 	// We expect the full content of file, i.e. a single change with no range.
 	if change := params.ContentChanges[0]; change.RangeLength == 0 {
-		s.cacheAndDiagnoseFile(ctx, params.TextDocument.URI, change.Text)
+		s.CacheAndDiagnose(ctx, params.TextDocument.URI, change.Text)
 	}
 	return nil
-}
-
-func (s *server) cacheAndDiagnoseFile(ctx context.Context, uri protocol.DocumentURI, text string) {
-	s.view.activeFilesMu.Lock()
-	s.view.activeFiles[uri] = []byte(text)
-	s.view.activeFilesMu.Unlock()
-	go func() {
-		reports, err := s.diagnostics(uri)
-		if err == nil {
-			for filename, diagnostics := range reports {
-				s.client.PublishDiagnostics(ctx, &protocol.PublishDiagnosticsParams{
-					URI:         filenameToURI(filename),
-					Diagnostics: diagnostics,
-				})
-			}
-		}
-	}()
 }
 
 func (s *server) WillSave(context.Context, *protocol.WillSaveTextDocumentParams) error {
@@ -141,32 +142,91 @@ func (s *server) DidSave(context.Context, *protocol.DidSaveTextDocumentParams) e
 }
 
 func (s *server) DidClose(ctx context.Context, params *protocol.DidCloseTextDocumentParams) error {
-	s.clearActiveFile(params.TextDocument.URI)
+	s.view.GetFile(source.URI(params.TextDocument.URI)).SetContent(nil)
 	return nil
 }
 
-func (s *server) Completion(context.Context, *protocol.CompletionParams) (*protocol.CompletionList, error) {
-	return nil, notImplemented("Completion")
+func (s *server) Completion(ctx context.Context, params *protocol.CompletionParams) (*protocol.CompletionList, error) {
+	f := s.view.GetFile(source.URI(params.TextDocument.URI))
+	tok, err := f.GetToken()
+	if err != nil {
+		return nil, err
+	}
+	pos := fromProtocolPosition(tok, params.Position)
+	items, prefix, err := source.Completion(ctx, f, pos)
+	if err != nil {
+		return nil, err
+	}
+	return &protocol.CompletionList{
+		IsIncomplete: false,
+		Items:        toProtocolCompletionItems(items, prefix, params.Position, s.snippetsSupported, s.signatureHelpEnabled),
+	}, nil
 }
 
 func (s *server) CompletionResolve(context.Context, *protocol.CompletionItem) (*protocol.CompletionItem, error) {
 	return nil, notImplemented("CompletionResolve")
 }
 
-func (s *server) Hover(context.Context, *protocol.TextDocumentPositionParams) (*protocol.Hover, error) {
-	return nil, notImplemented("Hover")
+func (s *server) Hover(ctx context.Context, params *protocol.TextDocumentPositionParams) (*protocol.Hover, error) {
+	f := s.view.GetFile(source.URI(params.TextDocument.URI))
+	tok, err := f.GetToken()
+	if err != nil {
+		return nil, err
+	}
+	pos := fromProtocolPosition(tok, params.Position)
+	contents, rng, err := source.Hover(ctx, f, pos)
+	if err != nil {
+		return nil, err
+	}
+	return &protocol.Hover{
+		Contents: protocol.MarkupContent{
+			Kind:  protocol.Markdown,
+			Value: contents,
+		},
+		Range: toProtocolRange(tok, rng),
+	}, nil
 }
 
-func (s *server) SignatureHelp(context.Context, *protocol.TextDocumentPositionParams) (*protocol.SignatureHelp, error) {
-	return nil, notImplemented("SignatureHelp")
+func (s *server) SignatureHelp(ctx context.Context, params *protocol.TextDocumentPositionParams) (*protocol.SignatureHelp, error) {
+	f := s.view.GetFile(source.URI(params.TextDocument.URI))
+	tok, err := f.GetToken()
+	if err != nil {
+		return nil, err
+	}
+	pos := fromProtocolPosition(tok, params.Position)
+	info, err := source.SignatureHelp(ctx, f, pos)
+	if err != nil {
+		return nil, err
+	}
+	return toProtocolSignatureHelp(info), nil
 }
 
-func (s *server) Definition(context.Context, *protocol.TextDocumentPositionParams) ([]protocol.Location, error) {
-	return nil, notImplemented("Definition")
+func (s *server) Definition(ctx context.Context, params *protocol.TextDocumentPositionParams) ([]protocol.Location, error) {
+	f := s.view.GetFile(source.URI(params.TextDocument.URI))
+	tok, err := f.GetToken()
+	if err != nil {
+		return nil, err
+	}
+	pos := fromProtocolPosition(tok, params.Position)
+	r, err := source.Definition(ctx, f, pos)
+	if err != nil {
+		return nil, err
+	}
+	return []protocol.Location{toProtocolLocation(s.view.Config.Fset, r)}, nil
 }
 
-func (s *server) TypeDefinition(context.Context, *protocol.TextDocumentPositionParams) ([]protocol.Location, error) {
-	return nil, notImplemented("TypeDefinition")
+func (s *server) TypeDefinition(ctx context.Context, params *protocol.TextDocumentPositionParams) ([]protocol.Location, error) {
+	f := s.view.GetFile(source.URI(params.TextDocument.URI))
+	tok, err := f.GetToken()
+	if err != nil {
+		return nil, err
+	}
+	pos := fromProtocolPosition(tok, params.Position)
+	r, err := source.TypeDefinition(ctx, f, pos)
+	if err != nil {
+		return nil, err
+	}
+	return []protocol.Location{toProtocolLocation(s.view.Config.Fset, r)}, nil
 }
 
 func (s *server) Implementation(context.Context, *protocol.TextDocumentPositionParams) ([]protocol.Location, error) {
@@ -214,11 +274,11 @@ func (s *server) ColorPresentation(context.Context, *protocol.ColorPresentationP
 }
 
 func (s *server) Formatting(ctx context.Context, params *protocol.DocumentFormattingParams) ([]protocol.TextEdit, error) {
-	return s.format(params.TextDocument.URI, nil)
+	return formatRange(ctx, s.view, params.TextDocument.URI, nil)
 }
 
 func (s *server) RangeFormatting(ctx context.Context, params *protocol.DocumentRangeFormattingParams) ([]protocol.TextEdit, error) {
-	return s.format(params.TextDocument.URI, &params.Range)
+	return formatRange(ctx, s.view, params.TextDocument.URI, &params.Range)
 }
 
 func (s *server) OnTypeFormatting(context.Context, *protocol.DocumentOnTypeFormattingParams) ([]protocol.TextEdit, error) {

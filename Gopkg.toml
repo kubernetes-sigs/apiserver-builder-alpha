@@ -81,19 +81,19 @@ required = [
   name = "github.com/spf13/viper"
 
 [[constraint]]
-  branch = "release-1.12"
+  version = "kubernetes-1.12.3"
   name = "k8s.io/api"
 
 [[constraint]]
-  branch = "release-1.12"
+  version = "kubernetes-1.12.3"
   name = "k8s.io/apiextensions-apiserver"
 
 [[constraint]]
-  branch = "release-1.12"
+  version = "kubernetes-1.12.3"
   name = "k8s.io/apimachinery"
 
 [[constraint]]
-  branch = "release-1.12"
+  version = "kubernetes-1.12.3"
   name = "k8s.io/apiserver"
 
 [[constraint]]

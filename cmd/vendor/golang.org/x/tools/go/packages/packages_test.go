@@ -824,8 +824,18 @@ func testOverlay(t *testing.T, exporter packagestest.Exporter) {
 		{map[string][]byte{}, `"abc"`, nil}, // empty overlay
 		{map[string][]byte{exported.File("golang.org/fake", "c/c.go"): []byte(`package c; const C = "C"`)}, `"abC"`, nil},
 		{map[string][]byte{exported.File("golang.org/fake", "b/b.go"): []byte(`package b; import "golang.org/fake/c"; const B = "B" + c.C`)}, `"aBc"`, nil},
-		{map[string][]byte{exported.File("golang.org/fake", "b/b.go"): []byte(`package b; import "d"; const B = "B" + d.D`)}, `unknown`,
-			[]string{`could not import d (no metadata for d)`}},
+		// Overlay with an existing file in an existing package adding a new import.
+		{map[string][]byte{exported.File("golang.org/fake", "b/b.go"): []byte(`package b; import "golang.org/fake/d"; const B = "B" + d.D`)}, `"aBd"`, nil},
+		// Overlay with a new file in an existing package.
+		{map[string][]byte{
+			exported.File("golang.org/fake", "c/c.go"):                                               []byte(`package c;`),
+			filepath.Join(filepath.Dir(exported.File("golang.org/fake", "c/c.go")), "c_new_file.go"): []byte(`package c; const C = "Ç"`)},
+			`"abÇ"`, nil},
+		// Overlay with a new file in an existing package, adding a new dependency to that package.
+		{map[string][]byte{
+			exported.File("golang.org/fake", "c/c.go"):                                               []byte(`package c;`),
+			filepath.Join(filepath.Dir(exported.File("golang.org/fake", "c/c.go")), "c_new_file.go"): []byte(`package c; import "golang.org/fake/d"; const C = "c" + d.D`)},
+			`"abcd"`, nil},
 	} {
 		exported.Config.Overlay = test.overlay
 		exported.Config.Mode = packages.LoadAllSyntax
@@ -862,7 +872,8 @@ func TestLoadAllSyntaxImportErrors(t *testing.T) {
 	packagestest.TestAll(t, testLoadAllSyntaxImportErrors)
 }
 func testLoadAllSyntaxImportErrors(t *testing.T, exporter packagestest.Exporter) {
-	// TODO(matloob): Remove this once go list -e -compiled is fixed. See golang.org/issue/26755
+	// TODO(matloob): Remove this once go list -e -compiled is fixed.
+	// See https://golang.org/issue/26755
 	t.Skip("go list -compiled -e fails with non-zero exit status for empty packages")
 
 	exported := packagestest.Export(t, exporter, []packagestest.Module{{
@@ -1410,24 +1421,41 @@ func testPatternPassthrough(t *testing.T, exporter packagestest.Exporter) {
 
 func TestConfigDefaultEnv(t *testing.T) { packagestest.TestAll(t, testConfigDefaultEnv) }
 func testConfigDefaultEnv(t *testing.T, exporter packagestest.Exporter) {
-	if runtime.GOOS == "windows" {
+	const driverJSON = `{
+  "Roots": ["gopackagesdriver"],
+  "Packages": [{"ID": "gopackagesdriver", "Name": "gopackagesdriver"}]
+}`
+	var (
+		pathKey      string
+		driverScript packagestest.Writer
+	)
+	switch runtime.GOOS {
+	case "windows":
 		// TODO(jayconrod): write an equivalent batch script for windows.
 		// Hint: "type" can be used to read a file to stdout.
 		t.Skip("test requires sh")
+	case "plan9":
+		pathKey = "path"
+		driverScript = packagestest.Script(`#!/bin/rc
+
+cat <<'EOF'
+` + driverJSON + `
+EOF
+`)
+	default:
+		pathKey = "PATH"
+		driverScript = packagestest.Script(`#!/bin/sh
+
+cat - <<'EOF'
+` + driverJSON + `
+EOF
+`)
 	}
 	exported := packagestest.Export(t, exporter, []packagestest.Module{{
 		Name: "golang.org/fake",
 		Files: map[string]interface{}{
-			"bin/gopackagesdriver": packagestest.Script(`#!/bin/sh
-
-cat - <<'EOF'
-{
-  "Roots": ["gopackagesdriver"],
-  "Packages": [{"ID": "gopackagesdriver", "Name": "gopackagesdriver"}]
-}
-EOF
-`),
-			"golist/golist.go": "package golist",
+			"bin/gopackagesdriver": driverScript,
+			"golist/golist.go":     "package golist",
 		}}})
 	defer exported.Cleanup()
 	driver := exported.File("golang.org/fake", "bin/gopackagesdriver")
@@ -1436,7 +1464,7 @@ EOF
 		t.Fatal(err)
 	}
 
-	path, ok := os.LookupEnv("PATH")
+	path, ok := os.LookupEnv(pathKey)
 	var pathWithDriver string
 	if ok {
 		pathWithDriver = binDir + string(os.PathListSeparator) + path
@@ -1468,9 +1496,9 @@ EOF
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			oldPath := os.Getenv("PATH")
-			os.Setenv("PATH", test.path)
-			defer os.Setenv("PATH", oldPath)
+			oldPath := os.Getenv(pathKey)
+			os.Setenv(pathKey, test.path)
+			defer os.Setenv(pathKey, oldPath)
 			exported.Config.Env = append(coreEnv, "GOPACKAGESDRIVER="+test.driver)
 			pkgs, err := packages.Load(exported.Config, "golist")
 			if err != nil {
@@ -1485,6 +1513,31 @@ EOF
 				t.Errorf("got %v; want %v", gotIds, test.wantIDs)
 			}
 		})
+	}
+}
+
+// This test that a simple x test package layout loads correctly.
+// There was a bug in go list where it returned multiple copies of the same
+// package (specifically in this case of golang.org/fake/a), and this triggered
+// a bug in go/packages where it would leave an empty entry in the root package
+// list. This would then cause a nil pointer crash.
+// This bug was triggered by the simple package layout below, and thus this
+// test will make sure the bug remains fixed.
+func TestBasicXTest(t *testing.T) { packagestest.TestAll(t, testBasicXTest) }
+func testBasicXTest(t *testing.T, exporter packagestest.Exporter) {
+	exported := packagestest.Export(t, exporter, []packagestest.Module{{
+		Name: "golang.org/fake",
+		Files: map[string]interface{}{
+			"a/a.go":      `package a;`,
+			"a/a_test.go": `package a_test;`,
+		}}})
+	defer exported.Cleanup()
+
+	exported.Config.Mode = packages.LoadFiles
+	exported.Config.Tests = true
+	_, err := packages.Load(exported.Config, "golang.org/fake/a")
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -1557,6 +1610,12 @@ func importGraph(initial []*packages.Package) (string, map[string]*packages.Pack
 						edges = append(edges, fmt.Sprintf("%s -> %s (pruned)", p, imp))
 						continue
 					}
+				}
+				// math/bits took on a dependency on unsafe in 1.12, which breaks some
+				// tests. As a short term hack, prune that edge.
+				// TODO(matloob): think of a cleaner solution, or remove math/bits from the test.
+				if p.ID == "math/bits" && imp.ID == "unsafe" {
+					continue
 				}
 				edges = append(edges, fmt.Sprintf("%s -> %s", p, imp))
 				visit(imp)

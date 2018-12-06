@@ -35,6 +35,9 @@ func TestStdlibMetadata(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to load metadata: %v", err)
 	}
+	if packages.PrintErrors(pkgs) > 0 {
+		t.Fatal("there were errors loading standard library")
+	}
 
 	t1 := time.Now()
 	runtime.GC()
@@ -56,7 +59,7 @@ func TestStdlibMetadata(t *testing.T) {
 
 func TestCgoOption(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping in short mode; uses tons of memory (golang.org/issue/14113)")
+		t.Skip("skipping in short mode; uses tons of memory (https://golang.org/issue/14113)")
 	}
 
 	// TODO(adonovan): see if we can get away without these old
@@ -97,6 +100,10 @@ func TestCgoOption(t *testing.T) {
 		pkgs, err := packages.Load(cfg, test.pkg)
 		if err != nil {
 			t.Errorf("Load failed: %v", err)
+			continue
+		}
+		if packages.PrintErrors(pkgs) > 0 {
+			t.Error("there were errors loading standard library")
 			continue
 		}
 		pkg := pkgs[0]
