@@ -1,5 +1,5 @@
-hash: 4bb574ae03e4c9faedbd24005f64cb8ec62fa00c9f7c7abc0c7147dbc1d0a746
-updated: 2018-11-02T12:12:46.397023+08:00
+hash: 8bc1f8c59a7898b389aff56457c66006ca0fd021703abdb3dcee394613901b2d
+updated: 2018-12-06T18:48:46.166728+08:00
 imports:
 - name: github.com/emicklei/go-restful
   version: ff4f55a206334ef123e4f79bbf348980da81ca46
@@ -24,7 +24,7 @@ imports:
 - name: github.com/go-openapi/validate
   version: deaf2c9013bc1a7f4c774662259a506ba874d80f
 - name: github.com/gobuffalo/envy
-  version: e0b181c424e7ca1a36f6f2db4bdfd25ef3421e77
+  version: 7e7ddcbb431d1d9e32121d7eeee8d68bdecd7081
 - name: github.com/gogo/protobuf
   version: c0656edd0d9eab7c66d1eb0c568f9039345796f7
   subpackages:
@@ -35,11 +35,11 @@ imports:
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/joho/godotenv
-  version: c0b86d615e06d6fa5f869364d68f774ba49a86e3
+  version: 69ed1d913aa885da390dd6de9febf063d101b097
 - name: github.com/json-iterator/go
   version: f2b4162afba35581b6d4a50d3b8f34e33c144682
 - name: github.com/kubernetes-incubator/reference-docs
-  version: f79cb2a1e53ecd00c9b8e51342e1db54099dad65
+  version: a3a9aaf7f3fdec296465a2f3b411b32196148ee7
   subpackages:
   - gen-apidocs
 - name: github.com/markbates/inflect
@@ -50,6 +50,12 @@ imports:
   version: c893efa28eb45626cdaa76c9f653b62488858837
 - name: github.com/pkg/errors
   version: 059132a15dd08d6704c67711dae0cf35ab991756
+- name: github.com/rogpeppe/go-internal
+  version: 3f553c33bb514cd914c1275a83aabfd4918c797d
+  subpackages:
+  - modfile
+  - module
+  - semver
 - name: github.com/spf13/cobra
   version: f62e98d28ab7ad31d707ba837a966378465c7b57
   subpackages:
@@ -59,27 +65,27 @@ imports:
 - name: github.com/spf13/viper
   version: 7fb2782df3d83e0036cc89f461ed0422628776f4
 - name: golang.org/x/tools
-  version: d51e88b5aec5e5af4b3c8a4083777f5d1623d846
+  version: 3576414c54a492fc48cd913814eb209914c717f0
   subpackages:
   - go/ast/astutil
   - imports
   - internal/fastwalk
   - internal/gopathwalk
 - name: k8s.io/api
-  version: 475331a8afff5587f47d0470a93f79c60c573c03
+  version: b503174bad5991eb66f18247f52e41c3258f6348
 - name: k8s.io/apimachinery
-  version: f71dbbc36e126f5a371b85f6cca96bc8c57db2b6
+  version: eddba98df674a16931d2d4ba75edc3a389bf633a
   subpackages:
   - pkg/runtime/schema
   - pkg/util/runtime
   - pkg/util/sets
   - pkg/util/wait
 - name: k8s.io/apiserver
-  version: f1efbe52ad282d7d18ca4e5580b35c08e3bf521f
+  version: 92fdef3a232a23afb9644f6151119b5961b9feab
   subpackages:
   - pkg/util/logs
 - name: k8s.io/client-go
-  version: 13596e875accbd333e0b5bd5fd9462185acd9958
+  version: 5e6a3d4e34f694e895b13ae728111e726a5b69df
   subpackages:
   - util/homedir
 - name: k8s.io/code-generator
