@@ -83,6 +83,7 @@ var server string
 var disableDelegatedAuth bool
 var cleanup bool
 var outputDir string
+var etcd string
 
 func AddDocs(cmd *cobra.Command) {
 	docsCmd.Flags().StringVar(&server, "server", "bin/apiserver", "path to apiserver binary to run to get swagger.json")
@@ -92,6 +93,7 @@ func AddDocs(cmd *cobra.Command) {
 	docsCmd.Flags().BoolVar(&generateToc, "generate-toc", true, "If true, generate the table of contents from the api groups instead of using a statically configured ToC.")
 	docsCmd.Flags().BoolVar(&disableDelegatedAuth, "disable-delegated-auth", true, "If true, disable delegated auth in the apiserver with --delegated-auth=false.")
 	docsCmd.Flags().StringVar(&outputDir, "output-dir", "docs", "Build docs into this directory")
+	docsCmd.Flags().StringVar(&etcd, "etcd", "http://localhost:2379", "if non-empty, use this etcd instead of using localhost")
 	cmd.AddCommand(docsCmd)
 	docsCmd.AddCommand(docsCleanCmd)
 }
@@ -123,7 +125,7 @@ func RunDocs(cmd *cobra.Command, args []string) {
 	// Build the swagger.json
 	if buildOpenapi {
 		flags := []string{
-			"--etcd-servers=http://localhost:2379",
+			"--etcd-servers=" + etcd,
 			"--secure-port=9443",
 			"--print-openapi",
 		}
