@@ -132,6 +132,10 @@ func RunDocs(cmd *cobra.Command, args []string) {
 			flags = append(flags, "--delegated-auth=false")
 		}
 
+		etcdStopFunc := RunEtcd()
+		defer etcdStopFunc()
+		log.Printf("starting local etcd...\n")
+
 		c := exec.Command(server,
 			flags...,
 		)
@@ -201,5 +205,23 @@ func RunDocs(cmd *cobra.Command, args []string) {
 		os.RemoveAll(filepath.Join(wd, outputDir, "build", "documents"))
 		os.RemoveAll(filepath.Join(wd, outputDir, "build", "runbrodocs.sh"))
 		os.RemoveAll(filepath.Join(wd, outputDir, "build", "node_modules", "marked", "Makefile"))
+	}
+}
+
+func RunEtcd() func() {
+	etcdCmd := exec.Command("etcd")
+
+	log.Printf("%s\n", strings.Join(etcdCmd.Args, " "))
+	go func() {
+		err := etcdCmd.Run()
+		if err != nil {
+			log.Fatalf("Failed to run etcd %v", err)
+			os.Exit(-1)
+		}
+	}()
+	return func() {
+		if etcdCmd.Process != nil {
+			etcdCmd.Process.Kill()
+		}
 	}
 }
