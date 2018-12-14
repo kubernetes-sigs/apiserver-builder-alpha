@@ -17,19 +17,21 @@ limitations under the License.
 package v1beta1
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"context"
-
-	"k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/validation/field"
+	"time"
 
 	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/olympus"
+	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/apiserver/pkg/registry/generic"
 	"k8s.io/apiserver/pkg/storage"
 )
@@ -99,6 +101,52 @@ func (b PoseidonStrategy) BasicMatch(label labels.Selector, field fields.Selecto
 		GetAttrs:    b.GetAttrs,
 		IndexFields: []string{"spec.deployment.name"},
 	}
+}
+
+//ConvertToTable Starting with Kubernetes 1.11, kubectl uses server-side printing. The server decides which columns are shown by the kubectl get command. You can customize these columns by Implementing ConvertToTable
+func (PoseidonStrategy) ConvertToTable(ctx context.Context, object runtime.Object, tableOptions runtime.Object) (*metav1beta1.Table, error) {
+	var table metav1beta1.Table
+	var swaggerMetadataDescriptions = metav1.ObjectMeta{}.SwaggerDoc()
+	table.ColumnDefinitions = []metav1beta1.TableColumnDefinition{
+		{Name: "Name", Type: "string", Format: "name", Description: metav1.ObjectMeta{}.SwaggerDoc()["name"]},
+		{Name: "Created At", Type: "date", Description: swaggerMetadataDescriptions["creationTimestamp"]},
+		{Name: "Namespace", Type: "string", Description: "Namespace"},
+	}
+	fn := func(obj runtime.Object) error {
+		m, err := meta.Accessor(obj)
+		if err != nil {
+			return fmt.Errorf("the resource %s does not support server-side printing", "Poseidon")
+		}
+		table.Rows = append(table.Rows, metav1beta1.TableRow{
+			Cells: []interface{}{
+				m.GetName(),
+				m.GetCreationTimestamp().Time.UTC().Format(time.RFC3339),
+				m.GetNamespace()},
+			Object: runtime.RawExtension{Object: obj},
+		})
+		return nil
+	}
+	switch {
+	case meta.IsListType(object):
+		if err := meta.EachListItem(object, fn); err != nil {
+			return nil, err
+		}
+	default:
+		if err := fn(object); err != nil {
+			return nil, err
+		}
+	}
+	if m, err := meta.ListAccessor(object); err == nil {
+		table.ResourceVersion = m.GetResourceVersion()
+		table.SelfLink = m.GetSelfLink()
+		table.Continue = m.GetContinue()
+	} else {
+		if m, err := meta.CommonAccessor(object); err == nil {
+			table.ResourceVersion = m.GetResourceVersion()
+			table.SelfLink = m.GetSelfLink()
+		}
+	}
+	return &table, nil
 }
 
 // All field selector fields must appear in this function

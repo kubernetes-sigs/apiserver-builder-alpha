@@ -64,6 +64,9 @@ func (DefaultStorageStrategy) Build(builder StorageBuilder, store *StorageWrappe
 	store.CreateStrategy = builder
 	store.UpdateStrategy = builder
 	store.DeleteStrategy = builder
+	if table, ok := builder.(rest.TableConvertor); ok {
+		store.TableConvertor = table
+	}
 
 	options.AttrFunc = builder.GetAttrs
 	options.TriggerFunc = builder.TriggerFunc
