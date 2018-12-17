@@ -51,5 +51,5 @@ type StudentStatus struct {
 
 // Custom REST storage that delegates to the generated standard Registry
 func NewStudentREST() rest.Storage {
-	return &miskatonic.StudentREST{miskatonic.NewStudentRegistry(nil)}
+	return &miskatonic.StudentREST{}
 }

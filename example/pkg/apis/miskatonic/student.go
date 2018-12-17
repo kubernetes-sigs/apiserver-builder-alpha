@@ -32,7 +32,6 @@ var _ rest.Scoper = &StudentREST{}
 
 // +k8s:deepcopy-gen=false
 type StudentREST struct {
-	Registry StudentRegistry
 }
 
 func (r *StudentREST) Create(ctx context.Context, obj runtime.Object, createValidation rest.ValidateObjectFunc, options *metav1.CreateOptions) (runtime.Object, error) {
