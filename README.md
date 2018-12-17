@@ -1,14 +1,19 @@
-Unless you absolutely need apiserver-aggregation, you should use [Kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) instead of apiserver-builder for
-building Kubernetes APIs.  Kubebuilder builds APIs using CRDs and addresses limitations and feedback from
-apiserver-builder.
-
 ## `apiserver-builder`
 
 [![Build Status](https://travis-ci.org/kubernetes-incubator/apiserver-builder.svg?branch=master)](https://travis-ci.org/kubernetes-incubator/apiserver-builder "Travis")
 [![Go Report Card](https://goreportcard.com/badge/github.com/kubernetes-incubator/apiserver-builder)](https://goreportcard.com/report/github.com/kubernetes-incubator/apiserver-builder)
 
+Unless you absolutely need apiserver-aggregation, you are recommended to use [Kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) instead of apiserver-builder for
+building Kubernetes APIs.  Kubebuilder builds APIs using CRDs and addresses limitations and feedback from
+apiserver-builder.
+
 Apiserver Builder is a collection of libraries and tools to build native
-Kubernetes extensions using Kubernetes apiserver code.
+Kubernetes extensions using Kubernetes apiserver aggregation. Aggregated
+apiserver empowers you to customize your apiserver to do following things
+cannot achieved by CR\[D\]:
+- Makes your apiserver adopt different storage APIs rather than ETCDv3
+- Extends long-running subresources/endpoints like websocket for your own resources
+- Integrates your apiserver with whatever other external systems
 
 ## Motivation
 
