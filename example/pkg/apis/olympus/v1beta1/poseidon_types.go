@@ -58,6 +58,7 @@ type PoseidonSpec struct {
 
 // PoseidonStatus defines the observed state of Poseidon
 type PoseidonStatus struct {
+	DeploymentStatus v1beta1.DeploymentStatus
 }
 
 // Validate checks that an instance of Poseidon is well formed
@@ -104,24 +105,27 @@ func (b PoseidonStrategy) BasicMatch(label labels.Selector, field fields.Selecto
 }
 
 //ConvertToTable Starting with Kubernetes 1.11, kubectl uses server-side printing. The server decides which columns are shown by the kubectl get command. You can customize these columns by Implementing ConvertToTable
+//Notes the `object` passed to this function is an unversioned type.
 func (PoseidonStrategy) ConvertToTable(ctx context.Context, object runtime.Object, tableOptions runtime.Object) (*metav1beta1.Table, error) {
 	var table metav1beta1.Table
 	var swaggerMetadataDescriptions = metav1.ObjectMeta{}.SwaggerDoc()
 	table.ColumnDefinitions = []metav1beta1.TableColumnDefinition{
 		{Name: "Name", Type: "string", Format: "name", Description: metav1.ObjectMeta{}.SwaggerDoc()["name"]},
 		{Name: "Created At", Type: "date", Description: swaggerMetadataDescriptions["creationTimestamp"]},
-		{Name: "Namespace", Type: "string", Description: "Namespace"},
+		{Name: "Ready Replicas", Type: "integer", Description: "Ready replicas of its deployment"},
 	}
 	fn := func(obj runtime.Object) error {
 		m, err := meta.Accessor(obj)
 		if err != nil {
 			return fmt.Errorf("the resource %s does not support server-side printing", "Poseidon")
 		}
+		//obj is an unversioned type, all versioned types will be converted to unversioned types. If it is not an unversioned type, this line will panic
+		s, _ := obj.(*olympus.Poseidon)
 		table.Rows = append(table.Rows, metav1beta1.TableRow{
 			Cells: []interface{}{
 				m.GetName(),
 				m.GetCreationTimestamp().Time.UTC().Format(time.RFC3339),
-				m.GetNamespace()},
+				s.Status.DeploymentStatus.ReadyReplicas},
 			Object: runtime.RawExtension{Object: obj},
 		})
 		return nil
