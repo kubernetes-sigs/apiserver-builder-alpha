@@ -402,9 +402,9 @@ func (t TarFile) Write(path string) error {
 	if err != nil {
 		log.Fatalf("failed to read file %s %v", path, err)
 	}
-	// if len(body) == 0 {
-	// 	return nil
-	// }
+	if len(body) == 0 && strings.HasSuffix(path, "vendor.tar.gz") {
+		return nil
+	}
 
 	hdr := &tar.Header{
 		Name: name,
