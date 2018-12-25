@@ -34,6 +34,8 @@ DESCRIPTION=apiserver-builder implements libraries and tools to quickly and easi
 MAINTAINER=The Kubernetes Authors
 URL=https://github.com/$(VENDOR)/$(NAME)
 LICENSE=Apache-2.0
+GOOS?=linux
+GOARCH?=amd64
 
 .PHONY: default
 default: install
@@ -43,10 +45,12 @@ test:
 	go test ./pkg/... ./cmd/...
 
 .PHONY: install
-install:
-	go install -v ./pkg/... ./cmd/...
-	go install -v ./cmd/vendor/github.com/kubernetes-incubator/reference-docs/gen-apidocs/...
-	go install -v ./cmd/vendor/k8s.io/code-generator/...
+install: build
+	@echo "Installing apiserver-builder suite tools..."
+	@echo "GOOS: $(GOOS)"
+	@echo "GOARCH: $(GOARCH)"
+	@echo "ARCH: $(ARCH)"
+	GOOS=$(GOOS) GOARCH=$(GOARCH) go run ./cmd/apiserver-builder-release/main.go install --version $(VERSION)
 
 .PHONY: clean
 clean:
