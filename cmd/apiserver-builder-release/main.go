@@ -483,12 +483,17 @@ func RunInstall(cmd *cobra.Command, args []string) {
 	if len(version) == 0 {
 		log.Fatal("must specify the --version flag")
 	}
+	goos := os.Getenv("GOOS")
+	goarch := os.Getenv("GOARCH")
+	gopath := os.Getenv("GOPATH")
 
-	// Untar to to /usr/local/apiserver-build/
-	os.Mkdir(filepath.Join("/", "usr", "local", "apiserver-builder"), 0700)
-	c := exec.Command("tar", "-xzvf", fmt.Sprintf("%s-%s-%s-%s.tar.gz", output, version, "", ""),
-		"-C", filepath.Join("/", "usr", "local", "apiserver-builder"),
+	if len(goos) == 0 || len(goarch) == 0 || len(gopath) == 0 {
+		log.Fatalf("missing environment variable: GOOS(%s), GOARCH(%s), GOPATH(%s)", goos, goarch, gopath)
+	}
+
+	// Untar to to GOPATH
+	c := exec.Command("tar", "-xzvf", fmt.Sprintf("%s-%s-%s-%s.tar.gz", output, version, goos, goarch),
+		"-C", filepath.Join(gopath),
 	)
 	RunCmd(c, "")
-
 }
