@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["start.go"],
-    importpath = "github.com/kubernetes-incubator/apiserver-builder/pkg/cmd/server",
+    importpath = "github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/cmd/server",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/apiserver:go_default_library",

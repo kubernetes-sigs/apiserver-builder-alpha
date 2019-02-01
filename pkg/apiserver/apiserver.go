@@ -23,7 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/version"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 )
 

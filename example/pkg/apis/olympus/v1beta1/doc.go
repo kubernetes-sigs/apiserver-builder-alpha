@@ -20,7 +20,7 @@ limitations under the License.
 
 // +k8s:openapi-gen=true
 // +k8s:deepcopy-gen=package,register
-// +k8s:conversion-gen=github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/olympus
+// +k8s:conversion-gen=github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/olympus
 // +k8s:defaulter-gen=TypeMeta
 // +groupName=olympus.k8s.io
-package v1beta1 // import "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/olympus/v1beta1"
+package v1beta1 // import "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/olympus/v1beta1"

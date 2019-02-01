@@ -19,11 +19,11 @@ package festival
 import (
 	"log"
 
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
 
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/kingsport/v1"
-	listers "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/listers_generated/kingsport/v1"
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/controller/sharedinformers"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/kingsport/v1"
+	listers "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/client/listers_generated/kingsport/v1"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/controller/sharedinformers"
 )
 
 // +controller:group=kingsport,version=v1,kind=Festival,resource=festivals

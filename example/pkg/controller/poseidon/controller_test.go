@@ -19,8 +19,8 @@ package poseidon_test
 import (
 	"time"
 
-	. "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/olympus/v1beta1"
-	. "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/clientset_generated/clientset/typed/olympus/v1beta1"
+	. "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/olympus/v1beta1"
+	. "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/client/clientset_generated/clientset/typed/olympus/v1beta1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 

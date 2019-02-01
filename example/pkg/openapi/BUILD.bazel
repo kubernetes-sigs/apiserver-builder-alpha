@@ -6,7 +6,7 @@ go_library(
         "doc.go",
         "openapi_generated.go",
     ],
-    importpath = "github.com/kubernetes-incubator/apiserver-builder/example/pkg/openapi",
+    importpath = "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/openapi",
     visibility = ["//visibility:public"],
     deps = [
         "//vendor/github.com/go-openapi/spec:go_default_library",

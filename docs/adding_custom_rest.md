@@ -1,6 +1,6 @@
 # Adding resources
 
-**Important:** Read [this doc](https://github.com/kubernetes-incubator/apiserver-builder/blob/master/docs/adding_resources.md)
+**Important:** Read [this doc](https://github.com/kubernetes-incubator/apiserver-builder-alpha/blob/master/docs/adding_resources.md)
 first to understand how resources are added
 
 ## Create a resource with custom rest
@@ -11,7 +11,7 @@ and providing a `newKindREST() rest.Storage {}` function to return the
 storage.
 
 For more information on custom REST implementations, see the
-[subresources doc](https://github.com/kubernetes-incubator/apiserver-builder/blob/master/docs/adding_subresources.md)
+[subresources doc](https://github.com/kubernetes-incubator/apiserver-builder-alpha/blob/master/docs/adding_subresources.md)
 
 ```go
 // +genclient=true
@@ -35,4 +35,4 @@ func NewFooREST() rest.Storage {
 
 **Warning:** NewFooREST() should not contain any non-trivial logic, besides
 simply initializing the fields of the struct, that represents the custom REST.
-See [this issue](https://github.com/kubernetes-incubator/apiserver-builder/issues/92) for details.
+See [this issue](https://github.com/kubernetes-incubator/apiserver-builder-alpha/issues/92) for details.

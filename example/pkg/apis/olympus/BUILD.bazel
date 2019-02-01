@@ -8,7 +8,7 @@ go_library(
         "zz_generated.deepcopy.go",
         "zz_generated.defaults.go",
     ],
-    importpath = "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/olympus",
+    importpath = "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/olympus",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/builders:go_default_library",

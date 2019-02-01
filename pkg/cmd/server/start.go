@@ -24,8 +24,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/apiserver"
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/apiserver"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	genericoptions "k8s.io/apiserver/pkg/server/options"
@@ -35,7 +35,7 @@ import (
 	"os"
 
 	"github.com/golang/glog"
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/validators"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/validators"
 	"k8s.io/apimachinery/pkg/util/wait"
 	openapinamer "k8s.io/apiserver/pkg/endpoints/openapi"
 	"k8s.io/apiserver/pkg/util/logs"

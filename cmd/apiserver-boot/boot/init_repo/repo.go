@@ -21,7 +21,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
 )
 
@@ -100,7 +100,7 @@ import (
 	"flag"
 	"log"
 
-	controllerlib "github.com/kubernetes-incubator/apiserver-builder/pkg/controller"
+	controllerlib "github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/controller"
 
 	"{{ .Repo }}/pkg/controller"
 )
@@ -151,7 +151,7 @@ import (
 	_ "k8s.io/apimachinery/pkg/apis/meta/v1"
 	_ "github.com/go-openapi/loads"
 
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/cmd/server"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/cmd/server"
 	_ "k8s.io/client-go/plugin/pkg/client/auth" // Enable cloud provider auth
 
 	"{{.Repo}}/pkg/apis"

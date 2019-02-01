@@ -13,14 +13,14 @@
 # limitations under the License.
 
 # from cmd/
-#  bash -c "find vendor/github.com/kubernetes-incubator/apiserver-builder -name BUILD.bazel| xargs sed -i='' s'|//pkg|//vendor/github.com/kubernetes-incubator/apiserver-builder/pkg|g'"
+#  bash -c "find vendor/github.com/kubernetes-incubator/apiserver-builder-alpha -name BUILD.bazel| xargs sed -i='' s'|//pkg|//vendor/github.com/kubernetes-incubator/apiserver-builder-alpha/pkg|g'"
 
 # from /
 
 gazelle:
 	find vendor -name BUILD | xargs rm
 	find vendor -name BUILD.bazel | xargs rm
-	gazelle fix -go_prefix github.com/kubernetes-incubator/apiserver-builder -external vendored .
+	gazelle fix -go_prefix github.com/kubernetes-incubator/apiserver-builder-alpha -external vendored .
 	bash -c "find vendor/ -name BUILD.bazel |  xargs sed -i '' s'|//k8s.io/|//vendor/k8s.io/|g'"
 	bash -c "find vendor/ -name BUILD |  xargs sed -i '' s'|//k8s.io/|//vendor/k8s.io/|g'"
 	bash -c "find vendor/ -name BUILD.bazel |  xargs sed -i '' s'|cgo = True,|cgo = False,|g'"

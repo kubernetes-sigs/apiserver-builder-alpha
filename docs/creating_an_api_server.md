@@ -2,7 +2,7 @@
 
 **Note:** This document explains how to manually create the files generated
 by `apiserver-boot`.  It is recommended to automatically create these files
-instead.  See [getting started](https://github.com/kubernetes-incubator/apiserver-builder/blob/master/docs/getting_started.md)
+instead.  See [getting started](https://github.com/kubernetes-incubator/apiserver-builder-alpha/blob/master/docs/getting_started.md)
 for more details.
 
 ## Create the apiserver command
@@ -17,7 +17,7 @@ with the generated API code.
 package main
 
 import (
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/cmd/server"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/cmd/server"
 	_ "k8s.io/client-go/plugin/pkg/client/auth" // Enable cloud provider auth
 
 	"YOUR/GO/PACKAGE/pkg/apis" // Change this

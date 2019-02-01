@@ -19,16 +19,16 @@ package festival_test
 import (
 	"testing"
 
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/test"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/test"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/rest"
 
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis"
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/clientset_generated/clientset"
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/controller/festival"
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/controller/sharedinformers"
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/openapi"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/client/clientset_generated/clientset"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/controller/festival"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/controller/sharedinformers"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/openapi"
 )
 
 var testenv *test.TestEnvironment

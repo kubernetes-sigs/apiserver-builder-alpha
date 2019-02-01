@@ -20,7 +20,7 @@ limitations under the License.
 
 // +k8s:openapi-gen=true
 // +k8s:deepcopy-gen=package,register
-// +k8s:conversion-gen=github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/kingsport
+// +k8s:conversion-gen=github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/kingsport
 // +k8s:defaulter-gen=TypeMeta
 // +groupName=kingsport.k8s.io
-package v1 // import "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/kingsport/v1"
+package v1 // import "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/kingsport/v1"

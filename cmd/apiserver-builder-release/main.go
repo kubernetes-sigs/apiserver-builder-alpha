@@ -49,7 +49,7 @@ func main() {
 		DefaultTargets, "GOOS:GOARCH pair.  maybe specified multiple times.")
 	buildCmd.Flags().StringVar(&cachevendordir, "vendordir", "",
 		"if specified, use this directory for setting up vendor instead of creating a tmp directory.")
-	buildCmd.Flags().StringVar(&output, "output", "apiserver-builder",
+	buildCmd.Flags().StringVar(&output, "output", "apiserver-builder-alpha",
 		"value name of the tar file to build")
 	buildCmd.Flags().StringVar(&version, "version", "", "version name")
 	buildCmd.Flags().BoolVar(&useBazel, "bazel", false, "use bazel to compile (faster, but no X-compile)")
@@ -243,7 +243,7 @@ func Build(input, output, goos, goarch string) {
 		}
 
 		t := time.Now().Local()
-		p := "github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/version"
+		p := "github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiserver-boot/boot/version"
 		ldflags := []string{
 			fmt.Sprintf("-X %s.apiserverBuilderVersion=%s", p, version),
 			fmt.Sprintf("-X %s.kubernetesVendorVersion=%s", p, kubernetesVersion),
@@ -449,15 +449,15 @@ func BuildLocalVendor(tooldir string) {
 		filepath.Join("vendor"),
 		filepath.Join(tooldir, "src"))
 	RunCmd(c, "")
-	os.MkdirAll(filepath.Join(tooldir, "src", "vendor", "github.com", "kubernetes-incubator", "apiserver-builder"), 0700)
+	os.MkdirAll(filepath.Join(tooldir, "src", "vendor", "github.com", "kubernetes-incubator", "apiserver-builder-alpha"), 0700)
 	c = exec.Command("cp", "-R", "-H",
 		filepath.Join("pkg"),
-		filepath.Join(tooldir, "src", "vendor", "github.com", "kubernetes-incubator", "apiserver-builder", "pkg"))
+		filepath.Join(tooldir, "src", "vendor", "github.com", "kubernetes-incubator", "apiserver-builder-alpha", "pkg"))
 	RunCmd(c, "")
 
 	c = exec.Command("bash", "-c",
-		fmt.Sprintf("find %s -name BUILD.bazel| xargs sed -i='' s'|//pkg|//vendor/github.com/kubernetes-incubator/apiserver-builder/pkg|g'",
-			filepath.Join(tooldir, "src", "vendor", "github.com", "kubernetes-incubator", "apiserver-builder", "pkg"),
+		fmt.Sprintf("find %s -name BUILD.bazel| xargs sed -i='' s'|//pkg|//vendor/github.com/kubernetes-incubator/apiserver-builder-alpha/pkg|g'",
+			filepath.Join(tooldir, "src", "vendor", "github.com", "kubernetes-incubator", "apiserver-builder-alpha", "pkg"),
 		))
 	RunCmd(c, "")
 

@@ -24,7 +24,7 @@ import (
 	"github.com/markbates/inflect"
 	"github.com/spf13/cobra"
 
-	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 )
 
 func ValidateResourceFlags() {
