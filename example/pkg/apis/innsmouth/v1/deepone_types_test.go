@@ -20,8 +20,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/innsmouth/v1"
-	. "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/clientset_generated/clientset/typed/innsmouth/v1"
+	. "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/innsmouth/v1"
+	. "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/client/clientset_generated/clientset/typed/innsmouth/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

@@ -6,7 +6,7 @@ go_library(
         "doc.go",
         "zz_generated.api.register.go",
     ],
-    importpath = "github.com/kubernetes-incubator/apiserver-builder/example/pkg/controller",
+    importpath = "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/controller",
     visibility = ["//visibility:public"],
     deps = [
         "//example/pkg/controller/festival:go_default_library",

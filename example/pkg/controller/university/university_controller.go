@@ -19,11 +19,11 @@ package university
 import (
 	"fmt"
 
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
 
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic/v1beta1"
-	listers "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/listers_generated/miskatonic/v1beta1"
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/controller/sharedinformers"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/miskatonic/v1beta1"
+	listers "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/client/listers_generated/miskatonic/v1beta1"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/controller/sharedinformers"
 )
 
 // +controller:group=miskatonic,version=v1beta1,kind=University,resource=universities

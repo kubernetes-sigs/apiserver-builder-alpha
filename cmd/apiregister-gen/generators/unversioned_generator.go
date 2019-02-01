@@ -42,7 +42,7 @@ func (d *unversionedGenerator) Imports(c *generator.Context) []string {
 	imports := sets.NewString(
 		"fmt",
 		"context",
-		"github.com/kubernetes-incubator/apiserver-builder/pkg/builders",
+		"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders",
 		"k8s.io/apimachinery/pkg/apis/meta/internalversion",
 		"k8s.io/apimachinery/pkg/runtime",
 		"k8s.io/apimachinery/pkg/runtime/schema",

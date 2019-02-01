@@ -6,7 +6,7 @@ go_library(
         "informers.go",
         "zz_generated.api.register.go",
     ],
-    importpath = "github.com/kubernetes-incubator/apiserver-builder/example/pkg/controller/sharedinformers",
+    importpath = "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/controller/sharedinformers",
     visibility = ["//visibility:public"],
     deps = [
         "//example/pkg/client/clientset_generated/clientset:go_default_library",

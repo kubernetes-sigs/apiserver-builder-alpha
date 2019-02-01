@@ -28,8 +28,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/cmd/server"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/cmd/server"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	genericoptions "k8s.io/apiserver/pkg/server/options"
 	"k8s.io/client-go/rest"

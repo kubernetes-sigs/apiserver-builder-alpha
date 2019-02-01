@@ -21,11 +21,11 @@ import (
 
 	extensionsv1beta1listers "k8s.io/client-go/listers/extensions/v1beta1"
 
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
 
-	olympusv1beta1 "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/olympus/v1beta1"
-	listers "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/listers_generated/olympus/v1beta1"
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/controller/sharedinformers"
+	olympusv1beta1 "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/olympus/v1beta1"
+	listers "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/client/listers_generated/olympus/v1beta1"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/controller/sharedinformers"
 	"k8s.io/api/extensions/v1beta1"
 )
 

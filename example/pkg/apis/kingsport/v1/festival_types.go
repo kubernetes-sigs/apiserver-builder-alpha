@@ -24,7 +24,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/kingsport"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/kingsport"
 )
 
 // +genclient

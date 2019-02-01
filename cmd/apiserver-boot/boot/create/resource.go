@@ -23,7 +23,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 	"github.com/markbates/inflect"
 	"github.com/spf13/cobra"
 )
@@ -253,7 +253,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/test"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/test"
 	"k8s.io/client-go/rest"
 
 	"{{ .Repo }}/pkg/apis"
@@ -377,7 +377,7 @@ package {{ lower .Kind }}
 import (
 	"log"
 
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
 
 	"{{.Repo}}/pkg/apis/{{.Group}}/{{.Version}}"
 	"{{.Repo}}/pkg/controller/sharedinformers"
@@ -422,7 +422,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/rest"
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/test"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/test"
 
 	"{{ .Repo }}/pkg/apis"
 	"{{ .Repo }}/pkg/client/clientset_generated/clientset"

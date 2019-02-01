@@ -24,13 +24,13 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/build"
-	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/create"
-	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/init_repo"
-	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/run"
-	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/update"
-	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/util"
-	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot/boot/version"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiserver-boot/boot/build"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiserver-boot/boot/create"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiserver-boot/boot/init_repo"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiserver-boot/boot/run"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiserver-boot/boot/update"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiserver-boot/boot/version"
 )
 
 func main() {

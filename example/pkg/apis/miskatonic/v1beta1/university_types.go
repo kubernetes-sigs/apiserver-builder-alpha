@@ -20,7 +20,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/miskatonic"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

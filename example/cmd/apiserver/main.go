@@ -17,9 +17,9 @@ limitations under the License.
 package main
 
 import (
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis"
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/openapi"
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/cmd/server"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/openapi"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/cmd/server"
 )
 
 func main() {

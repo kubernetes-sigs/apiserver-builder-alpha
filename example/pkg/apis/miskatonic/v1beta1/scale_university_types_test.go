@@ -17,8 +17,8 @@ limitations under the License.
 package v1beta1_test
 
 import (
-	. "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/miskatonic/v1beta1"
-	. "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/clientset_generated/clientset/typed/miskatonic/v1beta1"
+	. "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/miskatonic/v1beta1"
+	. "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/client/clientset_generated/clientset/typed/miskatonic/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	//"k8s.io/client-go/pkg/api/v1"
 

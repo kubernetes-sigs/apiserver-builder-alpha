@@ -26,7 +26,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
-	"github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/olympus"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/olympus"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"

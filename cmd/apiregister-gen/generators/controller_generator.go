@@ -42,7 +42,7 @@ func CreateControllerGenerator(controller Controller, filename string) generator
 func (d *controllerGenerator) Imports(c *generator.Context) []string {
 	im := []string{
 		"github.com/golang/glog",
-		"github.com/kubernetes-incubator/apiserver-builder/pkg/controller",
+		"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/controller",
 		"k8s.io/apimachinery/pkg/api/errors",
 		"k8s.io/client-go/rest",
 		"k8s.io/client-go/tools/cache",
@@ -182,7 +182,7 @@ func (d *allControllerGenerator) Imports(c *generator.Context) []string {
 	repo := d.Controllers[0].Repo
 	im := []string{
 		"k8s.io/client-go/rest",
-		"github.com/kubernetes-incubator/apiserver-builder/pkg/controller",
+		"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/controller",
 		repo + "/pkg/controller/sharedinformers",
 	}
 
@@ -244,7 +244,7 @@ func (d *informersGenerator) Imports(c *generator.Context) []string {
 	repo := d.Controllers[0].Repo
 	return []string{
 		"time",
-		"github.com/kubernetes-incubator/apiserver-builder/pkg/controller",
+		"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/controller",
 		"k8s.io/client-go/rest",
 		repo + "/pkg/client/clientset_generated/clientset",
 		repo + "/pkg/client/informers_generated/externalversions",

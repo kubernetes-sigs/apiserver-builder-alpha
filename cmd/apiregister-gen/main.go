@@ -21,7 +21,7 @@ import (
 	"runtime"
 
 	"github.com/golang/glog"
-	"github.com/kubernetes-incubator/apiserver-builder/cmd/apiregister-gen/generators"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiregister-gen/generators"
 	"k8s.io/apiserver/pkg/util/logs"
 	"k8s.io/gengo/args"
 )

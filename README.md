@@ -1,7 +1,7 @@
 ## `apiserver-builder`
 
-[![Build Status](https://travis-ci.org/kubernetes-incubator/apiserver-builder.svg?branch=master)](https://travis-ci.org/kubernetes-incubator/apiserver-builder "Travis")
-[![Go Report Card](https://goreportcard.com/badge/github.com/kubernetes-incubator/apiserver-builder)](https://goreportcard.com/report/github.com/kubernetes-incubator/apiserver-builder)
+[![Build Status](https://travis-ci.org/kubernetes-incubator/apiserver-builder-alpha.svg?branch=master)](https://travis-ci.org/kubernetes-incubator/apiserver-builder "Travis")
+[![Go Report Card](https://goreportcard.com/badge/github.com/kubernetes-incubator/apiserver-builder-alpha)](https://goreportcard.com/report/github.com/kubernetes-incubator/apiserver-builder-alpha)
 
 Unless you absolutely need apiserver-aggregation, you are recommended to use [Kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) instead of apiserver-builder for
 building Kubernetes APIs.  Kubebuilder builds APIs using CRDs and addresses limitations and feedback from
@@ -71,7 +71,7 @@ Instructions on how to use the tools packaged with apiserver-builder to build an
 
 List of commits showing `apiserver-boot` commands run and the corresponding changes:
 
-https://github.com/kubernetes-incubator/apiserver-builder/commits/example-simple
+https://github.com/kubernetes-incubator/apiserver-builder-alpha/commits/example-simple
 
 #### Coding and libraries user guide
 
@@ -92,7 +92,7 @@ with the main Kubernetes API server and API aggregator.
 
 Instructions on how to run an apiserver using delegated auth with a minikube cluster
 
-Details [here](https://github.com/kubernetes-incubator/apiserver-builder/blob/master/docs/using_minikube.md)
+Details [here](https://github.com/kubernetes-incubator/apiserver-builder-alpha/blob/master/docs/using_minikube.md)
 
 ## Community, discussion, contribution, and support
 

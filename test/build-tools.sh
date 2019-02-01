@@ -4,7 +4,7 @@ set -x -e
 
 # NOTE: Do not copy this file unless you need to use apiserver-builder at HEAD.
 # Otherwise, download the pre-built apiserver-builder tar release from
-# https://github.com/kubernetes-incubator/apiserver-builder/releases instead.
+# https://github.com/kubernetes-incubator/apiserver-builder-alpha/releases instead.
 
 (
 	cd /home/travis/gopath/src/github.com/
@@ -23,4 +23,4 @@ go build -o bin/apiserver-builder-release cmd/apiserver-builder-release/main.go
 ./bin/apiserver-builder-release vendor --version 1.0
 ./bin/apiserver-builder-release build --version 1.0 --targets linux:amd64
 
-tar -xzf apiserver-builder-1.0-linux-amd64.tar.gz -C test
+tar -xzf apiserver-builder-alpha-1.0-linux-amd64.tar.gz -C test

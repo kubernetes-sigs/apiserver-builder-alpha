@@ -2,7 +2,7 @@
 
 # NOTE: Do not copy this file unless you need to use apiserver-builder at HEAD.
 # Otherwise, download the pre-built apiserver-builder tar release from
-# https://github.com/kubernetes-incubator/apiserver-builder/releases instead.
+# https://github.com/kubernetes-incubator/apiserver-builder-alpha/releases instead.
 
 CMD_VENDOR="../cmd/vendor"
 

@@ -22,8 +22,8 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	. "github.com/kubernetes-incubator/apiserver-builder/example/pkg/apis/kingsport/v1"
-	. "github.com/kubernetes-incubator/apiserver-builder/example/pkg/client/clientset_generated/clientset/typed/kingsport/v1"
+	. "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/kingsport/v1"
+	. "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/client/clientset_generated/clientset/typed/kingsport/v1"
 )
 
 var _ = Describe("Festival", func() {
