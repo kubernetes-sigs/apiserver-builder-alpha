@@ -1,6 +1,6 @@
 ## `apiserver-builder`
 
-[![Build Status](https://travis-ci.org/kubernetes-incubator/apiserver-builder-alpha.svg?branch=master)](https://travis-ci.org/kubernetes-incubator/apiserver-builder "Travis")
+[![Build Status](https://travis-ci.org/kubernetes-incubator/apiserver-builder-alpha.svg?branch=master)](https://travis-ci.org/kubernetes-incubator/apiserver-builder-alpha "Travis")
 [![Go Report Card](https://goreportcard.com/badge/github.com/kubernetes-incubator/apiserver-builder-alpha)](https://goreportcard.com/report/github.com/kubernetes-incubator/apiserver-builder-alpha)
 
 Unless you absolutely need apiserver-aggregation, you are recommended to use [Kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) instead of apiserver-builder for
