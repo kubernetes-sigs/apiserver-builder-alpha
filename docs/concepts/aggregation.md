@@ -1,7 +1,7 @@
 # Aggregation
 
 While the API servers created by the apiserver-builder can be accessed
-directly, it is most convinient to use them with the Kubernetes API server
+directly, it is most convenient to use them with the Kubernetes API server
 aggregator.  This allows multiple APIs in the cluster to appear as if they
 were being served by a single API server, so that cluster components, and
 kubectl, can continue communicating as normal without special logic to
