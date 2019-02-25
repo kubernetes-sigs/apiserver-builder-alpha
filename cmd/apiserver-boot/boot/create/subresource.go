@@ -83,7 +83,7 @@ func createSubresource(boilerplate string) {
 	a := subresourceTemplateArgs{
 		boilerplate,
 		subresourceName,
-		strings.Title(subresourceName) + strings.Title(kindName),
+		strings.Title(kindName) + strings.Title(subresourceName),
 		util.Repo,
 		groupName,
 		versionName,
@@ -123,11 +123,10 @@ func createSubresource(boilerplate string) {
 			log.Fatal(err)
 		}
 		structName := fmt.Sprintf("type %s struct {", kindName)
-		sub := fmt.Sprintf("// +subresource:request=%s,path=%s,rest=%s%sREST",
-			strings.Title(subresourceName),
+		sub := fmt.Sprintf("// +subresource:request=%s,path=%s,rest=%sREST",
+			strings.Title(a.SubresourceKind),
 			strings.ToLower(subresourceName),
-			strings.Title(subresourceName),
-			kindName)
+			strings.Title(a.SubresourceKind))
 		result := strings.Replace(string(types),
 			structName,
 			sub+"\n"+structName, 1)
@@ -169,7 +168,7 @@ import (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +subresource-request
-type {{title .Subresource}} struct {
+type {{title .SubresourceKind}} struct {
 	metav1.TypeMeta   ` + "`" + `json:",inline"` + "`" + `
 	metav1.ObjectMeta ` + "`" + `json:"metadata,omitempty"` + "`" + `
 }
@@ -183,7 +182,7 @@ type {{ .SubresourceKind }}REST struct {
 }
 
 func (r *{{ .SubresourceKind }}REST) Create(ctx context.Context, obj runtime.Object, createValidation rest.ValidateObjectFunc, options *metav1.CreateOptions) (runtime.Object, error) {
-	sub := obj.(*{{ title .Subresource }})
+	sub := obj.(*{{ title .SubresourceKind }})
 	rec, err := r.Registry.Get{{ title .Kind }}(ctx, sub.Name, &metav1.GetOptions{})
 	if err != nil {
 		return nil, err
@@ -205,7 +204,7 @@ func (r *{{ .SubresourceKind }}REST) Update(ctx context.Context, name string, ob
 }
 
 func (r *{{ .SubresourceKind }}REST) New() runtime.Object {
-	return &{{ title .Subresource }}{}
+	return &{{ title .SubresourceKind }}{}
 }
 
 `
@@ -243,13 +242,13 @@ var _ = Describe("{{.Kind}}", func() {
 
 	Describe("when sending a {{ .Subresource }} request", func() {
 		It("should return success", func() {
-			client = cs.{{ title .Group }}{{ title .Version }}Client.{{ title .Resource }}("{{ lower .Kind }}-test-{{ lower .Subresource }}")
+			client = cs.{{ title .Group }}{{ title .Version }}().{{ title .Resource }}("{{ lower .Kind }}-test-{{ lower .Subresource }}")
 			_, err := client.Create(&instance)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			{{ lower .Subresource }} := &{{ title .Subresource}}{}
 			{{ lower .Subresource }}.Name = instance.Name
-			restClient := cs.{{ title .Group }}{{ title .Version }}Client.RESTClient()
+			restClient := cs.{{ title .Group }}{{ title .Version }}().RESTClient()
 			err = restClient.Post().Namespace("{{ lower .Kind }}-test-{{ lower .Subresource}}").
 				Name(instance.Name).
 				Resource("{{ lower .Resource }}").
