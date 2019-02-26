@@ -246,7 +246,7 @@ var _ = Describe("{{.Kind}}", func() {
 			_, err := client.Create(&instance)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			{{ lower .Subresource }} := &{{ title .Subresource}}{}
+			{{ lower .Subresource }} := &{{ title .SubresourceKind}}{}
 			{{ lower .Subresource }}.Name = instance.Name
 			restClient := cs.{{ title .Group }}{{ title .Version }}().RESTClient()
 			err = restClient.Post().Namespace("{{ lower .Kind }}-test-{{ lower .Subresource}}").

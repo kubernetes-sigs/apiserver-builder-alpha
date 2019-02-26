@@ -1,5 +1,5 @@
 /*
-Copyright 2017 The Kubernetes Authors.
+Copyright YEAR The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,13 +17,13 @@ limitations under the License.
 package v1beta1_test
 
 import (
-	. "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/miskatonic/v1beta1"
-	. "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/client/clientset_generated/clientset/typed/miskatonic/v1beta1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	//"k8s.io/client-go/pkg/api/v1"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	. "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/miskatonic/v1beta1"
+	. "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/client/clientset_generated/clientset/typed/miskatonic/v1beta1"
 )
 
 var _ = Describe("University", func() {
@@ -33,17 +33,12 @@ var _ = Describe("University", func() {
 
 	BeforeEach(func() {
 		instance = University{}
-		instance.Name = "miskatonic-university"
+		instance.Name = "instance-1"
 		instance.Spec.FacultySize = 7
-		//instance.Spec.ServiceSpec = v1.ServiceSpec{}
-		//instance.Spec.ServiceSpec.ClusterIP = "1.1.1.1"
 
 		expected = instance
 		val := 15
 		expected.Spec.MaxStudents = &val
-		//expected.Spec.ServiceSpec = v1.ServiceSpec{}
-		//expected.Spec.ServiceSpec.ClusterIP = "1.1.1.1"
-
 	})
 
 	AfterEach(func() {
@@ -51,12 +46,12 @@ var _ = Describe("University", func() {
 	})
 
 	Describe("when sending a scale request", func() {
-		It("should set the faculty count", func() {
+		It("should return success", func() {
 			client = cs.MiskatonicV1beta1().Universities("university-test-scale")
 			_, err := client.Create(&instance)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			scale := &Scale{
+			scale := &UniversityScale{
 				Faculty: 30,
 			}
 			scale.Name = instance.Name

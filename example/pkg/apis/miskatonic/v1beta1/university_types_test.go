@@ -105,7 +105,7 @@ var _ = Describe("University", func() {
 			_, err := client.Create(&instance)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			scale := &Scale{
+			scale := &UniversityScale{
 				Faculty: 30,
 			}
 			scale.Name = instance.Name
