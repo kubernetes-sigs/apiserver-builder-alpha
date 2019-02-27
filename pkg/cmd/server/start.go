@@ -34,7 +34,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/golang/glog"
+	"k8s.io/klog"
 	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/validators"
 	"k8s.io/apimachinery/pkg/util/wait"
 	openapinamer "k8s.io/apiserver/pkg/endpoints/openapi"
@@ -71,7 +71,7 @@ func StartApiServer(etcdPath string, apis []*builders.APIGroupBuilder, openapide
 	// To disable providers, manually specify the list provided by getKnownProviders()
 	cmd, _ := NewCommandStartServer(etcdPath, os.Stdout, os.Stderr, apis, wait.NeverStop, title, version)
 	if logflag := flag.CommandLine.Lookup("v"); logflag != nil {
-		level := logflag.Value.(*glog.Level)
+		level := logflag.Value.(*klog.Level)
 		levelPtr := (*int32)(level)
 		cmd.Flags().Int32Var(levelPtr, "loglevel", 0, "Set the level of log output")
 	}
@@ -124,6 +124,7 @@ func NewCommandStartServer(etcdPath string, out, errOut io.Writer, builders []*b
 	}
 
 	flags := cmd.Flags()
+	klog.InitFlags(nil)
 	flags.BoolVar(&o.PrintBearerToken, "print-bearer-token", false,
 		"Print a curl command with the bearer token to test the server")
 	flags.BoolVar(&o.PrintOpenapi, "print-openapi", false,
@@ -177,11 +178,11 @@ func (o ServerOptions) Config() (*apiserver.Config, error) {
 
 	//if serverConfig.SharedInformerFactory == nil && len(o.Kubeconfig) > 0 {
 	//	path, _ := filepath.Abs(o.Kubeconfig)
-	//	glog.Infof("Creating shared informer factory from kubeconfig %s", path)
+	//	klog.Infof("Creating shared informer factory from kubeconfig %s", path)
 	//	config, err := clientcmd.BuildConfigFromFlags("", o.Kubeconfig)
 	//	clientset, err := kubernetes.NewForConfig(config)
 	//	if err != nil {
-	//		glog.Errorf("Couldn't create clientset due to %v. SharedInformerFactory will not be set.", err)
+	//		klog.Errorf("Couldn't create clientset due to %v. SharedInformerFactory will not be set.", err)
 	//		return nil, err
 	//	}
 	//	serverConfig.SharedInformerFactory = informers.NewSharedInformerFactory(clientset, 10*time.Minute)
@@ -213,8 +214,8 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string)
 	}
 
 	if o.PrintBearerToken {
-		glog.Infof("Serving on loopback...")
-		glog.Infof("\n\n********************************\nTo test the server run:\n"+
+		klog.Infof("Serving on loopback...")
+		klog.Infof("\n\n********************************\nTo test the server run:\n"+
 			"curl -k -H \"Authorization: Bearer %s\" %s\n********************************\n\n",
 			config.GenericConfig.LoopbackClientConfig.BearerToken,
 			config.GenericConfig.LoopbackClientConfig.Host)
