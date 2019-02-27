@@ -65,7 +65,7 @@ Create a resource under `pkg/apis/<group>/<version>/<resource>_types.go`
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +resource:path=bars
-// +subresource:request=Scale,path=scale,rest=ScaleBarREST
+// +subresource:request=Status,path=status,rest=BarStatusREST
 type Bar struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -78,14 +78,14 @@ type Bar struct {
 
 The following line tells the code generator to generate a subresource for this resource.
 
-- under the path `bar/scale`
-- with request Kind `Scale`
-- implemented by the go type `ScaleBarREST`
+- under the path `bar/status`
+- with request Kind `Status`
+- implemented by the go type `BarStatusREST`
 
-Scale and ScaleBarREST live in the versioned package (same as the versioned resource definition)
+Status and BarStatusREST live in the versioned package (same as the versioned resource definition)
 
 ```go
-// +subresource:request=Scale,path=scale,rest=ScaleBarREST
+// +subresource:request=Status,path=status,rest=BarStatusREST
 ```
 
 
@@ -99,7 +99,7 @@ Define the request type in the same <kind>_types.go file
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +subresource-request
-type Scale struct {
+type Status struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
@@ -125,17 +125,17 @@ Example:
 
 ```go
 // +k8s:deepcopy-gen=false
-type ScaleBarREST struct {
+type BarStatusREST struct {
 	Registry BarRegistry
 }
 
-// Scale Subresource
-var _ rest.CreaterUpdater = &ScaleBarREST{}
-var _ rest.Patcher = &ScaleBarREST{}
+// Status Subresource
+var _ rest.CreaterUpdater = &BarStatusREST{}
+var _ rest.Patcher = &BarStatusREST{}
 
-func (r *ScaleBarREST) Create(ctx request.Context, obj runtime.Object) (runtime.Object, error) {
-	scale := obj.(*Scale)
-	b, err := r.Registry.GetBar(ctx, scale.Name, &metav1.GetOptions{})
+func (r *BarStatusREST) Create(ctx request.Context, obj runtime.Object) (runtime.Object, error) {
+	status := obj.(*Status)
+	b, err := r.Registry.GetBar(ctx, status.Name, &metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -147,17 +147,17 @@ func (r *ScaleBarREST) Create(ctx request.Context, obj runtime.Object) (runtime.
 }
 
 // Get retrieves the object from the storage. It is required to support Patch.
-func (r *ScaleBarREST) Get(ctx request.Context, name string, options *metav1.GetOptions) (runtime.Object, error) {
+func (r *BarStatusREST) Get(ctx request.Context, name string, options *metav1.GetOptions) (runtime.Object, error) {
 	return nil, nil
 }
 
 // Update alters the status subset of an object.
-func (r *ScaleBarREST) Update(ctx request.Context, name string, objInfo rest.UpdatedObjectInfo) (runtime.Object, bool, error) {
+func (r *BarStatusREST) Update(ctx request.Context, name string, objInfo rest.UpdatedObjectInfo) (runtime.Object, bool, error) {
 	return nil, false, nil
 }
 
-func (r *ScaleBarREST) New() runtime.Object {
-	return &Scale{}
+func (r *BarStatusREST) New() runtime.Object {
+	return &Status{}
 }
 
 ```
@@ -172,7 +172,7 @@ instances of Bar from the storage.
 
 ```go
 // +k8s:deepcopy-gen=false
-type ScaleBarREST struct {
+type BarStatusREST struct {
 	Registry BarRegistry
 }
 ```
@@ -184,9 +184,9 @@ Enforce local compile time checks that the struct implements
 the needed REST methods
 
 ```go
-// Scale Subresource
-var _ rest.CreaterUpdater = &ScaleBarREST{}
-var _ rest.Patcher = &ScaleBarREST{}
+// Status Subresource
+var _ rest.CreaterUpdater = &BarStatusREST{}
+var _ rest.Patcher = &BarStatusREST{}
 ```
 
 
@@ -195,12 +195,12 @@ var _ rest.Patcher = &ScaleBarREST{}
 Implement create and update methods using the Registry to update the parent resource.
 
 ```go
-func (r *ScaleBarREST) Create(ctx request.Context, obj runtime.Object) (runtime.Object, error) {
+func (r *BarStatusREST) Create(ctx request.Context, obj runtime.Object) (runtime.Object, error) {
     ...
 }
 
 // Update alters the status subset of an object.
-func (r *ScaleBarREST) Update(ctx request.Context, name string, objInfo rest.UpdatedObjectInfo) (runtime.Object, bool, error) {
+func (r *BarStatusREST) Update(ctx request.Context, name string, objInfo rest.UpdatedObjectInfo) (runtime.Object, bool, error) {
 	...
 }
 ```
@@ -212,7 +212,7 @@ Implement a read method using the Registry to read the parent resource.
 
 ```go
 // Get retrieves the object from the storage. It is required to support Patch.
-func (r *ScaleBarREST) Get(ctx request.Context, name string, options *metav1.GetOptions) (runtime.Object, error) {
+func (r *BarStatusREST) Get(ctx request.Context, name string, options *metav1.GetOptions) (runtime.Object, error) {
 	...
 }
 ```
@@ -222,8 +222,8 @@ func (r *ScaleBarREST) Get(ctx request.Context, name string, options *metav1.Get
 Implement a method that creates new instance of the request.
 
 ```go
-func (r *ScaleBarREST) New() runtime.Object {
-	return &Scale{}
+func (r *BarStatusREST) New() runtime.Object {
+	return &Status{}
 }
 ```
 
@@ -244,8 +244,8 @@ client.RESTClient()
 	err := restClient.Post().Namespace("default").
 		Name("name").
 		Resource("bars").
-		SubResource("scale").
-		Body(scale).Do().Error()
+		SubResource("status").
+		Body(status).Do().Error()
 	...
 ```
 
