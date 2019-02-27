@@ -41,7 +41,7 @@ func CreateControllerGenerator(controller Controller, filename string) generator
 
 func (d *controllerGenerator) Imports(c *generator.Context) []string {
 	im := []string{
-		"github.com/golang/glog",
+		"k8s.io/klog",
 		"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/controller",
 		"k8s.io/apimachinery/pkg/api/errors",
 		"k8s.io/client-go/rest",
@@ -136,13 +136,13 @@ func (c *{{.Target.Kind}}Controller) reconcile(key string) (err error) {
 
 	u, err := c.controller.Get(namespace, name)
 	if errors.IsNotFound(err) {
-		glog.Infof("Not doing work for {{.Target.Kind}} %v because it has been deleted", key)
+		klog.Infof("Not doing work for {{.Target.Kind}} %v because it has been deleted", key)
 		// Set error so it is picked up by AfterReconcile and the return function
 		err = nil
 		return
 	}
 	if err != nil {
-		glog.Errorf("Unable to retrieve {{.Target.Kind}} %v from store: %v", key, err)
+		klog.Errorf("Unable to retrieve {{.Target.Kind}} %v from store: %v", key, err)
 		return
 	}
 

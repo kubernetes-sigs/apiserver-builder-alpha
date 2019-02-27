@@ -19,7 +19,7 @@ package builders
 import (
 	"reflect"
 
-	"github.com/golang/glog"
+	"k8s.io/klog"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -83,7 +83,7 @@ func (s *VersionedApiBuilder) registerConversions(scheme *runtime.Scheme) error 
 	for _, k := range s.Kinds {
 		err := scheme.AddConversionFuncs(k.SchemeFns.GetConversionFunctions()...)
 		if err != nil {
-			glog.Errorf("Failed to add conversion functions %v", err)
+			klog.Errorf("Failed to add conversion functions %v", err)
 			return err
 		}
 	}
@@ -96,7 +96,7 @@ func (s *VersionedApiBuilder) registerSelectorConversions(scheme *runtime.Scheme
 			s.GroupVersion.WithKind(k.Unversioned.GetKind()),
 			k.SchemeFns.FieldSelectorConversion)
 		if err != nil {
-			glog.Errorf("Failed to add conversion functions %v", err)
+			klog.Errorf("Failed to add conversion functions %v", err)
 			return err
 		}
 	}

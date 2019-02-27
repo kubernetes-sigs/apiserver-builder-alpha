@@ -19,7 +19,7 @@ package controller
 import (
 	"time"
 
-	"github.com/golang/glog"
+	"k8s.io/klog"
 	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -43,24 +43,24 @@ func (c *QueueingEventHandler) enqueue(obj interface{}) {
 	}
 	key, err := fn(obj)
 	if err != nil {
-		glog.Errorf("Couldn't get key for object %+v: %v", obj, err)
+		klog.Errorf("Couldn't get key for object %+v: %v", obj, err)
 		return
 	}
 	c.Queue.Add(key)
 }
 
 func (c *QueueingEventHandler) OnAdd(obj interface{}) {
-	glog.V(6).Infof("Add event for %+v\n", obj)
+	klog.V(6).Infof("Add event for %+v\n", obj)
 	c.enqueue(obj)
 }
 
 func (c *QueueingEventHandler) OnUpdate(oldObj, newObj interface{}) {
-	glog.V(6).Infof("Update event for %+v\n", newObj)
+	klog.V(6).Infof("Update event for %+v\n", newObj)
 	c.enqueue(newObj)
 }
 
 func (c *QueueingEventHandler) OnDelete(obj interface{}) {
-	glog.V(6).Infof("Delete event for %+v\n", obj)
+	klog.V(6).Infof("Delete event for %+v\n", obj)
 	if c.EnqueueDelete {
 		c.enqueue(obj)
 	}
@@ -86,7 +86,7 @@ func (q *QueueWorker) Run(shutdown <-chan struct{}) {
 		<-shutdown
 
 		// Stop accepting messages into the Queue
-		glog.V(1).Infof("Shutting down %s Queue\n", q.Name)
+		klog.V(1).Infof("Shutting down %s Queue\n", q.Name)
 		q.Queue.ShutDown()
 	}()
 }
@@ -118,12 +118,12 @@ func (q *QueueWorker) ProcessMessage() bool {
 
 	// Error.  Maybe retry if haven't hit the limit.
 	if q.Queue.NumRequeues(key) < q.MaxRetries {
-		glog.V(4).Infof("Error handling %s Queue message %v: %v", q.Name, key, err)
+		klog.V(4).Infof("Error handling %s Queue message %v: %v", q.Name, key, err)
 		q.Queue.AddRateLimited(key)
 		return false
 	}
 
-	glog.V(4).Infof("Too many retries for %s Queue message %v: %v", q.Name, key, err)
+	klog.V(4).Infof("Too many retries for %s Queue message %v: %v", q.Name, key, err)
 	q.Queue.Forget(key)
 	return false
 }

@@ -20,7 +20,7 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/golang/glog"
+	"k8s.io/klog"
 	"github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiregister-gen/generators"
 	"k8s.io/apiserver/pkg/util/logs"
 	"k8s.io/gengo/args"
@@ -45,7 +45,7 @@ func main() {
 
 	g := generators.Gen{}
 	if err := g.Execute(arguments); err != nil {
-		glog.Fatalf("Error: %v", err)
+		klog.Fatalf("Error: %v", err)
 	}
-	glog.V(2).Info("Completed successfully.")
+	klog.V(2).Info("Completed successfully.")
 }

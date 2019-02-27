@@ -54,9 +54,6 @@ required = [
   name = "github.com/go-openapi/validate"
 
 [[constraint]]
-  name = "github.com/golang/glog"
-
-[[constraint]]
   branch = "master"
   name = "github.com/markbates/inflect"
 
@@ -107,6 +104,10 @@ required = [
 [[constraint]]
   name = "k8s.io/kube-openapi"
   revision = "0cf8f7e6ed1d2e3d47d02e3b6e559369af24d803"
+
+[[constraint]]
+  name = "k8s.io/klog"
+  version = "0.2.0"
 
 [[constraint]]
   name = "github.com/json-iterator/go"

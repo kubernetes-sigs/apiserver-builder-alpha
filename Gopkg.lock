@@ -1150,6 +1150,12 @@
   revision = "fdcf9f9480fdd5bf2b3c3df9bf4ecd22b25b87e2"
 
 [[projects]]
+  name = "k8s.io/klog"
+  packages = ["."]
+  revision = "71442cd4037d612096940ceb0f3fec3f7fff66e0"
+  version = "v0.2.0"
+
+[[projects]]
   name = "k8s.io/kube-openapi"
   packages = [
     "cmd/openapi-gen",
@@ -1168,6 +1174,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9c50f7fcb2fa9091ddef0dcf398a8df4e626c1bf87cf578365d2d3e4776fc1bb"
+  inputs-digest = "aa232371229145266459d79b414324aebea64f5029484ac6b375aac2be1a22f2"
   solver-name = "gps-cdcl"
   solver-version = 1

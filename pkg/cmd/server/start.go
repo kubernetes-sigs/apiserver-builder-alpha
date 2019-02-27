@@ -34,11 +34,11 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/golang/glog"
 	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/validators"
 	"k8s.io/apimachinery/pkg/util/wait"
 	openapinamer "k8s.io/apiserver/pkg/endpoints/openapi"
 	"k8s.io/apiserver/pkg/util/logs"
+	"k8s.io/klog"
 	openapi "k8s.io/kube-openapi/pkg/common"
 )
 
@@ -70,11 +70,7 @@ func StartApiServer(etcdPath string, apis []*builders.APIGroupBuilder, openapide
 
 	// To disable providers, manually specify the list provided by getKnownProviders()
 	cmd, _ := NewCommandStartServer(etcdPath, os.Stdout, os.Stderr, apis, wait.NeverStop, title, version)
-	if logflag := flag.CommandLine.Lookup("v"); logflag != nil {
-		level := logflag.Value.(*glog.Level)
-		levelPtr := (*int32)(level)
-		cmd.Flags().Int32Var(levelPtr, "loglevel", 0, "Set the level of log output")
-	}
+
 	cmd.Flags().AddFlagSet(pflag.CommandLine)
 	if err := cmd.Execute(); err != nil {
 		panic(err)
@@ -132,6 +128,19 @@ func NewCommandStartServer(etcdPath string, out, errOut io.Writer, builders []*b
 		"Setup delegated auth")
 	//flags.StringVar(&o.Kubeconfig, "kubeconfig", "", "Kubeconfig of apiserver to talk to.")
 	o.RecommendedOptions.AddFlags(flags)
+
+	klogFlags := flag.NewFlagSet("klog", flag.ExitOnError)
+	klog.InitFlags(klogFlags)
+	flags.AddGoFlagSet(klogFlags)
+
+	// Sync the glog and klog flags.
+	klogFlags.VisitAll(func(f *flag.Flag) {
+		goFlag := flag.CommandLine.Lookup(f.Name)
+		if goFlag != nil {
+			goFlag.Value.Set(f.Value.String())
+		}
+	})
+
 	return cmd, o
 }
 
@@ -177,11 +186,11 @@ func (o ServerOptions) Config() (*apiserver.Config, error) {
 
 	//if serverConfig.SharedInformerFactory == nil && len(o.Kubeconfig) > 0 {
 	//	path, _ := filepath.Abs(o.Kubeconfig)
-	//	glog.Infof("Creating shared informer factory from kubeconfig %s", path)
+	//	klog.Infof("Creating shared informer factory from kubeconfig %s", path)
 	//	config, err := clientcmd.BuildConfigFromFlags("", o.Kubeconfig)
 	//	clientset, err := kubernetes.NewForConfig(config)
 	//	if err != nil {
-	//		glog.Errorf("Couldn't create clientset due to %v. SharedInformerFactory will not be set.", err)
+	//		klog.Errorf("Couldn't create clientset due to %v. SharedInformerFactory will not be set.", err)
 	//		return nil, err
 	//	}
 	//	serverConfig.SharedInformerFactory = informers.NewSharedInformerFactory(clientset, 10*time.Minute)
@@ -213,8 +222,8 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string)
 	}
 
 	if o.PrintBearerToken {
-		glog.Infof("Serving on loopback...")
-		glog.Infof("\n\n********************************\nTo test the server run:\n"+
+		klog.Infof("Serving on loopback...")
+		klog.Infof("\n\n********************************\nTo test the server run:\n"+
 			"curl -k -H \"Authorization: Bearer %s\" %s\n********************************\n\n",
 			config.GenericConfig.LoopbackClientConfig.BearerToken,
 			config.GenericConfig.LoopbackClientConfig.Host)
