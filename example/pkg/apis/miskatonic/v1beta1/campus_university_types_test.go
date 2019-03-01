@@ -45,22 +45,22 @@ var _ = Describe("University", func() {
 		client.Delete(instance.Name, &metav1.DeleteOptions{})
 	})
 
-	Describe("when sending a refresh request", func() {
+	Describe("when sending a campus request", func() {
 		It("should return success", func() {
-			client = cs.MiskatonicV1beta1().Universities("university-test-refresh")
+			client = cs.MiskatonicV1beta1().Universities("university-test-campus")
 			_, err := client.Create(&instance)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			refresh := &UniversityRefresh{
+			campus := &UniversityCampus{
 				Faculty: 30,
 			}
-			refresh.Name = instance.Name
+			campus.Name = instance.Name
 			restClient := cs.MiskatonicV1beta1().RESTClient()
-			err = restClient.Post().Namespace("university-test-refresh").
+			err = restClient.Post().Namespace("university-test-campus").
 				Name(instance.Name).
 				Resource("universities").
-				SubResource("refresh").
-				Body(refresh).Do().Error()
+				SubResource("campus").
+				Body(campus).Do().Error()
 			Expect(err).ShouldNot(HaveOccurred())
 
 			expected.Spec.FacultySize = 30

@@ -31,43 +31,44 @@ import (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +subresource-request
-type UniversityRefresh struct {
+type UniversityCampus struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	Faculty int `json:"faculty,omitempty"`
 }
 
-var _ rest.CreaterUpdater = &UniversityRefreshREST{}
-var _ rest.Patcher = &UniversityRefreshREST{}
+var _ rest.CreaterUpdater = &UniversityCampusREST{}
+var _ rest.Patcher = &UniversityCampusREST{}
 
 // +k8s:deepcopy-gen=false
-type UniversityRefreshREST struct {
+type UniversityCampusREST struct {
 	Registry miskatonic.UniversityRegistry
 }
 
-func (r *UniversityRefreshREST) Create(ctx context.Context, obj runtime.Object, createValidation rest.ValidateObjectFunc, options *metav1.CreateOptions) (runtime.Object, error) {
-	sub := obj.(*UniversityRefresh)
+func (r *UniversityCampusREST) Create(ctx context.Context, obj runtime.Object, createValidation rest.ValidateObjectFunc, options *metav1.CreateOptions) (runtime.Object, error) {
+	sub := obj.(*UniversityCampus)
 	rec, err := r.Registry.GetUniversity(ctx, sub.Name, &metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 	// Modify rec in someway before writing it back to storage
+
 	rec.Spec.FacultySize = sub.Faculty
 	r.Registry.UpdateUniversity(ctx, rec)
 	return rec, nil
 }
 
 // Get retrieves the object from the storage. It is required to support Patch.
-func (r *UniversityRefreshREST) Get(ctx context.Context, name string, options *metav1.GetOptions) (runtime.Object, error) {
+func (r *UniversityCampusREST) Get(ctx context.Context, name string, options *metav1.GetOptions) (runtime.Object, error) {
 	return nil, nil
 }
 
 // Update alters the status subset of an object.
-func (r *UniversityRefreshREST) Update(ctx context.Context, name string, objInfo rest.UpdatedObjectInfo, createValidation rest.ValidateObjectFunc, updateValidation rest.ValidateObjectUpdateFunc, forceAllowCreate bool, options *metav1.UpdateOptions) (runtime.Object, bool, error) {
+func (r *UniversityCampusREST) Update(ctx context.Context, name string, objInfo rest.UpdatedObjectInfo, createValidation rest.ValidateObjectFunc, updateValidation rest.ValidateObjectUpdateFunc, forceAllowCreate bool, options *metav1.UpdateOptions) (runtime.Object, bool, error) {
 	return nil, false, nil
 }
 
-func (r *UniversityRefreshREST) New() runtime.Object {
-	return &UniversityRefresh{}
+func (r *UniversityCampusREST) New() runtime.Object {
+	return &UniversityCampus{}
 }
