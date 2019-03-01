@@ -1,5 +1,5 @@
 /*
-Copyright YEAR The Kubernetes Authors.
+Copyright 2017 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -31,23 +31,23 @@ import (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +subresource-request
-type UniversityScale struct {
+type UniversityRefresh struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	Faculty int `json:"faculty,omitempty"`
 }
 
-var _ rest.CreaterUpdater = &UniversityScaleREST{}
-var _ rest.Patcher = &UniversityScaleREST{}
+var _ rest.CreaterUpdater = &UniversityRefreshREST{}
+var _ rest.Patcher = &UniversityRefreshREST{}
 
 // +k8s:deepcopy-gen=false
-type UniversityScaleREST struct {
+type UniversityRefreshREST struct {
 	Registry miskatonic.UniversityRegistry
 }
 
-func (r *UniversityScaleREST) Create(ctx context.Context, obj runtime.Object, createValidation rest.ValidateObjectFunc, options *metav1.CreateOptions) (runtime.Object, error) {
-	sub := obj.(*UniversityScale)
+func (r *UniversityRefreshREST) Create(ctx context.Context, obj runtime.Object, createValidation rest.ValidateObjectFunc, options *metav1.CreateOptions) (runtime.Object, error) {
+	sub := obj.(*UniversityRefresh)
 	rec, err := r.Registry.GetUniversity(ctx, sub.Name, &metav1.GetOptions{})
 	if err != nil {
 		return nil, err
@@ -59,15 +59,15 @@ func (r *UniversityScaleREST) Create(ctx context.Context, obj runtime.Object, cr
 }
 
 // Get retrieves the object from the storage. It is required to support Patch.
-func (r *UniversityScaleREST) Get(ctx context.Context, name string, options *metav1.GetOptions) (runtime.Object, error) {
+func (r *UniversityRefreshREST) Get(ctx context.Context, name string, options *metav1.GetOptions) (runtime.Object, error) {
 	return nil, nil
 }
 
 // Update alters the status subset of an object.
-func (r *UniversityScaleREST) Update(ctx context.Context, name string, objInfo rest.UpdatedObjectInfo, createValidation rest.ValidateObjectFunc, updateValidation rest.ValidateObjectUpdateFunc, forceAllowCreate bool, options *metav1.UpdateOptions) (runtime.Object, bool, error) {
+func (r *UniversityRefreshREST) Update(ctx context.Context, name string, objInfo rest.UpdatedObjectInfo, createValidation rest.ValidateObjectFunc, updateValidation rest.ValidateObjectUpdateFunc, forceAllowCreate bool, options *metav1.UpdateOptions) (runtime.Object, bool, error) {
 	return nil, false, nil
 }
 
-func (r *UniversityScaleREST) New() runtime.Object {
-	return &UniversityScale{}
+func (r *UniversityRefreshREST) New() runtime.Object {
+	return &UniversityRefresh{}
 }

@@ -1,5 +1,5 @@
 /*
-Copyright YEAR The Kubernetes Authors.
+Copyright 2017 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -45,22 +45,22 @@ var _ = Describe("University", func() {
 		client.Delete(instance.Name, &metav1.DeleteOptions{})
 	})
 
-	Describe("when sending a scale request", func() {
+	Describe("when sending a refresh request", func() {
 		It("should return success", func() {
-			client = cs.MiskatonicV1beta1().Universities("university-test-scale")
+			client = cs.MiskatonicV1beta1().Universities("university-test-refresh")
 			_, err := client.Create(&instance)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			scale := &UniversityScale{
+			refresh := &UniversityRefresh{
 				Faculty: 30,
 			}
-			scale.Name = instance.Name
+			refresh.Name = instance.Name
 			restClient := cs.MiskatonicV1beta1().RESTClient()
-			err = restClient.Post().Namespace("university-test-scale").
+			err = restClient.Post().Namespace("university-test-refresh").
 				Name(instance.Name).
 				Resource("universities").
-				SubResource("scale").
-				Body(scale).Do().Error()
+				SubResource("refresh").
+				Body(refresh).Do().Error()
 			Expect(err).ShouldNot(HaveOccurred())
 
 			expected.Spec.FacultySize = 30
