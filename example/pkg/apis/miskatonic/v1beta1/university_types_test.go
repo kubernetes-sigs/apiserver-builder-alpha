@@ -99,22 +99,22 @@ var _ = Describe("University", func() {
 		})
 	})
 
-	Describe("when sending a scale request", func() {
+	Describe("when sending a campus request", func() {
 		It("should set the faculty count", func() {
-			client = cs.MiskatonicV1beta1().Universities("university-test-scale")
+			client = cs.MiskatonicV1beta1().Universities("university-test-campus")
 			_, err := client.Create(&instance)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			scale := &Scale{
+			campus := &UniversityCampus{
 				Faculty: 30,
 			}
-			scale.Name = instance.Name
+			campus.Name = instance.Name
 			restClient := cs.MiskatonicV1beta1().RESTClient()
-			err = restClient.Post().Namespace("university-test-scale").
+			err = restClient.Post().Namespace("university-test-campus").
 				Name(instance.Name).
 				Resource("universities").
-				SubResource("scale").
-				Body(scale).Do().Error()
+				SubResource("campus").
+				Body(campus).Do().Error()
 			Expect(err).ShouldNot(HaveOccurred())
 
 			expected.Spec.FacultySize = 30
