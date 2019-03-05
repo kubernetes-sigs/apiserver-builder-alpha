@@ -1,5 +1,5 @@
-hash: 8bc1f8c59a7898b389aff56457c66006ca0fd021703abdb3dcee394613901b2d
-updated: 2018-12-06T18:48:46.166728+08:00
+hash: bb752e8dfa5df712b0da5b321a1f25f14bec4ee42375a5232840e605507e8646
+updated: 2019-03-05T21:36:44.659479+08:00
 imports:
 - name: github.com/emicklei/go-restful
   version: ff4f55a206334ef123e4f79bbf348980da81ca46
@@ -26,9 +26,11 @@ imports:
 - name: github.com/gobuffalo/envy
   version: 7e7ddcbb431d1d9e32121d7eeee8d68bdecd7081
 - name: github.com/gogo/protobuf
-  version: c0656edd0d9eab7c66d1eb0c568f9039345796f7
+  version: 342cbe0a04158f6dcb03ca0079991a51a4248c02
   subpackages:
+  - gogoproto
   - proto
+  - protoc-gen-gogo/descriptor
   - sortkeys
 - name: github.com/golang/glog
   version: 44145f04b68cf362d9c4df2182967c2275eaefed
@@ -72,24 +74,24 @@ imports:
   - internal/fastwalk
   - internal/gopathwalk
 - name: k8s.io/api
-  version: b503174bad5991eb66f18247f52e41c3258f6348
+  version: 5cb15d34447165a97c76ed5a60e4e99c8a01ecfe
 - name: k8s.io/apimachinery
-  version: eddba98df674a16931d2d4ba75edc3a389bf633a
+  version: 86fb29eff6288413d76bd8506874fddd9fccdff0
   subpackages:
   - pkg/runtime/schema
   - pkg/util/runtime
   - pkg/util/sets
   - pkg/util/wait
 - name: k8s.io/apiserver
-  version: 92fdef3a232a23afb9644f6151119b5961b9feab
+  version: 79427f02047f9189a75b8cdaadccaf65a126853e
   subpackages:
   - pkg/util/logs
 - name: k8s.io/client-go
-  version: 5e6a3d4e34f694e895b13ae728111e726a5b69df
+  version: b40b2a5939e43f7ffe0028ad67586b7ce50bb675
   subpackages:
   - util/homedir
 - name: k8s.io/code-generator
-  version: 3dcf91f64f638563e5106f21f50c31fa361c918d
+  version: c2090bec4d9b1fb25de3812f868accc2bc9ecbae
 - name: k8s.io/gengo
   version: fdcf9f9480fdd5bf2b3c3df9bf4ecd22b25b87e2
   subpackages:
@@ -98,6 +100,8 @@ imports:
   - namer
   - parser
   - types
+- name: k8s.io/klog
+  version: 8139d8cb77af419532b33dfa7dd09fbc5f1d344f
 - name: k8s.io/kube-openapi
   version: 0cf8f7e6ed1d2e3d47d02e3b6e559369af24d803
 testImports: []
