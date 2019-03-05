@@ -791,6 +791,7 @@
   revision = "53feefa2559fb8dfa8d81baad31be332c97d6c77"
 
 [[projects]]
+  branch = "release-1.13"
   name = "k8s.io/api"
   packages = [
     "admission/v1beta1",
@@ -799,6 +800,7 @@
     "apps/v1",
     "apps/v1beta1",
     "apps/v1beta2",
+    "auditregistration/v1alpha1",
     "authentication/v1",
     "authentication/v1beta1",
     "authorization/v1",
@@ -826,16 +828,16 @@
     "storage/v1alpha1",
     "storage/v1beta1"
   ]
-  revision = "b503174bad5991eb66f18247f52e41c3258f6348"
-  version = "kubernetes-1.12.3"
+  revision = "5cb15d34447165a97c76ed5a60e4e99c8a01ecfe"
 
 [[projects]]
   name = "k8s.io/apiextensions-apiserver"
   packages = ["pkg/apis/apiextensions"]
-  revision = "0cd23ebeb6882bd1cdc2cb15fc7b2d72e8a86a5b"
-  version = "kubernetes-1.12.3"
+  revision = "d002e88f6236312f0289d9d1deab106751718ff0"
+  version = "kubernetes-1.13.4"
 
 [[projects]]
+  branch = "release-1.13"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/api/equality",
@@ -888,8 +890,7 @@
     "third_party/forked/golang/json",
     "third_party/forked/golang/reflect"
   ]
-  revision = "eddba98df674a16931d2d4ba75edc3a389bf633a"
-  version = "kubernetes-1.12.3"
+  revision = "86fb29eff6288413d76bd8506874fddd9fccdff0"
 
 [[projects]]
   name = "k8s.io/apiserver"
@@ -921,7 +922,9 @@
     "pkg/apis/audit/v1beta1",
     "pkg/apis/audit/validation",
     "pkg/audit",
+    "pkg/audit/event",
     "pkg/audit/policy",
+    "pkg/audit/util",
     "pkg/authentication/authenticator",
     "pkg/authentication/authenticatorfactory",
     "pkg/authentication/group",
@@ -932,6 +935,7 @@
     "pkg/authentication/request/websocket",
     "pkg/authentication/request/x509",
     "pkg/authentication/serviceaccount",
+    "pkg/authentication/token/cache",
     "pkg/authentication/token/tokenfile",
     "pkg/authentication/user",
     "pkg/authorization/authorizer",
@@ -966,7 +970,6 @@
     "pkg/storage/errors",
     "pkg/storage/etcd",
     "pkg/storage/etcd/metrics",
-    "pkg/storage/etcd/util",
     "pkg/storage/etcd3",
     "pkg/storage/names",
     "pkg/storage/storagebackend",
@@ -982,17 +985,18 @@
     "pkg/util/webhook",
     "pkg/util/wsstream",
     "plugin/pkg/audit/buffered",
+    "plugin/pkg/audit/dynamic",
+    "plugin/pkg/audit/dynamic/enforced",
     "plugin/pkg/audit/log",
     "plugin/pkg/audit/truncate",
     "plugin/pkg/audit/webhook",
     "plugin/pkg/authenticator/token/webhook",
     "plugin/pkg/authorizer/webhook"
   ]
-  revision = "92fdef3a232a23afb9644f6151119b5961b9feab"
-  version = "kubernetes-1.12.3"
+  revision = "79427f02047f9189a75b8cdaadccaf65a126853e"
+  version = "kubernetes-1.13.4"
 
 [[projects]]
-  branch = "release-9.0"
   name = "k8s.io/client-go"
   packages = [
     "discovery",
@@ -1005,6 +1009,8 @@
     "informers/apps/v1",
     "informers/apps/v1beta1",
     "informers/apps/v1beta2",
+    "informers/auditregistration",
+    "informers/auditregistration/v1alpha1",
     "informers/autoscaling",
     "informers/autoscaling/v1",
     "informers/autoscaling/v2beta1",
@@ -1048,6 +1054,7 @@
     "kubernetes/typed/apps/v1",
     "kubernetes/typed/apps/v1beta1",
     "kubernetes/typed/apps/v1beta2",
+    "kubernetes/typed/auditregistration/v1alpha1",
     "kubernetes/typed/authentication/v1",
     "kubernetes/typed/authentication/v1beta1",
     "kubernetes/typed/authorization/v1",
@@ -1079,6 +1086,7 @@
     "listers/apps/v1",
     "listers/apps/v1beta1",
     "listers/apps/v1beta2",
+    "listers/auditregistration/v1alpha1",
     "listers/autoscaling/v1",
     "listers/autoscaling/v2beta1",
     "listers/autoscaling/v2beta2",
@@ -1123,6 +1131,7 @@
     "tools/clientcmd/api/v1",
     "tools/metrics",
     "tools/pager",
+    "tools/record",
     "tools/reference",
     "transport",
     "util/buffer",
@@ -1135,7 +1144,8 @@
     "util/retry",
     "util/workqueue"
   ]
-  revision = "13596e875accbd333e0b5bd5fd9462185acd9958"
+  revision = "b40b2a5939e43f7ffe0028ad67586b7ce50bb675"
+  version = "kubernetes-1.13.4"
 
 [[projects]]
   name = "k8s.io/gengo"
@@ -1171,9 +1181,15 @@
   ]
   revision = "0cf8f7e6ed1d2e3d47d02e3b6e559369af24d803"
 
+[[projects]]
+  name = "sigs.k8s.io/yaml"
+  packages = ["."]
+  revision = "fd68e9863619f6ec2fdd8625fe1f02e7c877e480"
+  version = "v1.1.0"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "aa232371229145266459d79b414324aebea64f5029484ac6b375aac2be1a22f2"
+  inputs-digest = "02969331d43784899028770620075a66f7f81adedb677cc73de8cc20e2654db7"
   solver-name = "gps-cdcl"
   solver-version = 1

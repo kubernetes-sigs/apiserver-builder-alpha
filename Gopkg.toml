@@ -35,7 +35,7 @@ required = [
 
 # Comment to update deps with dep tool
 [[constraint]]
-  version = "v0.1-alpha.28"
+  version = "kubernetes-1.13.4"
   name = "github.com/kubernetes-incubator/apiserver-builder-alpha"
 
 [[constraint]]
@@ -78,23 +78,23 @@ required = [
   name = "github.com/spf13/viper"
 
 [[constraint]]
-  version = "kubernetes-1.12.3"
+  version = "kubernetes-1.13.4"
   name = "k8s.io/api"
 
 [[constraint]]
-  version = "kubernetes-1.12.3"
+  version = "kubernetes-1.13.4"
   name = "k8s.io/apiextensions-apiserver"
 
 [[constraint]]
-  version = "kubernetes-1.12.3"
+  version = "kubernetes-1.13.4"
   name = "k8s.io/apimachinery"
 
 [[constraint]]
-  version = "kubernetes-1.12.3"
+  version = "kubernetes-1.13.4"
   name = "k8s.io/apiserver"
 
 [[constraint]]
-  branch = "release-9.0"
+  version = "kubernetes-1.13.4"
   name = "k8s.io/client-go"
 
 [[constraint]]
