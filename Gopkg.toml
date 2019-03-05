@@ -33,11 +33,6 @@ required = [
   "github.com/modern-go/reflect2",
 ]
 
-# Comment to update deps with dep tool
-[[constraint]]
-  version = "kubernetes-1.13.4"
-  name = "github.com/kubernetes-incubator/apiserver-builder-alpha"
-
 [[constraint]]
   name = "github.com/emicklei/go-restful"
 
