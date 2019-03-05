@@ -22,13 +22,11 @@ import (
 
 	"k8s.io/klog"
 	"github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiregister-gen/generators"
-	"k8s.io/apiserver/pkg/util/logs"
 	"k8s.io/gengo/args"
 )
 
 func main() {
-	logs.InitLogs()
-	defer logs.FlushLogs()
+	defer klog.Flush()
 
 	if len(os.Getenv("GOMAXPROCS")) == 0 {
 		runtime.GOMAXPROCS(runtime.NumCPU())
