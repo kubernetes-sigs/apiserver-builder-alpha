@@ -123,10 +123,11 @@ func createSubresource(boilerplate string) {
 			log.Fatal(err)
 		}
 		structName := fmt.Sprintf("type %s struct {", kindName)
-		sub := fmt.Sprintf("// +subresource:request=%s,path=%s,rest=%sREST",
+		sub := fmt.Sprintf("// +subresource:request=%s,path=%s,kind=%s",
 			strings.Title(a.SubresourceKind),
 			strings.ToLower(subresourceName),
-			strings.Title(a.SubresourceKind))
+			strings.Title(kindName)+strings.Title(subresourceName),
+		)
 		result := strings.Replace(string(types),
 			structName,
 			sub+"\n"+structName, 1)
