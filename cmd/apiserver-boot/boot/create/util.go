@@ -60,7 +60,8 @@ func ValidateResourceFlags() {
 }
 
 func RegisterResourceFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVar(&groupName, "group", "", "name of the API group.  **Must be single lowercase word (match ^[a-z]+$)**.")
+	cmd.Flags().StringVar(&groupName, "group", "", "name of the API group excluding its domain name. i.e. package name"+
+		"  **Must be single lowercase word (match ^[a-z]+$)**.")
 	cmd.Flags().StringVar(&versionName, "version", "", "name of the API version.  **must match regex v\\d+(alpha\\d+|beta\\d+)** e.g. v1, v1beta1, v1alpha1")
 	cmd.Flags().StringVar(&kindName, "kind", "", "name of the API kind.  **Must be CamelCased (match ^[A-Z]+[A-Za-z0-9]*$)**")
 	cmd.Flags().StringVar(&resourceName, "resource", "", "optional name of the API resource, defaults to the plural name of the lowercase kind")
