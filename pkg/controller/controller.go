@@ -19,7 +19,6 @@ package controller
 import (
 	"time"
 
-	"k8s.io/klog"
 	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -27,6 +26,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/workqueue"
+	"k8s.io/klog"
 )
 
 // QueueingEventHandler queues the key for the object on add and update events
@@ -117,7 +117,8 @@ func (q *QueueWorker) ProcessMessage() bool {
 	}
 
 	// Error.  Maybe retry if haven't hit the limit.
-	if q.Queue.NumRequeues(key) < q.MaxRetries {
+	// Sometimes, infinite retry is desired
+	if q.MaxRetries < 0 || q.Queue.NumRequeues(key) < q.MaxRetries {
 		klog.V(4).Infof("Error handling %s Queue message %v: %v", q.Name, key, err)
 		q.Queue.AddRateLimited(key)
 		return false
