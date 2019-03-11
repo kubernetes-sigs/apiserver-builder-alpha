@@ -122,6 +122,10 @@ func Resource(resource string) schema.GroupResource {
 	return SchemeGroupVersion.WithResource(resource).GroupResource()
 }
 
+{{ range $a := .Aliases -}}
+type {{ $a.Name }} {{ $a.UnderlyingTypeName }}
+{{ end -}}
+
 {{ range $s := .Structs -}}
 {{ if $s.GenUnversioned -}}
 {{ if $s.GenClient }}// +genclient{{end}}

@@ -35,17 +35,20 @@ type DeepOne struct {
 	Status DeepOneStatus `json:"status,omitempty"`
 }
 
+type SamplePrimitiveAlias int64
+
 // DeepOnesSpec defines the desired state of DeepOne
 type DeepOneSpec struct {
 	// fish_required defines the number of fish required by the DeepOne.
 	FishRequired int `json:"fish_required,omitempty"`
 
-	Sample            SampleElem                       `json:"sample,omitempty"`
-	SamplePointer     *SamplePointerElem               `json:"sample_pointer,omitempty"`
-	SampleList        []SampleListElem                 `json:"sample_list,omitempty"`
-	SamplePointerList []*SampleListPointerElem         `json:"sample_pointer_list,omitempty"`
-	SampleMap         map[string]SampleMapElem         `json:"sample_map,omitempty"`
-	SamplePointerMap  map[string]*SampleMapPointerElem `json:"sample_pointer_map,omitempty"`
+	Sample               SampleElem                       `json:"sample,omitempty"`
+	SamplePointer        *SamplePointerElem               `json:"sample_pointer,omitempty"`
+	SampleList           []SampleListElem                 `json:"sample_list,omitempty"`
+	SamplePointerList    []*SampleListPointerElem         `json:"sample_pointer_list,omitempty"`
+	SampleMap            map[string]SampleMapElem         `json:"sample_map,omitempty"`
+	SamplePointerMap     map[string]*SampleMapPointerElem `json:"sample_pointer_map,omitempty"`
+	SamplePrimitiveAlias SamplePrimitiveAlias
 
 	// Example of using a constant
 	Const      common.CustomType            `json:"const,omitempty"`
