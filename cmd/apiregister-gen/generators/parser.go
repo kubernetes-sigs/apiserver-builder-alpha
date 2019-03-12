@@ -63,6 +63,7 @@ type APIGroup struct {
 
 	// Structs is a list of unversioned definitions that must be generated
 	Structs []*Struct
+	Aliases map[string]*Alias
 	Pkg     *types.Package
 	PkgPath string
 }
@@ -78,6 +79,11 @@ type Struct struct {
 	GenUnversioned bool
 	// Fields is the list of fields appearing in the struct
 	Fields []*Field
+}
+
+type Alias struct {
+	Name               string
+	UnderlyingTypeName string
 }
 
 type Field struct {
@@ -218,6 +224,7 @@ func (b *APIsBuilder) ParseAPIs() {
 			Domain:               b.Domain,
 			Versions:             map[string]*APIVersion{},
 			UnversionedResources: map[string]*APIResource{},
+			Aliases:              map[string]*Alias{},
 		}
 
 		for version, kindMap := range versionMap {
@@ -253,7 +260,7 @@ func (b *APIsBuilder) ParseAPIs() {
 
 			apiGroup.Versions[version] = apiVersion
 		}
-		b.ParseStructs(apiGroup)
+		b.ParseStructsAndAliases(apiGroup)
 		apis.Groups[group] = apiGroup
 	}
 	apis.Pkg = b.context.Universe[b.APIsPkg]
@@ -581,7 +588,7 @@ type GenUnversionedType struct {
 	Resource *APIResource
 }
 
-func (b *APIsBuilder) ParseStructs(apigroup *APIGroup) {
+func (b *APIsBuilder) ParseStructsAndAliases(apigroup *APIGroup) {
 	remaining := []GenUnversionedType{}
 	for _, version := range apigroup.Versions {
 		for _, resource := range version.Resources {
@@ -760,9 +767,17 @@ func (apigroup *APIGroup) DoType(t *types.Type) (*Struct, []*types.Type) {
 			UnversionedType:   uType,
 		})
 
-		// Add this member Type for processing if it isn't a primitive and
-		// is part of the same API group
-		if !mSubType.IsPrimitive() && GetGroup(mSubType) == GetGroup(t) {
+		switch {
+		case mSubType.Kind == types.Alias && mSubType.Underlying.IsPrimitive():
+			if _, ok := apigroup.Aliases[mSubType.Name.Name]; !ok {
+				apigroup.Aliases[mSubType.Name.Name] = &Alias{
+					Name:               mSubType.Name.Name,
+					UnderlyingTypeName: mSubType.Underlying.Name.Name,
+				}
+			}
+		case !mSubType.IsPrimitive() && GetGroup(mSubType) == GetGroup(t):
+			// Add this member Type for processing if it isn't a primitive and
+			// is part of the same API group
 			remaining = append(remaining, mSubType)
 		}
 	}

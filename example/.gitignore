@@ -7,3 +7,5 @@ pkg/client/*_generated
 pkg/openapi/openapi_generated.go
 .crt
 .key
+vendor/**
+Gopkg.*
