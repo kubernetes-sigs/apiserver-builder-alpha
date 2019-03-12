@@ -22,6 +22,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -29,7 +30,7 @@ import (
 	"github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/util/sets"
-	"path"
+	"k8s.io/klog"
 )
 
 var versionedAPIs []string
@@ -189,6 +190,19 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 				"--report-filename", "violations.report",
 				"--output-package", filepath.Join(util.Repo, "pkg", "openapi"))...,
 		)
+
+		// HACK: ensure GOROOT env var
+		c.Env = os.Environ()
+		if len(os.Getenv("GOROOT")) == 0 {
+			if p, err := exec.Command("which", "go").CombinedOutput(); err == nil {
+				// The returned string will have some/path/bin/go, so remove the last two elements.
+				c.Env = append(c.Env,
+					fmt.Sprintf("GOROOT=%s", filepath.Dir(filepath.Dir(strings.Trim(string(p), "\n")))))
+			} else {
+				klog.Warningf("Warning: $GOROOT not set, and unable to run `which go` to find it: %v\n", err)
+			}
+		}
+
 		fmt.Printf("%s\n", strings.Join(c.Args, " "))
 		out, err := c.CombinedOutput()
 		if err != nil {
