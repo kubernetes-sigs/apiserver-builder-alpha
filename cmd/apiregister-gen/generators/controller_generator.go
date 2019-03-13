@@ -114,6 +114,11 @@ func (c *{{.Target.Kind}}Controller) GetName() string {
 	return c.Name
 }
 
+// change the retry time at runtime
+func (c *{{.Target.Kind}}Controller) SetRetryTimes(r int) {
+	c.queue.MaxRetries = r
+}
+
 func (c *{{.Target.Kind}}Controller) LookupAndReconcile(key string) (err error) {
 	return c.reconcile(key)
 }
