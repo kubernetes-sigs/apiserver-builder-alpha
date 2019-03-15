@@ -30,6 +30,7 @@ import (
 
 // +k8s:openapi-gen=true
 // +resource:path=students,rest=StudentREST
+// +subresource:request=StudentComputer,path=computer,kind=StudentComputer,rest=StudentComputerREST
 type Student struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

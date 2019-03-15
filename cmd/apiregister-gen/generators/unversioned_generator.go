@@ -85,7 +85,7 @@ var (
 		func() runtime.Object { return &{{ $api.Kind }}List{} },
 	)
 	{{ range $subresource := .Subresources -}}
-	Internal{{$subresource.REST}} = builders.NewInternalSubresource(
+	Internal{{$subresource.Kind}}REST = builders.NewInternalSubresource(
 		"{{$subresource.Resource}}", "{{$subresource.Request}}", "{{$subresource.Path}}",
 		func() runtime.Object { return &{{$subresource.Request}}{} },
 	)
@@ -98,7 +98,7 @@ var (
 		Internal{{$api.Kind}},
 		Internal{{$api.Kind}}Status,
 		{{ range $subresource := $api.Subresources -}}
-		Internal{{$subresource.REST}},
+		Internal{{$subresource.Kind}}REST,
 		{{ end -}}
 		{{ end -}}
 	)

@@ -105,11 +105,13 @@ var (
 
 		{{ range $subresource := $api.Subresources -}}
 		builders.NewApiResourceWithStorage(
-			{{ $api.Group }}.Internal{{ $subresource.REST }},
+			{{ $api.Group }}.Internal{{ $subresource.Kind }}REST,
 			builders.SchemeFnsSingleton,
 			func() runtime.Object { return &{{ $subresource.Request }}{} }, // Register versioned resource
 			nil,
-			func() rest.Storage { return &{{ $subresource.REST }}{ {{$api.Group}}.New{{$api.Kind}}Registry({{$api.Group}}{{$api.Kind}}Storage) } },
+            {{ if $subresource.REST }}New{{ $subresource.REST }}{{ else -}}
+			func() rest.Storage { return &{{ $subresource.Kind }}REST{ {{$api.Group}}.New{{$api.Kind}}Registry({{$api.Group}}{{$api.Kind}}Storage) } },
+			{{ end -}}
 		),
 		{{ end -}}
 		{{ end -}}
