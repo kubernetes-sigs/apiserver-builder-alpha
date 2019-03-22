@@ -1,5 +1,5 @@
 /*
-Copyright 2017 The Kubernetes Authors.
+Copyright 2019 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,31 +18,16 @@ package v1beta1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
 
-// Generating code from student_types.go file will generate storage and status REST endpoints for
-// Student.
+)
 
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// +k8s:openapi-gen=true
-// +resource:path=students,rest=StudentREST
-type Student struct {
+// +subresource-request
+type StudentComputer struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	Spec   StudentSpec   `json:"spec,omitempty"`
-	Status StudentStatus `json:"status,omitempty"`
 }
 
-// StudentSpec defines the desired state of Student
-type StudentSpec struct {
-	ID int `json:"id,omitempty"`
-}
 
-// StudentStatus defines the observed state of Student
-type StudentStatus struct {
-	// GPA is the GPA of the student.
-	GPA float64 `json:"GPA,omitempty"`
-}

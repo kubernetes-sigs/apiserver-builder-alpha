@@ -21,6 +21,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apiserver/pkg/registry/rest"
+	genericregistry "k8s.io/apiserver/pkg/registry/generic/registry"
+	"k8s.io/apiserver/pkg/registry/generic"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
 )
 
 //var _ rest.CreaterUpdater = NewStudentREST()
@@ -32,7 +36,7 @@ var _ rest.Scoper = &StudentREST{}
 
 // +k8s:deepcopy-gen=false
 type StudentREST struct {
-	Registry StudentRegistry
+	*genericregistry.Store
 }
 
 func (r *StudentREST) Create(ctx context.Context, obj runtime.Object, createValidation rest.ValidateObjectFunc, options *metav1.CreateOptions) (runtime.Object, error) {
@@ -57,4 +61,27 @@ func (r *StudentREST) New() runtime.Object {
 
 func (r *StudentREST) NamespaceScoped() bool {
 	return true
+}
+
+// Custom REST storage that delegates to the generated standard Registry
+func NewStudentREST(optsGetter generic.RESTOptionsGetter) rest.Storage {
+	groupResource := schema.GroupResource{
+		Group:    "miskatonic",
+		Resource: "students",
+	}
+	strategy := &StudentStrategy{builders.StorageStrategySingleton}
+	store := &genericregistry.Store{
+		NewFunc:                  func() runtime.Object { return &Student{} },
+		NewListFunc:              func() runtime.Object { return &StudentList{} },
+		DefaultQualifiedResource: groupResource,
+
+		CreateStrategy: strategy, // TODO: specify create strategy
+		UpdateStrategy: strategy, // TODO: specify update strategy
+		DeleteStrategy: strategy, // TODO: specify delete strategy
+	}
+	options := &generic.StoreOptions{RESTOptions: optsGetter}
+	if err := store.CompleteWithOptions(options); err != nil {
+		panic(err) // TODO: Propagate error up
+	}
+	return &StudentREST{store}
 }
