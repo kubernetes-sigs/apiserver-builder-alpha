@@ -54,6 +54,7 @@ func (d *versionedGenerator) Imports(c *generator.Context) []string {
 		"k8s.io/apimachinery/pkg/runtime",
 		"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders",
 		"k8s.io/apimachinery/pkg/runtime/schema",
+		"k8s.io/apiserver/pkg/registry/generic",
 		d.apigroup.Pkg.Path,
 	}
 	if hasSubresources(d.apiversion) {
@@ -78,7 +79,7 @@ var (
 			{{.Kind}}SchemeFns{},
 			func() runtime.Object { return &{{ $api.Kind }}{} },     // Register versioned resource
 			func() runtime.Object { return &{{ $api.Kind }}List{} }, // Register versioned resource list
-			New{{ $api.REST }},
+			{{ $api.Group }}.New{{ $api.REST }},
 		)
 	{{ else -}}
 		{{$api.Group}}{{$api.Kind}}Storage = builders.NewApiResource( // Resource status endpoint
@@ -109,8 +110,8 @@ var (
 			builders.SchemeFnsSingleton,
 			func() runtime.Object { return &{{ $subresource.Request }}{} }, // Register versioned resource
 			nil,
-            {{ if $subresource.REST }}New{{ $subresource.REST }}{{ else -}}
-			func() rest.Storage { return &{{ $subresource.Kind }}REST{ {{$api.Group}}.New{{$api.Kind}}Registry({{$api.Group}}{{$api.Kind}}Storage) } },
+            {{ if $subresource.REST }}{{ $api.Group }}.New{{ $subresource.REST }}{{ else -}}
+			func(generic.RESTOptionsGetter) rest.Storage { return &{{ $subresource.Kind }}REST{ {{$api.Group}}.New{{$api.Kind}}Registry({{$api.Group}}{{$api.Kind}}Storage) } },
 			{{ end -}}
 		),
 		{{ end -}}
