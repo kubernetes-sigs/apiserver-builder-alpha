@@ -87,7 +87,7 @@ var (
 			{{.Kind}}SchemeFns{},
 			func() runtime.Object { return &{{ $api.Kind }}{} },     // Register versioned resource
 			func() runtime.Object { return &{{ $api.Kind }}List{} }, // Register versioned resource list
-			&{{ $api.Strategy }}{builders.StorageStrategySingleton},
+			&{{ $api.Group }}.{{ $api.Strategy }}{builders.StorageStrategySingleton},
 		)
 	{{ end -}}
 	{{ end -}}
@@ -101,7 +101,7 @@ var (
 			{{.Kind}}SchemeFns{},
 			func() runtime.Object { return &{{ $api.Kind }}{} },     // Register versioned resource
 			func() runtime.Object { return &{{ $api.Kind }}List{} }, // Register versioned resource list
-			&{{ $api.StatusStrategy }}{builders.StatusStorageStrategySingleton},
+			&{{ $api.Group }}.{{ $api.StatusStrategy }}{builders.StatusStorageStrategySingleton},
 		),{{ end -}}
 
 		{{ range $subresource := $api.Subresources -}}
@@ -144,16 +144,6 @@ func Resource(resource string) schema.GroupResource {
 // +k8s:deepcopy-gen=false
 type {{.Kind}}SchemeFns struct {
 	builders.DefaultSchemeFns
-}
-
-// +k8s:deepcopy-gen=false
-type {{.Strategy}} struct {
-	builders.DefaultStorageStrategy
-}
-
-// +k8s:deepcopy-gen=false
-type {{.StatusStrategy}} struct {
-	builders.DefaultStatusStorageStrategy
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
