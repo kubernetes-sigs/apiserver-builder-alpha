@@ -17,9 +17,7 @@ limitations under the License.
 package v1beta1
 
 import (
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/miskatonic"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apiserver/pkg/registry/rest"
 )
 
 // Generating code from student_types.go file will generate storage and status REST endpoints for
@@ -48,9 +46,4 @@ type StudentSpec struct {
 type StudentStatus struct {
 	// GPA is the GPA of the student.
 	GPA float64 `json:"GPA,omitempty"`
-}
-
-// Custom REST storage that delegates to the generated standard Registry
-func NewStudentREST() rest.Storage {
-	return &miskatonic.StudentREST{miskatonic.NewStudentRegistry(nil)}
 }

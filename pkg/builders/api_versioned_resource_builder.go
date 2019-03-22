@@ -28,6 +28,8 @@ import (
 	"k8s.io/apiserver/pkg/registry/rest"
 )
 
+type NewRESTFunc func(getter generic.RESTOptionsGetter) rest.Storage
+
 //
 // Versioned Kind Builder builds a versioned resource using unversioned strategy
 //
@@ -62,7 +64,7 @@ func NewApiResourceWithStorage(
 	unversionedBuilder UnversionedResourceBuilder,
 	schemeFns SchemeFns,
 	new, newList func() runtime.Object,
-	RESTFunc func() rest.Storage) *versionedResourceBuilder {
+	RESTFunc NewRESTFunc) *versionedResourceBuilder {
 	v := &versionedResourceBuilder{
 		unversionedBuilder, schemeFns, new, newList, nil, RESTFunc, nil,
 	}
@@ -89,7 +91,7 @@ type versionedResourceBuilder struct {
 	StorageBuilder StorageBuilder
 
 	// RESTFunc returns a rest.Storage implementation, mutually exclusive with StorageBuilder
-	RESTFunc func() rest.Storage
+	RESTFunc NewRESTFunc
 
 	Storage rest.StandardStorage
 }
@@ -173,7 +175,7 @@ func (b *versionedResourceBuilder) registerEndpoints(
 
 	if b.RESTFunc != nil {
 		// Use the REST implementation directly.
-		registry[path] = b.RESTFunc()
+		registry[path] = b.RESTFunc(optionsGetter)
 	} else {
 		// Create a new REST implementation wired to storage.
 		registry[path] = b.
