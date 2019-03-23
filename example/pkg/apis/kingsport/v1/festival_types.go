@@ -18,13 +18,7 @@ package v1
 
 import (
 	"log"
-	"context"
-
-	"k8s.io/apimachinery/pkg/runtime"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/validation/field"
-
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/kingsport"
 )
 
 // +genclient
@@ -55,25 +49,6 @@ type FestivalStatus struct {
 	// Attended holds the actual number of attendees
 	Attended uint `json:"attended,omitempty"`
 }
-
-// Validate checks that an instance of Festival is well formed
-func (FestivalStrategy) Validate(ctx context.Context, obj runtime.Object) field.ErrorList {
-	o := obj.(*kingsport.Festival)
-	log.Printf("Validating fields for Festival %s\n", o.Name)
-	errors := field.ErrorList{}
-
-	if o.Spec.Year < 0 {
-		errors = append(errors,
-			field.Invalid(field.NewPath("spec", "year"), o.Spec.Year, "year must be > 0"))
-	}
-
-	// perform validation here and add to errors using field.Invalid
-	return errors
-}
-
-func (FestivalStrategy) NamespaceScoped() bool { return false }
-
-func (FestivalStatusStrategy) NamespaceScoped() bool { return false }
 
 // DefaultingFunction sets default Festival field values
 func (FestivalSchemeFns) DefaultingFunction(o interface{}) {

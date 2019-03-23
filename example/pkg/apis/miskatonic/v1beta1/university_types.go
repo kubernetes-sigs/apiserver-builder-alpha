@@ -17,15 +17,11 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
 	"log"
 
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/miskatonic"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/util/validation/field"
 )
 
 // Generating code from university_types.go file will generate storage and status REST endpoints for
@@ -91,20 +87,6 @@ type UniversityStatus struct {
 
 	// statusfield provides status information about University
 	FacultyEmployed []string `json:"faculty_employed,omitempty"`
-}
-
-// Resource Validation
-func (UniversityStrategy) Validate(ctx context.Context, obj runtime.Object) field.ErrorList {
-	university := obj.(*miskatonic.University)
-	log.Printf("Validating University %s\n", university.Name)
-	errors := field.ErrorList{}
-	if university.Spec.MaxStudents == nil || *university.Spec.MaxStudents < 1 || *university.Spec.MaxStudents > 150 {
-		errors = append(errors, field.Invalid(
-			field.NewPath("spec", "MaxStudents"),
-			*university.Spec.MaxStudents,
-			"Must be between 1 and 150"))
-	}
-	return errors
 }
 
 // GetDefaultingFunctions returns functions for defaulting v1beta1.University values
