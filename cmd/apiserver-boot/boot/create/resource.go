@@ -226,15 +226,7 @@ var versionedResourceTemplate = `
 package {{.Version}}
 
 import (
-	"log"
-	"context"
-
-	"k8s.io/apimachinery/pkg/runtime"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/validation/field"
-
-	"{{ .Repo }}/pkg/apis/{{.Group}}"
 )
 
 // +genclient
