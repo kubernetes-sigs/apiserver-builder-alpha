@@ -73,8 +73,8 @@ func createResource(boilerplate string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	typesFileName := fmt.Sprintf("%s_types.go", strings.ToLower(kindName))
-	path := filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
+
+	//
 	a := resourceTemplateArgs{
 		boilerplate,
 		util.Domain,
@@ -89,7 +89,20 @@ func createResource(boilerplate string) {
 
 	found := false
 
-	created := util.WriteIfNotFound(path, "resource-template", resourceTemplate, a)
+	strategyFileName := fmt.Sprintf("%s_strategy.go", strings.ToLower(kindName))
+	unversionedPath := filepath.Join(dir, "pkg", "apis", groupName, strategyFileName)
+	created := util.WriteIfNotFound(unversionedPath, "unversioned-strategy-template", unversionedStrategyTemplate, a)
+	if !created {
+		if !found {
+			log.Printf("API group version kind %s/%s/%s already exists.",
+				groupName, versionName, kindName)
+			found = true
+		}
+	}
+
+	typesFileName := fmt.Sprintf("%s_types.go", strings.ToLower(kindName))
+	path := filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
+	created = util.WriteIfNotFound(path, "versioned-resource-template", versionedResourceTemplate, a)
 	if !created {
 		if !found {
 			log.Printf("API group version kind %s/%s/%s already exists.",
@@ -177,21 +190,45 @@ type resourceTemplateArgs struct {
 	NonNamespacedKind bool
 }
 
-var resourceTemplate = `
+var unversionedStrategyTemplate = `
+{{.BoilerPlate}}
+
+package {{.Group}}
+
+import (
+	"context"
+	"log"
+
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/validation/field"
+)
+
+// Validate checks that an instance of {{.Kind}} is well formed
+func ({{.Kind}}Strategy) Validate(ctx context.Context, obj runtime.Object) field.ErrorList {
+	o := obj.(*{{.Kind}})
+	log.Printf("Validating fields for {{.Kind}} %s\n", o.Name)
+	errors := field.ErrorList{}
+	// perform validation here and add to errors using field.Invalid
+	return errors
+}
+
+{{- if .NonNamespacedKind }}
+
+func ({{.Kind}}Strategy) NamespaceScoped() bool { return false }
+
+func ({{.Kind}}StatusStrategy) NamespaceScoped() bool { return false }
+{{- end }}
+`
+
+var versionedResourceTemplate = `
 {{.BoilerPlate}}
 
 package {{.Version}}
 
 import (
 	"log"
-	"context"
-
-	"k8s.io/apimachinery/pkg/runtime"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/validation/field"
-
-	"{{ .Repo }}/pkg/apis/{{.Group}}"
 )
 
 // +genclient
@@ -218,22 +255,6 @@ type {{.Kind}}Spec struct {
 // {{.Kind}}Status defines the observed state of {{.Kind}}
 type {{.Kind}}Status struct {
 }
-
-// Validate checks that an instance of {{.Kind}} is well formed
-func ({{.Kind}}Strategy) Validate(ctx context.Context, obj runtime.Object) field.ErrorList {
-	o := obj.(*{{.Group}}.{{.Kind}})
-	log.Printf("Validating fields for {{.Kind}} %s\n", o.Name)
-	errors := field.ErrorList{}
-	// perform validation here and add to errors using field.Invalid
-	return errors
-}
-
-{{- if .NonNamespacedKind }}
-
-func ({{.Kind}}Strategy) NamespaceScoped() bool { return false }
-
-func ({{.Kind}}StatusStrategy) NamespaceScoped() bool { return false }
-{{- end }}
 
 // DefaultingFunction sets default {{.Kind}} field values
 func ({{.Kind}}SchemeFns) DefaultingFunction(o interface{}) {
