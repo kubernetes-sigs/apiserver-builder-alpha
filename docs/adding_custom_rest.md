@@ -7,7 +7,7 @@ first to understand how resources are added
 
 You can implement your own REST implementation instead of using the
 standard storage by providing the `rest=KindREST` parameter
-and providing a `newKindREST() rest.Storage {}` function to return the
+and providing a `newKindREST(generic.RESTOptionsGetter) rest.Storage {}` function to return the
 storage.
 
 For more information on custom REST implementations, see the
@@ -25,7 +25,7 @@ type Foo struct {
 }
 
 // Initialize custom REST storage
-func NewFooREST() rest.Storage {
+func NewFooREST(restOptionsGetter generic.RESTOptionsGetter) rest.Storage {
     // Initialize fields of custom REST implementation
 }
 

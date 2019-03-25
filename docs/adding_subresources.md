@@ -16,6 +16,8 @@ apiserver-boot create subresource --subresource <subresource> --group <resource-
 This will:
 
 - create `pkg/apis/<group>/<version>/<subresource>_<kind>_types.go`
+  - contains the subresource type definition
+- create `pkg/apis/<group>/<subresource>_<kind>_rest.go`
   - contains the rest implementation
 - create `pkg/apis/<group>/<version>/<subresource>_<kind>_types_test.go`
   - contains a simple test to invoke the subresource and make sure it returns 200
@@ -105,7 +107,6 @@ type Status struct {
 
 	Faculty int `json:"faculty,omitempty"`
 }
-
 ```
 
 Note the line:
@@ -119,7 +120,7 @@ register it in the wiring.
 
 ### Create the REST implementation
 
-Create the rest implementation in the *versioned* package.
+Create the rest implementation in the *unversioned* package.
 
 Example:
 
@@ -142,8 +143,7 @@ func (r *BarStatusREST) Create(ctx request.Context, obj runtime.Object) (runtime
     // Do something with b...
 
     // Save the udpated b
-	r.Registry.UpdateBar(ctx, b)
-	return u, nil
+	return r.Registry.UpdateBar(ctx, b)
 }
 
 // Get retrieves the object from the storage. It is required to support Patch.
