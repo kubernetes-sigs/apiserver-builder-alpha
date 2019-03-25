@@ -111,7 +111,7 @@ var (
 			func() runtime.Object { return &{{ $subresource.Request }}{} }, // Register versioned resource
 			nil,
             {{ if $subresource.REST }}{{ $api.Group }}.New{{ $subresource.REST }}{{ else -}}
-			func(generic.RESTOptionsGetter) rest.Storage { return &{{ $subresource.Kind }}REST{ {{$api.Group}}.New{{$api.Kind}}Registry({{$api.Group}}{{$api.Kind}}Storage) } },
+			func(generic.RESTOptionsGetter) rest.Storage { return &{{ $api.Group }}.{{ $subresource.Kind }}REST{ {{$api.Group}}.New{{$api.Kind}}Registry({{$api.Group}}{{$api.Kind}}Storage) } },
 			{{ end -}}
 		),
 		{{ end -}}
