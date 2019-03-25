@@ -93,9 +93,13 @@ func createSubresource(boilerplate string) {
 
 	found := false
 
+	restFileName := fmt.Sprintf("%s_%s_rest.go", strings.ToLower(subresourceName), strings.ToLower(kindName))
+	path := filepath.Join(dir, "pkg", "apis", groupName, restFileName)
+	created := util.WriteIfNotFound(path, "sub-resource-rest-template", unversionedSubresourceRESTTemplate, a)
+
 	typesFileName := fmt.Sprintf("%s_%s_types.go", strings.ToLower(subresourceName), strings.ToLower(kindName))
-	path := filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
-	created := util.WriteIfNotFound(path, "sub-resource-template", subresourceTemplate, a)
+	path = filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
+	created = util.WriteIfNotFound(path, "sub-resource-template", versionedSubresourceTemplate, a)
 	if !created {
 		if !found {
 			log.Printf("API subresourceName %s for group version kind %s/%s/%s already exists.",
@@ -150,10 +154,10 @@ type subresourceTemplateArgs struct {
 	Resource        string
 }
 
-var subresourceTemplate = `
+var unversionedSubresourceRESTTemplate = `
 {{.BoilerPlate}}
 
-package {{.Version}}
+package {{.Group}}
 
 import (
 	"context"
@@ -161,25 +165,14 @@ import (
 	"k8s.io/apiserver/pkg/registry/rest"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"{{ .Repo }}/pkg/apis/{{ .Group }}"
 )
-
-// +genclient
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-
-// +subresource-request
-type {{title .SubresourceKind}} struct {
-	metav1.TypeMeta   ` + "`" + `json:",inline"` + "`" + `
-	metav1.ObjectMeta ` + "`" + `json:"metadata,omitempty"` + "`" + `
-}
 
 var _ rest.CreaterUpdater = &{{ .SubresourceKind }}REST{}
 var _ rest.Patcher = &{{ .SubresourceKind }}REST{}
 
 // +k8s:deepcopy-gen=false
 type {{ .SubresourceKind }}REST struct {
-	Registry {{ .Group }}.{{ .Kind }}Registry
+	Registry {{ .Kind }}Registry
 }
 
 func (r *{{ .SubresourceKind }}REST) Create(ctx context.Context, obj runtime.Object, createValidation rest.ValidateObjectFunc, options *metav1.CreateOptions) (runtime.Object, error) {
@@ -207,7 +200,25 @@ func (r *{{ .SubresourceKind }}REST) Update(ctx context.Context, name string, ob
 func (r *{{ .SubresourceKind }}REST) New() runtime.Object {
 	return &{{ title .SubresourceKind }}{}
 }
+`
 
+var versionedSubresourceTemplate = `
+{{.BoilerPlate}}
+
+package {{.Version}}
+
+import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// +subresource-request
+type {{title .SubresourceKind}} struct {
+	metav1.TypeMeta   ` + "`" + `json:",inline"` + "`" + `
+	metav1.ObjectMeta ` + "`" + `json:"metadata,omitempty"` + "`" + `
+}
 `
 
 var subresourceTestTemplate = `
