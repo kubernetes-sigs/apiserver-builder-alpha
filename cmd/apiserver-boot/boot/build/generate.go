@@ -120,10 +120,17 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	}
 
 	if doGen("apiregister-gen") {
-		c := exec.Command(filepath.Join(root, "apiregister-gen"),
+		inputDirsArgs := []string{
 			"--input-dirs", filepath.Join(util.Repo, "pkg", "apis", "..."),
-			"--input-dirs", filepath.Join(util.Repo, "pkg", "controller", "..."),
-		)
+		}
+		controllerPkgs := filepath.Join(util.Repo, "pkg", "controller", "...")
+		if _, err := os.Stat(filepath.Join(util.GoSrc, util.Repo, "pkg", "controller")); err == nil {
+			inputDirsArgs = append(inputDirsArgs, "--input-dirs", controllerPkgs)
+		} else {
+			klog.Warningf("ignoring controller package code-generation due to %v", err)
+		}
+
+		c := exec.Command(filepath.Join(root, "apiregister-gen"), inputDirsArgs...)
 		fmt.Printf("%s\n", strings.Join(c.Args, " "))
 		out, err := c.CombinedOutput()
 		if err != nil {
