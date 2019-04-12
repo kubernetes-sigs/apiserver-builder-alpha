@@ -30,8 +30,11 @@ import (
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/wait"
+	genericapifilters "k8s.io/apiserver/pkg/endpoints/filters"
 	openapinamer "k8s.io/apiserver/pkg/endpoints/openapi"
+	"k8s.io/apiserver/pkg/server"
 	genericapiserver "k8s.io/apiserver/pkg/server"
+	genericfilters "k8s.io/apiserver/pkg/server/filters"
 	genericoptions "k8s.io/apiserver/pkg/server/options"
 	"k8s.io/apiserver/pkg/util/logs"
 	"k8s.io/klog"
@@ -49,13 +52,12 @@ type ServerOptions struct {
 	APIBuilders            []*builders.APIGroupBuilder
 	InsecureServingOptions *genericoptions.DeprecatedInsecureServingOptionsWithLoopback
 
-	PrintBearerToken       bool
-	PrintOpenapi           bool
-	RunDelegatedAuth       bool
-	RunInsecureHealthCheck bool
-	BearerToken            string
-	Kubeconfig             string
-	PostStartHooks         []PostStartHook
+	PrintBearerToken bool
+	PrintOpenapi     bool
+	RunDelegatedAuth bool
+	BearerToken      string
+	Kubeconfig       string
+	PostStartHooks   []PostStartHook
 }
 
 type PostStartHook struct {
@@ -135,7 +137,6 @@ func NewCommandStartServer(etcdPath string, out, errOut io.Writer, builders []*b
 		"Print the openapi json and exit")
 	flags.BoolVar(&o.RunDelegatedAuth, "delegated-auth", true,
 		"Setup delegated auth")
-	flags.BoolVar(&o.RunInsecureHealthCheck, "insecure-health-check", false, "Setup /healthz endpoint insecurely")
 	//flags.StringVar(&o.Kubeconfig, "kubeconfig", "", "Kubeconfig of apiserver to talk to.")
 	o.RecommendedOptions.AddFlags(flags)
 	o.InsecureServingOptions.AddFlags(flags)
@@ -223,10 +224,8 @@ func (o ServerOptions) Config() (*apiserver.Config, error) {
 	}
 
 	var insecureServingInfo *genericapiserver.DeprecatedInsecureServingInfo
-	if o.RunInsecureHealthCheck {
-		if err := o.InsecureServingOptions.ApplyTo(&insecureServingInfo, &serverConfig.LoopbackClientConfig); err != nil {
-			return nil, err
-		}
+	if err := o.InsecureServingOptions.ApplyTo(&insecureServingInfo, &serverConfig.LoopbackClientConfig); err != nil {
+		return nil, err
 	}
 
 	config := &apiserver.Config{
@@ -261,17 +260,17 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string)
 	config.GenericConfig.OpenAPIConfig.Info.Title = title
 	config.GenericConfig.OpenAPIConfig.Info.Version = version
 
-	server, err := config.Complete().New()
+	genericServer, err := config.Complete().New()
 	if err != nil {
 		return err
 	}
 
 	for _, h := range o.PostStartHooks {
-		server.GenericAPIServer.AddPostStartHook(h.Name, h.Fn)
+		genericServer.GenericAPIServer.AddPostStartHook(h.Name, h.Fn)
 	}
 
-	s := server.GenericAPIServer.PrepareRun()
-	err = validators.OpenAPI.SetSchema(readOpenapi(config.GenericConfig.LoopbackClientConfig.BearerToken, server.GenericAPIServer.Handler))
+	s := genericServer.GenericAPIServer.PrepareRun()
+	err = validators.OpenAPI.SetSchema(readOpenapi(config.GenericConfig.LoopbackClientConfig.BearerToken, genericServer.GenericAPIServer.Handler))
 	if o.PrintOpenapi {
 		fmt.Printf("%s", validators.OpenAPI.OpenApi)
 		os.Exit(0)
@@ -280,16 +279,17 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string)
 		return err
 	}
 
-	if o.RunInsecureHealthCheck && config.InsecureServingInfo != nil {
-		config.InsecureServingInfo.Serve(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			if req.URL.Path != "/healthz" {
-				res.WriteHeader(403)
-				res.Write([]byte("cannot access insecure endpoints except for health check"))
-				return
-			}
-			s.GenericAPIServer.UnprotectedHandler().ServeHTTP(res, req)
-			return
-		}), config.GenericConfig.RequestTimeout, stopCh)
+	if config.InsecureServingInfo != nil {
+		c := config.GenericConfig
+		handler := s.GenericAPIServer.UnprotectedHandler()
+		handler = genericapifilters.WithAudit(handler, c.AuditBackend, c.AuditPolicyChecker, c.LongRunningFunc)
+		handler = genericapifilters.WithAuthentication(handler, server.InsecureSuperuser{}, nil)
+		handler = genericfilters.WithCORS(handler, c.CorsAllowedOriginList, nil, nil, nil, "true")
+		handler = genericfilters.WithTimeoutForNonLongRunningRequests(handler, c.LongRunningFunc, c.RequestTimeout)
+		handler = genericfilters.WithMaxInFlightLimit(handler, c.MaxRequestsInFlight, c.MaxMutatingRequestsInFlight, c.LongRunningFunc)
+		handler = genericapifilters.WithRequestInfo(handler, server.NewRequestInfoResolver(c))
+		handler = genericfilters.WithPanicRecovery(handler)
+		config.InsecureServingInfo.Serve(handler, config.GenericConfig.RequestTimeout, stopCh)
 	}
 
 	s.Run(stopCh)
