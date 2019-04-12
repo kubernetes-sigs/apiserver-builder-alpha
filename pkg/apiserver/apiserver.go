@@ -56,7 +56,8 @@ func (c *Config) Init() *Config {
 }
 
 type Config struct {
-	GenericConfig *genericapiserver.Config
+	GenericConfig       *genericapiserver.Config
+	InsecureServingInfo *genericapiserver.DeprecatedInsecureServingInfo
 }
 
 // Server contains state for a Kubernetes cluster master/api server.
