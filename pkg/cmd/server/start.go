@@ -17,43 +17,45 @@ limitations under the License.
 package server
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
+	"net"
+	"net/http"
+	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/apiserver"
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	genericapiserver "k8s.io/apiserver/pkg/server"
-	genericoptions "k8s.io/apiserver/pkg/server/options"
-
-	"bytes"
-	"net/http"
-	"os"
-
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/validators"
 	"k8s.io/apimachinery/pkg/util/wait"
 	openapinamer "k8s.io/apiserver/pkg/endpoints/openapi"
+	genericapiserver "k8s.io/apiserver/pkg/server"
+	genericoptions "k8s.io/apiserver/pkg/server/options"
 	"k8s.io/apiserver/pkg/util/logs"
 	"k8s.io/klog"
 	openapi "k8s.io/kube-openapi/pkg/common"
+
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/apiserver"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/validators"
 )
 
 var GetOpenApiDefinition openapi.GetOpenAPIDefinitions
 
 type ServerOptions struct {
-	RecommendedOptions *genericoptions.RecommendedOptions
-	APIBuilders        []*builders.APIGroupBuilder
+	RecommendedOptions     *genericoptions.RecommendedOptions
+	APIBuilders            []*builders.APIGroupBuilder
+	InsecureServingOptions *genericoptions.DeprecatedInsecureServingOptionsWithLoopback
 
-	PrintBearerToken bool
-	PrintOpenapi     bool
-	RunDelegatedAuth bool
-	BearerToken      string
-	Kubeconfig       string
-	PostStartHooks   []PostStartHook
+	PrintBearerToken       bool
+	PrintOpenapi           bool
+	RunDelegatedAuth       bool
+	RunInsecureHealthCheck bool
+	BearerToken            string
+	Kubeconfig             string
+	PostStartHooks         []PostStartHook
 }
 
 type PostStartHook struct {
@@ -92,6 +94,13 @@ func NewServerOptions(etcdPath string, out, errOut io.Writer, b []*builders.APIG
 
 	o.RecommendedOptions.Authorization.RemoteKubeConfigFileOptional = true
 	o.RecommendedOptions.Authentication.RemoteKubeConfigFileOptional = true
+	o.InsecureServingOptions = func() *genericoptions.DeprecatedInsecureServingOptionsWithLoopback {
+		o := genericoptions.DeprecatedInsecureServingOptions{
+			BindAddress: net.ParseIP("127.0.0.1"),
+			BindPort:    8080,
+		}
+		return o.WithLoopback()
+	}()
 
 	return o
 }
@@ -126,8 +135,10 @@ func NewCommandStartServer(etcdPath string, out, errOut io.Writer, builders []*b
 		"Print the openapi json and exit")
 	flags.BoolVar(&o.RunDelegatedAuth, "delegated-auth", true,
 		"Setup delegated auth")
+	flags.BoolVar(&o.RunInsecureHealthCheck, "insecure-health-check", false, "Setup /healthz endpoint insecurely")
 	//flags.StringVar(&o.Kubeconfig, "kubeconfig", "", "Kubeconfig of apiserver to talk to.")
 	o.RecommendedOptions.AddFlags(flags)
+	o.InsecureServingOptions.AddFlags(flags)
 
 	klogFlags := flag.NewFlagSet("klog", flag.ExitOnError)
 	klog.InitFlags(klogFlags)
@@ -211,7 +222,17 @@ func (o ServerOptions) Config() (*apiserver.Config, error) {
 		}
 	}
 
-	config := &apiserver.Config{GenericConfig: serverConfig}
+	var insecureServingInfo *genericapiserver.DeprecatedInsecureServingInfo
+	if o.RunInsecureHealthCheck {
+		if err := o.InsecureServingOptions.ApplyTo(&insecureServingInfo, &serverConfig.LoopbackClientConfig); err != nil {
+			return nil, err
+		}
+	}
+
+	config := &apiserver.Config{
+		GenericConfig:       serverConfig,
+		InsecureServingInfo: insecureServingInfo,
+	}
 	return config, nil
 }
 
@@ -257,6 +278,18 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string)
 	}
 	if err != nil {
 		return err
+	}
+
+	if o.RunInsecureHealthCheck && config.InsecureServingInfo != nil {
+		config.InsecureServingInfo.Serve(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			if req.URL.Path != "/healthz" {
+				res.WriteHeader(403)
+				res.Write([]byte("cannot access insecure endpoints except for health check"))
+				return
+			}
+			s.GenericAPIServer.UnprotectedHandler().ServeHTTP(res, req)
+			return
+		}), config.GenericConfig.RequestTimeout, stopCh)
 	}
 
 	s.Run(stopCh)
