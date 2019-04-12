@@ -21,7 +21,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"os"
 
@@ -97,10 +96,7 @@ func NewServerOptions(etcdPath string, out, errOut io.Writer, b []*builders.APIG
 	o.RecommendedOptions.Authorization.RemoteKubeConfigFileOptional = true
 	o.RecommendedOptions.Authentication.RemoteKubeConfigFileOptional = true
 	o.InsecureServingOptions = func() *genericoptions.DeprecatedInsecureServingOptionsWithLoopback {
-		o := genericoptions.DeprecatedInsecureServingOptions{
-			BindAddress: net.ParseIP("127.0.0.1"),
-			BindPort:    8080,
-		}
+		o := genericoptions.DeprecatedInsecureServingOptions{}
 		return o.WithLoopback()
 	}()
 
