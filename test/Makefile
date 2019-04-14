@@ -37,6 +37,7 @@ docs: cleandocs build
 # Build the tools
 # Note: These are available in the apiserver-builder release tar.gz
 cmds:
+	./install-kubebuilder.sh
 	./build-tools.sh
 
 # Clean up functions

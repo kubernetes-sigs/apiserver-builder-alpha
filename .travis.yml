@@ -8,6 +8,7 @@ go_import_path: github.com/kubernetes-incubator/apiserver-builder-alpha
 cache:
   directories:
   - $HOME/.glide
+  - /usr/local/kubebuilder/bin
 
 git:
   depth: 3
