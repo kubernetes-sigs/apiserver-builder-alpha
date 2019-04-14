@@ -31,6 +31,11 @@ required = [
   "github.com/imdario/mergo",
   "k8s.io/kube-openapi/cmd/openapi-gen",
   "github.com/modern-go/reflect2",
+  "sigs.k8s.io/controller-runtime/pkg/envtest",
+  "sigs.k8s.io/controller-runtime/pkg/client",
+  "sigs.k8s.io/controller-runtime/pkg/client/fake",
+  "sigs.k8s.io/controller-runtime/pkg/controller",
+  "sigs.k8s.io/controller-runtime/pkg/runtime/signals",
 ]
 
 # Comment to update deps with dep tool
@@ -87,13 +92,17 @@ required = [
 
 [[constraint]]
   version = "kubernetes-1.12.3"
+  name = "k8s.io/kube-aggregator"
+
+[[constraint]]
+  version = "kubernetes-1.12.3"
   name = "k8s.io/apimachinery"
 
 [[constraint]]
   version = "kubernetes-1.12.3"
   name = "k8s.io/apiserver"
 
-[[constraint]]
+[[override]]
   branch = "release-9.0"
   name = "k8s.io/client-go"
 
@@ -141,6 +150,16 @@ required = [
   name = "github.com/Azure/go-autorest"
   version = "=10.14.0"
 
+# For dependency below: Refer to issue https://github.com/golang/dep/issues/1799
+[[override]]
+  name = "gopkg.in/fsnotify.v1"
+  source = "https://github.com/fsnotify/fsnotify.git"
+  version="v1.4.7"
+
 [prune]
   unused-packages = true
   non-go = true
+
+[[constraint]]
+  name = "sigs.k8s.io/controller-runtime"
+  version = "0.1.8"
