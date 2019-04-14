@@ -1,5 +1,5 @@
-hash: 8bc1f8c59a7898b389aff56457c66006ca0fd021703abdb3dcee394613901b2d
-updated: 2018-12-06T18:48:46.166728+08:00
+hash: e88661db3e24feae2f56a578cab6ba66fa74f65fa2b533d9c7e37d00552c179a
+updated: 2019-03-27T19:20:16.354661+08:00
 imports:
 - name: github.com/emicklei/go-restful
   version: ff4f55a206334ef123e4f79bbf348980da81ca46
@@ -56,6 +56,10 @@ imports:
   - modfile
   - module
   - semver
+- name: github.com/spf13/afero
+  version: 588a75ec4f32903aa5e39a2619ba6a4631e28424
+  subpackages:
+  - mem
 - name: github.com/spf13/cobra
   version: f62e98d28ab7ad31d707ba837a966378465c7b57
   subpackages:
@@ -64,6 +68,20 @@ imports:
   version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
 - name: github.com/spf13/viper
   version: 7fb2782df3d83e0036cc89f461ed0422628776f4
+- name: golang.org/x/text
+  version: b19bf474d317b857955b12035d2c5acb57ce8b01
+  subpackages:
+  - cases
+  - internal
+  - internal/tag
+  - language
+  - runes
+  - secure/bidirule
+  - secure/precis
+  - transform
+  - unicode/bidi
+  - unicode/norm
+  - width
 - name: golang.org/x/tools
   version: 3576414c54a492fc48cd913814eb209914c717f0
   subpackages:
@@ -71,6 +89,8 @@ imports:
   - imports
   - internal/fastwalk
   - internal/gopathwalk
+- name: gopkg.in/yaml.v2
+  version: 670d4cfef0544295bc27a114dbac37980d83185a
 - name: k8s.io/api
   version: b503174bad5991eb66f18247f52e41c3258f6348
 - name: k8s.io/apimachinery
@@ -98,6 +118,19 @@ imports:
   - namer
   - parser
   - types
+- name: k8s.io/klog
+  version: 8139d8cb77af419532b33dfa7dd09fbc5f1d344f
 - name: k8s.io/kube-openapi
   version: 0cf8f7e6ed1d2e3d47d02e3b6e559369af24d803
+- name: sigs.k8s.io/controller-tools
+  version: b8adde9bc6d7f3fba449d306613a9daed23676c8
+  subpackages:
+  - pkg/util
+- name: sigs.k8s.io/kubebuilder
+  version: 2621a6fdb324a18f3a25b8be26519c235d01397d
+  subpackages:
+  - pkg/scaffold
+  - pkg/scaffold/controller
+  - pkg/scaffold/input
+  - pkg/scaffold/resource
 testImports: []
