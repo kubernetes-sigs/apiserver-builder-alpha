@@ -24,7 +24,6 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/gengo/args"
 	"k8s.io/gengo/generator"
@@ -39,13 +38,6 @@ type APIs struct {
 	Pkg     *types.Package
 	// Groups is a list of API groups
 	Groups map[string]*APIGroup
-}
-
-type Controller struct {
-	Target   schema.GroupVersionKind
-	Resource string
-	Pkg      *types.Package
-	Repo     string
 }
 
 type APIGroup struct {
@@ -174,8 +166,7 @@ type APIsBuilder struct {
 	APIsPkgRaw      *types.Package
 	GroupNames      sets.String
 
-	APIs        *APIs
-	Controllers []Controller
+	APIs *APIs
 
 	ByGroupKindVersion    map[string]map[string]map[string]*APIResource
 	ByGroupVersionKind    map[string]map[string]map[string]*APIResource
@@ -192,22 +183,9 @@ func NewAPIsBuilder(context *generator.Context, arguments *args.GeneratorArgs) *
 	b.ParseDomain()
 	b.ParseGroupNames()
 	b.ParseIndex()
-	b.ParseControllers()
 	b.ParseAPIs()
 
 	return b
-}
-
-func (b *APIsBuilder) ParseControllers() {
-	for _, c := range b.context.Order {
-		if IsController(c) {
-			tags := ParseControllerTag(b.GetControllerTag(c))
-			repo := strings.Split(c.Name.Package, "/pkg/controller")[0]
-			pkg := b.context.Universe[c.Name.Package]
-			b.Controllers = append(b.Controllers, Controller{
-				tags.gvk, tags.resource, pkg, repo})
-		}
-	}
 }
 
 func (b *APIsBuilder) ParseAPIs() {
@@ -420,37 +398,6 @@ func ParseResourceTag(tag string) ResourceTags {
 			result.Resource = value
 		case "strategy":
 			result.Strategy = value
-		}
-	}
-	return result
-}
-
-// ResourceTags contains the tags present in a "+resource=" comment
-type ControllerTags struct {
-	gvk      schema.GroupVersionKind
-	resource string
-}
-
-// ParseResourceTag parses the tags in a "+resource=" comment into a ResourceTags struct
-func ParseControllerTag(tag string) ControllerTags {
-	result := ControllerTags{}
-	for _, elem := range strings.Split(tag, ",") {
-		kv := strings.Split(elem, "=")
-		if len(kv) != 2 {
-			log.Fatalf("// +controller: tags must be key value pairs.  Expected "+
-				"keys [group=<group>,version=<version>,kind=<kind>,resource=<resource>] "+
-				"Got string: [%s]", tag)
-		}
-		value := kv[1]
-		switch kv[0] {
-		case "group":
-			result.gvk.Group = value
-		case "version":
-			result.gvk.Version = value
-		case "kind":
-			result.gvk.Kind = value
-		case "resource":
-			result.resource = value
 		}
 	}
 	return result
