@@ -14,17 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package sharedinformers
+package controller
 
-import "log"
+import (
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/controller/festival"
+)
 
-// SetupKubernetesTypes registers the config for watching Kubernetes types
-func (si *SharedInformers) SetupKubernetesTypes() bool {
-	return true
-}
-
-// StartAdditionalInformers starts watching Deployments
-func (si *SharedInformers) StartAdditionalInformers(shutdown <-chan struct{}) {
-	log.Printf("Listen for Deployments")
-	go si.KubernetesFactory.Extensions().V1beta1().Deployments().Informer().Run(shutdown)
+func init() {
+	// AddToManagerFuncs is a list of functions to create controllers and add them to a manager.
+	AddToManagerFuncs = append(AddToManagerFuncs, festival.Add)
 }
