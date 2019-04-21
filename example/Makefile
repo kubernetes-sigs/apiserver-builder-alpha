@@ -17,7 +17,9 @@
 all: test
 
 test: build
-	go test ./pkg/...
+	go test ./pkg/apis/...
+	go test ./pkg/controller/festival
+	go test ./pkg/controller/poseidon
 	bash -c "find pkg/apis/ -name apiserver.local.config | xargs rm -rf"
 
 build: cmds

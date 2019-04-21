@@ -17,7 +17,11 @@
 all: test
 
 test: build
-	go test ./pkg/...
+	go test ./pkg/apis/...
+	go test ./pkg/controller/volumeclaim
+	go test ./pkg/controller/snapshotclaim
+	go test ./pkg/controller/volume
+	go test ./pkg/controller/snapshot
 	bash -c "find pkg/apis/ -name apiserver.local.config | xargs rm -rf"
 
 skeleton: cmds
