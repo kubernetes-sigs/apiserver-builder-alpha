@@ -51,3 +51,4 @@ import:
 - package: k8s.io/code-generator
   version: kubernetes-1.12.3
 - package: github.com/kubernetes-incubator/reference-docs/gen-apidocs
+- package: sigs.k8s.io/kubebuilder

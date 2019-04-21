@@ -23,6 +23,9 @@ import (
 
 	"github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
+	"sigs.k8s.io/kubebuilder/pkg/scaffold"
+	"sigs.k8s.io/kubebuilder/pkg/scaffold/input"
+	"sigs.k8s.io/kubebuilder/pkg/scaffold/manager"
 )
 
 var repoCmd = &cobra.Command{
@@ -56,6 +59,7 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 	}
 	cr := util.GetCopyright(copyright)
 
+	createKubeBuilderProjectFile()
 	createBazelWorkspace()
 	createApiserver(cr)
 	createControllerManager(cr)
@@ -63,7 +67,6 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 
 	createPackage(cr, filepath.Join("pkg"))
 	createPackage(cr, filepath.Join("pkg", "controller"))
-	createPackage(cr, filepath.Join("pkg", "controller", "sharedinformers"))
 	createPackage(cr, filepath.Join("pkg", "openapi"))
 
 	os.MkdirAll("bin", 0700)
@@ -74,6 +77,22 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 	}
 }
 
+func createKubeBuilderProjectFile() {
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	path := filepath.Join(dir, "PROJECT")
+	util.WriteIfNotFound(path, "project-template", projectFileTemplate,
+		buildTemplateArguments{domain, util.Repo})
+}
+
+var projectFileTemplate = `
+version: "1"
+domain: {{.Domain}}
+repo: {{.Repo}}
+`
+
 func createBazelWorkspace() {
 	dir, err := os.Getwd()
 	if err != nil {
@@ -83,56 +102,26 @@ func createBazelWorkspace() {
 	util.WriteIfNotFound(path, "bazel-workspace-template", workspaceTemplate, nil)
 	path = filepath.Join(dir, "BUILD.bazel")
 	util.WriteIfNotFound(path, "bazel-build-template",
-		buildTemplate, buildTemplateArguments{util.Repo})
+		buildTemplate, buildTemplateArguments{domain, util.Repo})
 }
-
-type controllerManagerTemplateArguments struct {
-	BoilerPlate string
-	Repo        string
-}
-
-var controllerManagerTemplate = `
-{{.BoilerPlate}}
-
-package main
-
-import (
-	"flag"
-	"log"
-
-	controllerlib "github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/controller"
-
-	"{{ .Repo }}/pkg/controller"
-)
-
-var kubeconfig = flag.String("kubeconfig", "", "path to kubeconfig")
-
-func main() {
-	flag.Parse()
-	config, err := controllerlib.GetConfig(*kubeconfig)
-	if err != nil {
-		log.Fatalf("Could not create Config for talking to the apiserver: %v", err)
-	}
-
-	controllers, _ := controller.GetAllControllers(config)
-	controllerlib.StartControllerManager(controllers...)
-
-	// Blockforever
-	select {}
-}
-`
 
 func createControllerManager(boilerplate string) {
-	dir, err := os.Getwd()
+	err := (&scaffold.Scaffold{}).Execute(input.Options{
+		BoilerplatePath: "boilerplate.go.txt",
+	},
+		&manager.Cmd{
+			Input: input.Input{
+				Boilerplate: boilerplate,
+			},
+		},
+		&manager.Webhook{
+			Input: input.Input{
+				Boilerplate: boilerplate,
+			},
+		})
 	if err != nil {
 		log.Fatal(err)
 	}
-	path := filepath.Join(dir, "cmd", "controller-manager", "main.go")
-	util.WriteIfNotFound(path, "main-template", controllerManagerTemplate,
-		controllerManagerTemplateArguments{
-			boilerplate,
-			util.Repo,
-		})
 }
 
 type apiserverTemplateArguments struct {
@@ -250,7 +239,8 @@ proto_register_toolchains()
 `
 
 type buildTemplateArguments struct {
-	Repo string
+	Domain string
+	Repo   string
 }
 
 var buildTemplate = `

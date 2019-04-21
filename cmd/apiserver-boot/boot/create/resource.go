@@ -26,6 +26,12 @@ import (
 	"github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 	"github.com/markbates/inflect"
 	"github.com/spf13/cobra"
+	"k8s.io/klog"
+	"sigs.k8s.io/kubebuilder/pkg/scaffold"
+	"sigs.k8s.io/kubebuilder/pkg/scaffold/controller"
+	"sigs.k8s.io/kubebuilder/pkg/scaffold/input"
+	"sigs.k8s.io/kubebuilder/pkg/scaffold/manager"
+	"sigs.k8s.io/kubebuilder/pkg/scaffold/resource"
 )
 
 var kindName string
@@ -147,31 +153,56 @@ func createResource(boilerplate string) {
 		}
 	}
 
-	path = filepath.Join(dir, "pkg", "controller", strings.ToLower(kindName), "controller.go")
-	created = util.WriteIfNotFound(path, "resource-controller-template", resourceControllerTemplate, a)
-	if !created {
-		if !found {
-			log.Printf("Controller for %s/%s/%s already exists.",
-				groupName, versionName, kindName)
-			found = true
-		}
+	r := &resource.Resource{
+		Namespaced: !nonNamespacedKind,
+		Group:      groupName,
+		Version:    versionName,
+		Kind:       kindName,
+		Resource:   resourceName,
 	}
 
-	path = filepath.Join(dir, "pkg", "controller", strings.ToLower(kindName), fmt.Sprintf("%s_suite_test.go", strings.ToLower(kindName)))
-	util.WriteIfNotFound(path, "resource-controller-suite-test-template", controllerSuiteTestTemplate, a)
-
-	path = filepath.Join(dir, "pkg", "controller", strings.ToLower(kindName), "controller_test.go")
-	created = util.WriteIfNotFound(path, "controller-test-template", controllerTestTemplate, a)
-	if !created {
-		if !found {
-			log.Printf("Controller test for %s/%s/%s already exists.",
-				groupName, versionName, kindName)
-			found = true
-		}
+	err = (&scaffold.Scaffold{}).Execute(input.Options{
+		BoilerplatePath: "boilerplate.go.txt",
+	}, &controller.Controller{
+			Resource: r,
+			Input: input.Input{
+				IfExistsAction: input.Skip,
+			},
+		})
+	if err != nil {
+		klog.Warningf("failed generating %v controller: %v", kindName, err)
 	}
 
-	path = filepath.Join(dir, "pkg", "controller", "sharedinformers", "informers.go")
-	created = util.WriteIfNotFound(path, "sharedinformer-template", sharedInformersTemplate, a)
+	err = (&scaffold.Scaffold{}).Execute(input.Options{
+		BoilerplatePath: "boilerplate.go.txt",
+	},
+		&manager.Controller{
+			Input: input.Input{
+				IfExistsAction: input.Skip,
+			},
+		},
+		&controller.AddController{
+			Resource: r,
+			Input: input.Input{
+				IfExistsAction: input.Skip,
+			},
+		},
+		&SuiteTest{
+			Resource: r,
+			Input: input.Input{
+				IfExistsAction: input.Skip,
+			},
+		},
+		&controller.Test{
+			Resource: r,
+			Input: input.Input{
+				IfExistsAction: input.Skip,
+			},
+		},
+	)
+	if err != nil {
+		klog.Warningf("failed generating controller basic packages: %v", err)
+	}
 
 	if found {
 		os.Exit(-1)
@@ -363,197 +394,6 @@ var _ = Describe("{{.Kind}}", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(result.Items).To(HaveLen(0))
 			})
-		})
-	})
-})
-`
-
-var sharedInformersTemplate = `
-{{.BoilerPlate}}
-
-package sharedinformers
-
-// SetupKubernetesTypes registers the config for watching Kubernetes types
-func (si *SharedInformers) SetupKubernetesTypes() bool {
-    // Set this to true to initial the ClientSet and InformerFactory for
-    // Kubernetes APIs (e.g. Deployment)
-	return false
-}
-
-// StartAdditionalInformers starts watching Deployments
-func (si *SharedInformers) StartAdditionalInformers(shutdown <-chan struct{}) {
-    // Start specific Kubernetes API informers here.  Note, it is only necessary
-    // to start 1 informer for each Kind. (e.g. only 1 Deployment informer)
-
-    // Uncomment this to start listening for Deployment Create / Update / Deletes
-    // go si.KubernetesFactory.Apps().V1beta1().Deployments().Informer().Run(shutdown)
-}
-`
-
-var resourceControllerTemplate = `
-{{.BoilerPlate}}
-
-package {{ lower .Kind }}
-
-import (
-	"log"
-
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
-
-	"{{.Repo}}/pkg/apis/{{.Group}}/{{.Version}}"
-	"{{.Repo}}/pkg/controller/sharedinformers"
-	listers "{{.Repo}}/pkg/client/listers_generated/{{.Group}}/{{.Version}}"
-)
-
-// +controller:group={{ .Group }},version={{ .Version }},kind={{ .Kind}},resource={{ .Resource }}
-type {{.Kind}}ControllerImpl struct {
-	builders.DefaultControllerFns
-
-	// lister indexes properties about {{.Kind}}
-	lister listers.{{.Kind}}Lister
-}
-
-// Init initializes the controller and is called by the generated code
-// Register watches for additional resource types here.
-func (c *{{.Kind}}ControllerImpl) Init(arguments sharedinformers.ControllerInitArguments) {
-	// Use the lister for indexing {{.Resource}} labels
-	c.lister = arguments.GetSharedInformers().Factory.{{title .Group}}().{{title .Version}}().{{plural .Kind}}().Lister()
-}
-
-// Reconcile handles enqueued messages
-func (c *{{.Kind}}ControllerImpl) Reconcile(u *{{.Version}}.{{.Kind}}) error {
-	// Implement controller logic here
-	log.Printf("Running reconcile {{.Kind}} for %s\n", u.Name)
-	return nil
-}
-
-func (c *{{.Kind}}ControllerImpl) Get(namespace, name string) (*{{.Version}}.{{.Kind}}, error) {
-	return c.lister.{{ if not .NonNamespacedKind }}{{plural .Kind}}(namespace).{{ end }}Get(name)
-}
-`
-
-var controllerSuiteTestTemplate = `
-{{.BoilerPlate}}
-
-package {{lower .Kind}}_test
-
-import (
-	"testing"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"k8s.io/client-go/rest"
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/test"
-
-	"{{ .Repo }}/pkg/apis"
-	"{{ .Repo }}/pkg/client/clientset_generated/clientset"
-	"{{ .Repo }}/pkg/openapi"
-	"{{ .Repo }}/pkg/controller/sharedinformers"
-	"{{ .Repo }}/pkg/controller/{{lower .Kind}}"
-)
-
-var testenv *test.TestEnvironment
-var config *rest.Config
-var cs *clientset.Clientset
-var shutdown chan struct{}
-var controller *{{ lower .Kind }}.{{ .Kind }}Controller
-var si *sharedinformers.SharedInformers
-
-func Test{{.Kind}}(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecsWithDefaultAndCustomReporters(t, "{{ .Kind }} Suite", []Reporter{test.NewlineReporter{}})
-}
-
-var _ = BeforeSuite(func() {
-	testenv = test.NewTestEnvironment()
-	config = testenv.Start(apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions)
-	cs = clientset.NewForConfigOrDie(config)
-
-	shutdown = make(chan struct{})
-	si = sharedinformers.NewSharedInformers(config, shutdown)
-	controller = {{ lower .Kind }}.New{{ .Kind}}Controller(config, si)
-	controller.Run(shutdown)
-})
-
-var _ = AfterSuite(func() {
-	close(shutdown)
-	testenv.Stop()
-})
-`
-
-var controllerTestTemplate = `
-{{.BoilerPlate}}
-
-package {{ lower .Kind }}_test
-
-import (
-	"time"
-
-	. "{{ .Repo }}/pkg/apis/{{ .Group }}/{{ .Version }}"
-	. "{{ .Repo }}/pkg/client/clientset_generated/clientset/typed/{{ .Group }}/{{ .Version }}"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
-
-var _ = Describe("{{ .Kind }} controller", func() {
-	var instance {{ .Kind }}
-	var expectedKey string
-	var client {{ .Kind }}Interface
-	var before chan struct{}
-	var after chan struct{}
-
-	BeforeEach(func() {
-		instance = {{ .Kind }}{}
-		instance.Name = "instance-1"
-		expectedKey = "{{ if not .NonNamespacedKind }}{{lower .Kind }}-controller-test-handler/{{ end }}instance-1"
-	})
-
-	AfterEach(func() {
-		client.Delete(instance.Name, &metav1.DeleteOptions{})
-	})
-
-	Describe("when creating a new object", func() {
-		It("invoke the reconcile method", func() {
-			client = cs.{{title .Group}}{{title .Version}}().{{ plural .Kind }}({{ if not .NonNamespacedKind }}"{{lower .Kind }}-controller-test-handler"{{ end }})
-			before = make(chan struct{})
-			after = make(chan struct{})
-
-			actualKey := ""
-			var actualErr error = nil
-
-			// Setup test callbacks to be called when the message is reconciled
-			controller.BeforeReconcile = func(key string) {
-				defer close(before)
-				actualKey = key
-			}
-			controller.AfterReconcile = func(key string, err error) {
-				defer close(after)
-				actualKey = key
-				actualErr = err
-			}
-
-			// Create an instance
-			_, err := client.Create(&instance)
-			Expect(err).ShouldNot(HaveOccurred())
-
-			// Verify reconcile function is called against the correct key
-			select {
-			case <-before:
-				Expect(actualKey).To(Equal(expectedKey))
-				Expect(actualErr).ShouldNot(HaveOccurred())
-			case <-time.After(time.Second * 2):
-				Fail("reconcile never called")
-			}
-
-			select {
-			case <-after:
-				Expect(actualKey).To(Equal(expectedKey))
-				Expect(actualErr).ShouldNot(HaveOccurred())
-			case <-time.After(time.Second * 2):
-				Fail("reconcile never finished")
-			}
 		})
 	})
 })

@@ -63,6 +63,17 @@ func (d *apiGenerator) Finalize(context *generator.Context, w io.Writer) error {
 }
 
 var APIsTemplate = `
+var (
+	localSchemeBuilder = runtime.SchemeBuilder{
+{{ range $group := .Groups -}}
+	{{ range $version := $group.Versions -}}
+		{{ $group.Group }}{{ $version.Version }}.AddToScheme,
+	{{ end -}}
+{{ end -}}
+	}
+	AddToScheme = localSchemeBuilder.AddToScheme
+)
+
 // GetAllApiBuilders returns all known APIGroupBuilders
 // so they can be registered with the apiserver
 func GetAllApiBuilders() []*builders.APIGroupBuilder {

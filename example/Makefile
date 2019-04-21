@@ -17,7 +17,9 @@
 all: test
 
 test: build
-	go test ./pkg/...
+	go test ./pkg/apis/...
+	go test ./pkg/controller/festival
+	go test ./pkg/controller/poseidon
 	bash -c "find pkg/apis/ -name apiserver.local.config | xargs rm -rf"
 
 build: cmds
@@ -30,6 +32,7 @@ docs: cleandocs build
 # Build the tools
 # Note: These are available in the apiserver-builder release tar.gz
 cmds:
+	./install-kubebuilder.sh
 	./build-tools.sh
 
 # Clean up functions

@@ -107,27 +107,6 @@ func (g *Gen) Packages(context *generator.Context, arguments *args.GeneratorArgs
 	factory := &packageFactory{b.APIs.Pkg.Path, arguments}
 	gen := CreateApisGenerator(b.APIs, arguments.OutputFileBaseName)
 	g.p = append(g.p, factory.createPackage(gen))
-
-	// Add generators for Controllers.
-	repo := ""
-	for _, c := range b.Controllers {
-		repo = c.Repo
-		factory = &packageFactory{c.Pkg.Path, arguments}
-		cgen := CreateControllerGenerator(c, arguments.OutputFileBaseName)
-		g.p = append(g.p, factory.createPackage(cgen))
-	}
-
-	if len(b.Controllers) > 0 {
-		factory = &packageFactory{context.Universe[repo+"/pkg/controller"].Path, arguments}
-		cgen := CreateAllControllerGenerator(b.Controllers, arguments.OutputFileBaseName)
-		g.p = append(g.p, factory.createPackage(cgen))
-	}
-
-	if len(b.Controllers) > 0 {
-		factory = &packageFactory{context.Universe[repo+"/pkg/controller/sharedinformers"].Path, arguments}
-		cgen := CreateInformersGenerator(b.Controllers, arguments.OutputFileBaseName)
-		g.p = append(g.p, factory.createPackage(cgen))
-	}
 	return g.p
 }
 

@@ -8,16 +8,20 @@ go_import_path: github.com/kubernetes-incubator/apiserver-builder-alpha
 cache:
   directories:
   - $HOME/.glide
+  - /usr/local/kubebuilder/bin
 
 git:
   depth: 3
 
-env:
-  - TEST=example
-  - TEST=test
-
 install:
   - scripts/install_etcd.sh
 
-script:
-        ./test/travis.sh
+jobs:
+  include:
+    - stage: Test Example
+      env: TEST=example
+      script: sudo env "PATH=$PATH" ./test/travis.sh
+
+    - stage: Test New Project
+      env: TEST=test
+      script: sudo env "PATH=$PATH" ./test/travis.sh

@@ -17,7 +17,11 @@
 all: test
 
 test: build
-	go test ./pkg/...
+	go test ./pkg/apis/...
+	go test ./pkg/controller/volumeclaim
+	go test ./pkg/controller/snapshotclaim
+	go test ./pkg/controller/volume
+	go test ./pkg/controller/snapshot
 	bash -c "find pkg/apis/ -name apiserver.local.config | xargs rm -rf"
 
 skeleton: cmds
@@ -37,6 +41,7 @@ docs: cleandocs build
 # Build the tools
 # Note: These are available in the apiserver-builder release tar.gz
 cmds:
+	./install-kubebuilder.sh
 	./build-tools.sh
 
 # Clean up functions
