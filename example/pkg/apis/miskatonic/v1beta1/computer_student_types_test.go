@@ -14,8 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
-
 package v1beta1_test
 
 import (
@@ -30,14 +28,14 @@ import (
 
 var _ = Describe("Student", func() {
 	var instance Student
-	var expected Student
+	// var expected Student
 	var client StudentInterface
 
 	BeforeEach(func() {
 		instance = Student{}
 		instance.Name = "instance-1"
 
-		expected = instance
+		// expected = instance
 	})
 
 	AfterEach(func() {
