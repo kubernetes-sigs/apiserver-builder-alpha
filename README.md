@@ -34,7 +34,7 @@ same capabilities when building from scratch.
 
 ## Highlights
 
-- Tools to bootstrap type definitions, controllers, tests and documentation for new resources
+- Tools to bootstrap type definitions, controllers (powered by [controller-runtime](https://github.com/kubernetes-sigs/controller-runtime) framework), tests and documentation for new resources
 - Tools to build and run the extension control plane standalone and in minikube and remote clusters.
 - Easily watch and update Kubernetes API types from your controller
 - Easily add new resources and subresources
