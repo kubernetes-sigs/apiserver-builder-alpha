@@ -31,10 +31,12 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	genericapifilters "k8s.io/apiserver/pkg/endpoints/filters"
 	openapinamer "k8s.io/apiserver/pkg/endpoints/openapi"
+	"k8s.io/apiserver/pkg/features"
 	"k8s.io/apiserver/pkg/server"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	genericfilters "k8s.io/apiserver/pkg/server/filters"
 	genericoptions "k8s.io/apiserver/pkg/server/options"
+	"k8s.io/apiserver/pkg/util/feature"
 	"k8s.io/apiserver/pkg/util/logs"
 	"k8s.io/klog"
 	openapi "k8s.io/kube-openapi/pkg/common"
@@ -93,6 +95,8 @@ func NewServerOptions(etcdPath string, out, errOut io.Writer, b []*builders.APIG
 	}
 	o.RecommendedOptions.SecureServing.BindPort = 443
 
+	o.RecommendedOptions.Etcd.StorageConfig.Paging = feature.DefaultFeatureGate.Enabled(features.APIListChunking)
+
 	o.RecommendedOptions.Authorization.RemoteKubeConfigFileOptional = true
 	o.RecommendedOptions.Authentication.RemoteKubeConfigFileOptional = true
 	o.InsecureServingOptions = func() *genericoptions.DeprecatedInsecureServingOptionsWithLoopback {
@@ -136,6 +140,7 @@ func NewCommandStartServer(etcdPath string, out, errOut io.Writer, builders []*b
 	//flags.StringVar(&o.Kubeconfig, "kubeconfig", "", "Kubeconfig of apiserver to talk to.")
 	o.RecommendedOptions.AddFlags(flags)
 	o.InsecureServingOptions.AddFlags(flags)
+	feature.DefaultFeatureGate.AddFlag(flags)
 
 	klogFlags := flag.NewFlagSet("klog", flag.ExitOnError)
 	klog.InitFlags(klogFlags)
