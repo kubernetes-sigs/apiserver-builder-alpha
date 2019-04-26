@@ -109,7 +109,7 @@ func NewServerOptions(etcdPath string, out, errOut io.Writer, b []*builders.APIG
 
 // NewCommandStartMaster provides a CLI handler for 'start master' command
 func NewCommandStartServer(etcdPath string, out, errOut io.Writer, builders []*builders.APIGroupBuilder,
-	stopCh <-chan struct{}, title, version string) (*cobra.Command, *ServerOptions) {
+	stopCh <-chan struct{}, title, version string, tweakServerFuncs ...func(apiServer *apiserver.Server) error) (*cobra.Command, *ServerOptions) {
 	o := NewServerOptions(etcdPath, out, errOut, builders)
 
 	// Support overrides
@@ -123,7 +123,7 @@ func NewCommandStartServer(etcdPath string, out, errOut io.Writer, builders []*b
 			if err := o.Validate(args); err != nil {
 				return err
 			}
-			if err := o.RunServer(stopCh, title, version); err != nil {
+			if err := o.RunServer(stopCh, title, version, tweakServerFuncs...); err != nil {
 				return err
 			}
 			return nil
@@ -236,7 +236,7 @@ func (o ServerOptions) Config() (*apiserver.Config, error) {
 	return config, nil
 }
 
-func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string) error {
+func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string, tweakServerFuncs ...func(apiserver *apiserver.Server) error) error {
 	config, err := o.Config()
 	if err != nil {
 		return err
@@ -267,7 +267,15 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string)
 	}
 
 	for _, h := range o.PostStartHooks {
-		genericServer.GenericAPIServer.AddPostStartHook(h.Name, h.Fn)
+		if err := genericServer.GenericAPIServer.AddPostStartHook(h.Name, h.Fn); err != nil {
+			return err
+		}
+	}
+
+	for _, f := range tweakServerFuncs {
+		if err := f(genericServer); err != nil {
+			return err
+		}
 	}
 
 	s := genericServer.GenericAPIServer.PrepareRun()
@@ -290,12 +298,12 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string)
 		handler = genericfilters.WithMaxInFlightLimit(handler, c.MaxRequestsInFlight, c.MaxMutatingRequestsInFlight, c.LongRunningFunc)
 		handler = genericapifilters.WithRequestInfo(handler, server.NewRequestInfoResolver(c))
 		handler = genericfilters.WithPanicRecovery(handler)
-		config.InsecureServingInfo.Serve(handler, config.GenericConfig.RequestTimeout, stopCh)
+		if err := config.InsecureServingInfo.Serve(handler, config.GenericConfig.RequestTimeout, stopCh); err != nil {
+			return err
+		}
 	}
 
-	s.Run(stopCh)
-
-	return nil
+	return s.Run(stopCh)
 }
 
 func readOpenapi(bearerToken string, handler *genericapiserver.APIServerHandler) string {
