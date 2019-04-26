@@ -66,7 +66,7 @@ type PostStartHook struct {
 }
 
 // StartApiServer starts an apiserver hosting the provider apis and openapi definitions.
-func StartApiServer(etcdPath string, apis []*builders.APIGroupBuilder, openapidefs openapi.GetOpenAPIDefinitions, title, version string, tweakServerFuncs ...func(apiServer *apiserver.Server) error) {
+func StartApiServer(etcdPath string, apis []*builders.APIGroupBuilder, openapidefs openapi.GetOpenAPIDefinitions, title, version string, tweakConfigFuncs ...func(apiServer *apiserver.Config) error) {
 	logs.InitLogs()
 	defer logs.FlushLogs()
 
@@ -74,7 +74,7 @@ func StartApiServer(etcdPath string, apis []*builders.APIGroupBuilder, openapide
 
 	signalCh := genericapiserver.SetupSignalHandler()
 	// To disable providers, manually specify the list provided by getKnownProviders()
-	cmd, _ := NewCommandStartServer(etcdPath, os.Stdout, os.Stderr, apis, signalCh, title, version, tweakServerFuncs...)
+	cmd, _ := NewCommandStartServer(etcdPath, os.Stdout, os.Stderr, apis, signalCh, title, version, tweakConfigFuncs...)
 
 	cmd.Flags().AddFlagSet(pflag.CommandLine)
 	if err := cmd.Execute(); err != nil {
@@ -109,7 +109,7 @@ func NewServerOptions(etcdPath string, out, errOut io.Writer, b []*builders.APIG
 
 // NewCommandStartMaster provides a CLI handler for 'start master' command
 func NewCommandStartServer(etcdPath string, out, errOut io.Writer, builders []*builders.APIGroupBuilder,
-	stopCh <-chan struct{}, title, version string, tweakServerFuncs ...func(apiServer *apiserver.Server) error) (*cobra.Command, *ServerOptions) {
+	stopCh <-chan struct{}, title, version string, tweakServerFuncs ...func(apiServer *apiserver.Config) error) (*cobra.Command, *ServerOptions) {
 	o := NewServerOptions(etcdPath, out, errOut, builders)
 
 	// Support overrides
@@ -174,7 +174,7 @@ func applyOptions(config *genericapiserver.Config, applyTo ...func(*genericapise
 	return nil
 }
 
-func (o ServerOptions) Config() (*apiserver.Config, error) {
+func (o ServerOptions) Config(tweakConfigFuncs ...func(config *apiserver.Config) error) (*apiserver.Config, error) {
 	// TODO have a "real" external address
 	if err := o.RecommendedOptions.SecureServing.MaybeDefaultWithSelfSignedCerts(
 		"localhost", nil, nil); err != nil {
@@ -233,10 +233,15 @@ func (o ServerOptions) Config() (*apiserver.Config, error) {
 		GenericConfig:       serverConfig,
 		InsecureServingInfo: insecureServingInfo,
 	}
+	for _, tweakConfigFunc := range tweakConfigFuncs {
+		if err := tweakConfigFunc(config); err != nil {
+			return nil, err
+		}
+	}
 	return config, nil
 }
 
-func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string, tweakServerFuncs ...func(apiserver *apiserver.Server) error) error {
+func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string, tweakConfigFuncs ...func(apiserver *apiserver.Config) error) error {
 	config, err := o.Config()
 	if err != nil {
 		return err
@@ -268,12 +273,6 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string,
 
 	for _, h := range o.PostStartHooks {
 		if err := genericServer.GenericAPIServer.AddPostStartHook(h.Name, h.Fn); err != nil {
-			return err
-		}
-	}
-
-	for _, f := range tweakServerFuncs {
-		if err := f(genericServer); err != nil {
 			return err
 		}
 	}
