@@ -66,7 +66,7 @@ type PostStartHook struct {
 }
 
 // StartApiServer starts an apiserver hosting the provider apis and openapi definitions.
-func StartApiServer(etcdPath string, apis []*builders.APIGroupBuilder, openapidefs openapi.GetOpenAPIDefinitions, title, version string) {
+func StartApiServer(etcdPath string, apis []*builders.APIGroupBuilder, openapidefs openapi.GetOpenAPIDefinitions, title, version string, tweakServerFuncs ...func(apiServer *apiserver.Server) error) {
 	logs.InitLogs()
 	defer logs.FlushLogs()
 
@@ -74,7 +74,7 @@ func StartApiServer(etcdPath string, apis []*builders.APIGroupBuilder, openapide
 
 	signalCh := genericapiserver.SetupSignalHandler()
 	// To disable providers, manually specify the list provided by getKnownProviders()
-	cmd, _ := NewCommandStartServer(etcdPath, os.Stdout, os.Stderr, apis, signalCh, title, version)
+	cmd, _ := NewCommandStartServer(etcdPath, os.Stdout, os.Stderr, apis, signalCh, title, version, tweakServerFuncs...)
 
 	cmd.Flags().AddFlagSet(pflag.CommandLine)
 	if err := cmd.Execute(); err != nil {
