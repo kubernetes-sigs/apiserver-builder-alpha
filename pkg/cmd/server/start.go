@@ -109,7 +109,7 @@ func NewServerOptions(etcdPath string, out, errOut io.Writer, b []*builders.APIG
 
 // NewCommandStartMaster provides a CLI handler for 'start master' command
 func NewCommandStartServer(etcdPath string, out, errOut io.Writer, builders []*builders.APIGroupBuilder,
-	stopCh <-chan struct{}, title, version string, tweakServerFuncs ...func(apiServer *apiserver.Config) error) (*cobra.Command, *ServerOptions) {
+	stopCh <-chan struct{}, title, version string, tweakConfigFuncs ...func(apiServer *apiserver.Config) error) (*cobra.Command, *ServerOptions) {
 	o := NewServerOptions(etcdPath, out, errOut, builders)
 
 	// Support overrides
@@ -123,7 +123,7 @@ func NewCommandStartServer(etcdPath string, out, errOut io.Writer, builders []*b
 			if err := o.Validate(args); err != nil {
 				return err
 			}
-			if err := o.RunServer(stopCh, title, version, tweakServerFuncs...); err != nil {
+			if err := o.RunServer(stopCh, title, version, tweakConfigFuncs...); err != nil {
 				return err
 			}
 			return nil
@@ -242,7 +242,7 @@ func (o ServerOptions) Config(tweakConfigFuncs ...func(config *apiserver.Config)
 }
 
 func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string, tweakConfigFuncs ...func(apiserver *apiserver.Config) error) error {
-	config, err := o.Config()
+	config, err := o.Config(tweakConfigFuncs...)
 	if err != nil {
 		return err
 	}
