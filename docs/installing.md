@@ -18,3 +18,6 @@ Installation instructions:
 - Add `/usr/local/apiserver-builder/bin` to your path
   `export PATH=$PATH:/usr/local/apiserver-builder/bin`
 - Test things are working by running `apiserver-boot -h`
+- Follow the [instructions](https://book.kubebuilder.io/getting_started/installation_and_setup.html) to install kubebuilder,
+  so that the generated controller tests based on [controller-runtime](https://github.com/kubernetes-sigs/controller-runtime)
+  can work.
