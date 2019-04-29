@@ -95,8 +95,6 @@ func NewServerOptions(etcdPath string, out, errOut io.Writer, b []*builders.APIG
 	}
 	o.RecommendedOptions.SecureServing.BindPort = 443
 
-	o.RecommendedOptions.Etcd.StorageConfig.Paging = feature.DefaultFeatureGate.Enabled(features.APIListChunking)
-
 	o.RecommendedOptions.Authorization.RemoteKubeConfigFileOptional = true
 	o.RecommendedOptions.Authentication.RemoteKubeConfigFileOptional = true
 	o.InsecureServingOptions = func() *genericoptions.DeprecatedInsecureServingOptionsWithLoopback {
@@ -175,6 +173,9 @@ func applyOptions(config *genericapiserver.Config, applyTo ...func(*genericapise
 }
 
 func (o ServerOptions) Config(tweakConfigFuncs ...func(config *apiserver.Config) error) (*apiserver.Config, error) {
+	// switching pagination according to the feature-gate
+	o.RecommendedOptions.Etcd.StorageConfig.Paging = feature.DefaultFeatureGate.Enabled(features.APIListChunking)
+
 	// TODO have a "real" external address
 	if err := o.RecommendedOptions.SecureServing.MaybeDefaultWithSelfSignedCerts(
 		"localhost", nil, nil); err != nil {
