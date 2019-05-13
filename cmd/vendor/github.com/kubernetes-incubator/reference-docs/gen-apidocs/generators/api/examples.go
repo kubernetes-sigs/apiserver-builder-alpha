@@ -17,22 +17,32 @@ limitations under the License.
 package api
 
 import (
+	//"gopkg.in/yaml.v2"
+	"encoding/json"
 	"fmt"
 	"strings"
 )
+
+type ExampleProvider interface {
+	GetTab() string
+	GetRequestMessage() string
+	GetResponseMessage() string
+	GetRequestType() string
+	GetResponseType() string
+	GetSampleType() string
+	GetSample(d *Definition) string
+	GetRequest(o *Operation) string
+	GetResponse(o *Operation) string
+}
 
 var ExampleProviders = []ExampleProvider{
 	KubectlExample{},
 	CurlExample{},
 }
 
-var EmptyExampleProviders = []ExampleProvider{
+var EmptyExampleProviders = []ExampleProvider {
 	EmptyExample{},
 }
-
-var _ ExampleProvider = &EmptyExample{}
-var _ ExampleProvider = &CurlExample{}
-var _ ExampleProvider = &KubectlExample{}
 
 func GetExampleProviders() []ExampleProvider {
 	if *BuildOps {
@@ -41,6 +51,11 @@ func GetExampleProviders() []ExampleProvider {
 		return EmptyExampleProviders
 	}
 }
+
+type EmptyExample struct {
+}
+
+var _ ExampleProvider = &EmptyExample{}
 
 func (ce EmptyExample) GetSample(d *Definition) string {
 	return d.Sample.Sample
@@ -78,6 +93,11 @@ func (ce EmptyExample) GetResponse(o *Operation) string {
 	return ""
 }
 
+var _ ExampleProvider = &CurlExample{}
+
+type CurlExample struct {
+}
+
 func (ce CurlExample) GetSample(d *Definition) string {
 	return d.Sample.Sample
 }
@@ -110,7 +130,7 @@ func (ce CurlExample) GetRequest(o *Operation) string {
 	c := o.ExampleConfig
 	y := c.Request
 	if len(y) <= 0 && len(c.Name) <= 0 {
-		return ""
+		return "Coming Soon"
 	}
 
 	switch o.Type.Name {
@@ -148,7 +168,7 @@ func (ce CurlExample) GetResponse(o *Operation) string {
 	c := o.ExampleConfig
 	j := o.ExampleConfig.Response
 	if len(j) <= 0 && len(c.Name) <= 0 {
-		return ""
+		return "Coming Soon"
 	}
 	switch o.Type.Name {
 	case "Create":
@@ -168,6 +188,10 @@ func (ce CurlExample) GetResponse(o *Operation) string {
 	}
 	return ""
 }
+
+var _ ExampleProvider = &KubectlExample{}
+
+type KubectlExample struct{}
 
 func (ke KubectlExample) GetSample(d *Definition) string {
 	return d.Sample.Sample
@@ -202,7 +226,7 @@ func (ke KubectlExample) GetRequest(o *Operation) string {
 	t := strings.ToLower(o.Definition.Name)
 	y := c.Request
 	if len(y) <= 0 && len(c.Name) <= 0 {
-		return ""
+		return "Coming Soon"
 	}
 	switch o.Type.Name {
 	case "Create":
@@ -229,7 +253,7 @@ func (ke KubectlExample) GetResponse(o *Operation) string {
 	t := strings.ToLower(o.Definition.Name)
 	j := o.ExampleConfig.Response
 	if len(j) <= 0 && len(c.Name) <= 0 {
-		return ""
+		return "Coming Soon"
 	}
 	switch o.Type.Name {
 	case "Create":
@@ -248,4 +272,19 @@ func (ke KubectlExample) GetResponse(o *Operation) string {
 		return string(j)
 	}
 	return ""
+}
+
+func GetName(parsed map[string]interface{}) string {
+	meta := parsed["metadata"].(map[string]interface{})
+	name := meta["name"].(string)
+	return name
+}
+
+func ParseJson(j []byte) map[string]interface{} {
+	var parsed interface{}
+	err := json.Unmarshal(j, &parsed)
+	if err != nil {
+		panic(fmt.Sprintf("Could not parse json %s y: %v\n", j, err))
+	}
+	return parsed.(map[string]interface{})
 }
