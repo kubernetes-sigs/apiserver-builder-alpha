@@ -1,5 +1,5 @@
-hash: e88661db3e24feae2f56a578cab6ba66fa74f65fa2b533d9c7e37d00552c179a
-updated: 2019-03-27T19:20:16.354661+08:00
+hash: c9b59f5f0f744c9b6802f4de07fab71b5148f59569ea8de34220996a1191d805
+updated: 2019-05-13T20:26:24.917572+08:00
 imports:
 - name: github.com/emicklei/go-restful
   version: ff4f55a206334ef123e4f79bbf348980da81ca46
@@ -39,7 +39,7 @@ imports:
 - name: github.com/json-iterator/go
   version: f2b4162afba35581b6d4a50d3b8f34e33c144682
 - name: github.com/kubernetes-incubator/reference-docs
-  version: a3a9aaf7f3fdec296465a2f3b411b32196148ee7
+  version: fcf65347b25607dba28903ec6f66f8574bb49a17
   subpackages:
   - gen-apidocs
 - name: github.com/markbates/inflect
@@ -105,7 +105,7 @@ imports:
   subpackages:
   - pkg/util/logs
 - name: k8s.io/client-go
-  version: 5e6a3d4e34f694e895b13ae728111e726a5b69df
+  version: 77e032213d34c856222b4d4647c1c175ba8d22b9
   subpackages:
   - util/homedir
 - name: k8s.io/code-generator
@@ -132,5 +132,6 @@ imports:
   - pkg/scaffold
   - pkg/scaffold/controller
   - pkg/scaffold/input
+  - pkg/scaffold/manager
   - pkg/scaffold/resource
 testImports: []

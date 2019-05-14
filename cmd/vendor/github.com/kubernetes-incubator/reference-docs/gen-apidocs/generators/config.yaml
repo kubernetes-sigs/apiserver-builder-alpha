@@ -32,7 +32,7 @@ inline_definitions:
   - name: EventSource
     match: ${resource}Source
 resource_categories:
-  - name: "Workloads APIs"
+  - name: "Workloads Apis"
     include: "workloads"
     resources:
     - name: Container
@@ -43,10 +43,10 @@ resource_categories:
       version: v1beta1
       group: batch
     - name: DaemonSet
-      version: v1
+      version: v1beta2
       group: apps
     - name: Deployment
-      version: v1
+      version: v1beta2
       group: apps
     - name: Job
       version: v1
@@ -56,7 +56,7 @@ resource_categories:
       group: core
       description_warning: "It is recommended that users create Pods only through a Controller, and not directly.  See Controllers: <a href=\"#deployment-v1beta1-apps\">Deployment</a>, <a href=\"#job-v1-batch\">Job</a>, or <a href=\"#statefulset-v1beta1-apps\">StatefulSet</a>."
     - name: ReplicaSet
-      version: v1
+      version: v1beta2
       group: apps
       description_warning: "In many cases it is recommended to create a <a href=\"#deployment-v1beta1-apps\">Deployment</a> instead of ReplicaSet."
     - name: ReplicationController
@@ -64,9 +64,9 @@ resource_categories:
       group: core
       description_warning: "In many cases it is recommended to create a <a href=\"#deployment-v1beta1-apps\">Deployment</a> instead of a ReplicationController."
     - name: StatefulSet
-      version: v1
+      version: v1beta2
       group: apps
-  - name: "Service APIs"
+  - name: "Service Apis"
     include: "servicediscovery"
     resources:
     - name: Endpoints
@@ -78,7 +78,7 @@ resource_categories:
     - name: Service
       version: v1
       group: core
-  - name: "Config and Storage APIs"
+  - name: "Config & Storage Apis"
     include: "config"
     resources:
     - name: ConfigMap
@@ -97,14 +97,11 @@ resource_categories:
     - name: Volume
       version: v1
       group: core
-    - name: VolumeAttachment
-      version: v1beta1
-      group: storage
-  - name: "Metadata APIs"
+  - name: "Metadata Apis"
     include: "meta"
     resources:
     - name: ControllerRevision
-      version: v1
+      version: v1beta2
       group: apps
     - name: CustomResourceDefinition
       version: v1beta1
@@ -115,17 +112,14 @@ resource_categories:
     - name: LimitRange
       version: v1
       group: core
+    - name: ExternalAdmissionHookConfiguration
+      version: v1alpha1
+      group: admissionregistration
     - name: HorizontalPodAutoscaler
       version: v1
       group: autoscaling
     - name: InitializerConfiguration
       version: v1alpha1
-      group: admissionregistration
-    - name: MutatingWebhookConfiguration
-      version: v1beta1
-      group: admissionregistration
-    - name: ValidatingWebhookConfiguration
-      version: v1beta1
       group: admissionregistration
     - name: PodTemplate
       version: v1
@@ -134,8 +128,9 @@ resource_categories:
       version: v1beta1
       group: policy
     - name: PriorityClass
-      version: v1beta1
+      version: v1alpha1
       group: scheduling
+      description_warning: "Alpha objects should not be used in production and may not be compatible with future versions of the resource type."
     - name: PodPreset
       version: v1alpha1
       group: settings
@@ -143,11 +138,11 @@ resource_categories:
     - name: PodSecurityPolicy
       version: v1beta1
       group: extensions
-  - name: "Cluster APIs"
+  - name: "Cluster Apis"
     include: "cluster"
     resources:
     - name: APIService
-      version: v1
+      version: v1beta1
       group: apiregistration
     - name: Binding
       version: v1
@@ -257,6 +252,6 @@ operation_categories:
     - name: Patch Scale
       match: patch${group}${version}(Namespaced)?${resource}Scale
     - name: Rollback
-      match: create${group}${version}(Namespaced)?${resource}Rollback
+      match: create${group}${version}(Namespaced)?${resource}RollbackRollback
     - name: Read Log
       match: read${group}${version}(Namespaced)?${resource}Log
