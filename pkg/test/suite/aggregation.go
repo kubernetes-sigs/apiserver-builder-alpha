@@ -22,7 +22,9 @@ import (
 )
 
 type Environment struct {
-	KubeAPIServerEnvironment *envtest.Environment
+	KubeAPIServerEnvironment envtest.Environment
+
+	AggregatedAPIServerBuildArgs []string
 
 	AggregatedAPIServerFlags        []string
 	AggregatedAPIServerBinaryPath   string
@@ -32,28 +34,55 @@ type Environment struct {
 	LoopbackClientConfig            *rest.Config
 }
 
-func InstallLocalTestingAPIAggregationEnvironment(group, version string) (environment *Environment, err error) {
-	kubeAPIServerTestEnv := &envtest.Environment{}
-	aggregatedAPIServerTestEnv := &Environment{
-		KubeAPIServerEnvironment: kubeAPIServerTestEnv,
+func NewDefaultTestingEnvironment() *Environment {
+	return &Environment{
+		AggregatedAPIServerSecurePort:   443,
+		AggregatedAPIServerInsecurePort: 8080,
 	}
-	if aggregatedAPIServerTestEnv.LoopbackClientConfig, err = aggregatedAPIServerTestEnv.KubeAPIServerEnvironment.Start(); err != nil {
-		return nil, err
+}
+
+func (e *Environment) StartLocalKubeAPIServer() error {
+	var err error
+	if e.LoopbackClientConfig, err = e.KubeAPIServerEnvironment.Start(); err != nil {
+		return err
 	}
-	if err := aggregatedAPIServerTestEnv.startAggregatedAPIServer(); err != nil {
-		return nil, err
+	return nil
+}
+
+func (e *Environment) StartLocalAggregatedAPIServer(group, version string) error {
+	if err := e.initAPIAggregationEnvironment(); err != nil {
+		return err
 	}
-	if err := aggregatedAPIServerTestEnv.installAggregatedAPIServer(group, version); err != nil {
-		return nil, err
+	if err := e.startAggregatedAPIServer(); err != nil {
+		return err
 	}
-	return aggregatedAPIServerTestEnv, nil
+	if err := e.installAggregatedAPIServer(group, version); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *Environment) initAPIAggregationEnvironment() (err error) {
+	e.AggregatedAPIServerFlags = append(e.AggregatedAPIServerFlags,
+		"--etcd-servers="+e.KubeAPIServerEnvironment.ControlPlane.APIServer.EtcdURL.String(),
+		"--cert-dir="+e.KubeAPIServerEnvironment.ControlPlane.APIServer.CertDir,
+		"--delegated-auth=false",
+		"--secure-port="+strconv.Itoa(e.AggregatedAPIServerSecurePort),
+		"--insecure-port="+strconv.Itoa(e.AggregatedAPIServerInsecurePort),
+		"--bind-address=127.0.0.1",
+		"--insecure-bind-address=127.0.0.1")
+	return nil
 }
 
 func (e *Environment) buildAggregatedAPIServer() (err error) {
 	// Compiling aggregated apiserver binary
 	binName := "aggregated-apiserver"
 	binPath := filepath.Join(e.KubeAPIServerEnvironment.ControlPlane.APIServer.CertDir, binName)
-	cmd := exec.Command("go", "build", "-o", binPath, "../../../cmd/apiserver/main.go")
+	cmd := exec.Command("go",
+		append(
+			append(
+				[]string{"build", "-o", binPath}, e.AggregatedAPIServerBuildArgs...),
+			"../../../cmd/apiserver/main.go")...)
 	cmd.Env = os.Environ()
 	if err := cmd.Run(); err != nil {
 		return err
@@ -151,7 +180,11 @@ func (e *Environment) startAggregatedAPIServer() (err error) {
 	return fmt.Errorf("failed starting aggregated apiserver")
 }
 
-func (e *Environment) StopAggregatedAPIServer() (err error) {
+func (e *Environment) StopLocalKubeAPIServer() (err error) {
+	return e.KubeAPIServerEnvironment.Stop()
+}
+
+func (e *Environment) StopLocalAggregatedAPIServer() (err error) {
 	if e.AggregatedAPIServerSession != nil {
 		if err := wait.PollImmediate(100*time.Millisecond, 5*time.Second, func() (done bool, err error) {
 			<-e.AggregatedAPIServerSession.Kill().Exited
