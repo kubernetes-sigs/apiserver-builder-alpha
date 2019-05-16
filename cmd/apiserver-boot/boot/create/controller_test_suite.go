@@ -49,23 +49,29 @@ import (
 var cfg *rest.Config
 
 func TestMain(m *testing.M) {
-	t, err := suite.InstallLocalTestingAPIAggregationEnvironment("{{ .Resource.Group }}.{{ .Domain }}", "{{ .Resource.Version }}")
-	if err != nil {
+
+	env := suite.NewDefaultTestingEnvironment()
+	if err := env.StartLocalKubeAPIServer(); err != nil {
 		stdlog.Fatal(err)
 		return
 	}
+	if err := env.StartLocalAggregatedAPIServer("{{ .Resource.Group }}.{{ .Domain }}", "{{ .Resource.Version }}"); err != nil {
+		stdlog.Fatal(err)
+		return
+	}
+
 	apis.AddToScheme(scheme.Scheme)
-	cfg = t.LoopbackClientConfig
+	cfg = env.LoopbackClientConfig
 
 	code := m.Run()
 
 	stdlog.Print("stopping aggregated-apiserver..")
-	if err := t.StopAggregatedAPIServer(); err != nil {
+	if err := env.StopLocalAggregatedAPIServer(); err != nil {
 		stdlog.Fatal(err)
 		return
 	}
 	stdlog.Print("stopping kube-apiserver..")
-	if err := t.KubeAPIServerEnvironment.Stop(); err != nil {
+	if err := env.StopLocalKubeAPIServer(); err != nil {
 		stdlog.Fatal(err)
 		return
 	}
