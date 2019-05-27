@@ -78,14 +78,17 @@ func (e *Environment) buildAggregatedAPIServer() (err error) {
 	// Compiling aggregated apiserver binary
 	binName := "aggregated-apiserver"
 	binPath := filepath.Join(e.KubeAPIServerEnvironment.ControlPlane.APIServer.CertDir, binName)
-	cmd := exec.Command("go",
-		append(
+	if _, err := os.Stat(binPath); err != nil {
+		// Rebuild and overwrite the binaries if it doesn't exist
+		cmd := exec.Command("go",
 			append(
-				[]string{"build", "-o", binPath}, e.AggregatedAPIServerBuildArgs...),
-			"../../../cmd/apiserver/main.go")...)
-	cmd.Env = os.Environ()
-	if err := cmd.Run(); err != nil {
-		return err
+				append(
+					[]string{"build", "-o", binPath}, e.AggregatedAPIServerBuildArgs...),
+				"../../../cmd/apiserver/main.go")...)
+		cmd.Env = os.Environ()
+		if err := cmd.Run(); err != nil {
+			return err
+		}
 	}
 
 	e.AggregatedAPIServerBinaryPath = binPath
