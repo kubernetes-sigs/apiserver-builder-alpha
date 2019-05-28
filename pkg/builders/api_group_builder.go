@@ -17,7 +17,6 @@ limitations under the License.
 package builders
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apiserver/pkg/registry/generic"
@@ -101,7 +100,7 @@ func (g *APIGroupBuilder) Build(optionsGetter generic.RESTOptionsGetter) *generi
 	i := genericapiserver.NewDefaultAPIGroupInfo(
 		g.Name,
 		Scheme,
-		metav1.ParameterCodec,
+		ParameterCodec,
 		Codecs)
 
 	g.registerEndpoints(optionsGetter, i.VersionedResourcesStorageMap)
