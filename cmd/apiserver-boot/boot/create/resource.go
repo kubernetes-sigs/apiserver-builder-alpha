@@ -163,7 +163,7 @@ func createResource(boilerplate string) {
 
 	err = (&scaffold.Scaffold{}).Execute(input.Options{
 		BoilerplatePath: "boilerplate.go.txt",
-	}, &controller.Controller{
+	}, &Controller{
 			Resource: r,
 			Input: input.Input{
 				IfExistsAction: input.Skip,
