@@ -40,7 +40,7 @@ required = [
 
 # Comment to update deps with dep tool
 [[constraint]]
-  version = "v1.12.alpha.2"
+  version = "v1.12.alpha.3"
   name = "github.com/kubernetes-incubator/apiserver-builder-alpha"
 
 [[constraint]]
