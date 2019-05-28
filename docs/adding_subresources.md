@@ -227,6 +227,8 @@ func (r *BarStatusREST) New() runtime.Object {
 }
 ```
 
+__NOTE__: if you're trying extending streaming long-running subresource, please 
+refer to the examples at `miskatonic.students/pencil`, or `miskatonic.students/book`.
 
 ## Generate the code for your subresource
 
