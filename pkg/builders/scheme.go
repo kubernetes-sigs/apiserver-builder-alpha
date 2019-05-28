@@ -17,6 +17,7 @@ limitations under the License.
 package builders
 
 import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 )
@@ -26,3 +27,20 @@ var Scheme = runtime.NewScheme()
 
 // Codecs provides access to encoding and decoding for the scheme
 var Codecs = serializer.NewCodecFactory(Scheme)
+
+// ParameterScheme is a scheme dedicated for registering parameters
+var ParameterScheme = runtime.NewScheme()
+
+// ParameterCodec is a codec for decoding parameters
+var ParameterCodec = runtime.NewParameterCodec(ParameterScheme)
+
+func init() {
+	ParameterScheme.AddUnversionedTypes(metav1.SchemeGroupVersion,
+		&metav1.ListOptions{},
+		&metav1.ExportOptions{},
+		&metav1.GetOptions{},
+		&metav1.DeleteOptions{},
+		&metav1.CreateOptions{},
+		&metav1.UpdateOptions{},
+	)
+}
