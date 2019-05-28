@@ -1,20 +1,10 @@
 # See the OWNERS docs at https://go.k8s.io/owners
 
 reviewers:
-  - jimmidyson
-  - MHBauer
   - pwittrock
   - directxman12
-  - brancz
-  - xiang90
-  - hongchaodeng
   - yue9944882
 approvers:
-  - jimmidyson
-  - MHBauer
   - pwittrock
   - directxman12
-  - brancz
-  - xiang90
-  - hongchaodeng
   - yue9944882
