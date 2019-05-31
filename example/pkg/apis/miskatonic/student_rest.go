@@ -63,6 +63,14 @@ func (r *StudentREST) NamespaceScoped() bool {
 	return true
 }
 
+func (r *StudentREST) ShortNames() []string {
+	return []string{"st"}
+}
+
+func (r *StudentREST) Categories() []string {
+	return []string{""}
+}
+
 // Custom REST storage that delegates to the generated standard Registry
 func NewStudentREST(optsGetter generic.RESTOptionsGetter) rest.Storage {
 	groupResource := schema.GroupResource{
