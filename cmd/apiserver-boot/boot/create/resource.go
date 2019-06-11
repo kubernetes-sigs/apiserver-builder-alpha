@@ -37,6 +37,7 @@ import (
 var kindName string
 var resourceName string
 var nonNamespacedKind bool
+var generateAdmissionController bool
 
 var createResourceCmd = &cobra.Command{
 	Use:   "resource",
@@ -52,6 +53,7 @@ func AddCreateResource(cmd *cobra.Command) {
 	RegisterResourceFlags(createResourceCmd)
 
 	createResourceCmd.Flags().BoolVar(&nonNamespacedKind, "non-namespaced", false, "if set, the API kind will be non namespaced")
+	createResourceCmd.Flags().BoolVar(&generateAdmissionController, "admission-controller", false, "if set, an admission controller for the resources will be generated")
 
 	cmd.AddCommand(createResourceCmd)
 }
@@ -153,6 +155,33 @@ func createResource(boilerplate string) {
 		}
 	}
 
+	if generateAdmissionController {
+		// write the admission-controller initializer if it is missing
+		os.MkdirAll(filepath.Join("plugin", "admission"), 0700)
+		admissionInitializerFileName := "initializer.go"
+		path = filepath.Join(dir, "plugin", "admission", admissionInitializerFileName)
+		created = util.WriteIfNotFound(path, "admission-initializer-template", admissionControllerInitializerTemplate, a)
+		if !created {
+			if !found {
+				log.Printf("admission initializer already exists.")
+				found = true
+			}
+		}
+
+		// write the admission controller if it is missing
+		os.MkdirAll(filepath.Join("plugin", "admission", strings.ToLower(kindName)), 0700)
+		admissionControllerFileName := "admission.go"
+		path = filepath.Join(dir, "plugin", "admission", strings.ToLower(kindName), admissionControllerFileName)
+		created = util.WriteIfNotFound(path, "admission-controller-template", admissionControllerTemplate, a)
+		if !created {
+			if !found {
+				log.Printf("admission controller for kind %s test already exists.", kindName)
+				found = true
+			}
+		}
+	}
+
+	// write controller-runtime scaffolding templates
 	r := &resource.Resource{
 		Namespaced: !nonNamespacedKind,
 		Group:      groupName,
@@ -164,11 +193,11 @@ func createResource(boilerplate string) {
 	err = (&scaffold.Scaffold{}).Execute(input.Options{
 		BoilerplatePath: "boilerplate.go.txt",
 	}, &Controller{
-			Resource: r,
-			Input: input.Input{
-				IfExistsAction: input.Skip,
-			},
-		})
+		Resource: r,
+		Input: input.Input{
+			IfExistsAction: input.Skip,
+		},
+	})
 	if err != nil {
 		klog.Warningf("failed generating %v controller: %v", kindName, err)
 	}
@@ -413,4 +442,108 @@ kind: {{ .Kind }}
 metadata:
   name: {{ lower .Kind }}-example
 spec:
+`
+
+var admissionControllerTemplate = `
+{{.BoilerPlate}}
+
+package {{ lower .Kind }}admission
+
+import (
+	aggregatedadmission "{{.Repo}}/plugin/admission"
+	aggregatedinformerfactory "{{.Repo}}/pkg/client/informers_generated/externalversions"
+	aggregatedclientset "{{.Repo}}/pkg/client/clientset_generated/clientset"
+	genericadmissioninitializer "k8s.io/apiserver/pkg/admission/initializer"
+	"k8s.io/client-go/informers"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/apiserver/pkg/admission"
+)
+
+var _ admission.Interface 											= &{{ lower .Kind }}Plugin{}
+var _ admission.MutationInterface 									= &{{ lower .Kind }}Plugin{}
+var _ admission.ValidationInterface 								= &{{ lower .Kind }}Plugin{}
+var _ genericadmissioninitializer.WantsExternalKubeInformerFactory 	= &{{ lower .Kind }}Plugin{}
+var _ genericadmissioninitializer.WantsExternalKubeClientSet 		= &{{ lower .Kind }}Plugin{}
+var _ aggregatedadmission.WantsAggregatedResourceInformerFactory 	= &{{ lower .Kind }}Plugin{}
+var _ aggregatedadmission.WantsAggregatedResourceClientSet 			= &{{ lower .Kind }}Plugin{}
+
+func New{{ .Kind }}Plugin() *{{ lower .Kind }}Plugin {
+	return &{{ lower .Kind }}Plugin{
+		Handler: admission.NewHandler(admission.Create, admission.Update),
+	}
+}
+
+type {{ lower .Kind }}Plugin struct {
+	*admission.Handler
+}
+
+func (p *{{ lower .Kind }}Plugin) ValidateInitialization() error {
+	return nil
+}
+
+func (p *{{ lower .Kind }}Plugin) Admit(a admission.Attributes) error {
+	return nil
+}
+
+func (p *{{ lower .Kind }}Plugin) Validate(a admission.Attributes) error {
+	return nil
+}
+
+func (p *{{ lower .Kind }}Plugin) SetAggregatedResourceInformerFactory(aggregatedinformerfactory.SharedInformerFactory) {}
+
+func (p *{{ lower .Kind }}Plugin) SetAggregatedResourceClientSet(aggregatedclientset.Interface) {}
+
+func (p *{{ lower .Kind }}Plugin) SetExternalKubeInformerFactory(informers.SharedInformerFactory) {}
+
+func (p *{{ lower .Kind }}Plugin) SetExternalKubeClientSet(kubernetes.Interface) {}
+`
+
+var admissionControllerInitializerTemplate = `
+{{.BoilerPlate}}
+
+package admission
+
+import (
+	aggregatedclientset "{{.Repo}}/pkg/client/clientset_generated/clientset"
+	aggregatedinformerfactory "{{.Repo}}/pkg/client/informers_generated/externalversions"
+	"k8s.io/apiserver/pkg/admission"
+)
+
+// WantsAggregatedResourceClientSet defines a function which sets external ClientSet for admission plugins that need it
+type WantsAggregatedResourceClientSet interface {
+	SetAggregatedResourceClientSet(aggregatedclientset.Interface)
+	admission.InitializationValidator
+}
+
+// WantsAggregatedResourceInformerFactory defines a function which sets InformerFactory for admission plugins that need it
+type WantsAggregatedResourceInformerFactory interface {
+	SetAggregatedResourceInformerFactory(aggregatedinformerfactory.SharedInformerFactory)
+	admission.InitializationValidator
+}
+
+// New creates an instance of admission plugins initializer.
+func New(
+	clientset aggregatedclientset.Interface,
+	informers aggregatedinformerfactory.SharedInformerFactory,
+) pluginInitializer {
+	return pluginInitializer{
+		aggregatedResourceClient:    clientset,
+		aggregatedResourceInformers: informers,
+	}
+}
+
+type pluginInitializer struct {
+	aggregatedResourceClient    aggregatedclientset.Interface
+	aggregatedResourceInformers aggregatedinformerfactory.SharedInformerFactory
+}
+
+func (i pluginInitializer) Initialize(plugin admission.Interface) {
+	if wants, ok := plugin.(WantsAggregatedResourceClientSet); ok {
+		wants.SetAggregatedResourceClientSet(i.aggregatedResourceClient)
+	}
+	if wants, ok := plugin.(WantsAggregatedResourceInformerFactory); ok {
+		wants.SetAggregatedResourceInformerFactory(i.aggregatedResourceInformers)
+	}
+}
+
 `
