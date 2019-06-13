@@ -56,7 +56,7 @@ func (c *Config) Init() *Config {
 }
 
 type Config struct {
-	GenericConfig       *genericapiserver.Config
+	RecommendedConfig       *genericapiserver.RecommendedConfig
 	InsecureServingInfo *genericapiserver.DeprecatedInsecureServingInfo
 }
 
@@ -71,13 +71,10 @@ type completedConfig struct {
 
 // Complete fills in any fields not set that are required to have valid data. It's mutating the receiver.
 func (c *Config) Complete() completedConfig {
-	c.GenericConfig.Complete(nil)
-
-	c.GenericConfig.Version = &version.Info{
+	c.RecommendedConfig.Config.Version = &version.Info{
 		Major: "1",
 		Minor: "0",
 	}
-
 	return completedConfig{c}
 }
 
@@ -93,7 +90,7 @@ func (c *Config) SkipComplete() completedConfig {
 
 // NewFunc returns a new instance of Server from the given config.
 func (c completedConfig) New() (*Server, error) {
-	genericServer, err := c.Config.GenericConfig.Complete(nil).
+	genericServer, err := c.Config.RecommendedConfig.Config.Complete(c.RecommendedConfig.SharedInformerFactory).
 		New("aggregated-apiserver", genericapiserver.NewEmptyDelegate()) // completion is done in Complete, no need for a second time
 	if err != nil {
 		return nil, err
@@ -104,7 +101,7 @@ func (c completedConfig) New() (*Server, error) {
 	}
 
 	for _, builder := range builders.APIGroupBuilders {
-		group := builder.Build(c.GenericConfig.RESTOptionsGetter)
+		group := builder.Build(c.RecommendedConfig.Config.RESTOptionsGetter)
 		if err := s.GenericAPIServer.InstallAPIGroup(group); err != nil {
 			return nil, err
 		}

@@ -37,6 +37,10 @@ import (
 	genericoptions "k8s.io/apiserver/pkg/server/options"
 	"k8s.io/apiserver/pkg/util/feature"
 	"k8s.io/apiserver/pkg/util/logs"
+	"k8s.io/client-go/informers"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog"
 	openapi "k8s.io/kube-openapi/pkg/common"
 
@@ -56,7 +60,6 @@ type ServerOptions struct {
 	PrintOpenapi     bool
 	RunDelegatedAuth bool
 	BearerToken      string
-	Kubeconfig       string
 	PostStartHooks   []PostStartHook
 }
 
@@ -135,7 +138,6 @@ func NewCommandStartServer(etcdPath string, out, errOut io.Writer, builders []*b
 		"Print the openapi json and exit")
 	flags.BoolVar(&o.RunDelegatedAuth, "delegated-auth", true,
 		"Setup delegated auth")
-	//flags.StringVar(&o.Kubeconfig, "kubeconfig", "", "Kubeconfig of apiserver to talk to.")
 	o.RecommendedOptions.AddFlags(flags)
 	o.InsecureServingOptions.AddFlags(flags)
 	feature.DefaultFeatureGate.AddFlag(flags)
@@ -183,10 +185,10 @@ func (o ServerOptions) Config(tweakConfigFuncs ...func(config *apiserver.Config)
 		return nil, fmt.Errorf("error creating self-signed certificates: %v", err)
 	}
 
-	serverConfig := genericapiserver.NewConfig(builders.Codecs)
+	serverConfig := genericapiserver.NewRecommendedConfig(builders.Codecs)
 
 	err := applyOptions(
-		serverConfig,
+		&serverConfig.Config,
 		o.RecommendedOptions.Etcd.ApplyTo,
 		func(cfg *genericapiserver.Config) error {
 			return o.RecommendedOptions.SecureServing.ApplyTo(&cfg.SecureServing, &cfg.LoopbackClientConfig)
@@ -198,21 +200,24 @@ func (o ServerOptions) Config(tweakConfigFuncs ...func(config *apiserver.Config)
 		return nil, err
 	}
 
-	//if serverConfig.SharedInformerFactory == nil && len(o.Kubeconfig) > 0 {
-	//	path, _ := filepath.Abs(o.Kubeconfig)
-	//	klog.Infof("Creating shared informer factory from kubeconfig %s", path)
-	//	config, err := clientcmd.BuildConfigFromFlags("", o.Kubeconfig)
-	//	clientset, err := kubernetes.NewForConfig(config)
-	//	if err != nil {
-	//		klog.Errorf("Couldn't create clientset due to %v. SharedInformerFactory will not be set.", err)
-	//		return nil, err
-	//	}
-	//	serverConfig.SharedInformerFactory = informers.NewSharedInformerFactory(clientset, 10*time.Minute)
-	//}
+	loopbackClientOptional := true
+	loopbackKubeConfig, kubeInformerFactory, err := o.buildLoopback()
+	if loopbackClientOptional {
+		if err != nil {
+			klog.Warning("attempting to instantiate loopback client but failed..")
+		} else {
+			serverConfig.LoopbackClientConfig = loopbackKubeConfig
+			serverConfig.SharedInformerFactory = kubeInformerFactory
+		}
+	} else {
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	if o.RunDelegatedAuth {
 		err := applyOptions(
-			serverConfig,
+			&serverConfig.Config,
 			func(cfg *genericapiserver.Config) error {
 				return o.RecommendedOptions.Authentication.ApplyTo(&cfg.Authentication, cfg.SecureServing, cfg.OpenAPIConfig)
 			},
@@ -231,7 +236,7 @@ func (o ServerOptions) Config(tweakConfigFuncs ...func(config *apiserver.Config)
 	}
 
 	config := &apiserver.Config{
-		GenericConfig:       serverConfig,
+		RecommendedConfig:   serverConfig,
 		InsecureServingInfo: insecureServingInfo,
 	}
 	for _, tweakConfigFunc := range tweakConfigFuncs {
@@ -242,32 +247,56 @@ func (o ServerOptions) Config(tweakConfigFuncs ...func(config *apiserver.Config)
 	return config, nil
 }
 
+func (o *ServerOptions) buildLoopback() (*rest.Config, informers.SharedInformerFactory, error) {
+	var loopbackConfig *rest.Config
+	var err error
+	// TODO(yue9944882): protobuf serialization?
+	if len(o.RecommendedOptions.CoreAPI.CoreAPIKubeconfigPath) == 0 {
+		loopbackConfig, err = rest.InClusterConfig()
+		if err != nil {
+			return nil, nil, err
+		}
+	} else {
+		loopbackConfig, err = clientcmd.BuildConfigFromFlags("", o.RecommendedOptions.CoreAPI.CoreAPIKubeconfigPath)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+	loopbackClient, err := kubernetes.NewForConfig(loopbackConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+	kubeInformerFactory := informers.NewSharedInformerFactory(loopbackClient, 0)
+	return loopbackConfig, kubeInformerFactory, nil
+}
+
 func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string, tweakConfigFuncs ...func(apiserver *apiserver.Config) error) error {
-	config, err := o.Config(tweakConfigFuncs...)
+	aggregatedAPIServerConfig, err := o.Config(tweakConfigFuncs...)
 	if err != nil {
 		return err
 	}
+	genericConfig := aggregatedAPIServerConfig.RecommendedConfig.Config
 
 	if o.PrintBearerToken {
 		klog.Infof("Serving on loopback...")
 		klog.Infof("\n\n********************************\nTo test the server run:\n"+
 			"curl -k -H \"Authorization: Bearer %s\" %s\n********************************\n\n",
-			config.GenericConfig.LoopbackClientConfig.BearerToken,
-			config.GenericConfig.LoopbackClientConfig.Host)
+			genericConfig.LoopbackClientConfig.BearerToken,
+			genericConfig.LoopbackClientConfig.Host)
 	}
-	o.BearerToken = config.GenericConfig.LoopbackClientConfig.BearerToken
+	o.BearerToken = genericConfig.LoopbackClientConfig.BearerToken
 
 	for _, provider := range o.APIBuilders {
-		config.AddApi(provider)
+		aggregatedAPIServerConfig.AddApi(provider)
 	}
 
-	config.Init()
+	aggregatedAPIServerConfig.Init()
 
-	config.GenericConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(GetOpenApiDefinition, openapinamer.NewDefinitionNamer(builders.Scheme))
-	config.GenericConfig.OpenAPIConfig.Info.Title = title
-	config.GenericConfig.OpenAPIConfig.Info.Version = version
+	genericConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(GetOpenApiDefinition, openapinamer.NewDefinitionNamer(builders.Scheme))
+	genericConfig.OpenAPIConfig.Info.Title = title
+	genericConfig.OpenAPIConfig.Info.Version = version
 
-	genericServer, err := config.Complete().New()
+	genericServer, err := aggregatedAPIServerConfig.Complete().New()
 	if err != nil {
 		return err
 	}
@@ -279,7 +308,7 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string,
 	}
 
 	s := genericServer.GenericAPIServer.PrepareRun()
-	err = validators.OpenAPI.SetSchema(readOpenapi(config.GenericConfig.LoopbackClientConfig.BearerToken, genericServer.GenericAPIServer.Handler))
+	err = validators.OpenAPI.SetSchema(readOpenapi(genericConfig.LoopbackClientConfig.BearerToken, genericServer.GenericAPIServer.Handler))
 	if o.PrintOpenapi {
 		fmt.Printf("%s", validators.OpenAPI.OpenApi)
 		os.Exit(0)
@@ -288,17 +317,16 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string,
 		return err
 	}
 
-	if config.InsecureServingInfo != nil {
-		c := config.GenericConfig
+	if aggregatedAPIServerConfig.InsecureServingInfo != nil {
 		handler := s.GenericAPIServer.UnprotectedHandler()
-		handler = genericapifilters.WithAudit(handler, c.AuditBackend, c.AuditPolicyChecker, c.LongRunningFunc)
+		handler = genericapifilters.WithAudit(handler, genericConfig.AuditBackend, genericConfig.AuditPolicyChecker, genericConfig.LongRunningFunc)
 		handler = genericapifilters.WithAuthentication(handler, server.InsecureSuperuser{}, nil)
-		handler = genericfilters.WithCORS(handler, c.CorsAllowedOriginList, nil, nil, nil, "true")
-		handler = genericfilters.WithTimeoutForNonLongRunningRequests(handler, c.LongRunningFunc, c.RequestTimeout)
-		handler = genericfilters.WithMaxInFlightLimit(handler, c.MaxRequestsInFlight, c.MaxMutatingRequestsInFlight, c.LongRunningFunc)
-		handler = genericapifilters.WithRequestInfo(handler, server.NewRequestInfoResolver(c))
+		handler = genericfilters.WithCORS(handler, genericConfig.CorsAllowedOriginList, nil, nil, nil, "true")
+		handler = genericfilters.WithTimeoutForNonLongRunningRequests(handler, genericConfig.LongRunningFunc, genericConfig.RequestTimeout)
+		handler = genericfilters.WithMaxInFlightLimit(handler, genericConfig.MaxRequestsInFlight, genericConfig.MaxMutatingRequestsInFlight, genericConfig.LongRunningFunc)
+		handler = genericapifilters.WithRequestInfo(handler, server.NewRequestInfoResolver(&genericConfig))
 		handler = genericfilters.WithPanicRecovery(handler)
-		if err := config.InsecureServingInfo.Serve(handler, config.GenericConfig.RequestTimeout, stopCh); err != nil {
+		if err := aggregatedAPIServerConfig.InsecureServingInfo.Serve(handler, genericConfig.RequestTimeout, stopCh); err != nil {
 			return err
 		}
 	}
