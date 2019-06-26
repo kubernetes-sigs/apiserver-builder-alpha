@@ -1,0 +1,22 @@
+# Extending Streaming Sub-Resource
+
+**TL;DR**: This document will be helpful if you're trying to extend/customize a streaming long-running sub-resource for 
+your aggregated-apiservers, similar to `pods/logs`. `pods/exec` endpoints in kube-apiserver. Before you diving into 
+it, you're suppose to know not only [how to create a subresource](https://github.com/kubernetes-incubator/apiserver-builder-alpha/blob/master/docs/adding_subresources.md#adding-a-subresource-to-a-resource) 
+but also [how to add custom REST](https://github.com/kubernetes-incubator/apiserver-builder-alpha/blob/master/docs/adding_custom_rest.md) 
+for your aggregated apiserver. By reading it, you will basically learn to plumb long-running sub-resources in two ways.
+
+### What is streaming sub-resource?
+
+Basically, kubernetes provides a few built-in support for basic CRUD verbs over resource or sub-resource, including 
+`CREATE`, `UPDATE`/`PATCH`, `DELETE`, `GET`/`LIST`... But those are not enough for us developers sometimes, especially when 
+you're integrating your legacy system w/ various other verbs into the cluster. In this case, kube-apiserver uses a `CONNECT` 
+verb to prescribe all the other arbitrary verbs and you're able to customize the underlying implementation for the sub-resource.  
+In a high level, the streaming sub-resource is meant for those endpoints w/ streaming data flows running 10-min-ish or 
+even longer.
+
+### Example show-case
+
+
+
+
