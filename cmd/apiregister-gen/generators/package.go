@@ -104,9 +104,14 @@ func (g *Gen) Packages(context *generator.Context, arguments *args.GeneratorArgs
 		g.p = append(g.p, factory.createPackage(gen))
 	}
 
-	factory := &packageFactory{b.APIs.Pkg.Path, arguments}
+	apisFactory := &packageFactory{b.APIs.Pkg.Path, arguments}
 	gen := CreateApisGenerator(b.APIs, arguments.OutputFileBaseName)
-	g.p = append(g.p, factory.createPackage(gen))
+	g.p = append(g.p, apisFactory.createPackage(gen))
+
+	projectRootPath := filepath.Dir(filepath.Dir(b.APIs.Pkg.Path))
+	admissionFactory := &packageFactory{filepath.Join(projectRootPath, "plugin", "admission", "install"), arguments}
+	admissionGen := CreateAdmissionGenerator(b.APIs, arguments.OutputFileBaseName, projectRootPath, b.arguments.OutputBase)
+	g.p = append(g.p, admissionFactory.createPackage(admissionGen))
 	return g.p
 }
 

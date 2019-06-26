@@ -17,14 +17,13 @@ limitations under the License.
 package apiserver
 
 import (
+	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/version"
 	genericapiserver "k8s.io/apiserver/pkg/server"
-
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 )
 
 type Installer struct {
@@ -52,12 +51,16 @@ func (c *Config) Init() *Config {
 		&metav1.APIResourceList{},
 	)
 
+	// initialize admission controllers
+
 	return c
 }
 
 type Config struct {
 	RecommendedConfig       *genericapiserver.RecommendedConfig
 	InsecureServingInfo *genericapiserver.DeprecatedInsecureServingInfo
+
+	PostStartHooks map[string]genericapiserver.PostStartHookFunc
 }
 
 // Server contains state for a Kubernetes cluster master/api server.
@@ -94,6 +97,10 @@ func (c completedConfig) New() (*Server, error) {
 		New("aggregated-apiserver", genericapiserver.NewEmptyDelegate()) // completion is done in Complete, no need for a second time
 	if err != nil {
 		return nil, err
+	}
+
+	for hookName, hook := range c.PostStartHooks {
+		genericServer.AddPostStartHookOrDie(hookName, hook)
 	}
 
 	s := &Server{

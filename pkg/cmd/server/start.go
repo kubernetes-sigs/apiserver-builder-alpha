@@ -21,6 +21,8 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"k8s.io/apiserver/pkg/admission"
+	"k8s.io/client-go/kubernetes/scheme"
 	"net/http"
 	"os"
 
@@ -113,6 +115,10 @@ func NewCommandStartServer(etcdPath string, out, errOut io.Writer, builders []*b
 	stopCh <-chan struct{}, title, version string, tweakConfigFuncs ...func(apiServer *apiserver.Config) error) (*cobra.Command, *ServerOptions) {
 	o := NewServerOptions(etcdPath, out, errOut, builders)
 
+	for pluginName := range AggregatedAdmissionPlugins {
+		o.RecommendedOptions.Admission.RecommendedPluginOrder = append(o.RecommendedOptions.Admission.RecommendedPluginOrder, pluginName)
+	}
+
 	// Support overrides
 	cmd := &cobra.Command{
 		Short: "Launch an API server",
@@ -200,6 +206,12 @@ func (o ServerOptions) Config(tweakConfigFuncs ...func(config *apiserver.Config)
 		return nil, err
 	}
 
+	// TODO(yue9944882): for backward-compatibility, a loopback client is optional in the server. But if the client is
+	//  missing, server will have to lose the following additional functionalities:
+	//  - 	all admission controllers: almost all admission controllers relies on injecting loopback client or loopback
+	//  	informers.
+	//  -	delegated authentication/authorization: the server will not be able to request kube-apiserver for delegated
+	//		authn/authz apis.
 	loopbackClientOptional := true
 	loopbackKubeConfig, kubeInformerFactory, err := o.buildLoopback()
 	if loopbackClientOptional {
@@ -215,6 +227,16 @@ func (o ServerOptions) Config(tweakConfigFuncs ...func(config *apiserver.Config)
 		}
 	}
 
+	var insecureServingInfo *genericapiserver.DeprecatedInsecureServingInfo
+	if err := o.InsecureServingOptions.ApplyTo(&insecureServingInfo, &serverConfig.LoopbackClientConfig); err != nil {
+		return nil, err
+	}
+	config := &apiserver.Config{
+		RecommendedConfig:   serverConfig,
+		InsecureServingInfo: insecureServingInfo,
+		PostStartHooks:      make(map[string]genericapiserver.PostStartHookFunc),
+	}
+
 	if o.RunDelegatedAuth {
 		err := applyOptions(
 			&serverConfig.Config,
@@ -224,21 +246,35 @@ func (o ServerOptions) Config(tweakConfigFuncs ...func(config *apiserver.Config)
 			func(cfg *genericapiserver.Config) error {
 				return o.RecommendedOptions.Authorization.ApplyTo(&cfg.Authorization)
 			},
+			func(cfg *genericapiserver.Config) error {
+				if kubeInformerFactory != nil {
+					pluginInitializers := []admission.PluginInitializer{}
+					if AggregatedAdmissionInitializerGetter != nil {
+						initializer, postStartHook := AggregatedAdmissionInitializerGetter(loopbackKubeConfig)
+						pluginInitializers = append(pluginInitializers, initializer)
+						config.PostStartHooks["aggregated-resource-informer"] = postStartHook
+					} else {
+						klog.Warning("skip admission controller initialization because no custom admission controllers are installed")
+					}
+					for name, plugin := range AggregatedAdmissionPlugins {
+						plugin := plugin
+						o.RecommendedOptions.Admission.Plugins.Register(name, func(config io.Reader) (admission.Interface, error) {
+							// TODO(yue9944882): support admission controller config file reading
+							return plugin, nil
+						})
+					}
+					return o.RecommendedOptions.Admission.ApplyTo(cfg, kubeInformerFactory, loopbackKubeConfig, scheme.Scheme, pluginInitializers...)
+				} else {
+					klog.Info("skip admission controller initialization because `--kubeconfig` is not specified")
+				}
+				return nil
+			},
 		)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	var insecureServingInfo *genericapiserver.DeprecatedInsecureServingInfo
-	if err := o.InsecureServingOptions.ApplyTo(&insecureServingInfo, &serverConfig.LoopbackClientConfig); err != nil {
-		return nil, err
-	}
-
-	config := &apiserver.Config{
-		RecommendedConfig:   serverConfig,
-		InsecureServingInfo: insecureServingInfo,
-	}
 	for _, tweakConfigFunc := range tweakConfigFuncs {
 		if err := tweakConfigFunc(config); err != nil {
 			return nil, err
@@ -252,11 +288,13 @@ func (o *ServerOptions) buildLoopback() (*rest.Config, informers.SharedInformerF
 	var err error
 	// TODO(yue9944882): protobuf serialization?
 	if len(o.RecommendedOptions.CoreAPI.CoreAPIKubeconfigPath) == 0 {
+		klog.Infof("loading in-cluster loopback client...")
 		loopbackConfig, err = rest.InClusterConfig()
 		if err != nil {
 			return nil, nil, err
 		}
 	} else {
+		klog.Infof("loading out-of-cluster loopback client according to `--kubeconfig` settings...")
 		loopbackConfig, err = clientcmd.BuildConfigFromFlags("", o.RecommendedOptions.CoreAPI.CoreAPIKubeconfigPath)
 		if err != nil {
 			return nil, nil, err
