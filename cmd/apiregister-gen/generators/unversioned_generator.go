@@ -72,11 +72,19 @@ func (d *unversionedGenerator) Finalize(context *generator.Context, w io.Writer)
 var UnversionedAPITemplate = `
 var (
 	{{ range $api := .UnversionedResources -}}
+	{{- if $api.ShortName -}}
+	Internal{{ $api.Kind }} = builders.NewInternalResourceWithShortcuts(
+	{{ else -}}
 	Internal{{ $api.Kind }} = builders.NewInternalResource(
+	{{ end -}}
 		"{{ $api.Resource }}",
         "{{ $api.Kind }}",
 		func() runtime.Object { return &{{ $api.Kind }}{} },
 		func() runtime.Object { return &{{ $api.Kind }}List{} },
+	{{ if $api.ShortName -}}
+		[]string{"{{ $api.ShortName }}"},
+		[]string{"aggregation"}, // TBD
+	{{ end -}}
 	)
 	Internal{{ $api.Kind }}Status = builders.NewInternalResourceStatus(
 		"{{ $api.Resource }}",
