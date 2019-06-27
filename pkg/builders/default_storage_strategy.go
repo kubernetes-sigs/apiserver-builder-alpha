@@ -64,7 +64,7 @@ func (DefaultStorageStrategy) Build(builder StorageBuilder, store *StorageWrappe
 	store.CreateStrategy = builder
 	store.UpdateStrategy = builder
 	store.DeleteStrategy = builder
-
+	store.ShortNamesProvider = builder
 	options.AttrFunc = builder.GetAttrs
 	options.TriggerFunc = builder.TriggerFunc
 }
@@ -163,4 +163,8 @@ func (DefaultStatusStorageStrategy) PrepareForUpdate(ctx context.Context, obj, o
 		n.SetSpec(o.GetSpec())
 		n.GetObjectMeta().Labels = o.GetObjectMeta().Labels
 	}
+}
+
+func (DefaultStorageStrategy) ShortNames() []string {
+	return nil
 }

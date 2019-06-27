@@ -20,12 +20,12 @@ import (
 	"context"
 	"log"
 
+	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
-	"k8s.io/apiserver/pkg/storage"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apiserver/pkg/registry/generic"
+	"k8s.io/apiserver/pkg/storage"
 )
 
 // Validate checks that an instance of Poseidon is well formed
@@ -62,4 +62,9 @@ func (b PoseidonStrategy) GetAttrs(o runtime.Object) (labels.Set, fields.Set, bo
 	fs := fields.Set{"spec.deployment.name": obj.Spec.Deployment.Name}
 	fs = generic.AddObjectMetaFieldsSet(fs, &obj.ObjectMeta, true)
 	return l, fs, uninit, e
+}
+
+// ShortNames allow shorter string to match your resource on the CLI like kubectl. For example: kubectl get pose
+func (PoseidonStrategy) ShortNames() []string {
+	return []string{"pose"}
 }

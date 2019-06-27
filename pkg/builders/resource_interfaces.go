@@ -18,6 +18,7 @@ package builders
 
 import (
 	"context"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
@@ -69,6 +70,7 @@ type StorageBuilder interface {
 	TriggerFunc(obj runtime.Object) []storage.MatchValue
 	GetSelectableFields(obj HasObjectMeta) fields.Set
 	BasicMatch(label labels.Selector, field fields.Selector) storage.SelectionPredicate
+	ShortNames() []string
 }
 
 type SchemeFns interface {
