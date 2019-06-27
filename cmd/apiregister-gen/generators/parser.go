@@ -112,6 +112,8 @@ type APIResource struct {
 	Kind string
 	// Resource is the resource name - e.g. peachescastles
 	Resource string
+	// ShortName is the resource short name - e.g. pc
+	ShortName string
 	// REST is the rest.Storage implementation used to handle requests
 	// This field is optional. The standard REST implementation will be used
 	// by default.
@@ -225,6 +227,7 @@ func (b *APIsBuilder) ParseAPIs() {
 					StatusStrategy: resource.StatusStrategy,
 					Strategy:       resource.Strategy,
 					NonNamespaced:  resource.NonNamespaced,
+					ShortName:      resource.ShortName,
 				}
 				apiVersion.Resources[kind] = apiResource
 				// Set the package for the api version
@@ -283,6 +286,7 @@ func (b *APIsBuilder) ParseIndex() {
 
 		r.Resource = rt.Resource
 		r.REST = rt.REST
+		r.ShortName = rt.ShortName
 
 		r.Strategy = rt.Strategy
 
@@ -375,9 +379,10 @@ func (b *APIsBuilder) GetNameAndImport(tags SubresourceTags) (string, string) {
 
 // ResourceTags contains the tags present in a "+resource=" comment
 type ResourceTags struct {
-	Resource string
-	REST     string
-	Strategy string
+	Resource  string
+	REST      string
+	Strategy  string
+	ShortName string
 }
 
 // ParseResourceTag parses the tags in a "+resource=" comment into a ResourceTags struct
@@ -398,6 +403,8 @@ func ParseResourceTag(tag string) ResourceTags {
 			result.Resource = value
 		case "strategy":
 			result.Strategy = value
+		case "shortname":
+			result.ShortName = value
 		}
 	}
 	return result

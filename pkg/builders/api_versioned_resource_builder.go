@@ -123,25 +123,42 @@ func (b *versionedResourceBuilder) Build(
 	optionsGetter generic.RESTOptionsGetter) rest.StandardStorage {
 
 	// Set a default strategy
-	store := &StorageWrapper{registry.Store{
-		NewFunc:                  b.Unversioned.New,     // Use the unversioned type
-		NewListFunc:              b.Unversioned.NewList, // Use the unversioned type
-		DefaultQualifiedResource: b.getGroupResource(group),
-	}}
+	store := &StorageWrapper{
+		registry.Store{
+			NewFunc:                  b.Unversioned.New,     // Use the unversioned type
+			NewListFunc:              b.Unversioned.NewList, // Use the unversioned type
+			DefaultQualifiedResource: b.getGroupResource(group),
+		},
+	}
+	b.Storage = store
+
+	// the store-with-shortcuts will only be used if there're valid shortnames
+	storeWithShortcuts := &StorageWrapperWithShortcuts{
+		StorageWrapper: store,
+	}
+
+	wantsShortcuts := len(b.Unversioned.GetShortNames()) > 0
+	if wantsShortcuts {
+		// plants shortnames and an opt-out category into the storage
+		storeWithShortcuts.shortNames = b.Unversioned.GetShortNames()
+		storeWithShortcuts.categories = b.Unversioned.GetCategories()
+	}
 
 	// Use default, requires
 	options := &generic.StoreOptions{RESTOptions: optionsGetter}
 
 	if b.StorageBuilder != nil {
 		// Allow overriding the storage defaults
-		b.StorageBuilder.Build(b.StorageBuilder, store, options)
+		b.StorageBuilder.Build(b.StorageBuilder, storeWithShortcuts.StorageWrapper, options)
 	}
 
-	if err := store.CompleteWithOptions(options); err != nil {
+	if err := storeWithShortcuts.CompleteWithOptions(options); err != nil {
 		panic(err) // TODO: Propagate error up
 	}
-	b.Storage = store
-	return store
+	if wantsShortcuts {
+		b.Storage = storeWithShortcuts
+	}
+	return b.Storage
 }
 
 func (b *versionedResourceBuilder) GetStandardStorage() rest.StandardStorage {
