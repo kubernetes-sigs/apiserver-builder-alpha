@@ -159,27 +159,11 @@ func (b *UnversionedResourceBuilderImpl) NewList() runtime.Object {
 
 var _ WithShortNames = &UnversionedResourceBuilderImpl{}
 
-//func (b *UnversionedResourceBuilderImpl) AddShortName(shortName string) {
-//	if len(shortName) == 0 {
-//		// short-circuit b/c empty shortname can break REST-mapping
-//		return
-//	}
-//	b.ShortNames = append(b.ShortNames, shortName)
-//}
-
 func (b *UnversionedResourceBuilderImpl) GetShortNames() []string {
 	return b.ShortNames
 }
 
 var _ WithCategories = &UnversionedResourceBuilderImpl{}
-//
-//func (b *UnversionedResourceBuilderImpl) AddCategory(category string) {
-//	if len(category) == 0 {
-//		// short-circuit b/c empty category can break REST-mapping
-//		return
-//	}
-//	b.Categories = append(b.Categories, category)
-//}
 
 func (b *UnversionedResourceBuilderImpl) GetCategories() []string {
 	return b.Categories

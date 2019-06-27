@@ -27,7 +27,7 @@ import (
 
 // Festival
 // +k8s:openapi-gen=true
-// +resource:path=festivals,strategy=FestivalStrategy
+// +resource:path=festivals,strategy=FestivalStrategy,shortname=fs
 type Festival struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
