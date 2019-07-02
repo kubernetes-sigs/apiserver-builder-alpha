@@ -40,11 +40,18 @@ func CreateInstallGenerator(apigroup *APIGroup, filename string) generator.Gener
 }
 
 func (d *installGenerator) Imports(c *generator.Context) []string {
-	return []string{
+	apisPkg := path.Dir(d.apigroup.Pkg.Path)
+	imports := []string{
+		"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders",
 		`utilruntime "k8s.io/apimachinery/pkg/util/runtime"`,
 		"k8s.io/apimachinery/pkg/runtime",
-		path.Dir(d.apigroup.Pkg.Path),
+		`metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"`,
 	}
+	for _, version := range d.apigroup.Versions {
+		imports = append(imports, path.Join(apisPkg, version.Group, version.Version))
+	}
+	imports = append(imports, path.Join(apisPkg, d.apigroup.Group))
+	return imports
 }
 
 func (d *installGenerator) Finalize(context *generator.Context, w io.Writer) error {
@@ -57,7 +64,29 @@ func (d *installGenerator) Finalize(context *generator.Context, w io.Writer) err
 }
 
 var InstallAPITemplate = `
+func init() {
+	Install(builders.Scheme)
+}
+
 func Install(scheme *runtime.Scheme) {
-	utilruntime.Must(apis.Get{{ .GroupTitle }}APIBuilder().AddToScheme(scheme))
+{{ range $version := .Versions -}}
+	utilruntime.Must({{ $version.Version }}.AddToScheme(scheme))
+{{ end -}}
+	utilruntime.Must({{ $.Group }}.AddToScheme(scheme))
+	utilruntime.Must(addKnownTypes(scheme))
+}
+
+
+func addKnownTypes(scheme *runtime.Scheme) error {
+	scheme.AddKnownTypes({{ $.Group }}.SchemeGroupVersion,
+{{ range $api := .UnversionedResources -}}
+		&{{ $.Group }}.{{ $api.Kind }}{},
+		&{{ $.Group }}.{{ $api.Kind }}List{},
+  {{ range $subresource := $api.Subresources -}}
+		&{{ $.Group }}.{{ $subresource.Kind }}{},
+  {{ end -}}
+{{ end -}}
+	)
+	return nil
 }
 `

@@ -17,7 +17,6 @@ limitations under the License.
 package v1
 
 import (
-	"log"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -50,9 +49,3 @@ type FestivalStatus struct {
 	Attended uint `json:"attended,omitempty"`
 }
 
-// DefaultingFunction sets default Festival field values
-func (FestivalSchemeFns) DefaultingFunction(o interface{}) {
-	obj := o.(*Festival)
-	// set default field values here
-	log.Printf("Defaulting fields for Festival %s\n", obj.Name)
-}

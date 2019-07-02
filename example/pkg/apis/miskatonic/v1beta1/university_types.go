@@ -17,8 +17,6 @@ limitations under the License.
 package v1beta1
 
 import (
-	"log"
-
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -89,18 +87,3 @@ type UniversityStatus struct {
 	FacultyEmployed []string `json:"faculty_employed,omitempty"`
 }
 
-// GetDefaultingFunctions returns functions for defaulting v1beta1.University values
-func (UniversitySchemeFns) DefaultingFunction(o interface{}) {
-	obj := o.(*University)
-	log.Printf("Defaulting University %s\n", obj.Name)
-	if obj.Spec.MaxStudents == nil {
-		n := 15
-		obj.Spec.MaxStudents = &n
-	}
-}
-
-// GetConversionFunctions returns functions for converting resource versions to override the
-// conversion functions
-func (UniversitySchemeFns) GetConversionFunctions() []interface{} {
-	return []interface{}{}
-}

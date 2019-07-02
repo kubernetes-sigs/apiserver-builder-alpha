@@ -42,7 +42,6 @@ type NewRESTFunc func(getter generic.RESTOptionsGetter) rest.Storage
 // storeBuilder - builder for creating the store
 func NewApiResource(
 	unversionedBuilder UnversionedResourceBuilder,
-	schemeFns SchemeFns,
 	new, newList func() runtime.Object,
 	storeBuilder StorageBuilder) *versionedResourceBuilder {
 
@@ -51,7 +50,7 @@ func NewApiResource(
 	}
 
 	return &versionedResourceBuilder{
-		unversionedBuilder, schemeFns, new, newList, storeBuilder, nil, nil,
+		unversionedBuilder, new, newList, storeBuilder, nil, nil,
 	}
 }
 
@@ -62,11 +61,10 @@ func NewApiResource(
 // storage - storage for manipulating the resource
 func NewApiResourceWithStorage(
 	unversionedBuilder UnversionedResourceBuilder,
-	schemeFns SchemeFns,
 	new, newList func() runtime.Object,
 	RESTFunc NewRESTFunc) *versionedResourceBuilder {
 	v := &versionedResourceBuilder{
-		unversionedBuilder, schemeFns, new, newList, nil, RESTFunc, nil,
+		unversionedBuilder, new, newList, nil, RESTFunc, nil,
 	}
 	if new == nil {
 		panic(fmt.Errorf("Cannot call NewApiResourceWithStorage with nil new function."))
@@ -79,7 +77,6 @@ func NewApiResourceWithStorage(
 
 type versionedResourceBuilder struct {
 	Unversioned UnversionedResourceBuilder
-	SchemeFns   SchemeFns
 
 	// NewFunc returns an empty unversioned instance of a resource
 	NewFunc func() runtime.Object

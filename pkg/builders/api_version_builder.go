@@ -19,8 +19,6 @@ package builders
 import (
 	"reflect"
 
-	"k8s.io/klog"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apiserver/pkg/registry/generic"
@@ -30,18 +28,13 @@ import (
 type VersionedApiBuilder struct {
 	Kinds         []*versionedResourceBuilder
 	GroupVersion  schema.GroupVersion
-	SchemaBuilder runtime.SchemeBuilder
+	SchemeBuilder runtime.SchemeBuilder
 }
 
 func NewApiVersion(group, version string) *VersionedApiBuilder {
 	b := &VersionedApiBuilder{
 		GroupVersion: schema.GroupVersion{group, version},
 	}
-	b.SchemaBuilder = runtime.NewSchemeBuilder(
-		b.registerTypes,
-		b.registerDefaults,
-		b.registerConversions,
-		b.registerSelectorConversions)
 	return b
 }
 
@@ -49,58 +42,7 @@ func NewApiVersion(group, version string) *VersionedApiBuilder {
 // resourceBuilders is a list of *versionedResourceBuilder
 func (s *VersionedApiBuilder) WithResources(resourceBuilders ...*versionedResourceBuilder) *VersionedApiBuilder {
 	s.Kinds = append(s.Kinds, resourceBuilders...)
-	for _, b := range resourceBuilders {
-		s.SchemaBuilder.Register(b.SchemeFns.Register)
-	}
 	return s
-}
-
-// registerTypes registers all of the types in this API version
-func (s *VersionedApiBuilder) registerTypes(scheme *runtime.Scheme) error {
-	for _, k := range s.Kinds {
-		// RegisterTypes type
-		if t := k.New(); t != nil {
-			scheme.AddKnownTypes(s.GroupVersion, t) // Register the versioned type
-		}
-
-		// RegisterTypes list type if it exists
-		if l := k.NewList(); l != nil {
-			scheme.AddKnownTypes(s.GroupVersion, l) // Register the versioned type
-		}
-	}
-	metav1.AddToGroupVersion(scheme, s.GroupVersion)
-	return nil
-}
-
-func (s *VersionedApiBuilder) registerDefaults(scheme *runtime.Scheme) error {
-	for _, k := range s.Kinds {
-		scheme.AddTypeDefaultingFunc(k.New(), k.SchemeFns.DefaultingFunction)
-	}
-	return nil
-}
-
-func (s *VersionedApiBuilder) registerConversions(scheme *runtime.Scheme) error {
-	for _, k := range s.Kinds {
-		err := scheme.AddConversionFuncs(k.SchemeFns.GetConversionFunctions()...)
-		if err != nil {
-			klog.Errorf("Failed to add conversion functions %v", err)
-			return err
-		}
-	}
-	return nil
-}
-
-func (s *VersionedApiBuilder) registerSelectorConversions(scheme *runtime.Scheme) error {
-	for _, k := range s.Kinds {
-		err := scheme.AddFieldLabelConversionFunc(
-			s.GroupVersion.WithKind(k.Unversioned.GetKind()),
-			k.SchemeFns.FieldSelectorConversion)
-		if err != nil {
-			klog.Errorf("Failed to add conversion functions %v", err)
-			return err
-		}
-	}
-	return nil
 }
 
 // registerEndpoints registers the REST endpoints for all resources in this API group version
@@ -132,7 +74,7 @@ func NewApiGroup(group string) *UnVersionedApiBuilder {
 	b := &UnVersionedApiBuilder{
 		GroupVersion: schema.GroupVersion{group, runtime.APIVersionInternal},
 	}
-	b.SchemaBuilder = runtime.NewSchemeBuilder(b.registerTypes)
+	//b.SchemaBuilder = runtime.NewSchemeBuilder(b.registerTypes)
 	return b
 }
 
