@@ -17,11 +17,9 @@ limitations under the License.
 package v1beta1
 
 import (
-	"fmt"
-	"log"
 	"k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/api/extensions/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // +genclient
@@ -48,24 +46,3 @@ type PoseidonSpec struct {
 type PoseidonStatus struct {
 }
 
-// DefaultingFunction sets default Poseidon field values
-func (PoseidonSchemeFns) DefaultingFunction(o interface{}) {
-	obj := o.(*Poseidon)
-	// set default field values here
-	log.Printf("Defaulting fields for Poseidon %s\n", obj.Name)
-}
-
-
-// All field selector fields must appear in this function
-func (b PoseidonSchemeFns) FieldSelectorConversion(label, value string) (string, string, error) {
-	switch label {
-	case "metadata.name":
-		return label, value, nil
-	case "metadata.namespace":
-		return label, value, nil
-	case "spec.deployment.name":
-		return label, value, nil
-	default:
-		return "", "", fmt.Errorf("%q is not a known field selector: only %q, %q, %q", label, "metadata.name", "metadata.namespace", "spec.deployment.name")
-	}
-}
