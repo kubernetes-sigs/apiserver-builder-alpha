@@ -50,6 +50,11 @@ func (d *apiGenerator) Imports(c *generator.Context) []string {
 				"%s%s \"%s\"", group.Group, version.Version, version.Pkg.Path))
 		}
 	}
+	for _, group := range d.apis.Groups {
+		imports = append(imports, fmt.Sprintf(
+			"_ \"%s/install\"", group.Pkg.Path))
+	}
+
 	return imports
 }
 

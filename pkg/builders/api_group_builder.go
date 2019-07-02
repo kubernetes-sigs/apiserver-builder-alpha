@@ -109,10 +109,11 @@ func (g *APIGroupBuilder) Build(optionsGetter generic.RESTOptionsGetter) *generi
 
 }
 
+// Deprecated
 func (g *APIGroupBuilder) AddToScheme(scheme *runtime.Scheme) error {
 	localSchemeBuilder := runtime.NewSchemeBuilder(g.registerVersionPriorities)
 	for _, versionBuilder := range g.Versions {
-		localSchemeBuilder.Register(versionBuilder.SchemaBuilder.AddToScheme)
+		localSchemeBuilder.Register(versionBuilder.SchemeBuilder.AddToScheme)
 	}
 	localSchemeBuilder.Register(g.UnVersioned.SchemaBuilder.AddToScheme)
 	return localSchemeBuilder.AddToScheme(scheme)

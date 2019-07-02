@@ -70,6 +70,10 @@ func (d *unversionedGenerator) Finalize(context *generator.Context, w io.Writer)
 }
 
 var UnversionedAPITemplate = `
+func init() {
+	localSchemeBuilder.Register(RegisterDefaults)	
+}
+
 var (
 	{{ range $api := .UnversionedResources -}}
 	{{- if $api.ShortName -}}
