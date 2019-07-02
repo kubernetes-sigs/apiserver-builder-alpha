@@ -1,18 +1,18 @@
 # Adding a value defaulting to a resources schema
 
 To add server side field value defaulting for your resource override
-the function `func (<group>.<Kind>SchemeFns) DefaultingFunction(o interface{})`
-in the group package.
+the function `func SetDefaults_<Kind>(obj <Kind>)`
+in the group package. And the defaulter-gen will do all the rest for you.
 
-**Important:** The validation logic lives in the version package *not* the group package.
+**Important:** The validation logic lives in the unversioned package *not* the group package.
 
 Example:
 
-File: `pkg/apis/<group>/<version>/types_bar.go`
+File: `pkg/apis/<group>/<version>/defaults.go`
 
 ```go
-func (BarSchemeFns) DefaultingFunction(o interface{}) {
-	obj := o.(*Bar)
+func SetDefaults_<Kind>(o <Kind>) {
+	obj := o.(*<Kind>)
 	if obj.Spec.Field == nil {
 		f := "value"
 		obj.Spec.Field = &f
@@ -22,8 +22,7 @@ func (BarSchemeFns) DefaultingFunction(o interface{}) {
 
 ## Anatomy of defaulting
 
-A default `<group>.<Kind>SchemeFns` is generated for each resource with an embedded
-empty defaulting function.  To specify custom defaulting logic,
+You're supposed to create your own "defaults.go" and do the coding. To specify custom defaulting logic,
 override the embedded implementation.
 
 Cast the object type to your resource Kind
