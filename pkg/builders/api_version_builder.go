@@ -67,7 +67,7 @@ func (s *VersionedApiBuilder) registerEndpoints(
 type UnVersionedApiBuilder struct {
 	Kinds         []UnversionedResourceBuilder
 	GroupVersion  schema.GroupVersion
-	SchemaBuilder runtime.SchemeBuilder
+	SchemeBuilder runtime.SchemeBuilder
 }
 
 func NewApiGroup(group string) *UnVersionedApiBuilder {
