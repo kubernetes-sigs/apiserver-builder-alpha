@@ -115,6 +115,6 @@ func (g *APIGroupBuilder) AddToScheme(scheme *runtime.Scheme) error {
 	for _, versionBuilder := range g.Versions {
 		localSchemeBuilder.Register(versionBuilder.SchemeBuilder.AddToScheme)
 	}
-	localSchemeBuilder.Register(g.UnVersioned.SchemaBuilder.AddToScheme)
+	localSchemeBuilder.Register(g.UnVersioned.SchemeBuilder.AddToScheme)
 	return localSchemeBuilder.AddToScheme(scheme)
 }
