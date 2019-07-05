@@ -22,6 +22,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/gengo/generator"
+	"k8s.io/gengo/namer"
 )
 
 type unversionedGenerator struct {
@@ -61,7 +62,11 @@ func (d *unversionedGenerator) Imports(c *generator.Context) []string {
 }
 
 func (d *unversionedGenerator) Finalize(context *generator.Context, w io.Writer) error {
-	temp := template.Must(template.New("unversioned-wiring-template").Parse(UnversionedAPITemplate))
+	temp := template.
+		Must(template.New("unversioned-wiring-template").Funcs(map[string]interface{}{
+			"public": namer.IC,
+		}).Parse(UnversionedAPITemplate))
+
 	err := temp.Execute(w, d.apigroup)
 	if err != nil {
 		return err
@@ -71,6 +76,23 @@ func (d *unversionedGenerator) Finalize(context *generator.Context, w io.Writer)
 
 var UnversionedAPITemplate = `
 var (
+	{{ range $api := .UnversionedResources -}}
+	{{ if $api.REST -}}
+		{{$api.Group|public}}{{$api.Kind}}Storage = builders.NewApiResourceWithStorage( // Resource status endpoint
+			Internal{{ $api.Kind }},
+			func() runtime.Object { return &{{ $api.Kind }}{} },     // Register versioned resource
+			func() runtime.Object { return &{{ $api.Kind }}List{} }, // Register versioned resource list
+			New{{ $api.REST }},
+		)
+	{{ else -}}
+		{{$api.Group|public}}{{$api.Kind}}Storage = builders.NewApiResource( // Resource status endpoint
+			Internal{{ $api.Kind }},
+			func() runtime.Object { return &{{ $api.Kind }}{} },     // Register versioned resource
+			func() runtime.Object { return &{{ $api.Kind }}List{} }, // Register versioned resource list
+			&{{ $api.Strategy }}{builders.StorageStrategySingleton},
+		)
+	{{ end -}}
+	{{ end -}}
 	{{ range $api := .UnversionedResources -}}
 	{{- if $api.ShortName -}}
 	Internal{{ $api.Kind }} = builders.NewInternalResourceWithShortcuts(

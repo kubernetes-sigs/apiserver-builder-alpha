@@ -18,6 +18,7 @@ package generators
 
 import (
 	"io"
+	"k8s.io/gengo/namer"
 	"text/template"
 
 	"k8s.io/gengo/generator"
@@ -65,7 +66,9 @@ func (d *versionedGenerator) Imports(c *generator.Context) []string {
 }
 
 func (d *versionedGenerator) Finalize(context *generator.Context, w io.Writer) error {
-	temp := template.Must(template.New("versioned-template").Parse(VersionedAPITemplate))
+	temp := template.Must(template.New("versioned-template").Funcs(map[string]interface{}{
+		"public": namer.IC,
+	}).Parse(VersionedAPITemplate))
 	return temp.Execute(w, d.apiversion)
 }
 
@@ -85,28 +88,9 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 }
 
 var (
-	{{ range $api := .Resources -}}
-
-	{{ if $api.REST -}}
-		{{$api.Group}}{{$api.Kind}}Storage = builders.NewApiResourceWithStorage( // Resource status endpoint
-			{{ $api.Group }}.Internal{{ $api.Kind }},
-			func() runtime.Object { return &{{ $api.Kind }}{} },     // Register versioned resource
-			func() runtime.Object { return &{{ $api.Kind }}List{} }, // Register versioned resource list
-			{{ $api.Group }}.New{{ $api.REST }},
-		)
-	{{ else -}}
-		{{$api.Group}}{{$api.Kind}}Storage = builders.NewApiResource( // Resource status endpoint
-			{{ $api.Group }}.Internal{{ $api.Kind }},
-			func() runtime.Object { return &{{ $api.Kind }}{} },     // Register versioned resource
-			func() runtime.Object { return &{{ $api.Kind }}List{} }, // Register versioned resource list
-			&{{ $api.Group }}.{{ $api.Strategy }}{builders.StorageStrategySingleton},
-		)
-	{{ end -}}
-	{{ end -}}
-
 	ApiVersion = builders.NewApiVersion("{{.Group}}.{{.Domain}}", "{{.Version}}").WithResources(
 		{{ range $api := .Resources -}}
-		{{$api.Group}}{{$api.Kind}}Storage,
+		{{$api.Group}}.{{$api.Group|public}}{{$api.Kind}}Storage,
 		{{ if $api.REST }}{{ else -}}
 		builders.NewApiResource( // Resource status endpoint
 			{{ $api.Group }}.Internal{{ $api.Kind }}Status,
@@ -121,7 +105,7 @@ var (
 			func() runtime.Object { return &{{ $subresource.Request }}{} }, // Register versioned resource
 			nil,
             {{ if $subresource.REST }}{{ $api.Group }}.New{{ $subresource.REST }}{{ else -}}
-			func(generic.RESTOptionsGetter) rest.Storage { return &{{ $api.Group }}.{{ $subresource.Kind }}REST{ {{$api.Group}}.New{{$api.Kind}}Registry({{$api.Group}}{{$api.Kind}}Storage) } },
+			func(generic.RESTOptionsGetter) rest.Storage { return &{{ $api.Group }}.{{ $subresource.Kind }}REST{ {{$api.Group}}.New{{$api.Kind}}Registry({{$api.Group}}.{{$api.Group|public}}{{$api.Kind}}Storage) } },
 			{{ end -}}
 		),
 		{{ end -}}
