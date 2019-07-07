@@ -63,6 +63,7 @@ var controllermanager string
 var toRun []string
 var disableDelegatedAuth bool
 var securePort int32
+var insecurePort int32
 
 func AddLocal(cmd *cobra.Command) {
 	localCmd.Flags().StringSliceVar(&toRun, "run", []string{"etcd", "apiserver", "controller-manager"}, "path to apiserver binary to run")
@@ -80,6 +81,7 @@ func AddLocal(cmd *cobra.Command) {
 	localCmd.Flags().BoolVar(&buildBin, "build", true, "if true, build the binaries before running")
 
 	localCmd.Flags().Int32Var(&securePort, "secure-port", 9443, "Secure port from apiserver to serve requests")
+	localCmd.Flags().Int32Var(&insecurePort, "insecure-port", 8080, "Insecure port from apiserver to serve requests")
 
 	localCmd.Flags().BoolVar(&bazel, "bazel", false, "if true, use bazel to build.  May require updating build rules with gazelle.")
 	localCmd.Flags().BoolVar(&gazelle, "gazelle", false, "if true, run gazelle before running bazel.")
@@ -153,6 +155,8 @@ func RunApiserver() *exec.Cmd {
 	flags := []string{
 		fmt.Sprintf("--etcd-servers=%s", etcd),
 		fmt.Sprintf("--secure-port=%v", securePort),
+		fmt.Sprintf("--insecure-port=%v", insecurePort),
+		fmt.Sprintf("--insecure-bind-address=127.0.0.1"),
 	}
 
 	if disableDelegatedAuth {
