@@ -189,7 +189,7 @@ func createResource(boilerplate string) {
 		if !created {
 			if !found {
 				log.Printf("admission initializer already exists.")
-				found = true
+				// found = true
 			}
 		}
 
