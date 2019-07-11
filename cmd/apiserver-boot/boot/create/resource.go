@@ -17,6 +17,7 @@ limitations under the License.
 package create
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"os"
@@ -37,7 +38,9 @@ import (
 var kindName string
 var resourceName string
 var nonNamespacedKind bool
-var generateAdmissionController bool
+var skipGenerateAdmissionController bool
+var skipGenerateResource bool
+var skipGenerateController bool
 
 var createResourceCmd = &cobra.Command{
 	Use:   "resource",
@@ -53,7 +56,10 @@ func AddCreateResource(cmd *cobra.Command) {
 	RegisterResourceFlags(createResourceCmd)
 
 	createResourceCmd.Flags().BoolVar(&nonNamespacedKind, "non-namespaced", false, "if set, the API kind will be non namespaced")
-	createResourceCmd.Flags().BoolVar(&generateAdmissionController, "admission-controller", false, "if set, an admission controller for the resources will be generated")
+
+	createResourceCmd.Flags().BoolVar(&skipGenerateResource, "skip-resource", false, "if set, the resources will not be generated")
+	createResourceCmd.Flags().BoolVar(&skipGenerateController, "skip-controller", false, "if set, the controller will not be generated")
+	createResourceCmd.Flags().BoolVar(&skipGenerateAdmissionController, "skip-admission-controller", false, "if set, the admission controller will not be generated")
 
 	cmd.AddCommand(createResourceCmd)
 }
@@ -65,6 +71,23 @@ func RunCreateResource(cmd *cobra.Command, args []string) {
 
 	util.GetDomain()
 	ValidateResourceFlags()
+
+	reader := bufio.NewReader(os.Stdin)
+
+	if !cmd.Flag("skip-resource").Changed {
+		fmt.Println("Create Resource [y/n]")
+		skipGenerateResource = !Yesno(reader)
+	}
+
+	if !cmd.Flag("skip-controller").Changed {
+		fmt.Println("Create Controller [y/n]")
+		skipGenerateController = !Yesno(reader)
+	}
+
+	if !cmd.Flag("skip-admission-controller").Changed {
+		fmt.Println("Create Admission Controller [y/n]")
+		skipGenerateAdmissionController = !Yesno(reader)
+	}
 
 	cr := util.GetCopyright(copyright)
 
@@ -97,70 +120,72 @@ func createResource(boilerplate string) {
 
 	found := false
 
-	strategyFileName := fmt.Sprintf("%s_strategy.go", strings.ToLower(kindName))
-	unversionedPath := filepath.Join(dir, "pkg", "apis", groupName, strategyFileName)
-	created := util.WriteIfNotFound(unversionedPath, "unversioned-strategy-template", unversionedStrategyTemplate, a)
-	if !created {
-		if !found {
-			log.Printf("API group version kind %s/%s/%s already exists.",
-				groupName, versionName, kindName)
-			found = true
+	if !skipGenerateResource {
+		strategyFileName := fmt.Sprintf("%s_strategy.go", strings.ToLower(kindName))
+		unversionedPath := filepath.Join(dir, "pkg", "apis", groupName, strategyFileName)
+		created := util.WriteIfNotFound(unversionedPath, "unversioned-strategy-template", unversionedStrategyTemplate, a)
+		if !created {
+			if !found {
+				log.Printf("API group version kind %s/%s/%s already exists.",
+					groupName, versionName, kindName)
+				found = true
+			}
+		}
+
+		typesFileName := fmt.Sprintf("%s_types.go", strings.ToLower(kindName))
+		path := filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
+		created = util.WriteIfNotFound(path, "versioned-resource-template", versionedResourceTemplate, a)
+		if !created {
+			if !found {
+				log.Printf("API group version kind %s/%s/%s already exists.",
+					groupName, versionName, kindName)
+				found = true
+			}
+		}
+
+		os.MkdirAll(filepath.Join("docs", "examples"), 0700)
+		docpath := filepath.Join("docs", "examples", strings.ToLower(kindName), fmt.Sprintf("%s.yaml", strings.ToLower(kindName)))
+		created = util.WriteIfNotFound(docpath, "example-template", exampleTemplate, a)
+		if !created {
+			if !found {
+				log.Printf("Example %s already exists.", docpath)
+				found = true
+			}
+		}
+
+		os.MkdirAll("sample", 0700)
+		samplepath := filepath.Join("sample", fmt.Sprintf("%s.yaml", strings.ToLower(kindName)))
+		created = util.WriteIfNotFound(samplepath, "sample-template", sampleTemplate, a)
+		if !created {
+			if !found {
+				log.Printf("Sample %s already exists.", docpath)
+				found = true
+			}
+		}
+
+		// write the suite if it is missing
+		typesFileName = fmt.Sprintf("%s_suite_test.go", strings.ToLower(versionName))
+		path = filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
+		util.WriteIfNotFound(path, "version-suite-test-template", resourceSuiteTestTemplate, a)
+
+		typesFileName = fmt.Sprintf("%s_types_test.go", strings.ToLower(kindName))
+		path = filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
+		created = util.WriteIfNotFound(path, "resource-test-template", resourceTestTemplate, a)
+		if !created {
+			if !found {
+				log.Printf("API group version kind %s/%s/%s test already exists.",
+					groupName, versionName, kindName)
+				found = true
+			}
 		}
 	}
 
-	typesFileName := fmt.Sprintf("%s_types.go", strings.ToLower(kindName))
-	path := filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
-	created = util.WriteIfNotFound(path, "versioned-resource-template", versionedResourceTemplate, a)
-	if !created {
-		if !found {
-			log.Printf("API group version kind %s/%s/%s already exists.",
-				groupName, versionName, kindName)
-			found = true
-		}
-	}
-
-	os.MkdirAll(filepath.Join("docs", "examples"), 0700)
-	docpath := filepath.Join("docs", "examples", strings.ToLower(kindName), fmt.Sprintf("%s.yaml", strings.ToLower(kindName)))
-	created = util.WriteIfNotFound(docpath, "example-template", exampleTemplate, a)
-	if !created {
-		if !found {
-			log.Printf("Example %s already exists.", docpath)
-			found = true
-		}
-	}
-
-	os.MkdirAll("sample", 0700)
-	samplepath := filepath.Join("sample", fmt.Sprintf("%s.yaml", strings.ToLower(kindName)))
-	created = util.WriteIfNotFound(samplepath, "sample-template", sampleTemplate, a)
-	if !created {
-		if !found {
-			log.Printf("Sample %s already exists.", docpath)
-			found = true
-		}
-	}
-
-	// write the suite if it is missing
-	typesFileName = fmt.Sprintf("%s_suite_test.go", strings.ToLower(versionName))
-	path = filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
-	util.WriteIfNotFound(path, "version-suite-test-template", resourceSuiteTestTemplate, a)
-
-	typesFileName = fmt.Sprintf("%s_types_test.go", strings.ToLower(kindName))
-	path = filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
-	created = util.WriteIfNotFound(path, "resource-test-template", resourceTestTemplate, a)
-	if !created {
-		if !found {
-			log.Printf("API group version kind %s/%s/%s test already exists.",
-				groupName, versionName, kindName)
-			found = true
-		}
-	}
-
-	if generateAdmissionController {
+	if !skipGenerateAdmissionController {
 		// write the admission-controller initializer if it is missing
 		os.MkdirAll(filepath.Join("plugin", "admission"), 0700)
 		admissionInitializerFileName := "initializer.go"
-		path = filepath.Join(dir, "plugin", "admission", admissionInitializerFileName)
-		created = util.WriteIfNotFound(path, "admission-initializer-template", admissionControllerInitializerTemplate, a)
+		path := filepath.Join(dir, "plugin", "admission", admissionInitializerFileName)
+		created := util.WriteIfNotFound(path, "admission-initializer-template", admissionControllerInitializerTemplate, a)
 		if !created {
 			if !found {
 				log.Printf("admission initializer already exists.")
@@ -181,56 +206,58 @@ func createResource(boilerplate string) {
 		}
 	}
 
-	// write controller-runtime scaffolding templates
-	r := &resource.Resource{
-		Namespaced: !nonNamespacedKind,
-		Group:      groupName,
-		Version:    versionName,
-		Kind:       kindName,
-		Resource:   resourceName,
-	}
+	if !skipGenerateController {
+		// write controller-runtime scaffolding templates
+		r := &resource.Resource{
+			Namespaced: !nonNamespacedKind,
+			Group:      groupName,
+			Version:    versionName,
+			Kind:       kindName,
+			Resource:   resourceName,
+		}
 
-	err = (&scaffold.Scaffold{}).Execute(input.Options{
-		BoilerplatePath: "boilerplate.go.txt",
-	}, &Controller{
-		Resource: r,
-		Input: input.Input{
-			IfExistsAction: input.Skip,
-		},
-	})
-	if err != nil {
-		klog.Warningf("failed generating %v controller: %v", kindName, err)
-	}
+		err = (&scaffold.Scaffold{}).Execute(input.Options{
+			BoilerplatePath: "boilerplate.go.txt",
+		}, &Controller{
+			Resource: r,
+			Input: input.Input{
+				IfExistsAction: input.Skip,
+			},
+		})
+		if err != nil {
+			klog.Warningf("failed generating %v controller: %v", kindName, err)
+		}
 
-	err = (&scaffold.Scaffold{}).Execute(input.Options{
-		BoilerplatePath: "boilerplate.go.txt",
-	},
-		&manager.Controller{
-			Input: input.Input{
-				IfExistsAction: input.Skip,
-			},
+		err = (&scaffold.Scaffold{}).Execute(input.Options{
+			BoilerplatePath: "boilerplate.go.txt",
 		},
-		&controller.AddController{
-			Resource: r,
-			Input: input.Input{
-				IfExistsAction: input.Skip,
+			&manager.Controller{
+				Input: input.Input{
+					IfExistsAction: input.Skip,
+				},
 			},
-		},
-		&SuiteTest{
-			Resource: r,
-			Input: input.Input{
-				IfExistsAction: input.Skip,
+			&controller.AddController{
+				Resource: r,
+				Input: input.Input{
+					IfExistsAction: input.Skip,
+				},
 			},
-		},
-		&controller.Test{
-			Resource: r,
-			Input: input.Input{
-				IfExistsAction: input.Skip,
+			&SuiteTest{
+				Resource: r,
+				Input: input.Input{
+					IfExistsAction: input.Skip,
+				},
 			},
-		},
-	)
-	if err != nil {
-		klog.Warningf("failed generating controller basic packages: %v", err)
+			&controller.Test{
+				Resource: r,
+				Input: input.Input{
+					IfExistsAction: input.Skip,
+				},
+			},
+		)
+		if err != nil {
+			klog.Warningf("failed generating controller basic packages: %v", err)
+		}
 	}
 
 	if found {

@@ -17,6 +17,8 @@ limitations under the License.
 package create
 
 import (
+	"bufio"
+	"fmt"
 	"log"
 	"regexp"
 	"strings"
@@ -65,4 +67,30 @@ func RegisterResourceFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&versionName, "version", "", "name of the API version.  **must match regex v\\d+(alpha\\d+|beta\\d+)** e.g. v1, v1beta1, v1alpha1")
 	cmd.Flags().StringVar(&kindName, "kind", "", "name of the API kind.  **Must be CamelCased (match ^[A-Z]+[A-Za-z0-9]*$)**")
 	cmd.Flags().StringVar(&resourceName, "resource", "", "optional name of the API resource, defaults to the plural name of the lowercase kind")
+}
+
+// Yesno reads from stdin looking for one of "y", "yes", "n", "no" and returns
+// true for "y" and false for "n"
+func Yesno(reader *bufio.Reader) bool {
+	for {
+		text := readstdin(reader)
+		switch text {
+		case "y", "yes":
+			return true
+		case "n", "no":
+			return false
+		default:
+			fmt.Printf("invalid input %q, should be [y/n]", text)
+		}
+	}
+}
+
+// Readstdin reads a line from stdin trimming spaces, and returns the value.
+// log.Fatal's if there is an error.
+func readstdin(reader *bufio.Reader) string {
+	text, err := reader.ReadString('\n')
+	if err != nil {
+		log.Fatalf("Error when reading input: %v", err)
+	}
+	return strings.TrimSpace(text)
 }
