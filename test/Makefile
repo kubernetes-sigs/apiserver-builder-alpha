@@ -16,6 +16,8 @@
 
 all: test
 
+NON_INTERACTIVE_FLAG=--skip-resource=false --skip-controller=false --skip-admission-controller=false
+
 test: build
 	go test ./pkg/apis/...
 	go test ./pkg/controller/volumeclaim
@@ -26,10 +28,10 @@ test: build
 
 skeleton: cmds
 	apiserver-boot init repo --domain sample.kubernetes.io
-	apiserver-boot create group version resource --group storage --version v1 --kind VolumeClaim
-	apiserver-boot create group version resource --group storage --version v1 --kind SnapshotClaim
-	apiserver-boot create group version resource --group storage --version v1 --kind Volume --non-namespaced
-	apiserver-boot create group version resource --group storage --version v1 --kind Snapshot --non-namespaced
+	apiserver-boot create group version resource --group storage --version v1 --kind VolumeClaim $(NON_INTERACTIVE_FLAG)
+	apiserver-boot create group version resource --group storage --version v1 --kind SnapshotClaim $(NON_INTERACTIVE_FLAG)
+	apiserver-boot create group version resource --group storage --version v1 --kind Volume --non-namespaced $(NON_INTERACTIVE_FLAG)
+	apiserver-boot create group version resource --group storage --version v1 --kind Snapshot --non-namespaced $(NON_INTERACTIVE_FLAG)
 
 build: cmds skeleton
 	apiserver-boot build executables
