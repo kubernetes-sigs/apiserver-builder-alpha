@@ -15,7 +15,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"strconv"
 	"time"
@@ -76,19 +75,12 @@ func (e *Environment) initAPIAggregationEnvironment() (err error) {
 
 func (e *Environment) buildAggregatedAPIServer() (err error) {
 	// Compiling aggregated apiserver binary
-	binName := "aggregated-apiserver"
-	binPath := filepath.Join(e.KubeAPIServerEnvironment.ControlPlane.APIServer.CertDir, binName)
-	cmd := exec.Command("go",
-		append(
-			append(
-				[]string{"build", "-o", binPath}, e.AggregatedAPIServerBuildArgs...),
-			"../../../cmd/apiserver/main.go")...)
-	cmd.Env = os.Environ()
-	if err := cmd.Run(); err != nil {
+	compiledPath, err := gexec.Build("../../../cmd/apiserver/main.go")
+	if err != nil {
 		return err
 	}
 
-	e.AggregatedAPIServerBinaryPath = binPath
+	e.AggregatedAPIServerBinaryPath = compiledPath
 	e.AggregatedAPIServerSecurePort = 443
 	e.AggregatedAPIServerInsecurePort = 8080
 	e.AggregatedAPIServerFlags = []string{
@@ -199,5 +191,6 @@ func (e *Environment) StopLocalAggregatedAPIServer() (err error) {
 			return fmt.Errorf("port %v didn't released: %v", e.AggregatedAPIServerSecurePort, err)
 		}
 	}
+	gexec.CleanupBuildArtifacts()
 	return nil
 }
