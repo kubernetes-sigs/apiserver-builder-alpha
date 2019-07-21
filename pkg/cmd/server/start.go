@@ -21,10 +21,11 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"k8s.io/apiserver/pkg/admission"
-	"k8s.io/client-go/kubernetes/scheme"
 	"net/http"
 	"os"
+
+	"k8s.io/apiserver/pkg/admission"
+	"k8s.io/client-go/kubernetes/scheme"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -313,7 +314,7 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string,
 	if err != nil {
 		return err
 	}
-	genericConfig := aggregatedAPIServerConfig.RecommendedConfig.Config
+	genericConfig := &aggregatedAPIServerConfig.RecommendedConfig.Config
 
 	if o.PrintBearerToken {
 		klog.Infof("Serving on loopback...")
@@ -362,7 +363,7 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string,
 		handler = genericfilters.WithCORS(handler, genericConfig.CorsAllowedOriginList, nil, nil, nil, "true")
 		handler = genericfilters.WithTimeoutForNonLongRunningRequests(handler, genericConfig.LongRunningFunc, genericConfig.RequestTimeout)
 		handler = genericfilters.WithMaxInFlightLimit(handler, genericConfig.MaxRequestsInFlight, genericConfig.MaxMutatingRequestsInFlight, genericConfig.LongRunningFunc)
-		handler = genericapifilters.WithRequestInfo(handler, server.NewRequestInfoResolver(&genericConfig))
+		handler = genericapifilters.WithRequestInfo(handler, server.NewRequestInfoResolver(genericConfig))
 		handler = genericfilters.WithPanicRecovery(handler)
 		if err := aggregatedAPIServerConfig.InsecureServingInfo.Serve(handler, genericConfig.RequestTimeout, stopCh); err != nil {
 			return err
