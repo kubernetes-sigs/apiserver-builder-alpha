@@ -31,6 +31,7 @@ import (
 	"github.com/spf13/pflag"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	genericapifilters "k8s.io/apiserver/pkg/endpoints/filters"
 	openapinamer "k8s.io/apiserver/pkg/endpoints/openapi"
 	"k8s.io/apiserver/pkg/features"
@@ -71,21 +72,59 @@ type PostStartHook struct {
 	Name string
 }
 
+type StartOptions struct {
+	EtcdPath         string
+	Apis             []*builders.APIGroupBuilder
+	Openapidefs      openapi.GetOpenAPIDefinitions
+	Title            string
+	Version          string
+	TweakConfigFuncs []func(apiServer *apiserver.Config) error
+
+	//FlagConfigFunc handles user-defined flags
+	FlagConfigFuncs []func(*cobra.Command) error
+}
+
 // StartApiServer starts an apiserver hosting the provider apis and openapi definitions.
-func StartApiServer(etcdPath string, apis []*builders.APIGroupBuilder, openapidefs openapi.GetOpenAPIDefinitions, title, version string, tweakConfigFuncs ...func(apiServer *apiserver.Config) error) {
+func StartApiServer(etcdPath string, apis []*builders.APIGroupBuilder, openapidefs openapi.GetOpenAPIDefinitions,
+	title, version string, tweakConfigFuncs ...func(apiServer *apiserver.Config) error) error {
+	return StartApiServerWithOptions(&StartOptions{
+		EtcdPath:         etcdPath,
+		Apis:             apis,
+		Openapidefs:      openapidefs,
+		Title:            title,
+		Version:          version,
+		TweakConfigFuncs: tweakConfigFuncs,
+	})
+}
+
+func StartApiServerWithOptions(opts *StartOptions) error {
 	logs.InitLogs()
 	defer logs.FlushLogs()
 
-	GetOpenApiDefinition = openapidefs
+	GetOpenApiDefinition = opts.Openapidefs
 
 	signalCh := genericapiserver.SetupSignalHandler()
 	// To disable providers, manually specify the list provided by getKnownProviders()
-	cmd, _ := NewCommandStartServer(etcdPath, os.Stdout, os.Stderr, apis, signalCh, title, version, tweakConfigFuncs...)
+	cmd, _ := NewCommandStartServer(opts.EtcdPath, os.Stdout, os.Stderr, opts.Apis, signalCh,
+		opts.Title, opts.Version, opts.TweakConfigFuncs...)
+
+	errors := []error{}
+	for _, ff := range opts.FlagConfigFuncs {
+		if err := ff(cmd); err != nil {
+			errors = append(errors, err)
+		}
+	}
+
+	if len(errors) != 0 {
+		return utilerrors.NewAggregate(errors)
+	}
 
 	cmd.Flags().AddFlagSet(pflag.CommandLine)
 	if err := cmd.Execute(); err != nil {
-		panic(err)
+		return err
 	}
+
+	return nil
 }
 
 func NewServerOptions(etcdPath string, out, errOut io.Writer, b []*builders.APIGroupBuilder) *ServerOptions {

@@ -26,11 +26,18 @@ import (
 )
 
 func main() {
-	server.StartApiServer(
-		"/registry/sample.kubernetes.io",
-		apis.GetAllApiBuilders(),
-		openapi.GetOpenAPIDefinitions,
-		"Api",
-		"v0",
-	)
+	err := server.StartApiServerWithOptions(&server.StartOptions{
+		EtcdPath:    "/registry/sample.kubernetes.io",
+		Apis:        apis.GetAllApiBuilders(),
+		Openapidefs: openapi.GetOpenAPIDefinitions,
+		Title:       "Api",
+		Version:     "v0",
+
+		// TweakConfigFuncs []func(apiServer *apiserver.Config) error
+		// FlagConfigFuncs []func(*cobra.Command) error
+	})
+
+	if err != nil {
+		panic(err)
+	}
 }

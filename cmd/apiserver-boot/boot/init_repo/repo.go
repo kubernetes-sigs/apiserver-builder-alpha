@@ -149,7 +149,20 @@ import (
 
 func main() {
 	version := "v0"
-	server.StartApiServer("/registry/{{ .Domain }}", apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions, "Api", version)
+
+	err := server.StartApiServerWithOptions(&server.StartOptions{
+		EtcdPath:         "/registry/{{ .Domain }}",
+		Apis:             apis.GetAllApiBuilders(),
+		Openapidefs:      openapi.GetOpenAPIDefinitions,
+		Title:            "Api",
+		Version:          version,
+
+		// TweakConfigFuncs []func(apiServer *apiserver.Config) error
+		// FlagConfigFuncs []func(*cobra.Command) error
+	})
+	if err != nil {
+		panic(err)
+	}
 }
 `
 
