@@ -7,7 +7,7 @@ the document outlines how to build an apiserver implementation
 in Go using the Kubernetes api-machinery that may be aggregated with the core apiserver.
 
 The canonical source for Kubernetes API conventions and structure lives in the
-[kubernetes api-conventions page](https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md).
+[kubernetes api-conventions page](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md).
 
 While much of this information applies generally to Kubernetes APIs, parts apply only to APIs built using
 apiserver-builder.
