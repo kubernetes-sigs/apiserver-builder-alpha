@@ -162,6 +162,16 @@ func (r *BarStatusREST) New() runtime.Object {
 
 ```
 
+__Note__: When you are integrating your `Scale` subresource into the kubernetes HPA(HorizontalPodAutoScaler) 
+system, you will have to extend the custom REST implemetation by adding:
+
+```go
+// work around for scaling client
+func (r *BarScaleREST) GroupVersionKind(containingGV schema.GroupVersion) schema.GroupVersionKind {
+	return autoscalingv1.SchemeGroupVersion.WithKind("Scale")
+}
+```
+
 
 ## Anatomy of a REST implementation
 
