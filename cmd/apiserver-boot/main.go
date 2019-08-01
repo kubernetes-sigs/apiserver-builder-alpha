@@ -72,8 +72,8 @@ var cmd = &cobra.Command{
 	Example: `# Initialize your repository with scaffolding directories and go files.
 apiserver-boot init repo --domain example.com
 
-# Create new resource "Bee" in the "insect" group with version "v1beta"
-apiserver-boot create group version resource --group insect --version v1beta --kind Bee
+# Create new resource "Bee" in the "insect" group with version "v1beta1"
+apiserver-boot create group version resource --group insect --version v1beta1 --kind Bee
 
 # Build the generated code, apiserver and controller-manager so they be run locally.
 apiserver-boot build executables

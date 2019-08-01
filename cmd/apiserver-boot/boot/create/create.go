@@ -24,7 +24,7 @@ var createCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Command group for bootstrapping new resources.",
 	Long:  `Command group for bootstrapping new resources.`,
-	Example: `# Create new resource "Bee" in the "insect" group with version "v1beta"
+	Example: `# Create new resource "Bee" in the "insect" group with version "v1beta1"
 # Will automatically the group and version if they do not exist
 apiserver-boot create group version resource --group insect --version v1beta1 --kind Bee
 
@@ -33,7 +33,7 @@ apiserver-boot create group --group insect
 
 # Create a new version "v1beta" of group "insect"
 # Will automatically create group if it does not exist
-apiserver-boot create group --group insect --version v1beta`,
+apiserver-boot create group --group insect --version v1beta1`,
 	Run: RunCreate,
 }
 
