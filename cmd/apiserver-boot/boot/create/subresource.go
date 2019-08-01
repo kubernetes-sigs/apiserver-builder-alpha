@@ -36,8 +36,8 @@ var createSubresourceCmd = &cobra.Command{
 	Use:   "subresource",
 	Short: "Creates a subresource",
 	Long:  `Creates a subresource.  Creates file pkg/apis/<group>/<version>/<subresourceName>_<kind>_types.go and updates pkg/apis/<group>/<version>/<kind>_types.go with the subresource comment directive.`,
-	Example: `# Create new subresource "pollinate" of resource "Bee" in the "insect" group with version "v1beta"
-apiserver-boot create subresource --subresource pollinate --group insect --version v1beta --kind Bee`,
+	Example: `# Create new subresource "pollinate" of resource "Bee" in the "insect" group with version "v1beta1"
+apiserver-boot create subresource --subresource pollinate --group insect --version v1beta1 --kind Bee`,
 	Run: RunCreateSubresource,
 }
 

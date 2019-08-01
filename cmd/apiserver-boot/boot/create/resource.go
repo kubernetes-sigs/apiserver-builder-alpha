@@ -46,9 +46,9 @@ var createResourceCmd = &cobra.Command{
 	Use:   "resource",
 	Short: "Creates an API group, version and resource",
 	Long:  `Creates an API group, version and resource.  Will not recreate group or resource if they already exist.  Creates file pkg/apis/<group>/<version>/<kind>_types.go`,
-	Example: `# Create new resource "Bee" in the "insect" group with version "v1beta"
+	Example: `# Create new resource "Bee" in the "insect" group with version "v1beta1"
 # Will automatically the group and version if they do not exist
-apiserver-boot create group version resource --group insect --version v1beta --kind Bee`,
+apiserver-boot create group version resource --group insect --version v1beta1 --kind Bee`,
 	Run: RunCreateResource,
 }
 
