@@ -159,17 +159,29 @@ func NewCommandStartServer(etcdPath string, out, errOut io.Writer, builders []*b
 		o.RecommendedOptions.Admission.RecommendedPluginOrder = append(o.RecommendedOptions.Admission.RecommendedPluginOrder, pluginName)
 	}
 
+	klogFlags := flag.NewFlagSet("klog", flag.ExitOnError)
 	// Support overrides
 	cmd := &cobra.Command{
 		Short: "Launch an API server",
 		Long:  "Launch an API server",
 		RunE: func(c *cobra.Command, args []string) error {
+
+			// TODO: remove it after upgrading to 1.13+
+			// Sync the glog and klog flags.
+			klogFlags.VisitAll(func(f *flag.Flag) {
+				goFlag := flag.CommandLine.Lookup(f.Name)
+				if goFlag != nil {
+					goFlag.Value.Set(f.Value.String())
+				}
+			})
+
 			if err := o.Complete(); err != nil {
 				return err
 			}
 			if err := o.Validate(args); err != nil {
 				return err
 			}
+
 			if err := o.RunServer(stopCh, title, version, tweakConfigFuncs...); err != nil {
 				return err
 			}
@@ -188,17 +200,8 @@ func NewCommandStartServer(etcdPath string, out, errOut io.Writer, builders []*b
 	o.InsecureServingOptions.AddFlags(flags)
 	feature.DefaultFeatureGate.AddFlag(flags)
 
-	klogFlags := flag.NewFlagSet("klog", flag.ExitOnError)
 	klog.InitFlags(klogFlags)
 	flags.AddGoFlagSet(klogFlags)
-
-	// Sync the glog and klog flags.
-	klogFlags.VisitAll(func(f *flag.Flag) {
-		goFlag := flag.CommandLine.Lookup(f.Name)
-		if goFlag != nil {
-			goFlag.Value.Set(f.Value.String())
-		}
-	})
 
 	return cmd, o
 }
