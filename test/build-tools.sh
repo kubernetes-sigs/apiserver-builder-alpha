@@ -7,9 +7,8 @@ set -x -e
 # https://sigs.k8s.io/apiserver-builder-alpha/releases instead.
 
 (
-	cd /home/travis/gopath/src/github.com/
-	mkdir Masterminds
-	cd Masterminds
+    mkdir -p /home/travis/gopath/src/github.com/Masterminds
+	cd /home/travis/gopath/src/github.com/Masterminds
 	git clone https://github.com/Masterminds/glide.git
 	cd glide
 	make build
