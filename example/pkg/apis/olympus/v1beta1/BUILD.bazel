@@ -10,7 +10,7 @@ go_library(
         "zz_generated.deepcopy.go",
         "zz_generated.defaults.go",
     ],
-    importpath = "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/olympus/v1beta1",
+    importpath = "sigs.k8s.io/apiserver-builder-alpha/example/pkg/apis/olympus/v1beta1",
     visibility = ["//visibility:public"],
     deps = [
         "//example/pkg/apis/olympus:go_default_library",
@@ -32,7 +32,7 @@ go_test(
         "poseidon_types_test.go",
         "v1beta1_suite_test.go",
     ],
-    importpath = "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/olympus/v1beta1_test",
+    importpath = "sigs.k8s.io/apiserver-builder-alpha/example/pkg/apis/olympus/v1beta1_test",
     deps = [
         ":go_default_library",
         "//example/pkg/apis:go_default_library",

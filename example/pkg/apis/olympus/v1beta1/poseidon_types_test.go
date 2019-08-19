@@ -22,8 +22,8 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	. "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/olympus/v1beta1"
-	. "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/client/clientset_generated/clientset/typed/olympus/v1beta1"
+	. "sigs.k8s.io/apiserver-builder-alpha/example/pkg/apis/olympus/v1beta1"
+	. "sigs.k8s.io/apiserver-builder-alpha/example/pkg/client/clientset_generated/clientset/typed/olympus/v1beta1"
 )
 
 var _ = Describe("Poseidon", func() {

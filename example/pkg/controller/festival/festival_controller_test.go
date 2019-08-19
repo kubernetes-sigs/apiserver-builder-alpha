@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	kingsportv1 "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/kingsport/v1"
+	kingsportv1 "sigs.k8s.io/apiserver-builder-alpha/example/pkg/apis/kingsport/v1"
 	"github.com/onsi/gomega"
 	"golang.org/x/net/context"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"

@@ -45,7 +45,7 @@ func CreateAdmissionGenerator(apis *APIs, filename string, projectRootPath strin
 
 func (d *admissionGenerator) Imports(c *generator.Context) []string {
 	imports := []string{
-		"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/cmd/server",
+		"sigs.k8s.io/apiserver-builder-alpha/pkg/cmd/server",
 		"k8s.io/client-go/rest",
 		`genericserver "k8s.io/apiserver/pkg/server"`,
 	}

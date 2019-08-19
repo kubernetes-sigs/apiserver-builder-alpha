@@ -22,8 +22,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis"
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/test/suite"
+	"sigs.k8s.io/apiserver-builder-alpha/example/pkg/apis"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/test/suite"
 	"github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"

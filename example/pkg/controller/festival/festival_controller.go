@@ -19,7 +19,7 @@ package festival
 import (
 	"context"
 
-	kingsportv1 "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/kingsport/v1"
+	kingsportv1 "sigs.k8s.io/apiserver-builder-alpha/example/pkg/apis/kingsport/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"

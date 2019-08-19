@@ -48,9 +48,9 @@ import (
 	"k8s.io/klog"
 	openapi "k8s.io/kube-openapi/pkg/common"
 
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/apiserver"
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/validators"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/apiserver"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/validators"
 )
 
 var GetOpenApiDefinition openapi.GetOpenAPIDefinitions

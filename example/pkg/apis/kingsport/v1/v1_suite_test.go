@@ -19,14 +19,14 @@ package v1_test
 import (
 	"testing"
 
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/test"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/test"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/rest"
 
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis"
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/client/clientset_generated/clientset"
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/openapi"
+	"sigs.k8s.io/apiserver-builder-alpha/example/pkg/apis"
+	"sigs.k8s.io/apiserver-builder-alpha/example/pkg/client/clientset_generated/clientset"
+	"sigs.k8s.io/apiserver-builder-alpha/example/pkg/openapi"
 )
 
 var testenv *test.TestEnvironment

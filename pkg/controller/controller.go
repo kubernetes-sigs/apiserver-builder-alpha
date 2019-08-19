@@ -19,7 +19,7 @@ package controller
 import (
 	"time"
 
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"

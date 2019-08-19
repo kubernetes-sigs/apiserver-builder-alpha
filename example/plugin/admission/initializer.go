@@ -20,8 +20,8 @@ limitations under the License.
 package admission
 
 import (
-	aggregatedclientset "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/client/clientset_generated/clientset"
-	aggregatedinformerfactory "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/client/informers_generated/externalversions"
+	aggregatedclientset "sigs.k8s.io/apiserver-builder-alpha/example/pkg/client/clientset_generated/clientset"
+	aggregatedinformerfactory "sigs.k8s.io/apiserver-builder-alpha/example/pkg/client/informers_generated/externalversions"
 	"k8s.io/apiserver/pkg/admission"
 )
 

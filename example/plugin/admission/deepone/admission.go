@@ -21,9 +21,9 @@ package deeponeadmission
 
 import (
 	"fmt"
-	aggregatedadmission "github.com/kubernetes-incubator/apiserver-builder-alpha/example/plugin/admission"
-	aggregatedinformerfactory "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/client/informers_generated/externalversions"
-	aggregatedclientset "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/client/clientset_generated/clientset"
+	aggregatedadmission "sigs.k8s.io/apiserver-builder-alpha/example/plugin/admission"
+	aggregatedinformerfactory "sigs.k8s.io/apiserver-builder-alpha/example/pkg/client/informers_generated/externalversions"
+	aggregatedclientset "sigs.k8s.io/apiserver-builder-alpha/example/pkg/client/clientset_generated/clientset"
 	genericadmissioninitializer "k8s.io/apiserver/pkg/admission/initializer"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"

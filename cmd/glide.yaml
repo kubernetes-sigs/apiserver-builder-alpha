@@ -1,6 +1,6 @@
-package: github.com/kubernetes-incubator/apiserver-builder-alpha/cmd
+package: sigs.k8s.io/apiserver-builder-alpha/cmd
 ignore:
-- github.com/kubernetes-incubator/apiserver-builder-alpha
+- sigs.k8s.io/apiserver-builder-alpha
 import:
 - package: github.com/go-openapi/analysis
   version: b44dc874b601d9e4e2f6e19140e794ba24bead3b

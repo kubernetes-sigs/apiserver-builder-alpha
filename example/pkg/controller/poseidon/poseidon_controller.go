@@ -3,7 +3,7 @@ package poseidon
 import (
 	"context"
 
-	olympusv1beta1 "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/olympus/v1beta1"
+	olympusv1beta1 "sigs.k8s.io/apiserver-builder-alpha/example/pkg/apis/olympus/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"

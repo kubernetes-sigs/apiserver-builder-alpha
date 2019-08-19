@@ -24,7 +24,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
+	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 	"github.com/markbates/inflect"
 	"github.com/spf13/cobra"
 	"k8s.io/klog"
@@ -361,7 +361,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/test"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/test"
 	"k8s.io/client-go/rest"
 
 	"{{ .Repo }}/pkg/apis"

@@ -3,7 +3,7 @@ language: go
 go:
 - 1.11.2
 
-go_import_path: github.com/kubernetes-incubator/apiserver-builder-alpha
+go_import_path: sigs.k8s.io/apiserver-builder-alpha
 
 cache:
   directories:

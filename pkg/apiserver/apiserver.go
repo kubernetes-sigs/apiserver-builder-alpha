@@ -17,7 +17,7 @@ limitations under the License.
 package apiserver
 
 import (
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"

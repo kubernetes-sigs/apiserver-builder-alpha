@@ -20,9 +20,9 @@ import (
 	"flag"
 	"os"
 
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis"
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/controller"
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/webhook"
+	"sigs.k8s.io/apiserver-builder-alpha/example/pkg/apis"
+	"sigs.k8s.io/apiserver-builder-alpha/example/pkg/controller"
+	"sigs.k8s.io/apiserver-builder-alpha/example/pkg/webhook"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
