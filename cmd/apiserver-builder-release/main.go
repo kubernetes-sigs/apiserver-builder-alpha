@@ -449,15 +449,15 @@ func BuildLocalVendor(tooldir string) {
 		filepath.Join("vendor"),
 		filepath.Join(tooldir, "src"))
 	RunCmd(c, "")
-	os.MkdirAll(filepath.Join(tooldir, "src", "vendor", "github.com", "kubernetes-incubator", "apiserver-builder-alpha"), 0700)
+	os.MkdirAll(filepath.Join(tooldir, "src", "vendor", "sigs.k8s.io", "apiserver-builder-alpha"), 0700)
 	c = exec.Command("cp", "-R", "-H",
 		filepath.Join("pkg"),
-		filepath.Join(tooldir, "src", "vendor", "github.com", "kubernetes-incubator", "apiserver-builder-alpha", "pkg"))
+		filepath.Join(tooldir, "src", "vendor", "sigs.k8s.io", "apiserver-builder-alpha", "pkg"))
 	RunCmd(c, "")
 
 	c = exec.Command("bash", "-c",
 		fmt.Sprintf("find %s -name BUILD.bazel| xargs sed -i='' s'|//pkg|//vendor/sigs.k8s.io/apiserver-builder-alpha/pkg|g'",
-			filepath.Join(tooldir, "src", "vendor", "github.com", "kubernetes-incubator", "apiserver-builder-alpha", "pkg"),
+			filepath.Join(tooldir, "src", "vendor", "sigs.k8s.io", "apiserver-builder-alpha", "pkg"),
 		))
 	RunCmd(c, "")
 
