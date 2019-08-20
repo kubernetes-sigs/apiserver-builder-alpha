@@ -17,7 +17,7 @@ limitations under the License.
 package v1
 
 import (
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/innsmouth/common"
+	"sigs.k8s.io/apiserver-builder-alpha/example/pkg/apis/innsmouth/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

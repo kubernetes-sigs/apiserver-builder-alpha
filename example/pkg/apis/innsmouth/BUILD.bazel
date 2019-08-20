@@ -8,7 +8,7 @@ go_library(
         "zz_generated.deepcopy.go",
         "zz_generated.defaults.go",
     ],
-    importpath = "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/innsmouth",
+    importpath = "sigs.k8s.io/apiserver-builder-alpha/example/pkg/apis/innsmouth",
     visibility = ["//visibility:public"],
     deps = [
         "//example/pkg/apis/innsmouth/common:go_default_library",

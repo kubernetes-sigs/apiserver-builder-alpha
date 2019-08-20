@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/controller/poseidon"
+	"sigs.k8s.io/apiserver-builder-alpha/example/pkg/controller/poseidon"
 )
 
 func init() {

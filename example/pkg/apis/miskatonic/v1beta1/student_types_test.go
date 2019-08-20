@@ -17,7 +17,7 @@ limitations under the License.
 package v1beta1_test
 
 import (
-	. "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/miskatonic/v1beta1"
+	. "sigs.k8s.io/apiserver-builder-alpha/example/pkg/apis/miskatonic/v1beta1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

@@ -27,7 +27,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiserver-boot/boot/build"
+	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/build"
 	"k8s.io/client-go/util/homedir"
 )
 

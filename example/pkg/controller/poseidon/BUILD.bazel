@@ -6,7 +6,7 @@ go_library(
         "controller.go",
         "zz_generated.api.register.go",
     ],
-    importpath = "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/controller/poseidon",
+    importpath = "sigs.k8s.io/apiserver-builder-alpha/example/pkg/controller/poseidon",
     visibility = ["//visibility:public"],
     deps = [
         "//example/pkg/apis/olympus/v1beta1:go_default_library",
@@ -30,7 +30,7 @@ go_test(
         "controller_test.go",
         "poseidon_suite_test.go",
     ],
-    importpath = "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/controller/poseidon_test",
+    importpath = "sigs.k8s.io/apiserver-builder-alpha/example/pkg/controller/poseidon_test",
     deps = [
         ":go_default_library",
         "//example/pkg/apis:go_default_library",

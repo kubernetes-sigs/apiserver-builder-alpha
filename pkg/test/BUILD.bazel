@@ -7,7 +7,7 @@ go_library(
         "ginkgo.go",
         "server.go",
     ],
-    importpath = "github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/test",
+    importpath = "sigs.k8s.io/apiserver-builder-alpha/pkg/test",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/builders:go_default_library",

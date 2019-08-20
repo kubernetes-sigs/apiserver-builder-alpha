@@ -17,12 +17,12 @@ limitations under the License.
 package main
 
 import (
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis"
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/openapi"
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/cmd/server"
+	"sigs.k8s.io/apiserver-builder-alpha/example/pkg/apis"
+	"sigs.k8s.io/apiserver-builder-alpha/example/pkg/openapi"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/cmd/server"
 
 	// import the package to install custom admission controllers and custom admission initializers
-	_ "github.com/kubernetes-incubator/apiserver-builder-alpha/example/plugin/admission/install"
+	_ "sigs.k8s.io/apiserver-builder-alpha/example/plugin/admission/install"
 )
 
 func main() {

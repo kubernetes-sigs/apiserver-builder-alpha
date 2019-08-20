@@ -21,7 +21,7 @@
 #  version = "2.4.0"
 
 # Uncomment to update deps with dep tool
-# ignored = ["github.com/kubernetes-incubator/apiserver-builder-alpha","github.com/kubernetes-incubator/apiserver-builder-alpha/cmd"]
+# ignored = ["sigs.k8s.io/apiserver-builder-alpha","sigs.k8s.io/apiserver-builder-alpha/cmd"]
 
 required = [
   "github.com/json-iterator/go",
@@ -41,7 +41,7 @@ required = [
 # Comment to update deps with dep tool
 [[constraint]]
   version = "v1.12.alpha.4"
-  name = "github.com/kubernetes-incubator/apiserver-builder-alpha"
+  name = "sigs.k8s.io/apiserver-builder-alpha"
 
 [[constraint]]
   name = "github.com/emicklei/go-restful"

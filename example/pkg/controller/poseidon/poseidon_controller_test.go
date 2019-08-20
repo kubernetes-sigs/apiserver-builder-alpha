@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	olympusv1beta1 "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/olympus/v1beta1"
+	olympusv1beta1 "sigs.k8s.io/apiserver-builder-alpha/example/pkg/apis/olympus/v1beta1"
 	"github.com/onsi/gomega"
 	"golang.org/x/net/context"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"

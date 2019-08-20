@@ -6,7 +6,7 @@ go_library(
         "deps.go",
         "main.go",
     ],
-    importpath = "github.com/kubernetes-incubator/apiserver-builder-alpha/example/cmd/apiserver",
+    importpath = "sigs.k8s.io/apiserver-builder-alpha/example/cmd/apiserver",
     visibility = ["//visibility:private"],
     deps = [
         "//example/pkg/apis:go_default_library",
@@ -24,7 +24,7 @@ go_library(
 
 go_binary(
     name = "apiserver",
-    importpath = "github.com/kubernetes-incubator/apiserver-builder-alpha/example/cmd/apiserver",
+    importpath = "sigs.k8s.io/apiserver-builder-alpha/example/cmd/apiserver",
     library = ":go_default_library",
     visibility = ["//visibility:public"],
 )

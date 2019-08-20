@@ -3,6 +3,6 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["constants.go"],
-    importpath = "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/innsmouth/common",
+    importpath = "sigs.k8s.io/apiserver-builder-alpha/example/pkg/apis/innsmouth/common",
     visibility = ["//visibility:public"],
 )

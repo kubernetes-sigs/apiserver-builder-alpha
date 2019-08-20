@@ -2,7 +2,7 @@ package v1beta1
 
 import (
 	"fmt"
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
 )
 
 func init() {

@@ -18,7 +18,7 @@ package miskatonic
 
 import (
 	"context"
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apiserver/pkg/registry/generic"
 	"k8s.io/apiserver/pkg/registry/rest"

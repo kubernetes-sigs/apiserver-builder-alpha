@@ -20,7 +20,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/emicklei/go-restful/log"
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiserver-boot/boot/init_repo"
+	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/init_repo"
 )
 
 var vendorCmd = &cobra.Command{

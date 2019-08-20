@@ -10,7 +10,7 @@ go_library(
         "zz_generated.deepcopy.go",
         "zz_generated.defaults.go",
     ],
-    importpath = "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/apis/miskatonic",
+    importpath = "sigs.k8s.io/apiserver-builder-alpha/example/pkg/apis/miskatonic",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/builders:go_default_library",

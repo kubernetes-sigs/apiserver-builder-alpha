@@ -24,7 +24,7 @@ import (
 	genericregistry "k8s.io/apiserver/pkg/registry/generic/registry"
 	"k8s.io/apiserver/pkg/registry/generic"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/builders"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
 )
 
 //var _ rest.CreaterUpdater = NewStudentREST()

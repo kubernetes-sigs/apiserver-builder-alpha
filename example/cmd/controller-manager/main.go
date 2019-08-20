@@ -20,8 +20,8 @@ import (
 	"flag"
 	"log"
 
-	examplecontroller "github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/controller"
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/pkg/controller"
+	examplecontroller "sigs.k8s.io/apiserver-builder-alpha/example/pkg/controller"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/controller"
 )
 
 var kubeconfig = flag.String("kubeconfig", "", "path to kubeconfig")

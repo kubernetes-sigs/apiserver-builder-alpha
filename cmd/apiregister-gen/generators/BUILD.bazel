@@ -12,7 +12,7 @@ go_library(
         "util.go",
         "versioned_generator.go",
     ],
-    importpath = "github.com/kubernetes-incubator/apiserver-builder-alpha/cmd/apiregister-gen/generators",
+    importpath = "sigs.k8s.io/apiserver-builder-alpha/cmd/apiregister-gen/generators",
     visibility = ["//visibility:public"],
     deps = [
         "//vendor/github.com/markbates/inflect:go_default_library",

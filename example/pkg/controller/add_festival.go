@@ -17,7 +17,7 @@ limitations under the License.
 package controller
 
 import (
-	"github.com/kubernetes-incubator/apiserver-builder-alpha/example/pkg/controller/festival"
+	"sigs.k8s.io/apiserver-builder-alpha/example/pkg/controller/festival"
 )
 
 func init() {
