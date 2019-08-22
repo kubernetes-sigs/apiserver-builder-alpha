@@ -39,9 +39,9 @@ required = [
 ]
 
 # Comment to update deps with dep tool
-[[constraint]]
-  version = "v1.12.alpha.4"
-  name = "sigs.k8s.io/apiserver-builder-alpha"
+#[[constraint]]
+#  version = "v1.12.alpha.4"
+#  name = "sigs.k8s.io/apiserver-builder-alpha"
 
 [[constraint]]
   name = "github.com/emicklei/go-restful"
@@ -82,61 +82,37 @@ required = [
 [[constraint]]
   name = "github.com/spf13/viper"
 
-[[constraint]]
-  version = "kubernetes-1.12.3"
+[[override]]
+  version = "kubernetes-1.15.3"
   name = "k8s.io/api"
 
-[[constraint]]
-  version = "kubernetes-1.12.3"
+[[override]]
+  version = "kubernetes-1.15.3"
   name = "k8s.io/apiextensions-apiserver"
 
-[[constraint]]
-  version = "kubernetes-1.12.3"
+[[override]]
+  version = "kubernetes-1.15.3"
   name = "k8s.io/kube-aggregator"
 
-[[constraint]]
-  version = "kubernetes-1.12.3"
+[[override]]
+  version = "kubernetes-1.15.3"
   name = "k8s.io/apimachinery"
 
-[[constraint]]
-  version = "kubernetes-1.12.3"
+[[override]]
+  version = "kubernetes-1.15.3"
   name = "k8s.io/apiserver"
 
 [[override]]
-  branch = "release-9.0"
+  version = "v12.0.0"
   name = "k8s.io/client-go"
 
 [[constraint]]
   name = "k8s.io/gengo"
   revision = "fdcf9f9480fdd5bf2b3c3df9bf4ecd22b25b87e2"
 
-[[constraint]]
+[[override]]
   name = "k8s.io/kube-openapi"
-  revision = "0cf8f7e6ed1d2e3d47d02e3b6e559369af24d803"
-
-[[constraint]]
-  name = "k8s.io/klog"
-  version = "0.2.0"
-
-[[constraint]]
-  name = "github.com/json-iterator/go"
-  revision = "f2b4162afba35581b6d4a50d3b8f34e33c144682"
-
-[[constraint]]
-  name = "github.com/coreos/etcd"
-  version = "=3.2.24"
-
-[[constraint]]
-  name = "google.golang.org/genproto"
-  revision = "09f6ed296fc66555a25fe4ce95173148778dfa85"
-
-[[constraint]]
-  name = "github.com/golang/protobuf"
-  revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
-
-[[constraint]]
-  name = "google.golang.org/grpc"
-  version = "=1.7.5"
+  revision = "b3a7cee44a305be0a69e1b9ac03018307287e1b0"
 
 [[constraint]]
   name = "github.com/imdario/mergo"
@@ -162,4 +138,9 @@ required = [
 
 [[constraint]]
   name = "sigs.k8s.io/controller-runtime"
-  version = "0.1.8"
+  version = "v0.2.0-rc.0"
+
+[[override]]
+  name = "sigs.k8s.io/structured-merge-diff"
+  revision = "e85c7b244fd2cc57bb829d73a061f93a441e63ce"
+
