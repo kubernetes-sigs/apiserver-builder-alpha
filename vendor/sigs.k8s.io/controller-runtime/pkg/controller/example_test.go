@@ -19,15 +19,15 @@ package controller_test
 import (
 	"os"
 
-	"k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
@@ -70,14 +70,17 @@ func ExampleController() {
 	}
 
 	// Watch for Pod create / update / delete events and call Reconcile
-	err = c.Watch(&source.Kind{Type: &v1.Pod{}}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		log.Error(err, "unable to watch pods")
 		os.Exit(1)
 	}
 
 	// Start the Controller through the manager.
-	mgr.Start(signals.SetupSignalHandler())
+	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
+		log.Error(err, "unable to continue running manager")
+		os.Exit(1)
+	}
 }
 
 // This example starts a new Controller named "pod-controller" to Watch Pods with the unstructured object and call a no-op Reconciler.
@@ -111,5 +114,8 @@ func ExampleController_unstructured() {
 	}
 
 	// Start the Controller through the manager.
-	mgr.Start(signals.SetupSignalHandler())
+	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
+		log.Error(err, "unable to continue running manager")
+		os.Exit(1)
+	}
 }
