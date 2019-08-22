@@ -702,12 +702,13 @@
   revision = "a6bd8cefa1811bd24b86f8902872e4e8225f74c4"
 
 [[projects]]
+  branch = "master"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows"
   ]
-  revision = "7ddbeae9ae08c6a06a59597f0c9edbc5ff2444ce"
+  revision = "fde4db37ae7ad8191b03d30d27f258b5291ae4e3"
 
 [[projects]]
   name = "golang.org/x/text"
