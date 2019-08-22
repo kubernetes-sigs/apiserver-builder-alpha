@@ -40,7 +40,6 @@ import (
 	genericfilters "k8s.io/apiserver/pkg/server/filters"
 	genericoptions "k8s.io/apiserver/pkg/server/options"
 	"k8s.io/apiserver/pkg/util/feature"
-	"k8s.io/apiserver/pkg/util/logs"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -98,8 +97,6 @@ func StartApiServer(etcdPath string, apis []*builders.APIGroupBuilder, openapide
 }
 
 func StartApiServerWithOptions(opts *StartOptions) error {
-	logs.InitLogs()
-	defer logs.FlushLogs()
 
 	GetOpenApiDefinition = opts.Openapidefs
 
