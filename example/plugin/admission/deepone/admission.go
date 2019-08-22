@@ -52,12 +52,12 @@ func (p *deeponePlugin) ValidateInitialization() error {
 	return nil
 }
 
-func (p *deeponePlugin) Admit(a admission.Attributes) error {
+func (p *deeponePlugin) Admit(a admission.Attributes, o admission.ObjectInterfaces) error {
 	fmt.Println("admitting deepones")
 	return nil
 }
 
-func (p *deeponePlugin) Validate(a admission.Attributes) error {
+func (p *deeponePlugin) Validate(a admission.Attributes, o admission.ObjectInterfaces) error {
 	return nil
 }
 
