@@ -2,6 +2,14 @@ package suite
 
 import (
 	"fmt"
+	"k8s.io/utils/pointer"
+	"net"
+	"net/http"
+	"os"
+	"os/exec"
+	"strconv"
+	"time"
+
 	"github.com/onsi/gomega/gexec"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -11,13 +19,8 @@ import (
 	"k8s.io/client-go/rest"
 	apiregistrationv1 "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1"
 	apiregistrationv1client "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset/typed/apiregistration/v1"
-	"net"
-	"net/http"
-	"os"
-	"os/exec"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
-	"strconv"
-	"time"
+	"sigs.k8s.io/testing_frameworks/integration/addr"
 )
 
 type Environment struct {
@@ -34,9 +37,11 @@ type Environment struct {
 }
 
 func NewDefaultTestingEnvironment() *Environment {
+	securePort, _, _ := addr.Suggest()
+	insecurePort, _, _ := addr.Suggest()
 	return &Environment{
-		AggregatedAPIServerSecurePort:   443,
-		AggregatedAPIServerInsecurePort: 8080,
+		AggregatedAPIServerSecurePort:   securePort,
+		AggregatedAPIServerInsecurePort: insecurePort,
 	}
 }
 
@@ -81,8 +86,6 @@ func (e *Environment) buildAggregatedAPIServer() (err error) {
 	}
 
 	e.AggregatedAPIServerBinaryPath = compiledPath
-	e.AggregatedAPIServerSecurePort = 443
-	e.AggregatedAPIServerInsecurePort = 8080
 	e.AggregatedAPIServerFlags = []string{
 		"--etcd-servers=" + e.KubeAPIServerEnvironment.ControlPlane.APIServer.EtcdURL.String(),
 		"--cert-dir=" + e.KubeAPIServerEnvironment.ControlPlane.APIServer.CertDir,
@@ -135,6 +138,7 @@ func (e *Environment) installAggregatedAPIServer(group, version string) (err err
 			Service: &apiregistrationv1.ServiceReference{
 				Namespace: namespace,
 				Name:      serviceName,
+				Port:      pointer.Int32Ptr(int32(e.AggregatedAPIServerSecurePort)),
 			},
 		},
 	}); err != nil {
@@ -164,12 +168,11 @@ func (e *Environment) startAggregatedAPIServer() (err error) {
 		var healthCheckErr error
 		_, healthCheckErr = http.Get("http://" + net.JoinHostPort("127.0.0.1", strconv.Itoa(e.AggregatedAPIServerInsecurePort)) + "/healthz")
 		return healthCheckErr == nil, nil
-	}); err == nil {
-		e.AggregatedAPIServerSession = session
-		return nil
+	}); err != nil {
+		return fmt.Errorf("failed starting aggregated apiserver: %v", err)
 	}
-
-	return fmt.Errorf("failed starting aggregated apiserver")
+	e.AggregatedAPIServerSession = session
+	return nil
 }
 
 func (e *Environment) StopLocalKubeAPIServer() (err error) {

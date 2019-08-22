@@ -21,9 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"k8s.io/apiserver/pkg/util/webhook"
 	"net/http"
-	"net/url"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -46,8 +44,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog"
 	openapi "k8s.io/kube-openapi/pkg/common"
-	aggregatorapiserver "k8s.io/kube-aggregator/pkg/apiserver"
-
 	"sigs.k8s.io/apiserver-builder-alpha/pkg/apiserver"
 	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
 	"sigs.k8s.io/apiserver-builder-alpha/pkg/validators"
@@ -249,7 +245,7 @@ func (o ServerOptions) Config(tweakConfigFuncs ...func(config *apiserver.Config)
 	loopbackKubeConfig, kubeInformerFactory, err := o.buildLoopback()
 	if loopbackClientOptional {
 		if err != nil {
-			klog.Warning("attempting to instantiate loopback client but failed..")
+			klog.Warning("attempting to instantiate loopback client but failed: %v", err)
 		} else {
 			serverConfig.LoopbackClientConfig = loopbackKubeConfig
 			serverConfig.SharedInformerFactory = kubeInformerFactory
@@ -259,10 +255,6 @@ func (o ServerOptions) Config(tweakConfigFuncs ...func(config *apiserver.Config)
 			return nil, err
 		}
 	}
-
-	serviceResolver := buildServiceResolver(false, serverConfig.LoopbackClientConfig.Host, kubeInformerFactory)
-
-	authInfoResolverWrapper := webhook.NewDefaultAuthenticationInfoResolverWrapper(nil, serverConfig.LoopbackClientConfig)
 
 	err = applyOptions(
 		&serverConfig.Config,
@@ -276,10 +268,7 @@ func (o ServerOptions) Config(tweakConfigFuncs ...func(config *apiserver.Config)
 				loopbackKubeConfig,
 				kubeInformerFactory,
 				o.RecommendedOptions.ProcessInfo,
-				&genericoptions.WebhookOptions{
-					AuthInfoResolverWrapper: authInfoResolverWrapper,
-					ServiceResolver:         serviceResolver,
-				},
+				nil,
 			)
 		},
 		o.RecommendedOptions.Features.ApplyTo,
@@ -442,25 +431,6 @@ func readOpenapi(bearerToken string, handler *genericapiserver.APIServerHandler)
 	resp := &BufferedResponse{}
 	handler.ServeHTTP(resp, req)
 	return resp.String()
-}
-
-func buildServiceResolver(enabledAggregatorRouting bool, hostname string, informer informers.SharedInformerFactory) webhook.ServiceResolver {
-	var serviceResolver webhook.ServiceResolver
-	if enabledAggregatorRouting {
-		serviceResolver = aggregatorapiserver.NewEndpointServiceResolver(
-			informer.Core().V1().Services().Lister(),
-			informer.Core().V1().Endpoints().Lister(),
-		)
-	} else {
-		serviceResolver = aggregatorapiserver.NewClusterIPServiceResolver(
-			informer.Core().V1().Services().Lister(),
-		)
-	}
-	// resolve kubernetes.default.svc locally
-	if localHost, err := url.Parse(hostname); err == nil {
-		serviceResolver = aggregatorapiserver.NewLoopbackServiceResolver(serviceResolver, localHost)
-	}
-	return serviceResolver
 }
 
 type BufferedResponse struct {

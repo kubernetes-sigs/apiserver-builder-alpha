@@ -108,7 +108,7 @@ func (te *TestEnvironment) startApiserver(
 
 	options.RecommendedOptions.SecureServing.BindPort = te.ApiserverPort
 	options.RunDelegatedAuth = false
-	options.RecommendedOptions.Etcd.StorageConfig.ServerList = []string{
+	options.RecommendedOptions.Etcd.StorageConfig.Transport.ServerList = []string{
 		fmt.Sprintf("http://localhost:%d", te.EtcdClientPort),
 	}
 	tmpdir, err := ioutil.TempDir("", "apiserver-test")
@@ -117,6 +117,7 @@ func (te *TestEnvironment) startApiserver(
 	}
 	options.RecommendedOptions.SecureServing.ServerCert = genericoptions.GeneratableKeyCert{
 		CertDirectory: tmpdir,
+		PairName:      "apiserver",
 	}
 
 	// Notify once the apiserver is ready to serve traffic
