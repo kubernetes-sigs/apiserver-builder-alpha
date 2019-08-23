@@ -16,10 +16,11 @@
     "autorest/adal",
     "autorest/azure",
     "autorest/date",
-    "version"
+    "logger",
+    "tracing"
   ]
-  revision = "bca49d5b51a50dc5bb17bbf6204c711c6dbded06"
-  version = "v10.14.0"
+  revision = "5e7a399d8bbf4953ab0c8e3167d7fd535fd74ce1"
+  version = "v13.0.0"
 
 [[projects]]
   name = "github.com/NYTimes/gziphandler"
@@ -179,15 +180,6 @@
   packages = ["."]
   revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
   version = "v3.2.0"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/docker/spdystream"
-  packages = [
-    ".",
-    "spdy"
-  ]
-  revision = "6480d4af844c189cf5dd913db24ddd339d3a4f85"
 
 [[projects]]
   name = "github.com/emicklei/go-restful"
@@ -484,12 +476,6 @@
   name = "github.com/munnerz/goautoneg"
   packages = ["."]
   revision = "2ae31c8b6b30d2f4c8100c20d527b571e9c433bb"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/mxk/go-flowrate"
-  packages = ["flowrate"]
-  revision = "cca7078d478f8520f85629ad7c68962d31ed7682"
 
 [[projects]]
   name = "github.com/onsi/ginkgo"
@@ -925,7 +911,6 @@
     "pkg/api/equality",
     "pkg/api/errors",
     "pkg/api/meta",
-    "pkg/api/meta/table",
     "pkg/api/resource",
     "pkg/api/validation",
     "pkg/api/validation/path",
@@ -952,17 +937,13 @@
     "pkg/util/cache",
     "pkg/util/clock",
     "pkg/util/diff",
-    "pkg/util/duration",
     "pkg/util/errors",
     "pkg/util/framer",
-    "pkg/util/httpstream",
-    "pkg/util/httpstream/spdy",
     "pkg/util/intstr",
     "pkg/util/json",
     "pkg/util/mergepatch",
     "pkg/util/naming",
     "pkg/util/net",
-    "pkg/util/proxy",
     "pkg/util/rand",
     "pkg/util/runtime",
     "pkg/util/sets",
@@ -976,7 +957,6 @@
     "pkg/version",
     "pkg/watch",
     "third_party/forked/golang/json",
-    "third_party/forked/golang/netutil",
     "third_party/forked/golang/reflect"
   ]
   revision = "f2f3a405f61d6c2cdc0d00687c1b5d90de91e9f0"
@@ -1070,7 +1050,6 @@
     "pkg/util/feature",
     "pkg/util/flushwriter",
     "pkg/util/openapi",
-    "pkg/util/proxy",
     "pkg/util/webhook",
     "pkg/util/wsstream",
     "plugin/pkg/audit/buffered",
@@ -1285,29 +1264,10 @@
   name = "k8s.io/kube-aggregator"
   packages = [
     "pkg/apis/apiregistration",
-    "pkg/apis/apiregistration/install",
     "pkg/apis/apiregistration/v1",
     "pkg/apis/apiregistration/v1beta1",
-    "pkg/apis/apiregistration/validation",
-    "pkg/apiserver",
-    "pkg/apiserver/scheme",
     "pkg/client/clientset_generated/clientset/scheme",
-    "pkg/client/clientset_generated/clientset/typed/apiregistration/v1",
-    "pkg/client/clientset_generated/internalclientset",
-    "pkg/client/clientset_generated/internalclientset/scheme",
-    "pkg/client/clientset_generated/internalclientset/typed/apiregistration/internalversion",
-    "pkg/client/informers/internalversion",
-    "pkg/client/informers/internalversion/apiregistration",
-    "pkg/client/informers/internalversion/apiregistration/internalversion",
-    "pkg/client/informers/internalversion/internalinterfaces",
-    "pkg/client/listers/apiregistration/internalversion",
-    "pkg/controllers",
-    "pkg/controllers/openapi",
-    "pkg/controllers/openapi/aggregator",
-    "pkg/controllers/status",
-    "pkg/registry/apiservice",
-    "pkg/registry/apiservice/etcd",
-    "pkg/registry/apiservice/rest"
+    "pkg/client/clientset_generated/clientset/typed/apiregistration/v1"
   ]
   revision = "13daafd3604f05ada8be6c28f4f91fbc3d64dfbe"
   version = "kubernetes-1.15.3"
@@ -1317,7 +1277,6 @@
   packages = [
     "cmd/openapi-gen",
     "cmd/openapi-gen/args",
-    "pkg/aggregator",
     "pkg/builder",
     "pkg/common",
     "pkg/generators",
@@ -1430,6 +1389,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8eaaaff4fd7c0bcbbe07c166687ab0a2f2b52bfb20be12051cf5153127479e4a"
+  inputs-digest = "705780a668dd78db0fb2d688f8ecbc8f49c7bc6378195113f180634c39bebe7c"
   solver-name = "gps-cdcl"
   solver-version = 1
