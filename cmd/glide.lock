@@ -1,5 +1,5 @@
-hash: 2b6214953b7eb093013df5235739b8c1cbf08ca4f0c44e6d2af3432081301242
-updated: 2019-08-23T14:02:13.506776+08:00
+hash: 07c144a2a5e467842765e2a08596313487db815a43a5e873cbb828b4405da542
+updated: 2019-08-23T15:18:47.644734+08:00
 imports:
 - name: github.com/emicklei/go-restful
   version: ff4f55a206334ef123e4f79bbf348980da81ca46
@@ -30,7 +30,9 @@ imports:
   subpackages:
   - proto
 - name: github.com/golang/glog
-  version: 44145f04b68cf362d9c4df2182967c2275eaefed
+  version: 89e63fd5117f8c20208186ef85f096703a280c20
+  repo: https://github.com/kubernetes/klog
+  vcs: git
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/joho/godotenv
@@ -76,9 +78,16 @@ imports:
   version: aa82965741a9fecd12b026fbb3d3c6ed3231b8f8
   subpackages:
   - go/ast/astutil
+  - go/gcexportdata
+  - go/internal/cgo
+  - go/internal/gcimporter
+  - go/internal/packagesdriver
+  - go/packages
   - imports
   - internal/fastwalk
   - internal/gopathwalk
+  - internal/module
+  - internal/semver
 - name: gopkg.in/yaml.v2
   version: 5420a8b6744d3b0345ab293f6fcba19c978f1183
 - name: k8s.io/api
@@ -96,8 +105,10 @@ imports:
   - util/homedir
 - name: k8s.io/code-generator
   version: 18da4a14b22b17d2fa761e50037fabfbacec225b
+- name: k8s.io/component-base
+  version: f0f7c184477d6f6a44264f4a411a84fab5b14554
 - name: k8s.io/gengo
-  version: fdcf9f9480fdd5bf2b3c3df9bf4ecd22b25b87e2
+  version: 26a664648505d962332bda642b27306bc10d1082
   subpackages:
   - args
   - generator
@@ -105,9 +116,9 @@ imports:
   - parser
   - types
 - name: k8s.io/klog
-  version: 8139d8cb77af419532b33dfa7dd09fbc5f1d344f
+  version: 89e63fd5117f8c20208186ef85f096703a280c20
 - name: k8s.io/kube-openapi
-  version: 0cf8f7e6ed1d2e3d47d02e3b6e559369af24d803
+  version: 743ec37842bffe49dd4221d9026f30fb1d5adbc4
 - name: sigs.k8s.io/controller-tools
   version: b8adde9bc6d7f3fba449d306613a9daed23676c8
   subpackages:

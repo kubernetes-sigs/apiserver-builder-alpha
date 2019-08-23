@@ -20,8 +20,6 @@ import:
   version: 1d0bd113de87027671077d3c71eb3ac5d7dbba72
 - package: github.com/go-openapi/validate
   version: deaf2c9013bc1a7f4c774662259a506ba874d80f
-- package: github.com/golang/glog
-  version: 44145f04b68cf362d9c4df2182967c2275eaefed
 - package: github.com/spf13/cobra
   version: f62e98d28ab7ad31d707ba837a966378465c7b57
 - package: github.com/spf13/cobra/doc
@@ -36,20 +34,28 @@ import:
   version: kubernetes-1.15.3
 - package: k8s.io/apiserver
   version: kubernetes-1.15.3
+- package: k8s.io/component-base
+  version: kubernetes-1.15.3
 - package: k8s.io/client-go
   version: release-12.0
 - package: k8s.io/api
   version: kubernetes-1.15.3
 - package: k8s.io/kube-openapi
-  version: 0cf8f7e6ed1d2e3d47d02e3b6e559369af24d803
-- package: k8s.io/gengo
-  version: fdcf9f9480fdd5bf2b3c3df9bf4ecd22b25b87e2
+  version: 743ec37842bffe49dd4221d9026f30fb1d5adbc4
 - package: github.com/onsi/ginkgo
   version: v1.4.0
 - package: github.com/onsi/gomega
   version: v1.2.0
 - package: k8s.io/code-generator
   version: kubernetes-1.15.3
+- package: k8s.io/klog
+  version: v0.3.1
+- package: k8s.io/gengo
+  version: 26a664648505d962332bda642b27306bc10d1082
+- package: github.com/golang/glog
+  repo: https://github.com/kubernetes/klog
+  vcs: git
+  version: v0.3.1
 - package: github.com/kubernetes-incubator/reference-docs/gen-apidocs
   version: fcf65347b25607dba28903ec6f66f8574bb49a17
 - package: sigs.k8s.io/kubebuilder
