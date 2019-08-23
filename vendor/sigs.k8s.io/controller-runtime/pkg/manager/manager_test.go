@@ -72,7 +72,7 @@ var _ = Describe("manger.Manager", func() {
 
 		It("should return an error it can't create a client.Client", func(done Done) {
 			m, err := New(cfg, Options{
-				newClient: func(config *rest.Config, options client.Options) (client.Client, error) {
+				NewClient: func(cache cache.Cache, config *rest.Config, options client.Options) (client.Client, error) {
 					return nil, fmt.Errorf("expected error")
 				},
 			})
@@ -85,7 +85,7 @@ var _ = Describe("manger.Manager", func() {
 
 		It("should return an error it can't create a cache.Cache", func(done Done) {
 			m, err := New(cfg, Options{
-				newCache: func(config *rest.Config, opts cache.Options) (cache.Cache, error) {
+				NewCache: func(config *rest.Config, opts cache.Options) (cache.Cache, error) {
 					return nil, fmt.Errorf("expected error")
 				},
 			})
@@ -95,6 +95,20 @@ var _ = Describe("manger.Manager", func() {
 
 			close(done)
 		})
+
+		It("should create a client defined in by the new client function", func(done Done) {
+			m, err := New(cfg, Options{
+				NewClient: func(cache cache.Cache, config *rest.Config, options client.Options) (client.Client, error) {
+					return nil, nil
+				},
+			})
+			Expect(m).ToNot(BeNil())
+			Expect(err).ToNot(HaveOccurred())
+			Expect(m.GetClient()).To(BeNil())
+
+			close(done)
+		})
+
 		It("should return an error it can't create a recorder.Provider", func(done Done) {
 			m, err := New(cfg, Options{
 				newRecorderProvider: func(config *rest.Config, scheme *runtime.Scheme, logger logr.Logger) (recorder.Provider, error) {
@@ -107,6 +121,22 @@ var _ = Describe("manger.Manager", func() {
 
 			close(done)
 		})
+
+		It("should lazily initialize a webhook server if needed", func(done Done) {
+			By("creating a manager with options")
+			m, err := New(cfg, Options{Port: 9443, Host: "foo.com"})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(m).NotTo(BeNil())
+
+			By("checking options are passed to the webhook server")
+			svr := m.GetWebhookServer()
+			Expect(svr).NotTo(BeNil())
+			Expect(svr.Port).To(Equal(9443))
+			Expect(svr.Host).To(Equal("foo.com"))
+
+			close(done)
+		})
+
 		Context("with leader election enabled", func() {
 			It("should default ID to controller-runtime if ID is not set", func() {
 				var rl resourcelock.Interface
@@ -175,18 +205,18 @@ var _ = Describe("manger.Manager", func() {
 				m, err := New(cfg, options)
 				Expect(err).NotTo(HaveOccurred())
 				c1 := make(chan struct{})
-				m.Add(RunnableFunc(func(s <-chan struct{}) error {
-					defer close(c1)
+				Expect(m.Add(RunnableFunc(func(s <-chan struct{}) error {
 					defer GinkgoRecover()
+					close(c1)
 					return nil
-				}))
+				}))).To(Succeed())
 
 				c2 := make(chan struct{})
-				m.Add(RunnableFunc(func(s <-chan struct{}) error {
-					defer close(c2)
+				Expect(m.Add(RunnableFunc(func(s <-chan struct{}) error {
 					defer GinkgoRecover()
+					close(c2)
 					return nil
-				}))
+				}))).To(Succeed())
 
 				go func() {
 					defer GinkgoRecover()
@@ -225,25 +255,25 @@ var _ = Describe("manger.Manager", func() {
 				m, err := New(cfg, options)
 				Expect(err).NotTo(HaveOccurred())
 				c1 := make(chan struct{})
-				m.Add(RunnableFunc(func(s <-chan struct{}) error {
+				Expect(m.Add(RunnableFunc(func(s <-chan struct{}) error {
 					defer GinkgoRecover()
-					defer close(c1)
+					close(c1)
 					return nil
-				}))
+				}))).To(Succeed())
 
 				c2 := make(chan struct{})
-				m.Add(RunnableFunc(func(s <-chan struct{}) error {
+				Expect(m.Add(RunnableFunc(func(s <-chan struct{}) error {
 					defer GinkgoRecover()
-					defer close(c2)
+					close(c2)
 					return fmt.Errorf("expected error")
-				}))
+				}))).To(Succeed())
 
 				c3 := make(chan struct{})
-				m.Add(RunnableFunc(func(s <-chan struct{}) error {
+				Expect(m.Add(RunnableFunc(func(s <-chan struct{}) error {
 					defer GinkgoRecover()
-					defer close(c3)
+					close(c3)
 					return nil
-				}))
+				}))).To(Succeed())
 
 				go func() {
 					defer GinkgoRecover()
@@ -253,6 +283,10 @@ var _ = Describe("manger.Manager", func() {
 				<-c1
 				<-c2
 				<-c3
+			})
+
+			It("should return an error if any non-leaderelection Components fail to Start", func() {
+				// TODO(mengqiy): implement this after resolving https://github.com/kubernetes-sigs/controller-runtime/issues/429
 			})
 		}
 
@@ -406,11 +440,11 @@ var _ = Describe("manger.Manager", func() {
 
 				// Add one component before starting
 				c1 := make(chan struct{})
-				m.Add(RunnableFunc(func(s <-chan struct{}) error {
-					defer close(c1)
+				Expect(m.Add(RunnableFunc(func(s <-chan struct{}) error {
 					defer GinkgoRecover()
+					close(c1)
 					return nil
-				}))
+				}))).To(Succeed())
 
 				go func() {
 					defer GinkgoRecover()
@@ -422,11 +456,11 @@ var _ = Describe("manger.Manager", func() {
 
 				// Add another component after starting
 				c2 := make(chan struct{})
-				m.Add(RunnableFunc(func(s <-chan struct{}) error {
-					defer close(c2)
+				Expect(m.Add(RunnableFunc(func(s <-chan struct{}) error {
 					defer GinkgoRecover()
+					close(c2)
 					return nil
-				}))
+				}))).To(Succeed())
 				<-c1
 				<-c2
 
@@ -448,11 +482,11 @@ var _ = Describe("manger.Manager", func() {
 			Eventually(func() bool { return mgr.started }).Should(BeTrue())
 
 			c1 := make(chan struct{})
-			m.Add(RunnableFunc(func(s <-chan struct{}) error {
-				defer close(c1)
+			Expect(m.Add(RunnableFunc(func(s <-chan struct{}) error {
 				defer GinkgoRecover()
+				close(c1)
 				return nil
-			}))
+			}))).To(Succeed())
 			<-c1
 
 			close(done)
@@ -590,7 +624,12 @@ var _ = Describe("manger.Manager", func() {
 	It("should provide a function to get the EventRecorder", func() {
 		m, err := New(cfg, Options{})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(m.GetRecorder("test")).NotTo(BeNil())
+		Expect(m.GetEventRecorderFor("test")).NotTo(BeNil())
+	})
+	It("should provide a function to get the APIReader", func() {
+		m, err := New(cfg, Options{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(m.GetAPIReader()).NotTo(BeNil())
 	})
 })
 

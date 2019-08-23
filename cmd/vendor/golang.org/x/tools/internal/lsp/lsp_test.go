@@ -11,19 +11,18 @@ import (
 	"go/token"
 	"os/exec"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"testing"
 
-	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/go/packages/packagestest"
 	"golang.org/x/tools/internal/lsp/cache"
+	"golang.org/x/tools/internal/lsp/diff"
 	"golang.org/x/tools/internal/lsp/protocol"
 	"golang.org/x/tools/internal/lsp/source"
 )
 
-// TODO(rstambler): Remove this once Go 1.12 is released as we will end support
-// for versions of Go <= 1.10.
+// TODO(rstambler): Remove this once Go 1.12 is released as we end support for
+// versions of Go <= 1.10.
 var goVersion111 = true
 
 func TestLSP(t *testing.T) {
@@ -35,8 +34,8 @@ func testLSP(t *testing.T, exporter packagestest.Exporter) {
 
 	// We hardcode the expected number of test cases to ensure that all tests
 	// are being executed. If a test is added, this number must be changed.
-	const expectedCompletionsCount = 44
-	const expectedDiagnosticsCount = 14
+	const expectedCompletionsCount = 63
+	const expectedDiagnosticsCount = 16
 	const expectedFormatCount = 3
 	const expectedDefinitionsCount = 16
 	const expectedTypeDefinitionsCount = 2
@@ -57,15 +56,13 @@ func testLSP(t *testing.T, exporter packagestest.Exporter) {
 	exported := packagestest.Export(t, exporter, modules)
 	defer exported.Cleanup()
 
-	s := &server{
-		view: cache.NewView(),
-	}
 	// Merge the exported.Config with the view.Config.
 	cfg := *exported.Config
-	cfg.Fset = s.view.Config.Fset
-	cfg.Mode = packages.LoadSyntax
-	s.view.Config = &cfg
+	cfg.Fset = token.NewFileSet()
 
+	s := &server{
+		view: cache.NewView(&cfg),
+	}
 	// Do a first pass to collect special markers for completion.
 	if err := exported.Expect(map[string]interface{}{
 		"item": func(name string, r packagestest.Range, _, _ string) {
@@ -106,7 +103,7 @@ func testLSP(t *testing.T, exporter packagestest.Exporter) {
 
 	t.Run("Diagnostics", func(t *testing.T) {
 		t.Helper()
-		diagnosticsCount := expectedDiagnostics.test(t, exported, s.view)
+		diagnosticsCount := expectedDiagnostics.test(t, s.view)
 		if goVersion111 { // TODO(rstambler): Remove this when we no longer support Go 1.10.
 			if diagnosticsCount != expectedDiagnosticsCount {
 				t.Errorf("got %v diagnostics expected %v", diagnosticsCount, expectedDiagnosticsCount)
@@ -151,51 +148,86 @@ type completions map[token.Position][]token.Pos
 type formats map[string]string
 type definitions map[protocol.Location]protocol.Location
 
-func (d diagnostics) test(t *testing.T, exported *packagestest.Exported, v *cache.View) int {
+func (d diagnostics) test(t *testing.T, v source.View) int {
 	count := 0
+	ctx := context.Background()
 	for filename, want := range d {
-		f := v.GetFile(source.ToURI(filename))
-		sourceDiagnostics, err := source.Diagnostics(context.Background(), f)
+		sourceDiagnostics, err := source.Diagnostics(context.Background(), v, source.ToURI(filename))
 		if err != nil {
 			t.Fatal(err)
 		}
-		got := toProtocolDiagnostics(v, sourceDiagnostics[filename])
+		got := toProtocolDiagnostics(ctx, v, sourceDiagnostics[filename])
 		sorted(got)
-		if equal := reflect.DeepEqual(want, got); !equal {
-			t.Error(diffD(filename, want, got))
+		if diff := diffDiagnostics(filename, want, got); diff != "" {
+			t.Error(diff)
 		}
 		count += len(want)
 	}
 	return count
 }
 
-func (d diagnostics) collect(pos token.Position, msg string) {
-	if _, ok := d[pos.Filename]; !ok {
-		d[pos.Filename] = []protocol.Diagnostic{}
+func (d diagnostics) collect(fset *token.FileSet, rng packagestest.Range, msgSource, msg string) {
+	f := fset.File(rng.Start)
+	if _, ok := d[f.Name()]; !ok {
+		d[f.Name()] = []protocol.Diagnostic{}
 	}
-	// If a file has an empty diagnostics, mark that and return. This allows us
-	// to avoid testing diagnostics in files that may have a lot of them.
+	// If a file has an empty diagnostic message, return. This allows us to
+	// avoid testing diagnostics in files that may have a lot of them.
 	if msg == "" {
 		return
 	}
-	line := float64(pos.Line - 1)
-	col := float64(pos.Column - 1)
 	want := protocol.Diagnostic{
-		Range: protocol.Range{
-			Start: protocol.Position{
-				Line:      line,
-				Character: col,
-			},
-			End: protocol.Position{
-				Line:      line,
-				Character: col,
-			},
-		},
+		Range:    toProtocolRange(f, source.Range(rng)),
 		Severity: protocol.SeverityError,
-		Source:   "LSP",
+		Source:   msgSource,
 		Message:  msg,
 	}
-	d[pos.Filename] = append(d[pos.Filename], want)
+	d[f.Name()] = append(d[f.Name()], want)
+}
+
+// diffDiagnostics prints the diff between expected and actual diagnostics test
+// results.
+func diffDiagnostics(filename string, want, got []protocol.Diagnostic) string {
+	if len(got) != len(want) {
+		goto Failed
+	}
+	for i, w := range want {
+		g := got[i]
+		if w.Message != g.Message {
+			goto Failed
+		}
+		if w.Range.Start != g.Range.Start {
+			goto Failed
+		}
+		// Special case for diagnostics on parse errors.
+		if strings.Contains(filename, "noparse") {
+			if g.Range.Start != g.Range.End || w.Range.Start != g.Range.End {
+				goto Failed
+			}
+		} else if g.Range.End != g.Range.Start { // Accept any 'want' range if the diagnostic returns a zero-length range.
+			if w.Range.End != g.Range.End {
+				goto Failed
+			}
+		}
+		if w.Severity != g.Severity {
+			goto Failed
+		}
+		if w.Source != g.Source {
+			goto Failed
+		}
+	}
+	return ""
+Failed:
+	msg := &bytes.Buffer{}
+	fmt.Fprintf(msg, "diagnostics failed for %s:\nexpected:\n", filename)
+	for _, d := range want {
+		fmt.Fprintf(msg, "  %v\n", d)
+	}
+	fmt.Fprintf(msg, "got:\n")
+	for _, d := range got {
+		fmt.Fprintf(msg, "  %v\n", d)
+	}
+	return msg.String()
 }
 
 func (c completions) test(t *testing.T, exported *packagestest.Exported, s *server, items completionItems) {
@@ -215,21 +247,13 @@ func (c completions) test(t *testing.T, exported *packagestest.Exported, s *serv
 				},
 			},
 		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		wantBuiltins := strings.Contains(src.Filename, "builtins")
 		var got []protocol.CompletionItem
 		for _, item := range list.Items {
-			// Skip all types with no details (builtin types).
-			if item.Detail == "" && item.Kind == float64(protocol.TypeParameterCompletion) {
-				continue
-			}
-			// Skip remaining builtin types.
-			trimmed := item.Label
-			if i := strings.Index(trimmed, "("); i >= 0 {
-				trimmed = trimmed[:i]
-			}
-			switch trimmed {
-			case "append", "cap", "close", "complex", "copy", "delete",
-				"error", "false", "imag", "iota", "len", "make", "new",
-				"nil", "panic", "print", "println", "real", "recover", "true":
+			if !wantBuiltins && isBuiltin(item) {
 				continue
 			}
 			got = append(got, item)
@@ -237,10 +261,29 @@ func (c completions) test(t *testing.T, exported *packagestest.Exported, s *serv
 		if err != nil {
 			t.Fatalf("completion failed for %s:%v:%v: %v", filepath.Base(src.Filename), src.Line, src.Column, err)
 		}
-		if diff := diffC(src, want, got); diff != "" {
+		if diff := diffCompletionItems(t, src, want, got); diff != "" {
 			t.Errorf(diff)
 		}
 	}
+}
+
+func isBuiltin(item protocol.CompletionItem) bool {
+	// If a type has no detail, it is a builtin type.
+	if item.Detail == "" && item.Kind == float64(protocol.TypeParameterCompletion) {
+		return true
+	}
+	// Remaining builtin constants, variables, interfaces, and functions.
+	trimmed := item.Label
+	if i := strings.Index(trimmed, "("); i >= 0 {
+		trimmed = trimmed[:i]
+	}
+	switch trimmed {
+	case "append", "cap", "close", "complex", "copy", "delete",
+		"error", "false", "imag", "iota", "len", "make", "new",
+		"nil", "panic", "print", "println", "real", "recover", "true":
+		return true
+	}
+	return false
 }
 
 func (c completions) collect(src token.Position, expected []token.Pos) {
@@ -276,6 +319,38 @@ func (i completionItems) collect(pos token.Pos, label, detail, kind string) {
 	}
 }
 
+// diffCompletionItems prints the diff between expected and actual completion
+// test results.
+func diffCompletionItems(t *testing.T, pos token.Position, want, got []protocol.CompletionItem) string {
+	if len(got) != len(want) {
+		goto Failed
+	}
+	for i, w := range want {
+		g := got[i]
+		if w.Label != g.Label {
+			goto Failed
+		}
+		if w.Detail != g.Detail {
+			goto Failed
+		}
+		if w.Kind != g.Kind {
+			goto Failed
+		}
+	}
+	return ""
+Failed:
+	msg := &bytes.Buffer{}
+	fmt.Fprintf(msg, "completion failed for %s:%v:%v:\nexpected:\n", filepath.Base(pos.Filename), pos.Line, pos.Column)
+	for _, d := range want {
+		fmt.Fprintf(msg, "  %v\n", d)
+	}
+	fmt.Fprintf(msg, "got:\n")
+	for _, d := range got {
+		fmt.Fprintf(msg, "  %v\n", d)
+	}
+	return msg.String()
+}
+
 func (f formats) test(t *testing.T, s *server) {
 	for filename, gofmted := range f {
 		edits, err := s.Formatting(context.Background(), &protocol.DocumentFormattingParams{
@@ -283,15 +358,41 @@ func (f formats) test(t *testing.T, s *server) {
 				URI: protocol.DocumentURI(source.ToURI(filename)),
 			},
 		})
-		if err != nil || len(edits) == 0 {
+		if err != nil {
 			if gofmted != "" {
 				t.Error(err)
 			}
 			continue
 		}
-		edit := edits[0]
-		if edit.NewText != gofmted {
-			t.Errorf("formatting failed: (got: %s), (expected: %s)", edit.NewText, gofmted)
+		f, err := s.view.GetFile(context.Background(), source.ToURI(filename))
+		if err != nil {
+			t.Error(err)
+		}
+		original, err := f.Read()
+		if err != nil {
+			t.Error(err)
+		}
+		var ops []*diff.Op
+		for _, edit := range edits {
+			if edit.NewText == "" { // deletion
+				ops = append(ops, &diff.Op{
+					Kind: diff.Delete,
+					I1:   int(edit.Range.Start.Line),
+					I2:   int(edit.Range.End.Line),
+				})
+			} else if edit.Range.Start == edit.Range.End { // insertion
+				ops = append(ops, &diff.Op{
+					Kind:    diff.Insert,
+					Content: edit.NewText,
+					I1:      int(edit.Range.Start.Line),
+					I2:      int(edit.Range.End.Line),
+				})
+			}
+		}
+		split := strings.SplitAfter(string(original), "\n")
+		got := strings.Join(diff.ApplyEdits(split, ops), "")
+		if gofmted != got {
+			t.Errorf("format failed for %s: expected %v, got %v", filename, gofmted, got)
 		}
 	}
 }
@@ -320,7 +421,7 @@ func (d definitions) test(t *testing.T, s *server, typ bool) {
 			locs, err = s.Definition(context.Background(), params)
 		}
 		if err != nil {
-			t.Fatal(err)
+			t.Fatalf("failed for %s: %v", src, err)
 		}
 		if len(locs) != 1 {
 			t.Errorf("got %d locations for definition, expected 1", len(locs))
@@ -332,54 +433,6 @@ func (d definitions) test(t *testing.T, s *server, typ bool) {
 }
 
 func (d definitions) collect(fset *token.FileSet, src, target packagestest.Range) {
-	sRange := source.Range{Start: src.Start, End: src.End}
-	sLoc := toProtocolLocation(fset, sRange)
-	tRange := source.Range{Start: target.Start, End: target.End}
-	tLoc := toProtocolLocation(fset, tRange)
-	d[sLoc] = tLoc
-}
-
-// diffD prints the diff between expected and actual diagnostics test results.
-func diffD(filename string, want, got []protocol.Diagnostic) string {
-	msg := &bytes.Buffer{}
-	fmt.Fprintf(msg, "diagnostics failed for %s:\nexpected:\n", filename)
-	for _, d := range want {
-		fmt.Fprintf(msg, "  %v\n", d)
-	}
-	fmt.Fprintf(msg, "got:\n")
-	for _, d := range got {
-		fmt.Fprintf(msg, "  %v\n", d)
-	}
-	return msg.String()
-}
-
-// diffC prints the diff between expected and actual completion test results.
-func diffC(pos token.Position, want, got []protocol.CompletionItem) string {
-	if len(got) != len(want) {
-		goto Failed
-	}
-	for i, w := range want {
-		g := got[i]
-		if w.Label != g.Label {
-			goto Failed
-		}
-		if w.Detail != g.Detail {
-			goto Failed
-		}
-		if w.Kind != g.Kind {
-			goto Failed
-		}
-	}
-	return ""
-Failed:
-	msg := &bytes.Buffer{}
-	fmt.Fprintf(msg, "completion failed for %s:%v:%v:\nexpected:\n", filepath.Base(pos.Filename), pos.Line, pos.Column)
-	for _, d := range want {
-		fmt.Fprintf(msg, "  %v\n", d)
-	}
-	fmt.Fprintf(msg, "got:\n")
-	for _, d := range got {
-		fmt.Fprintf(msg, "  %v\n", d)
-	}
-	return msg.String()
+	loc := toProtocolLocation(fset, source.Range(src))
+	d[loc] = toProtocolLocation(fset, source.Range(target))
 }

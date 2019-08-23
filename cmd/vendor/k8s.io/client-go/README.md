@@ -2,7 +2,7 @@
 
 Go clients for talking to a [kubernetes](http://kubernetes.io/) cluster.
 
-We currently recommend using the v8.0.0 tag. See [INSTALL.md](/INSTALL.md) for
+We currently recommend using the v11.0.0 tag. See [INSTALL.md](/INSTALL.md) for
 detailed installation instructions. `go get k8s.io/client-go/...` works, but
 will build `master`, which doesn't handle the dependencies well.
 
@@ -38,6 +38,7 @@ will build `master`, which doesn't handle the dependencies well.
 * The `kubernetes` package contains the clientset to access Kubernetes API.
 * The `discovery` package is used to discover APIs supported by a Kubernetes API server.
 * The `dynamic` package contains a dynamic client that can perform generic operations on arbitrary Kubernetes API objects.
+* The `plugin/pkg/client/auth` packages contain optional authentication plugins for obtaining credentials from external sources.
 * The `transport` package is used to set up auth and start a connection.
 * The `tools/cache` package is useful for writing controllers.
 
@@ -91,17 +92,16 @@ We will backport bugfixes--but not new features--into older versions of
 
 #### Compatibility matrix
 
-|                     | Kubernetes 1.5 | Kubernetes 1.6 | Kubernetes 1.7 | Kubernetes 1.8 | Kubernetes 1.9 | Kubernetes 1.10 | Kubernetes 1.11 |
-|---------------------|----------------|----------------|----------------|----------------|----------------|-----------------|-----------------|
-| client-go 1.5       | -              | -              | -              | -              | -              | -               | -               |
-| client-go 2.0       | ✓              | +-             | +-             | +-             | +-             | +-              | +-              |
-| client-go 3.0       | +-             | ✓              | -              | +-             | +-             | +-              | +-              |
-| client-go 4.0       | +-             | +-             | ✓              | +-             | +-             | +-              | +-              |
-| client-go 5.0       | +-             | +-             | +-             | ✓              | +-             | +-              | +-              |
-| client-go 6.0       | +-             | +-             | +-             | +-             | ✓              | +-              | +-              |
-| client-go 7.0       | +-             | +-             | +-             | +-             | +-             | ✓               | +-              |
-| client-go 8.0       | +-             | +-             | +-             | +-             | +-             | +-              | ✓               |
-| client-go HEAD      | +-             | +-             | +-             | +-             | +-             | +-              | +-              |
+|                     | Kubernetes 1.8 | Kubernetes 1.9 | Kubernetes 1.10 | Kubernetes 1.11 | Kubernetes 1.12 | Kubernetes 1.13 | Kubernetes 1.14 |
+|---------------------|----------------|----------------|-----------------|-----------------|-----------------|-----------------|-----------------|
+| client-go 5.0       | ✓              | +-             | +-              | +-              | +-              | +-              | +-              |
+| client-go 6.0       | +-             | ✓              | +-              | +-              | +-              | +-              | +-              |
+| client-go 7.0       | +-             | +-             | ✓               | +-              | +-              | +-              | +-              |
+| client-go 8.0       | +-             | +-             | +-              | ✓               | +-              | +-              | +-              |
+| client-go 9.0       | +-             | +-             | +-              | +-              | ✓               | +-              | +-              |
+| client-go 10.0      | +-             | +-             | +-              | +-              | +-              | ✓               | +-              |
+| client-go 11.0      | +-             | +-             | +-              | +-              | +-              | +-              | ✓               |
+| client-go HEAD      | +-             | +-             | +-              | +-              | +-              | +-              | +-              |
 
 Key:
 
@@ -128,9 +128,12 @@ between client-go versions.
 | client-go 3.0  | Kubernetes main repo, 1.6 branch     | = -                           |
 | client-go 4.0  | Kubernetes main repo, 1.7 branch     | = -                           |
 | client-go 5.0  | Kubernetes main repo, 1.8 branch     | = -                           |
-| client-go 6.0  | Kubernetes main repo, 1.9 branch     | ✓                             |
-| client-go 7.0  | Kubernetes main repo, 1.10 branch    | ✓                             |
-| client-go 8.0  | Kubernetes main repo, 1.11 branch    | ✓                             |
+| client-go 6.0  | Kubernetes main repo, 1.9 branch     | = -                           |
+| client-go 7.0  | Kubernetes main repo, 1.10 branch    | = -                           |
+| client-go 8.0  | Kubernetes main repo, 1.11 branch    | =-                            |
+| client-go 9.0  | Kubernetes main repo, 1.12 branch    | ✓                             |
+| client-go 10.0 | Kubernetes main repo, 1.13 branch    | ✓                             |
+| client-go 11.0 | Kubernetes main repo, 1.14 branch    | ✓                             |
 | client-go HEAD | Kubernetes main repo, master branch  | ✓                             |
 
 Key:
@@ -185,9 +188,7 @@ refer to the out-of-cluster [example](examples/out-of-cluster-client-configurati
 
 ### Dependency management
 
-If your application depends on a package that client-go depends on, and you let the Go compiler find the dependency in `GOPATH`, you will end up with duplicated dependencies: one copy from the `GOPATH`, and one from the vendor folder of client-go. This will cause unexpected runtime error like flag redefinition, since the go compiler ends up importing both packages separately, even if they are exactly the same thing. If this happens, you can either
-* run `godep restore` ([godep](https://github.com/tools/godep)) in the client-go/ folder, then remove the vendor folder of client-go. Then the packages in your GOPATH will be the only copy
-* or run `godep save` in your application folder to flatten all dependencies.
+For details on how to correctly use a dependency management for installing client-go, please see [INSTALL.md](INSTALL.md).
 
 ### Contributing code
 Please send pull requests against the client packages in the Kubernetes main [repository](https://github.com/kubernetes/kubernetes). Changes in the staging area will be published to this repository every day.

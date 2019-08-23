@@ -508,11 +508,11 @@ func (p *{{ lower .Kind }}Plugin) ValidateInitialization() error {
 	return nil
 }
 
-func (p *{{ lower .Kind }}Plugin) Admit(a admission.Attributes) error {
+func (p *{{ lower .Kind }}Plugin) Admit(a admission.Attributes, o admission.ObjectInterface) error {
 	return nil
 }
 
-func (p *{{ lower .Kind }}Plugin) Validate(a admission.Attributes) error {
+func (p *{{ lower .Kind }}Plugin) Validate(a admission.Attributes, o admission.ObjectInterface) error {
 	return nil
 }
 

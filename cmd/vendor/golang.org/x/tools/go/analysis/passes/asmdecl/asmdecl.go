@@ -114,7 +114,8 @@ func init() {
 			// library we cannot assume types.SizesFor is consistent with arches.
 			// For now, assume 64-bit norms and print a warning.
 			// But this warning should really be deferred until we attempt to use
-			// arch, which is very unlikely.
+			// arch, which is very unlikely. Better would be
+			// to defer size computation until we have Pass.TypesSizes.
 			arch.sizes = types.SizesFor("gc", "amd64")
 			log.Printf("unknown architecture %s", arch.name)
 		}
@@ -490,7 +491,7 @@ func appendComponentsRecursive(arch *asmArch, t types.Type, cc []component, suff
 		offsets := arch.sizes.Offsetsof(fields)
 		elemoff := int(offsets[1])
 		for i := 0; i < int(tu.Len()); i++ {
-			cc = appendComponentsRecursive(arch, elem, cc, suffix+"_"+strconv.Itoa(i), i*elemoff)
+			cc = appendComponentsRecursive(arch, elem, cc, suffix+"_"+strconv.Itoa(i), off+i*elemoff)
 		}
 	}
 

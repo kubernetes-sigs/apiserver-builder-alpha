@@ -111,16 +111,15 @@ func (DefaultStorageStrategy) ValidateUpdate(ctx context.Context, obj, old runti
 	return field.ErrorList{}
 }
 
-func (b DefaultStorageStrategy) GetAttrs(obj runtime.Object) (labels.Set, fields.Set, bool, error) {
+func (b DefaultStorageStrategy) GetAttrs(obj runtime.Object) (labels.Set, fields.Set, error) {
 	switch t := obj.(type) {
 	case HasObjectMeta:
 		apiserver := obj.(HasObjectMeta)
 		return labels.Set(apiserver.GetObjectMeta().Labels),
 			b.GetSelectableFields(apiserver),
-			apiserver.GetObjectMeta().Initializers != nil,
 			nil
 	default:
-		return nil, nil, false, fmt.Errorf(
+		return nil, nil, fmt.Errorf(
 			"Cannot get attributes for object type %v which does not implement HasObjectMeta.", t)
 	}
 }

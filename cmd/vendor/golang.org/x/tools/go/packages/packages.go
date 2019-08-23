@@ -19,6 +19,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"golang.org/x/tools/go/gcexportdata"
@@ -52,7 +53,7 @@ const (
 
 	// LoadAllSyntax adds typed syntax trees for the packages matching the patterns
 	// and all dependencies.
-	// Package fields added: Types, Fset, Illtyped, Syntax, and TypesInfo,
+	// Package fields added: Types, Fset, IllTyped, Syntax, and TypesInfo,
 	// for all packages in the import graph.
 	LoadAllSyntax
 )
@@ -125,9 +126,8 @@ type Config struct {
 	// If the file  with the given path already exists, the parser will use the
 	// alternative file contents provided by the map.
 	//
-	// The Package.Imports map may not include packages that are imported only
-	// by the alternative file contents provided by Overlay. This may cause
-	// type-checking to fail.
+	// Overlays provide incomplete support for when a given file doesn't
+	// already exist on disk. See the package doc above for more details.
 	Overlay map[string][]byte
 }
 
@@ -251,6 +251,9 @@ type Package struct {
 	// TypesInfo provides type information about the package's syntax trees.
 	// It is set only when Syntax is set.
 	TypesInfo *types.Info
+
+	// TypesSizes provides the effective size function for types in TypesInfo.
+	TypesSizes types.Sizes
 }
 
 // An Error describes a problem with a package's metadata, syntax, or types.
@@ -432,7 +435,7 @@ func (ld *loader) refine(roots []string, list ...*Package) ([]*Package, error) {
 				ld.Mode >= LoadTypes && rootIndex >= 0,
 			needsrc: ld.Mode >= LoadAllSyntax ||
 				ld.Mode >= LoadSyntax && rootIndex >= 0 ||
-				ld.Overlay != nil || // Overlays can invalidate export data. TODO(matloob): make this check fine-grained based on dependencies on overlaid files
+				len(ld.Overlay) > 0 || // Overlays can invalidate export data. TODO(matloob): make this check fine-grained based on dependencies on overlaid files
 				pkg.ExportFile == "" && pkg.PkgPath != "unsafe",
 		}
 		ld.pkgs[lpkg.ID] = lpkg
@@ -583,6 +586,7 @@ func (ld *loader) loadPackage(lpkg *loaderPackage) {
 		lpkg.Fset = ld.Fset
 		lpkg.Syntax = []*ast.File{}
 		lpkg.TypesInfo = new(types.Info)
+		lpkg.TypesSizes = ld.sizes
 		return
 	}
 
@@ -670,6 +674,7 @@ func (ld *loader) loadPackage(lpkg *loaderPackage) {
 		Scopes:     make(map[ast.Node]*types.Scope),
 		Selections: make(map[*ast.SelectorExpr]*types.Selection),
 	}
+	lpkg.TypesSizes = ld.sizes
 
 	importer := importerFunc(func(path string) (*types.Package, error) {
 		if path == "unsafe" {
@@ -769,6 +774,11 @@ func (ld *loader) parseFiles(filenames []string) ([]*ast.File, []error) {
 	parsed := make([]*ast.File, n)
 	errors := make([]error, n)
 	for i, file := range filenames {
+		if ld.Config.Context.Err() != nil {
+			parsed[i] = nil
+			errors[i] = ld.Config.Context.Err()
+			continue
+		}
 		wg.Add(1)
 		go func(i int, filename string) {
 			ioLimit <- true // wait
@@ -829,7 +839,7 @@ func sameFile(x, y string) bool {
 		// overlay case implies x==y.)
 		return true
 	}
-	if filepath.Base(x) == filepath.Base(y) { // (optimisation)
+	if strings.EqualFold(filepath.Base(x), filepath.Base(y)) { // (optimisation)
 		if xi, err := os.Stat(x); err == nil {
 			if yi, err := os.Stat(y); err == nil {
 				return os.SameFile(xi, yi)

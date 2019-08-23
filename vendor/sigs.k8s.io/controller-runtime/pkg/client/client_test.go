@@ -18,14 +18,17 @@ package client_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sync/atomic"
+
+	"k8s.io/apimachinery/pkg/types"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -56,17 +59,19 @@ func deleteNamespace(ns *corev1.Namespace) {
 var _ = Describe("Client", func() {
 
 	var scheme *runtime.Scheme
+	var depGvk schema.GroupVersionKind
 	var dep *appsv1.Deployment
 	var pod *corev1.Pod
 	var node *corev1.Node
 	var count uint64 = 0
 	var replicaCount int32 = 2
 	var ns = "default"
+	var mergePatch []byte
 
 	BeforeEach(func(done Done) {
 		atomic.AddUint64(&count, 1)
 		dep = &appsv1.Deployment{
-			ObjectMeta: metav1.ObjectMeta{Name: fmt.Sprintf("deployment-name-%v", count), Namespace: ns},
+			ObjectMeta: metav1.ObjectMeta{Name: fmt.Sprintf("deployment-name-%v", count), Namespace: ns, Labels: map[string]string{"app": fmt.Sprintf("bar-%v", count)}},
 			Spec: appsv1.DeploymentSpec{
 				Replicas: &replicaCount,
 				Selector: &metav1.LabelSelector{
@@ -78,6 +83,11 @@ var _ = Describe("Client", func() {
 				},
 			},
 		}
+		depGvk = schema.GroupVersionKind{
+			Group:   "apps",
+			Kind:    "Deployment",
+			Version: "v1",
+		}
 		// Pod is invalid without a container field in the PodSpec
 		pod = &corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{Name: fmt.Sprintf("pod-%v", count), Namespace: ns},
@@ -88,6 +98,15 @@ var _ = Describe("Client", func() {
 			Spec:       corev1.NodeSpec{},
 		}
 		scheme = kscheme.Scheme
+		var err error
+		mergePatch, err = json.Marshal(map[string]interface{}{
+			"metadata": map[string]interface{}{
+				"annotations": map[string]interface{}{
+					"foo": "bar",
+				},
+			},
+		})
+		Expect(err).NotTo(HaveOccurred())
 
 		close(done)
 	}, serverSideTimeoutSeconds)
@@ -219,7 +238,7 @@ var _ = Describe("Client", func() {
 				By("creating the object a second time")
 				err = cl.Create(context.TODO(), old)
 				Expect(err).To(HaveOccurred())
-				Expect(errors.IsAlreadyExists(err)).To(BeTrue())
+				Expect(apierrors.IsAlreadyExists(err)).To(BeTrue())
 
 				close(done)
 			})
@@ -255,6 +274,25 @@ var _ = Describe("Client", func() {
 				// TODO(seans3): implement these
 				// Example: ListOptions
 			})
+
+			Context("with the DryRun option", func() {
+				It("should not create a new object", func(done Done) {
+					cl, err := client.New(cfg, client.Options{})
+					Expect(err).NotTo(HaveOccurred())
+					Expect(cl).NotTo(BeNil())
+
+					By("creating the object (with DryRun)")
+					err = cl.Create(context.TODO(), dep, client.CreateDryRunAll)
+					Expect(err).NotTo(HaveOccurred())
+
+					actual, err := clientset.AppsV1().Deployments(ns).Get(dep.Name, metav1.GetOptions{})
+					Expect(err).To(HaveOccurred())
+					Expect(apierrors.IsNotFound(err)).To(BeTrue())
+					Expect(actual).To(Equal(&appsv1.Deployment{}))
+
+					close(done)
+				})
+			})
 		})
 
 		Context("with unstructured objects", func() {
@@ -265,7 +303,7 @@ var _ = Describe("Client", func() {
 
 				By("encoding the deployment as unstructured")
 				u := &unstructured.Unstructured{}
-				scheme.Convert(dep, u, nil)
+				Expect(scheme.Convert(dep, u, nil)).To(Succeed())
 				u.SetGroupVersionKind(schema.GroupVersionKind{
 					Group:   "apps",
 					Kind:    "Deployment",
@@ -289,7 +327,7 @@ var _ = Describe("Client", func() {
 
 				By("encoding the deployment as unstructured")
 				u := &unstructured.Unstructured{}
-				scheme.Convert(node, u, nil)
+				Expect(scheme.Convert(node, u, nil)).To(Succeed())
 				u.SetGroupVersionKind(schema.GroupVersionKind{
 					Group:   "",
 					Kind:    "Node",
@@ -304,8 +342,8 @@ var _ = Describe("Client", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(actual).NotTo(BeNil())
 				au := &unstructured.Unstructured{}
-				scheme.Convert(actual, au, nil)
-				scheme.Convert(node, u, nil)
+				Expect(scheme.Convert(actual, au, nil)).To(Succeed())
+				Expect(scheme.Convert(node, u, nil)).To(Succeed())
 				By("writing the result back to the go struct")
 
 				Expect(u).To(Equal(au))
@@ -329,7 +367,7 @@ var _ = Describe("Client", func() {
 
 				By("encoding the deployment as unstructured")
 				u := &unstructured.Unstructured{}
-				scheme.Convert(old, u, nil)
+				Expect(scheme.Convert(old, u, nil)).To(Succeed())
 				u.SetGroupVersionKind(schema.GroupVersionKind{
 					Group:   "apps",
 					Kind:    "Deployment",
@@ -339,7 +377,7 @@ var _ = Describe("Client", func() {
 				By("creating the object a second time")
 				err = cl.Create(context.TODO(), u)
 				Expect(err).To(HaveOccurred())
-				Expect(errors.IsAlreadyExists(err)).To(BeTrue())
+				Expect(apierrors.IsAlreadyExists(err)).To(BeTrue())
 
 				close(done)
 			})
@@ -351,7 +389,7 @@ var _ = Describe("Client", func() {
 
 				By("creating the pod, since required field Containers is empty")
 				u := &unstructured.Unstructured{}
-				scheme.Convert(pod, u, nil)
+				Expect(scheme.Convert(pod, u, nil)).To(Succeed())
 				u.SetGroupVersionKind(schema.GroupVersionKind{
 					Group:   "",
 					Version: "v1",
@@ -367,6 +405,33 @@ var _ = Describe("Client", func() {
 
 		})
 
+		Context("with the DryRun option", func() {
+			It("should not create a new object from a go struct", func(done Done) {
+				cl, err := client.New(cfg, client.Options{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cl).NotTo(BeNil())
+
+				By("encoding the deployment as unstructured")
+				u := &unstructured.Unstructured{}
+				Expect(scheme.Convert(dep, u, nil)).To(Succeed())
+				u.SetGroupVersionKind(schema.GroupVersionKind{
+					Group:   "apps",
+					Kind:    "Deployment",
+					Version: "v1",
+				})
+
+				By("creating the object")
+				err = cl.Create(context.TODO(), u, client.CreateDryRunAll)
+				Expect(err).NotTo(HaveOccurred())
+
+				actual, err := clientset.AppsV1().Deployments(ns).Get(dep.Name, metav1.GetOptions{})
+				Expect(err).To(HaveOccurred())
+				Expect(apierrors.IsNotFound(err)).To(BeTrue())
+				Expect(actual).To(Equal(&appsv1.Deployment{}))
+
+				close(done)
+			})
+		})
 	})
 
 	Describe("Update", func() {
@@ -394,6 +459,26 @@ var _ = Describe("Client", func() {
 				close(done)
 			})
 
+			It("should update and preserve type information", func(done Done) {
+				cl, err := client.New(cfg, client.Options{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cl).NotTo(BeNil())
+
+				By("initially creating a Deployment")
+				dep, err := clientset.AppsV1().Deployments(ns).Create(dep)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("updating the Deployment")
+				dep.SetGroupVersionKind(depGvk)
+				err = cl.Update(context.TODO(), dep)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("validating updated Deployment has type information")
+				Expect(dep.GroupVersionKind()).To(Equal(depGvk))
+
+				close(done)
+			})
+
 			It("should update an existing object non-namespace object from a go struct", func(done Done) {
 				cl, err := client.New(cfg, client.Options{})
 				Expect(err).NotTo(HaveOccurred())
@@ -416,7 +501,7 @@ var _ = Describe("Client", func() {
 				close(done)
 			})
 
-			It("should fail if the object does not exists", func(done Done) {
+			It("should fail if the object does not exist", func(done Done) {
 				cl, err := client.New(cfg, client.Options{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(cl).NotTo(BeNil())
@@ -472,7 +557,7 @@ var _ = Describe("Client", func() {
 
 				By("updating the Deployment")
 				u := &unstructured.Unstructured{}
-				scheme.Convert(dep, u, nil)
+				Expect(scheme.Convert(dep, u, nil)).To(Succeed())
 				u.SetGroupVersionKind(schema.GroupVersionKind{
 					Group:   "apps",
 					Kind:    "Deployment",
@@ -491,6 +576,29 @@ var _ = Describe("Client", func() {
 				close(done)
 			})
 
+			It("should update and preserve type information", func(done Done) {
+				cl, err := client.New(cfg, client.Options{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cl).NotTo(BeNil())
+
+				By("initially creating a Deployment")
+				dep, err := clientset.AppsV1().Deployments(ns).Create(dep)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("updating the Deployment")
+				u := &unstructured.Unstructured{}
+				Expect(scheme.Convert(dep, u, nil)).To(Succeed())
+				u.SetGroupVersionKind(depGvk)
+				u.SetAnnotations(map[string]string{"foo": "bar"})
+				err = cl.Update(context.TODO(), u)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("validating updated Deployment has type information")
+				Expect(u.GroupVersionKind()).To(Equal(depGvk))
+
+				close(done)
+			})
+
 			It("should update an existing object non-namespace object from a go struct", func(done Done) {
 				cl, err := client.New(cfg, client.Options{})
 				Expect(err).NotTo(HaveOccurred())
@@ -501,7 +609,7 @@ var _ = Describe("Client", func() {
 
 				By("updating the object")
 				u := &unstructured.Unstructured{}
-				scheme.Convert(node, u, nil)
+				Expect(scheme.Convert(node, u, nil)).To(Succeed())
 				u.SetGroupVersionKind(schema.GroupVersionKind{
 					Group:   "",
 					Kind:    "Node",
@@ -519,19 +627,15 @@ var _ = Describe("Client", func() {
 
 				close(done)
 			})
-			It("should fail if the object does not exists", func(done Done) {
+			It("should fail if the object does not exist", func(done Done) {
 				cl, err := client.New(cfg, client.Options{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(cl).NotTo(BeNil())
 
 				By("updating non-existent object")
 				u := &unstructured.Unstructured{}
-				scheme.Convert(dep, u, nil)
-				u.SetGroupVersionKind(schema.GroupVersionKind{
-					Group:   "apps",
-					Kind:    "Deployment",
-					Version: "v1",
-				})
+				Expect(scheme.Convert(dep, u, nil)).To(Succeed())
+				u.SetGroupVersionKind(depGvk)
 				err = cl.Update(context.TODO(), dep)
 				Expect(err).To(HaveOccurred())
 
@@ -561,6 +665,49 @@ var _ = Describe("Client", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(actual).NotTo(BeNil())
 				Expect(actual.Status.Replicas).To(BeEquivalentTo(1))
+
+				close(done)
+			})
+
+			It("should update status and preserve type information", func(done Done) {
+				cl, err := client.New(cfg, client.Options{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cl).NotTo(BeNil())
+
+				By("initially creating a Deployment")
+				dep, err := clientset.AppsV1().Deployments(ns).Create(dep)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("updating the status of Deployment")
+				dep.SetGroupVersionKind(depGvk)
+				dep.Status.Replicas = 1
+				err = cl.Status().Update(context.TODO(), dep)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("validating updated Deployment has type information")
+				Expect(dep.GroupVersionKind()).To(Equal(depGvk))
+
+				close(done)
+			})
+
+			It("should patch status and preserve type information", func(done Done) {
+				cl, err := client.New(cfg, client.Options{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cl).NotTo(BeNil())
+
+				By("initially creating a Deployment")
+				dep, err := clientset.AppsV1().Deployments(ns).Create(dep)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("patching the status of Deployment")
+				dep.SetGroupVersionKind(depGvk)
+				depPatch := client.MergeFrom(dep.DeepCopy())
+				dep.Status.Replicas = 1
+				err = cl.Status().Patch(context.TODO(), dep, depPatch)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("validating updated Deployment has type information")
+				Expect(dep.GroupVersionKind()).To(Equal(depGvk))
 
 				close(done)
 			})
@@ -613,7 +760,7 @@ var _ = Describe("Client", func() {
 				close(done)
 			})
 
-			It("should fail if the object does not exists", func(done Done) {
+			It("should fail if the object does not exist", func(done Done) {
 				cl, err := client.New(cfg, client.Options{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(cl).NotTo(BeNil())
@@ -667,7 +814,7 @@ var _ = Describe("Client", func() {
 				By("updating the status of Deployment")
 				u := &unstructured.Unstructured{}
 				dep.Status.Replicas = 1
-				scheme.Convert(dep, u, nil)
+				Expect(scheme.Convert(dep, u, nil)).To(Succeed())
 				err = cl.Status().Update(context.TODO(), u)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -694,7 +841,7 @@ var _ = Describe("Client", func() {
 				var rc int32 = 1
 				dep.Status.Replicas = 1
 				dep.Spec.Replicas = &rc
-				scheme.Convert(dep, u, nil)
+				Expect(scheme.Convert(dep, u, nil)).To(Succeed())
 				err = cl.Status().Update(context.TODO(), u)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -719,7 +866,7 @@ var _ = Describe("Client", func() {
 				By("updating status of the object")
 				u := &unstructured.Unstructured{}
 				node.Status.Phase = corev1.NodeRunning
-				scheme.Convert(node, u, nil)
+				Expect(scheme.Convert(node, u, nil)).To(Succeed())
 				err = cl.Status().Update(context.TODO(), u)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -732,14 +879,14 @@ var _ = Describe("Client", func() {
 				close(done)
 			})
 
-			It("should fail if the object does not exists", func(done Done) {
+			It("should fail if the object does not exist", func(done Done) {
 				cl, err := client.New(cfg, client.Options{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(cl).NotTo(BeNil())
 
 				By("updating status of a non-existent object")
 				u := &unstructured.Unstructured{}
-				scheme.Convert(dep, u, nil)
+				Expect(scheme.Convert(dep, u, nil)).To(Succeed())
 				err = cl.Status().Update(context.TODO(), u)
 				Expect(err).To(HaveOccurred())
 
@@ -801,7 +948,7 @@ var _ = Describe("Client", func() {
 				close(done)
 			})
 
-			It("should fail if the object does not exists", func(done Done) {
+			It("should fail if the object does not exist", func(done Done) {
 				cl, err := client.New(cfg, client.Options{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(cl).NotTo(BeNil())
@@ -839,6 +986,37 @@ var _ = Describe("Client", func() {
 			PIt("should fail if the GVK cannot be mapped to a Resource", func() {
 
 			})
+
+			It("should delete a collection of objects", func(done Done) {
+				cl, err := client.New(cfg, client.Options{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cl).NotTo(BeNil())
+
+				By("initially creating two Deployments")
+
+				dep2 := dep.DeepCopy()
+				dep2.Name = dep2.Name + "-2"
+
+				dep, err = clientset.AppsV1().Deployments(ns).Create(dep)
+				Expect(err).NotTo(HaveOccurred())
+				dep2, err = clientset.AppsV1().Deployments(ns).Create(dep2)
+				Expect(err).NotTo(HaveOccurred())
+
+				depName := dep.Name
+				dep2Name := dep2.Name
+
+				By("deleting Deployments")
+				err = cl.DeleteAllOf(context.TODO(), dep, client.InNamespace(ns), client.MatchingLabels(dep.ObjectMeta.Labels))
+				Expect(err).NotTo(HaveOccurred())
+
+				By("validating the Deployment no longer exists")
+				_, err = clientset.AppsV1().Deployments(ns).Get(depName, metav1.GetOptions{})
+				Expect(err).To(HaveOccurred())
+				_, err = clientset.AppsV1().Deployments(ns).Get(dep2Name, metav1.GetOptions{})
+				Expect(err).To(HaveOccurred())
+
+				close(done)
+			})
 		})
 		Context("with unstructured objects", func() {
 			It("should delete an existing object from a go struct", func(done Done) {
@@ -853,7 +1031,7 @@ var _ = Describe("Client", func() {
 				By("deleting the Deployment")
 				depName := dep.Name
 				u := &unstructured.Unstructured{}
-				scheme.Convert(dep, u, nil)
+				Expect(scheme.Convert(dep, u, nil)).To(Succeed())
 				u.SetGroupVersionKind(schema.GroupVersionKind{
 					Group:   "apps",
 					Kind:    "Deployment",
@@ -881,7 +1059,7 @@ var _ = Describe("Client", func() {
 				By("deleting the Node")
 				nodeName := node.Name
 				u := &unstructured.Unstructured{}
-				scheme.Convert(node, u, nil)
+				Expect(scheme.Convert(node, u, nil)).To(Succeed())
 				u.SetGroupVersionKind(schema.GroupVersionKind{
 					Group:   "",
 					Kind:    "Node",
@@ -897,14 +1075,14 @@ var _ = Describe("Client", func() {
 				close(done)
 			})
 
-			It("should fail if the object does not exists", func(done Done) {
+			It("should fail if the object does not exist", func(done Done) {
 				cl, err := client.New(cfg, client.Options{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(cl).NotTo(BeNil())
 
 				By("Deleting node before it is ever created")
 				u := &unstructured.Unstructured{}
-				scheme.Convert(node, u, nil)
+				Expect(scheme.Convert(node, u, nil)).To(Succeed())
 				u.SetGroupVersionKind(schema.GroupVersionKind{
 					Group:   "",
 					Kind:    "Node",
@@ -914,6 +1092,304 @@ var _ = Describe("Client", func() {
 				Expect(err).To(HaveOccurred())
 
 				close(done)
+			})
+
+			It("should delete a collection of object", func(done Done) {
+				cl, err := client.New(cfg, client.Options{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cl).NotTo(BeNil())
+
+				By("initially creating two Deployments")
+
+				dep2 := dep.DeepCopy()
+				dep2.Name = dep2.Name + "-2"
+
+				dep, err = clientset.AppsV1().Deployments(ns).Create(dep)
+				Expect(err).NotTo(HaveOccurred())
+				dep2, err = clientset.AppsV1().Deployments(ns).Create(dep2)
+				Expect(err).NotTo(HaveOccurred())
+
+				depName := dep.Name
+				dep2Name := dep2.Name
+
+				By("deleting Deployments")
+				u := &unstructured.Unstructured{}
+				Expect(scheme.Convert(dep, u, nil)).To(Succeed())
+				u.SetGroupVersionKind(schema.GroupVersionKind{
+					Group:   "apps",
+					Kind:    "Deployment",
+					Version: "v1",
+				})
+				err = cl.DeleteAllOf(context.TODO(), u, client.InNamespace(ns), client.MatchingLabels(dep.ObjectMeta.Labels))
+				Expect(err).NotTo(HaveOccurred())
+
+				By("validating the Deployment no longer exists")
+				_, err = clientset.AppsV1().Deployments(ns).Get(depName, metav1.GetOptions{})
+				Expect(err).To(HaveOccurred())
+				_, err = clientset.AppsV1().Deployments(ns).Get(dep2Name, metav1.GetOptions{})
+				Expect(err).To(HaveOccurred())
+
+				close(done)
+			})
+		})
+	})
+
+	Describe("Patch", func() {
+		Context("with structured objects", func() {
+			It("should patch an existing object from a go struct", func(done Done) {
+				cl, err := client.New(cfg, client.Options{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cl).NotTo(BeNil())
+
+				By("initially creating a Deployment")
+				dep, err := clientset.AppsV1().Deployments(ns).Create(dep)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("patching the Deployment")
+				err = cl.Patch(context.TODO(), dep, client.ConstantPatch(types.MergePatchType, mergePatch))
+				Expect(err).NotTo(HaveOccurred())
+
+				By("validating patched Deployment has new annotation")
+				actual, err := clientset.AppsV1().Deployments(ns).Get(dep.Name, metav1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(actual).NotTo(BeNil())
+				Expect(actual.Annotations["foo"]).To(Equal("bar"))
+
+				close(done)
+			})
+
+			It("should patch and preserve type information", func(done Done) {
+				cl, err := client.New(cfg, client.Options{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cl).NotTo(BeNil())
+
+				By("initially creating a Deployment")
+				dep, err := clientset.AppsV1().Deployments(ns).Create(dep)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("patching the Deployment")
+				dep.SetGroupVersionKind(depGvk)
+				err = cl.Patch(context.TODO(), dep, client.ConstantPatch(types.MergePatchType, mergePatch))
+				Expect(err).NotTo(HaveOccurred())
+
+				By("validating updated Deployment has type information")
+				Expect(dep.GroupVersionKind()).To(Equal(depGvk))
+
+				close(done)
+			})
+
+			It("should patch an existing object non-namespace object from a go struct", func(done Done) {
+				cl, err := client.New(cfg, client.Options{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cl).NotTo(BeNil())
+
+				By("initially creating a Node")
+				node, err := clientset.CoreV1().Nodes().Create(node)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("patching the Node")
+				nodeName := node.Name
+				err = cl.Patch(context.TODO(), node, client.ConstantPatch(types.MergePatchType, mergePatch))
+				Expect(err).NotTo(HaveOccurred())
+
+				By("validating the Node no longer exists")
+				actual, err := clientset.CoreV1().Nodes().Get(nodeName, metav1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(actual).NotTo(BeNil())
+				Expect(actual.Annotations["foo"]).To(Equal("bar"))
+
+				close(done)
+			})
+
+			It("should fail if the object does not exist", func(done Done) {
+				cl, err := client.New(cfg, client.Options{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cl).NotTo(BeNil())
+
+				By("Patching node before it is ever created")
+				err = cl.Patch(context.TODO(), node, client.ConstantPatch(types.MergePatchType, mergePatch))
+				Expect(err).To(HaveOccurred())
+
+				close(done)
+			})
+
+			PIt("should fail if the object doesn't have meta", func() {
+
+			})
+
+			It("should fail if the object cannot be mapped to a GVK", func(done Done) {
+				By("creating client with empty Scheme")
+				emptyScheme := runtime.NewScheme()
+				cl, err := client.New(cfg, client.Options{Scheme: emptyScheme})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cl).NotTo(BeNil())
+
+				By("initially creating a Deployment")
+				dep, err := clientset.AppsV1().Deployments(ns).Create(dep)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("patching the Deployment fails")
+				err = cl.Patch(context.TODO(), dep, client.ConstantPatch(types.MergePatchType, mergePatch))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("no kind is registered for the type"))
+
+				close(done)
+			})
+
+			PIt("should fail if the GVK cannot be mapped to a Resource", func() {
+
+			})
+
+			It("should respect passed in update options", func() {
+				By("creating a new client")
+				cl, err := client.New(cfg, client.Options{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cl).NotTo(BeNil())
+
+				By("initially creating a Deployment")
+				dep, err := clientset.AppsV1().Deployments(ns).Create(dep)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("patching the Deployment with dry-run")
+				err = cl.Patch(context.TODO(), dep, client.ConstantPatch(types.MergePatchType, mergePatch), client.PatchDryRunAll)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("validating patched Deployment doesn't have the new annotation")
+				actual, err := clientset.AppsV1().Deployments(ns).Get(dep.Name, metav1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(actual).NotTo(BeNil())
+				Expect(actual.Annotations).NotTo(HaveKey("foo"))
+			})
+		})
+		Context("with unstructured objects", func() {
+			It("should patch an existing object from a go struct", func(done Done) {
+				cl, err := client.New(cfg, client.Options{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cl).NotTo(BeNil())
+
+				By("initially creating a Deployment")
+				dep, err := clientset.AppsV1().Deployments(ns).Create(dep)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("patching the Deployment")
+				depName := dep.Name
+				u := &unstructured.Unstructured{}
+				Expect(scheme.Convert(dep, u, nil)).To(Succeed())
+				u.SetGroupVersionKind(schema.GroupVersionKind{
+					Group:   "apps",
+					Kind:    "Deployment",
+					Version: "v1",
+				})
+				err = cl.Patch(context.TODO(), u, client.ConstantPatch(types.MergePatchType, mergePatch))
+				Expect(err).NotTo(HaveOccurred())
+
+				By("validating patched Deployment has new annotation")
+				actual, err := clientset.AppsV1().Deployments(ns).Get(depName, metav1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(actual).NotTo(BeNil())
+				Expect(actual.Annotations["foo"]).To(Equal("bar"))
+
+				close(done)
+			})
+
+			It("should patch and preserve type information", func(done Done) {
+				cl, err := client.New(cfg, client.Options{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cl).NotTo(BeNil())
+
+				By("initially creating a Deployment")
+				dep, err := clientset.AppsV1().Deployments(ns).Create(dep)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("patching the Deployment")
+				u := &unstructured.Unstructured{}
+				Expect(scheme.Convert(dep, u, nil)).To(Succeed())
+				u.SetGroupVersionKind(depGvk)
+				err = cl.Patch(context.TODO(), u, client.ConstantPatch(types.MergePatchType, mergePatch))
+				Expect(err).NotTo(HaveOccurred())
+
+				By("validating updated Deployment has type information")
+				Expect(u.GroupVersionKind()).To(Equal(depGvk))
+
+				close(done)
+			})
+
+			It("should patch an existing object non-namespace object from a go struct", func(done Done) {
+				cl, err := client.New(cfg, client.Options{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cl).NotTo(BeNil())
+
+				By("initially creating a Node")
+				node, err := clientset.CoreV1().Nodes().Create(node)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("patching the Node")
+				nodeName := node.Name
+				u := &unstructured.Unstructured{}
+				Expect(scheme.Convert(node, u, nil)).To(Succeed())
+				u.SetGroupVersionKind(schema.GroupVersionKind{
+					Group:   "",
+					Kind:    "Node",
+					Version: "v1",
+				})
+				err = cl.Patch(context.TODO(), u, client.ConstantPatch(types.MergePatchType, mergePatch))
+				Expect(err).NotTo(HaveOccurred())
+
+				By("validating patched Node has new annotation")
+				actual, err := clientset.CoreV1().Nodes().Get(nodeName, metav1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(actual).NotTo(BeNil())
+				Expect(actual.Annotations["foo"]).To(Equal("bar"))
+
+				close(done)
+			})
+
+			It("should fail if the object does not exist", func(done Done) {
+				cl, err := client.New(cfg, client.Options{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cl).NotTo(BeNil())
+
+				By("Patching node before it is ever created")
+				u := &unstructured.Unstructured{}
+				Expect(scheme.Convert(node, u, nil)).To(Succeed())
+				u.SetGroupVersionKind(schema.GroupVersionKind{
+					Group:   "",
+					Kind:    "Node",
+					Version: "v1",
+				})
+				err = cl.Patch(context.TODO(), node, client.ConstantPatch(types.MergePatchType, mergePatch))
+				Expect(err).To(HaveOccurred())
+
+				close(done)
+			})
+
+			It("should respect passed-in update options", func() {
+				By("creating a new client")
+				cl, err := client.New(cfg, client.Options{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cl).NotTo(BeNil())
+
+				By("initially creating a Deployment")
+				dep, err := clientset.AppsV1().Deployments(ns).Create(dep)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("patching the Deployment")
+				depName := dep.Name
+				u := &unstructured.Unstructured{}
+				Expect(scheme.Convert(dep, u, nil)).To(Succeed())
+				u.SetGroupVersionKind(schema.GroupVersionKind{
+					Group:   "apps",
+					Kind:    "Deployment",
+					Version: "v1",
+				})
+				err = cl.Patch(context.TODO(), u, client.ConstantPatch(types.MergePatchType, mergePatch), client.PatchDryRunAll)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("validating patched Deployment does not have the new annotation")
+				actual, err := clientset.AppsV1().Deployments(ns).Get(depName, metav1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(actual).NotTo(BeNil())
+				Expect(actual.Annotations).NotTo(HaveKey("foo"))
 			})
 		})
 	})
@@ -963,7 +1439,7 @@ var _ = Describe("Client", func() {
 				close(done)
 			})
 
-			It("should fail if the object does not exists", func(done Done) {
+			It("should fail if the object does not exist", func(done Done) {
 				cl, err := client.New(cfg, client.Options{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(cl).NotTo(BeNil())
@@ -1017,7 +1493,7 @@ var _ = Describe("Client", func() {
 
 				By("encoding the Deployment as unstructured")
 				var u runtime.Unstructured = &unstructured.Unstructured{}
-				scheme.Convert(dep, u, nil)
+				Expect(scheme.Convert(dep, u, nil)).To(Succeed())
 
 				By("fetching the created Deployment")
 				var actual unstructured.Unstructured
@@ -1044,7 +1520,7 @@ var _ = Describe("Client", func() {
 
 				By("encoding the Node as unstructured")
 				var u runtime.Unstructured = &unstructured.Unstructured{}
-				scheme.Convert(node, u, nil)
+				Expect(scheme.Convert(node, u, nil)).To(Succeed())
 
 				cl, err := client.New(cfg, client.Options{})
 				Expect(err).NotTo(HaveOccurred())
@@ -1068,7 +1544,7 @@ var _ = Describe("Client", func() {
 				close(done)
 			})
 
-			It("should fail if the object does not exists", func(done Done) {
+			It("should fail if the object does not exist", func(done Done) {
 				cl, err := client.New(cfg, client.Options{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(cl).NotTo(BeNil())
@@ -1096,7 +1572,7 @@ var _ = Describe("Client", func() {
 
 				By("listing all objects of that type in the cluster")
 				deps := &appsv1.DeploymentList{}
-				Expect(cl.List(context.Background(), nil, deps)).NotTo(HaveOccurred())
+				Expect(cl.List(context.Background(), deps)).NotTo(HaveOccurred())
 
 				Expect(deps.Items).NotTo(BeEmpty())
 				hasDep := false
@@ -1126,16 +1602,14 @@ var _ = Describe("Client", func() {
 					Kind:    "DeploymentList",
 					Version: "v1",
 				})
-				err = cl.List(context.Background(), nil, deps)
+				err = cl.List(context.Background(), deps)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(deps.Items).NotTo(BeEmpty())
 				hasDep := false
 				for _, item := range deps.Items {
 					if item.GetName() == dep.Name && item.GetNamespace() == dep.Namespace {
-						fmt.Printf("HERE!!!!!!!! ITEM: %v\n\n", item)
 						hasDep = true
-						fmt.Printf("HERE hasDep: %v\n\n", hasDep)
 						break
 					}
 				}
@@ -1149,7 +1623,7 @@ var _ = Describe("Client", func() {
 
 				By("listing all Deployments in the cluster")
 				deps := &appsv1.DeploymentList{}
-				Expect(cl.List(context.Background(), nil, deps)).NotTo(HaveOccurred())
+				Expect(cl.List(context.Background(), deps)).NotTo(HaveOccurred())
 
 				By("validating no Deployments are returned")
 				Expect(deps.Items).To(BeEmpty())
@@ -1205,9 +1679,7 @@ var _ = Describe("Client", func() {
 				By("listing all Deployments with label app=backend")
 				deps := &appsv1.DeploymentList{}
 				labels := map[string]string{"app": "backend"}
-				lo := &client.ListOptions{}
-				lo.MatchingLabels(labels)
-				err = cl.List(context.Background(), lo, deps)
+				err = cl.List(context.Background(), deps, client.MatchingLabels(labels))
 				Expect(err).NotTo(HaveOccurred())
 
 				By("only the Deployment with the backend label is returned")
@@ -1266,9 +1738,7 @@ var _ = Describe("Client", func() {
 
 				By("listing all Deployments in test-namespace-1")
 				deps := &appsv1.DeploymentList{}
-				lo := &client.ListOptions{}
-				lo.InNamespace("test-namespace-1")
-				err = cl.List(context.Background(), lo, deps)
+				err = cl.List(context.Background(), deps, client.InNamespace("test-namespace-1"))
 				Expect(err).NotTo(HaveOccurred())
 
 				By("only the Deployment in test-namespace-1 is returned")
@@ -1323,9 +1793,8 @@ var _ = Describe("Client", func() {
 
 				By("listing all Deployments with field metadata.name=deployment-backend")
 				deps := &appsv1.DeploymentList{}
-				lo := &client.ListOptions{}
-				lo.MatchingField("metadata.name", "deployment-backend")
-				err = cl.List(context.Background(), lo, deps)
+				err = cl.List(context.Background(), deps,
+					client.MatchingField("metadata.name", "deployment-backend"))
 				Expect(err).NotTo(HaveOccurred())
 
 				By("only the Deployment with the backend field is returned")
@@ -1413,10 +1882,10 @@ var _ = Describe("Client", func() {
 				By("listing all Deployments in test-namespace-3 with label app=frontend")
 				deps := &appsv1.DeploymentList{}
 				labels := map[string]string{"app": "frontend"}
-				lo := &client.ListOptions{}
-				lo.InNamespace("test-namespace-3")
-				lo.MatchingLabels(labels)
-				err = cl.List(context.Background(), lo, deps)
+				err = cl.List(context.Background(), deps,
+					client.InNamespace("test-namespace-3"),
+					client.MatchingLabels(labels),
+				)
 				Expect(err).NotTo(HaveOccurred())
 
 				By("only the Deployment in test-namespace-3 with label app=frontend is returned")
@@ -1464,7 +1933,7 @@ var _ = Describe("Client", func() {
 					Kind:    "DeploymentList",
 					Version: "v1",
 				})
-				err = cl.List(context.Background(), nil, deps)
+				err = cl.List(context.Background(), deps)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(deps.Items).NotTo(BeEmpty())
@@ -1490,7 +1959,7 @@ var _ = Describe("Client", func() {
 					Kind:    "DeploymentList",
 					Version: "v1",
 				})
-				Expect(cl.List(context.Background(), nil, deps)).NotTo(HaveOccurred())
+				Expect(cl.List(context.Background(), deps)).NotTo(HaveOccurred())
 
 				By("validating no Deployments are returned")
 				Expect(deps.Items).To(BeEmpty())
@@ -1547,9 +2016,7 @@ var _ = Describe("Client", func() {
 					Kind:    "DeploymentList",
 					Version: "v1",
 				})
-				lo := &client.ListOptions{}
-				lo.InNamespace("test-namespace-5")
-				err = cl.List(context.Background(), lo, deps)
+				err = cl.List(context.Background(), deps, client.InNamespace("test-namespace-5"))
 				Expect(err).NotTo(HaveOccurred())
 
 				By("only the Deployment in test-namespace-5 is returned")
@@ -1609,9 +2076,8 @@ var _ = Describe("Client", func() {
 					Kind:    "DeploymentList",
 					Version: "v1",
 				})
-				lo := &client.ListOptions{}
-				lo.MatchingField("metadata.name", "deployment-backend")
-				err = cl.List(context.Background(), lo, deps)
+				err = cl.List(context.Background(), deps,
+					client.MatchingField("metadata.name", "deployment-backend"))
 				Expect(err).NotTo(HaveOccurred())
 
 				By("only the Deployment with the backend field is returned")
@@ -1704,10 +2170,8 @@ var _ = Describe("Client", func() {
 					Version: "v1",
 				})
 				labels := map[string]string{"app": "frontend"}
-				lo := &client.ListOptions{}
-				lo.InNamespace("test-namespace-7")
-				lo.MatchingLabels(labels)
-				err = cl.List(context.Background(), lo, deps)
+				err = cl.List(context.Background(), deps,
+					client.InNamespace("test-namespace-7"), client.MatchingLabels(labels))
 				Expect(err).NotTo(HaveOccurred())
 
 				By("only the Deployment in test-namespace-7 with label app=frontend is returned")
@@ -1729,13 +2193,39 @@ var _ = Describe("Client", func() {
 			PIt("should fail if the object doesn't have meta", func() {
 
 			})
+
+			PIt("should filter results by namespace selector", func() {
+
+			})
+		})
+	})
+
+	Describe("CreateOptions", func() {
+		It("should allow setting DryRun to 'all'", func() {
+			co := &client.CreateOptions{}
+			client.DryRunAll.ApplyToCreate(co)
+			all := []string{metav1.DryRunAll}
+			Expect(co.AsCreateOptions().DryRun).To(Equal(all))
+		})
+
+		It("should allow setting the field manager", func() {
+			po := &client.CreateOptions{}
+			client.FieldOwner("some-owner").ApplyToCreate(po)
+			Expect(po.AsCreateOptions().FieldManager).To(Equal("some-owner"))
+		})
+
+		It("should produce empty metav1.CreateOptions if nil", func() {
+			var co *client.CreateOptions
+			Expect(co.AsCreateOptions()).To(Equal(&metav1.CreateOptions{}))
+			co = &client.CreateOptions{}
+			Expect(co.AsCreateOptions()).To(Equal(&metav1.CreateOptions{}))
 		})
 	})
 
 	Describe("DeleteOptions", func() {
 		It("should allow setting GracePeriodSeconds", func() {
 			do := &client.DeleteOptions{}
-			client.GracePeriodSeconds(1)(do)
+			client.GracePeriodSeconds(1).ApplyToDelete(do)
 			gp := int64(1)
 			Expect(do.AsDeleteOptions().GracePeriodSeconds).To(Equal(&gp))
 		})
@@ -1743,16 +2233,23 @@ var _ = Describe("Client", func() {
 		It("should allow setting Precondition", func() {
 			do := &client.DeleteOptions{}
 			pc := metav1.NewUIDPreconditions("uid")
-			client.Preconditions(pc)(do)
+			client.Preconditions(*pc).ApplyToDelete(do)
 			Expect(do.AsDeleteOptions().Preconditions).To(Equal(pc))
 			Expect(do.Preconditions).To(Equal(pc))
 		})
 
 		It("should allow setting PropagationPolicy", func() {
 			do := &client.DeleteOptions{}
-			client.PropagationPolicy(metav1.DeletePropagationForeground)(do)
+			client.PropagationPolicy(metav1.DeletePropagationForeground).ApplyToDelete(do)
 			dp := metav1.DeletePropagationForeground
 			Expect(do.AsDeleteOptions().PropagationPolicy).To(Equal(&dp))
+		})
+
+		It("should allow setting DryRun", func() {
+			do := &client.DeleteOptions{}
+			client.DryRunAll.ApplyToDelete(do)
+			all := []string{metav1.DryRunAll}
+			Expect(do.AsDeleteOptions().DryRun).To(Equal(all))
 		})
 
 		It("should produce empty metav1.DeleteOptions if nil", func() {
@@ -1767,9 +2264,9 @@ var _ = Describe("Client", func() {
 			pc := metav1.NewUIDPreconditions("uid")
 			dp := metav1.DeletePropagationForeground
 			do := &client.DeleteOptions{}
-			do.ApplyOptions([]client.DeleteOptionFunc{
+			do.ApplyOptions([]client.DeleteOption{
 				client.GracePeriodSeconds(gp),
-				client.Preconditions(pc),
+				client.Preconditions(*pc),
 				client.PropagationPolicy(dp),
 			})
 			Expect(do.GracePeriodSeconds).To(Equal(&gp))
@@ -1778,71 +2275,125 @@ var _ = Describe("Client", func() {
 		})
 	})
 
+	Describe("DeleteCollectionOptions", func() {
+		It("should be convertable to list options", func() {
+			gp := int64(1)
+			do := &client.DeleteAllOfOptions{}
+			do.ApplyOptions([]client.DeleteAllOfOption{
+				client.GracePeriodSeconds(gp),
+				client.MatchingLabels{"foo": "bar"},
+			})
+
+			listOpts := do.AsListOptions()
+			Expect(listOpts).NotTo(BeNil())
+			Expect(listOpts.LabelSelector).To(Equal("foo=bar"))
+		})
+
+		It("should be convertable to delete options", func() {
+			gp := int64(1)
+			do := &client.DeleteAllOfOptions{}
+			do.ApplyOptions([]client.DeleteAllOfOption{
+				client.GracePeriodSeconds(gp),
+				client.MatchingLabels{"foo": "bar"},
+			})
+
+			deleteOpts := do.AsDeleteOptions()
+			Expect(deleteOpts).NotTo(BeNil())
+			Expect(deleteOpts.GracePeriodSeconds).To(Equal(&gp))
+		})
+	})
+
 	Describe("ListOptions", func() {
-		It("should be able to set a LabelSelector", func() {
-			lo := &client.ListOptions{}
-			err := lo.SetLabelSelector("foo=bar")
-			Expect(err).NotTo(HaveOccurred())
-			Expect(lo.LabelSelector.String()).To(Equal("foo=bar"))
-		})
-
-		It("should be able to set a FieldSelector", func() {
-			lo := &client.ListOptions{}
-			err := lo.SetFieldSelector("field1=bar")
-			Expect(err).NotTo(HaveOccurred())
-			Expect(lo.FieldSelector.String()).To(Equal("field1=bar"))
-		})
-
-		It("should be converted to metav1.ListOptions", func() {
-			lo := &client.ListOptions{}
-			labels := map[string]string{"foo": "bar"}
-			mlo := lo.MatchingLabels(labels).
-				MatchingField("field1", "bar").
-				InNamespace("test-namespace").
-				AsListOptions()
+		It("should be convertable to metav1.ListOptions", func() {
+			lo := (&client.ListOptions{}).ApplyOptions([]client.ListOption{
+				client.MatchingField("field1", "bar"),
+				client.InNamespace("test-namespace"),
+				client.MatchingLabels{"foo": "bar"},
+			})
+			mlo := lo.AsListOptions()
 			Expect(mlo).NotTo(BeNil())
 			Expect(mlo.LabelSelector).To(Equal("foo=bar"))
 			Expect(mlo.FieldSelector).To(Equal("field1=bar"))
 		})
 
-		It("should be able to set MatchingLabels", func() {
+		It("should be populated by MatchingLabels", func() {
 			lo := &client.ListOptions{}
-			Expect(lo.LabelSelector).To(BeNil())
-			labels := map[string]string{"foo": "bar"}
-			lo = lo.MatchingLabels(labels)
-			Expect(lo.LabelSelector.String()).To(Equal("foo=bar"))
-		})
-
-		It("should be able to set MatchingField", func() {
-			lo := &client.ListOptions{}
-			Expect(lo.FieldSelector).To(BeNil())
-			lo = lo.MatchingField("field1", "bar")
-			Expect(lo.FieldSelector.String()).To(Equal("field1=bar"))
-		})
-
-		It("should be able to set InNamespace", func() {
-			lo := &client.ListOptions{}
-			lo = lo.InNamespace("test-namespace")
-			Expect(lo.Namespace).To(Equal("test-namespace"))
-		})
-
-		It("should be created from MatchingLabels", func() {
-			labels := map[string]string{"foo": "bar"}
-			lo := client.MatchingLabels(labels)
+			client.MatchingLabels{"foo": "bar"}.ApplyToList(lo)
 			Expect(lo).NotTo(BeNil())
 			Expect(lo.LabelSelector.String()).To(Equal("foo=bar"))
 		})
 
-		It("should be created from MatchingField", func() {
-			lo := client.MatchingField("field1", "bar")
+		It("should be populated by MatchingField", func() {
+			lo := &client.ListOptions{}
+			client.MatchingField("field1", "bar").ApplyToList(lo)
 			Expect(lo).NotTo(BeNil())
 			Expect(lo.FieldSelector.String()).To(Equal("field1=bar"))
 		})
 
-		It("should be created from InNamespace", func() {
-			lo := client.InNamespace("test")
+		It("should be populated by InNamespace", func() {
+			lo := &client.ListOptions{}
+			client.InNamespace("test").ApplyToList(lo)
 			Expect(lo).NotTo(BeNil())
 			Expect(lo.Namespace).To(Equal("test"))
+		})
+
+		It("should produce empty metav1.ListOptions if nil", func() {
+			var do *client.ListOptions
+			Expect(do.AsListOptions()).To(Equal(&metav1.ListOptions{}))
+			do = &client.ListOptions{}
+			Expect(do.AsListOptions()).To(Equal(&metav1.ListOptions{}))
+		})
+	})
+
+	Describe("UpdateOptions", func() {
+		It("should allow setting DryRun to 'all'", func() {
+			uo := &client.UpdateOptions{}
+			client.DryRunAll.ApplyToUpdate(uo)
+			all := []string{metav1.DryRunAll}
+			Expect(uo.AsUpdateOptions().DryRun).To(Equal(all))
+		})
+
+		It("should allow setting the field manager", func() {
+			po := &client.UpdateOptions{}
+			client.FieldOwner("some-owner").ApplyToUpdate(po)
+			Expect(po.AsUpdateOptions().FieldManager).To(Equal("some-owner"))
+		})
+
+		It("should produce empty metav1.UpdateOptions if nil", func() {
+			var co *client.UpdateOptions
+			Expect(co.AsUpdateOptions()).To(Equal(&metav1.UpdateOptions{}))
+			co = &client.UpdateOptions{}
+			Expect(co.AsUpdateOptions()).To(Equal(&metav1.UpdateOptions{}))
+		})
+	})
+
+	Describe("PatchOptions", func() {
+		It("should allow setting DryRun to 'all'", func() {
+			po := &client.PatchOptions{}
+			client.DryRunAll.ApplyToPatch(po)
+			all := []string{metav1.DryRunAll}
+			Expect(po.AsPatchOptions().DryRun).To(Equal(all))
+		})
+
+		It("should allow setting Force to 'true'", func() {
+			po := &client.PatchOptions{}
+			client.ForceOwnership.ApplyToPatch(po)
+			mpo := po.AsPatchOptions()
+			Expect(mpo.Force).NotTo(BeNil())
+			Expect(*mpo.Force).To(BeTrue())
+		})
+
+		It("should allow setting the field manager", func() {
+			po := &client.PatchOptions{}
+			client.FieldOwner("some-owner").ApplyToPatch(po)
+			Expect(po.AsPatchOptions().FieldManager).To(Equal("some-owner"))
+		})
+
+		It("should produce empty metav1.PatchOptions if nil", func() {
+			var po *client.PatchOptions
+			Expect(po.AsPatchOptions()).To(Equal(&metav1.PatchOptions{}))
+			po = &client.PatchOptions{}
+			Expect(po.AsPatchOptions()).To(Equal(&metav1.PatchOptions{}))
 		})
 	})
 })
@@ -1858,7 +2409,7 @@ var _ = Describe("DelegatingReader", func() {
 			}
 			var actual appsv1.Deployment
 			key := client.ObjectKey{Namespace: "ns", Name: "name"}
-			dReader.Get(context.TODO(), key, &actual)
+			Expect(dReader.Get(context.TODO(), key, &actual)).To(Succeed())
 			Expect(1).To(Equal(cachedReader.Called))
 			Expect(0).To(Equal(clientReader.Called))
 		})
@@ -1871,7 +2422,7 @@ var _ = Describe("DelegatingReader", func() {
 			}
 			var actual unstructured.Unstructured
 			key := client.ObjectKey{Namespace: "ns", Name: "name"}
-			dReader.Get(context.TODO(), key, &actual)
+			Expect(dReader.Get(context.TODO(), key, &actual)).To(Succeed())
 			Expect(0).To(Equal(cachedReader.Called))
 			Expect(1).To(Equal(clientReader.Called))
 		})
@@ -1885,7 +2436,7 @@ var _ = Describe("DelegatingReader", func() {
 				ClientReader: clientReader,
 			}
 			var actual appsv1.DeploymentList
-			dReader.List(context.Background(), nil, &actual)
+			Expect(dReader.List(context.Background(), &actual)).To(Succeed())
 			Expect(1).To(Equal(cachedReader.Called))
 			Expect(0).To(Equal(clientReader.Called))
 
@@ -1899,11 +2450,77 @@ var _ = Describe("DelegatingReader", func() {
 			}
 
 			var actual unstructured.UnstructuredList
-			dReader.List(context.Background(), nil, &actual)
+			Expect(dReader.List(context.Background(), &actual)).To(Succeed())
 			Expect(0).To(Equal(cachedReader.Called))
 			Expect(1).To(Equal(clientReader.Called))
 
 		})
+	})
+})
+
+var _ = Describe("Patch", func() {
+	Describe("CreateMergePatch", func() {
+		var cm *corev1.ConfigMap
+
+		BeforeEach(func() {
+			cm = &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: metav1.NamespaceDefault,
+					Name:      "cm",
+				},
+			}
+		})
+
+		It("creates a merge patch with the modifications applied during the mutation", func() {
+			const (
+				annotationKey   = "test"
+				annotationValue = "foo"
+			)
+
+			By("creating a merge patch")
+			patch := client.MergeFrom(cm.DeepCopy())
+
+			By("returning a patch with type MergePatch")
+			Expect(patch.Type()).To(Equal(types.MergePatchType))
+
+			By("retrieving modifying the config map")
+			metav1.SetMetaDataAnnotation(&cm.ObjectMeta, annotationKey, annotationValue)
+
+			By("computing the patch data")
+			data, err := patch.Data(cm)
+
+			By("returning no error")
+			Expect(err).NotTo(HaveOccurred())
+
+			By("returning a patch with data only containing the annotation change")
+			Expect(data).To(Equal([]byte(fmt.Sprintf(`{"metadata":{"annotations":{"%s":"%s"}}}`, annotationKey, annotationValue))))
+		})
+	})
+})
+
+var _ = Describe("IgnoreNotFound", func() {
+	It("should return nil on a 'NotFound' error", func() {
+		By("creating a NotFound error")
+		err := apierrors.NewNotFound(schema.GroupResource{}, "")
+
+		By("returning no error")
+		Expect(client.IgnoreNotFound(err)).To(Succeed())
+	})
+
+	It("should return the error on a status other than not found", func() {
+		By("creating a BadRequest error")
+		err := apierrors.NewBadRequest("")
+
+		By("returning an error")
+		Expect(client.IgnoreNotFound(err)).To(HaveOccurred())
+	})
+
+	It("should return the error on a non-status error", func() {
+		By("creating an fmt error")
+		err := fmt.Errorf("arbitrary error")
+
+		By("returning an error")
+		Expect(client.IgnoreNotFound(err)).To(HaveOccurred())
 	})
 })
 
@@ -1916,7 +2533,7 @@ func (f *fakeReader) Get(ctx context.Context, key client.ObjectKey, obj runtime.
 	return nil
 }
 
-func (f *fakeReader) List(ctx context.Context, opts *client.ListOptions, list runtime.Object) error {
+func (f *fakeReader) List(ctx context.Context, list runtime.Object, opts ...client.ListOption) error {
 	f.Called = f.Called + 1
 	return nil
 }

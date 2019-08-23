@@ -22,15 +22,17 @@ import (
 	"os"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 var (
-	c client.Client
+	c           client.Client
+	someIndexer client.FieldIndexer
 )
 
 func ExampleNew() {
@@ -42,7 +44,7 @@ func ExampleNew() {
 
 	podList := &corev1.PodList{}
 
-	err = cl.List(context.Background(), client.InNamespace("default"), podList)
+	err = cl.List(context.Background(), podList, client.InNamespace("default"))
 	if err != nil {
 		fmt.Printf("failed to list pods in namespace default: %v\n", err)
 		os.Exit(1)
@@ -72,11 +74,11 @@ func ExampleClient_get() {
 	}, u)
 }
 
-// This example shows how to use the client with typed and unstrucurted objects to create objects.
+// This example shows how to use the client with typed and unstructured objects to create objects.
 func ExampleClient_create() {
 	// Using a typed object.
 	pod := &corev1.Pod{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "namespace",
 			Name:      "name",
 		},
@@ -127,12 +129,12 @@ func ExampleClient_create() {
 	_ = c.Create(context.Background(), u)
 }
 
-// This example shows how to use the client with typed and unstrucurted objects to list objects.
+// This example shows how to use the client with typed and unstructured objects to list objects.
 func ExampleClient_list() {
 	// Using a typed object.
 	pod := &corev1.PodList{}
 	// c is a created client.
-	_ = c.List(context.Background(), nil, pod)
+	_ = c.List(context.Background(), pod)
 
 	// Using a unstructured object.
 	u := &unstructured.UnstructuredList{}
@@ -141,10 +143,10 @@ func ExampleClient_list() {
 		Kind:    "DeploymentList",
 		Version: "v1",
 	})
-	_ = c.List(context.Background(), nil, u)
+	_ = c.List(context.Background(), u)
 }
 
-// This example shows how to use the client with typed and unstrucurted objects to update objects.
+// This example shows how to use the client with typed and unstructured objects to update objects.
 func ExampleClient_update() {
 	// Using a typed object.
 	pod := &corev1.Pod{}
@@ -171,11 +173,11 @@ func ExampleClient_update() {
 	_ = c.Update(context.Background(), u)
 }
 
-// This example shows how to use the client with typed and unstrucurted objects to delete objects.
+// This example shows how to use the client with typed and unstructured objects to delete objects.
 func ExampleClient_delete() {
 	// Using a typed object.
 	pod := &corev1.Pod{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "namespace",
 			Name:      "name",
 		},
@@ -195,4 +197,41 @@ func ExampleClient_delete() {
 		Version: "v1",
 	})
 	_ = c.Delete(context.Background(), u)
+}
+
+// This example shows how to use the client with typed and unstrucurted objects to delete collections of objects.
+func ExampleClient_deleteAllOf() {
+	// Using a typed object.
+	// c is a created client.
+	_ = c.DeleteAllOf(context.Background(), &corev1.Pod{}, client.InNamespace("foo"), client.MatchingLabels{"app": "foo"})
+
+	// Using an unstructured Object
+	u := &unstructured.UnstructuredList{}
+	u.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "apps",
+		Kind:    "Deployment",
+		Version: "v1",
+	})
+	_ = c.DeleteAllOf(context.Background(), u, client.InNamespace("foo"), client.MatchingLabels{"app": "foo"})
+}
+
+// This example shows how to set up and consume a field selector over a pod's volumes' secretName field.
+func ExampleFieldIndexer_secretName() {
+	// someIndexer is a FieldIndexer over a Cache
+	_ = someIndexer.IndexField(&corev1.Pod{}, "spec.volumes.secret.secretName", func(o runtime.Object) []string {
+		var res []string
+		for _, vol := range o.(*corev1.Pod).Spec.Volumes {
+			if vol.Secret == nil {
+				continue
+			}
+			// just return the raw field value -- the indexer will take care of dealing with namespaces for us
+			res = append(res, vol.Secret.SecretName)
+		}
+		return res
+	})
+
+	// elsewhere (e.g. in your reconciler)
+	mySecretName := "someSecret" // derived from the reconcile.Request, for instance
+	var podsWithSecrets corev1.PodList
+	_ = c.List(context.Background(), &podsWithSecrets, client.MatchingField("spec.volumes.secret.secretName", mySecretName))
 }

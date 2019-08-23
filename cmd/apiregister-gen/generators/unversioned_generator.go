@@ -300,7 +300,7 @@ func (s *storage{{.Kind}}) Update{{.Kind}}(ctx context.Context, object *{{.Kind}
 
 func (s *storage{{.Kind}}) Delete{{.Kind}}(ctx context.Context, id string) (bool, error) {
 	st := s.GetStandardStorage()
-	_, sync, err := st.Delete(ctx, id, &metav1.DeleteOptions{})
+	_, sync, err := st.Delete(ctx, id, nil, &metav1.DeleteOptions{})
 	return sync, err
 }
 

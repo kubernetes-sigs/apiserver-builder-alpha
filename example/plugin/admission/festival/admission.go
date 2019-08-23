@@ -52,12 +52,12 @@ func (p *festivalPlugin) ValidateInitialization() error {
 	return nil
 }
 
-func (p *festivalPlugin) Admit(a admission.Attributes) error {
+func (p *festivalPlugin) Admit(a admission.Attributes, o admission.ObjectInterfaces) error {
 	fmt.Println("admitting festivals")
 	return nil
 }
 
-func (p *festivalPlugin) Validate(a admission.Attributes) error {
+func (p *festivalPlugin) Validate(a admission.Attributes, o admission.ObjectInterfaces) error {
 	return nil
 }
 

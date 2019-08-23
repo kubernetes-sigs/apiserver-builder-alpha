@@ -22,34 +22,26 @@ import (
 
 	admissionv1beta1 "k8s.io/api/admission/v1beta1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
-	"sigs.k8s.io/controller-runtime/pkg/webhook/admission/types"
 )
 
-var _ = Describe("admission webhook decoder", func() {
-	var decoder types.Decoder
-	BeforeEach(func(done Done) {
+var _ = Describe("Admission Webhook Decoder", func() {
+	var decoder *Decoder
+	BeforeEach(func() {
+		By("creating a new decoder for a scheme")
 		var err error
 		decoder, err = NewDecoder(scheme.Scheme)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(decoder).NotTo(BeNil())
-		close(done)
 	})
 
-	Describe("NewDecoder", func() {
-		It("should return a decoder without an error", func() {
-			decoder, err := NewDecoder(scheme.Scheme)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(decoder).NotTo(BeNil())
-		})
-	})
-
-	Describe("Decode", func() {
-		req := types.Request{
-			AdmissionRequest: &admissionv1beta1.AdmissionRequest{
-				Object: runtime.RawExtension{
-					Raw: []byte(`{
+	req := Request{
+		AdmissionRequest: admissionv1beta1.AdmissionRequest{
+			Object: runtime.RawExtension{
+				Raw: []byte(`{
     "apiVersion": "v1",
     "kind": "Pod",
     "metadata": {
@@ -59,25 +51,107 @@ var _ = Describe("admission webhook decoder", func() {
     "spec": {
         "containers": [
             {
-                "image": "bar",
+                "image": "bar:v2",
                 "name": "bar"
             }
         ]
     }
 }`),
+			},
+			OldObject: runtime.RawExtension{
+				Raw: []byte(`{
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+        "name": "foo",
+        "namespace": "default"
+    },
+    "spec": {
+        "containers": [
+            {
+                "image": "bar:v1",
+                "name": "bar"
+            }
+        ]
+    }
+}`),
+			},
+		},
+	}
+
+	It("should decode a valid admission request", func() {
+		By("extracting the object from the request")
+		var actualObj corev1.Pod
+		Expect(decoder.Decode(req, &actualObj)).To(Succeed())
+
+		By("verifying that all data is present in the object")
+		Expect(actualObj).To(Equal(corev1.Pod{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: "v1",
+				Kind:       "Pod",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "foo",
+				Namespace: "default",
+			},
+			Spec: corev1.PodSpec{
+				Containers: []corev1.Container{
+					{Image: "bar:v2", Name: "bar"},
 				},
 			},
-		}
+		}))
+	})
 
-		It("should be able to decode", func() {
-			err := decoder.Decode(req, &corev1.Pod{})
-			Expect(err).NotTo(HaveOccurred())
-		})
+	It("should decode a valid RawExtension object", func() {
+		By("decoding the RawExtension object")
+		var actualObj corev1.Pod
+		Expect(decoder.DecodeRaw(req.OldObject, &actualObj)).To(Succeed())
 
-		It("should return an error if the GVK mismatch", func() {
-			err := decoder.Decode(req, &corev1.Node{})
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).Should(ContainSubstring("unable to decode"))
-		})
+		By("verifying that all data is present in the object")
+		Expect(actualObj).To(Equal(corev1.Pod{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: "v1",
+				Kind:       "Pod",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "foo",
+				Namespace: "default",
+			},
+			Spec: corev1.PodSpec{
+				Containers: []corev1.Container{
+					{Image: "bar:v1", Name: "bar"},
+				},
+			},
+		}))
+	})
+
+	It("should fail to decode if the object in the request doesn't match the passed-in type", func() {
+		By("trying to extract a pod from the quest into a node")
+		Expect(decoder.Decode(req, &corev1.Node{})).NotTo(Succeed())
+
+		By("trying to extract a pod in RawExtension format into a node")
+		Expect(decoder.DecodeRaw(req.OldObject, &corev1.Node{})).NotTo(Succeed())
+	})
+
+	It("should be able to decode into an unstructured object", func() {
+		By("decoding the request into an unstructured object")
+		var target unstructured.Unstructured
+		Expect(decoder.Decode(req, &target)).To(Succeed())
+
+		By("sanity-checking the metadata on the output object")
+		Expect(target.Object["metadata"]).To(Equal(map[string]interface{}{
+			"name":      "foo",
+			"namespace": "default",
+		}))
+
+		By("decoding the RawExtension object into an unstructured object")
+		var target2 unstructured.Unstructured
+		Expect(decoder.DecodeRaw(req.Object, &target2)).To(Succeed())
+
+		By("sanity-checking the metadata on the output object")
+		Expect(target2.Object["metadata"]).To(Equal(map[string]interface{}{
+			"name":      "foo",
+			"namespace": "default",
+		}))
 	})
 })

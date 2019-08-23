@@ -54,12 +54,12 @@ func (b PoseidonStrategy) BasicMatch(label labels.Selector, field fields.Selecto
 
 // The following functions allow spec.deployment.name to be selected when listing
 // or watching resources
-func (b PoseidonStrategy) GetAttrs(o runtime.Object) (labels.Set, fields.Set, bool, error) {
+func (b PoseidonStrategy) GetAttrs(o runtime.Object) (labels.Set, fields.Set, error) {
 	// Change this function to override the attributes that are matched
-	l, _, uninit, e := b.DefaultStorageStrategy.GetAttrs(o)
+	l, _, e := b.DefaultStorageStrategy.GetAttrs(o)
 	obj := o.(*Poseidon)
 
 	fs := fields.Set{"spec.deployment.name": obj.Spec.Deployment.Name}
 	fs = generic.AddObjectMetaFieldsSet(fs, &obj.ObjectMeta, true)
-	return l, fs, uninit, e
+	return l, fs, e
 }

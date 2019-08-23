@@ -19,10 +19,7 @@ all: test
 NON_INTERACTIVE_FLAG=--skip-resource=false --skip-controller=false --skip-admission-controller=false
 
 test: build
-	go test ./pkg/apis/...
-	go test ./pkg/controller/volumeclaim
-	go test ./pkg/controller/snapshotclaim
-	go test ./pkg/controller/volume
+	go test ./pkg/...
 	go test ./pkg/controller/snapshot
 	bash -c "find pkg/apis/ -name apiserver.local.config | xargs rm -rf"
 
