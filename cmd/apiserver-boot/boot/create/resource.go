@@ -248,7 +248,7 @@ func createResource(boilerplate string) {
 					IfExistsAction: input.Skip,
 				},
 			},
-			&controller.Test{
+			&Test{
 				Resource: r,
 				Input: input.Input{
 					IfExistsAction: input.Skip,

@@ -3,7 +3,7 @@
 set -x -e
 
 if [ "$TEST" == "example" ]; then
-	cd example
+	cd example/basic
 	PATH=$PATH:/tmp/test-etcd make test
 elif [ "$TEST" == "test" ]; then
 	cd test

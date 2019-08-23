@@ -12,29 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-.PHONY: all test build generate docs cmds clean cleangenerated cleandocs skeleton
+.PHONY: all test build generate docs cmds clean cleangenerated cleandocs
 
 all: test
-
-NON_INTERACTIVE_FLAG=--skip-resource=false --skip-controller=false --skip-admission-controller=false
 
 test: build
 	go test ./pkg/...
 	bash -c "find pkg/apis/ -name apiserver.local.config | xargs rm -rf"
 
-skeleton: cmds
-	apiserver-boot init repo --domain sample.kubernetes.io
-	apiserver-boot create group version resource --group storage --version v1 --kind VolumeClaim $(NON_INTERACTIVE_FLAG)
-	apiserver-boot create group version resource --group storage --version v1 --kind SnapshotClaim $(NON_INTERACTIVE_FLAG)
-	apiserver-boot create group version resource --group storage --version v1 --kind Volume --non-namespaced $(NON_INTERACTIVE_FLAG)
-	apiserver-boot create group version resource --group storage --version v1 --kind Snapshot --non-namespaced $(NON_INTERACTIVE_FLAG)
-
-build: cmds skeleton
-	apiserver-boot build executables
+build: cmds
+	bin/apiserver-boot build executables --vendor-dir ../../
 
 # Build docs
 docs: cleandocs build
-	apiserver-boot build docs --server bin/apiserver
+	bin/apiserver-boot build docs --server bin/apiserver
 
 # Build the tools
 # Note: These are available in the apiserver-builder release tar.gz
@@ -46,7 +37,7 @@ cmds:
 clean: cleangenerated cleandocs
 
 cleangenerated: cmds
-	apiserver-boot build generated clean
+	bin/apiserver-boot build generated clean
 
 cleandocs: cmds
-	apiserver-boot build docs clean
+	bin/apiserver-boot build docs clean
