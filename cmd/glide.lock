@@ -1,5 +1,5 @@
-hash: c9b59f5f0f744c9b6802f4de07fab71b5148f59569ea8de34220996a1191d805
-updated: 2019-05-13T20:26:24.917572+08:00
+hash: 2b6214953b7eb093013df5235739b8c1cbf08ca4f0c44e6d2af3432081301242
+updated: 2019-08-23T14:02:13.506776+08:00
 imports:
 - name: github.com/emicklei/go-restful
   version: ff4f55a206334ef123e4f79bbf348980da81ca46
@@ -26,10 +26,9 @@ imports:
 - name: github.com/gobuffalo/envy
   version: 7e7ddcbb431d1d9e32121d7eeee8d68bdecd7081
 - name: github.com/gogo/protobuf
-  version: c0656edd0d9eab7c66d1eb0c568f9039345796f7
+  version: 342cbe0a04158f6dcb03ca0079991a51a4248c02
   subpackages:
   - proto
-  - sortkeys
 - name: github.com/golang/glog
   version: 44145f04b68cf362d9c4df2182967c2275eaefed
 - name: github.com/inconshreveable/mousetrap
@@ -69,47 +68,34 @@ imports:
 - name: github.com/spf13/viper
   version: 7fb2782df3d83e0036cc89f461ed0422628776f4
 - name: golang.org/x/text
-  version: b19bf474d317b857955b12035d2c5acb57ce8b01
+  version: e6919f6577db79269a6443b9dc46d18f2238fb5d
   subpackages:
-  - cases
-  - internal
-  - internal/tag
-  - language
-  - runes
-  - secure/bidirule
-  - secure/precis
   - transform
-  - unicode/bidi
   - unicode/norm
-  - width
 - name: golang.org/x/tools
-  version: 3576414c54a492fc48cd913814eb209914c717f0
+  version: aa82965741a9fecd12b026fbb3d3c6ed3231b8f8
   subpackages:
   - go/ast/astutil
   - imports
   - internal/fastwalk
   - internal/gopathwalk
 - name: gopkg.in/yaml.v2
-  version: 670d4cfef0544295bc27a114dbac37980d83185a
+  version: 5420a8b6744d3b0345ab293f6fcba19c978f1183
 - name: k8s.io/api
-  version: b503174bad5991eb66f18247f52e41c3258f6348
+  version: 3544db3b9e4494309507e02eced5cd9dcff47e6a
 - name: k8s.io/apimachinery
-  version: eddba98df674a16931d2d4ba75edc3a389bf633a
+  version: f2f3a405f61d6c2cdc0d00687c1b5d90de91e9f0
   subpackages:
   - pkg/runtime/schema
-  - pkg/util/runtime
   - pkg/util/sets
-  - pkg/util/wait
 - name: k8s.io/apiserver
-  version: 92fdef3a232a23afb9644f6151119b5961b9feab
-  subpackages:
-  - pkg/util/logs
+  version: 92cc630367d00d05752f0cf0d6eca534bcd1e5a3
 - name: k8s.io/client-go
-  version: 77e032213d34c856222b4d4647c1c175ba8d22b9
+  version: 637fc595d17acea6ce5f5b894b0a3ab301bf674e
   subpackages:
   - util/homedir
 - name: k8s.io/code-generator
-  version: 3dcf91f64f638563e5106f21f50c31fa361c918d
+  version: 18da4a14b22b17d2fa761e50037fabfbacec225b
 - name: k8s.io/gengo
   version: fdcf9f9480fdd5bf2b3c3df9bf4ecd22b25b87e2
   subpackages:
