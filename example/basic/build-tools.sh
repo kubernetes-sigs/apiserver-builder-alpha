@@ -4,7 +4,7 @@
 # Otherwise, download the pre-built apiserver-builder tar release from
 # https://sigs.k8s.io/apiserver-builder-alpha/releases instead.
 
-CMD_VENDOR="../cmd/vendor"
+CMD_VENDOR="../../cmd/vendor"
 
 # Install generators from other repos
 if [ ! -f bin/client-gen ] ; then
@@ -33,5 +33,5 @@ if [ ! -f bin/gen-apidocs ] ; then
 fi
 
 # Install generators from this repo
-go build -o bin/apiserver-boot ../cmd/apiserver-boot/main.go
-go build -o bin/apiregister-gen ../cmd/apiregister-gen/main.go
+go build -o bin/apiserver-boot ../../cmd/apiserver-boot/main.go
+go build -o bin/apiregister-gen ../../cmd/apiregister-gen/main.go

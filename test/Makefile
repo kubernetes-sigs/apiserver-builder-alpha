@@ -20,7 +20,6 @@ NON_INTERACTIVE_FLAG=--skip-resource=false --skip-controller=false --skip-admiss
 
 test: build
 	go test ./pkg/...
-	go test ./pkg/controller/snapshot
 	bash -c "find pkg/apis/ -name apiserver.local.config | xargs rm -rf"
 
 skeleton: cmds
