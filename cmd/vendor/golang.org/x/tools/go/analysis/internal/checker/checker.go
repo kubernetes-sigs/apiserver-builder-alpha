@@ -42,12 +42,12 @@ var (
 	CPUProfile, MemProfile, Trace string
 )
 
-// RegisterFlags registers command-line flags used the analysis driver.
+// RegisterFlags registers command-line flags used by the analysis driver.
 func RegisterFlags() {
 	// When adding flags here, remember to update
 	// the list of suppressed flags in analysisflags.
 
-	flag.StringVar(&Debug, "debug", Debug, `debug flags, any subset of "lpsv"`)
+	flag.StringVar(&Debug, "debug", Debug, `debug flags, any subset of "fpstv"`)
 
 	flag.StringVar(&CPUProfile, "cpuprofile", "", "write CPU profile to this file")
 	flag.StringVar(&MemProfile, "memprofile", "", "write memory profile to this file")
@@ -141,11 +141,11 @@ func load(patterns []string, allSyntax bool) ([]*packages.Package, error) {
 			err = fmt.Errorf("%d errors during loading", n)
 		} else if n == 1 {
 			err = fmt.Errorf("error during loading")
+		} else if len(initial) == 0 {
+			err = fmt.Errorf("%s matched no packages", strings.Join(patterns, " "))
 		}
 	}
-	if len(initial) == 0 {
-		err = fmt.Errorf("%s matched no packages", strings.Join(patterns, " "))
-	}
+
 	return initial, err
 }
 
@@ -492,6 +492,7 @@ func (act *action) execOnce() {
 		OtherFiles:        act.pkg.OtherFiles,
 		Pkg:               act.pkg.Types,
 		TypesInfo:         act.pkg.TypesInfo,
+		TypesSizes:        act.pkg.TypesSizes,
 		ResultOf:          inputs,
 		Report:            func(d analysis.Diagnostic) { act.diagnostics = append(act.diagnostics, d) },
 		ImportObjectFact:  act.importObjectFact,
