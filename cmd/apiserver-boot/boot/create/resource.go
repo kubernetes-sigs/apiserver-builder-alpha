@@ -313,8 +313,6 @@ var versionedResourceTemplate = `
 package {{.Version}}
 
 import (
-	"log"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -341,13 +339,6 @@ type {{.Kind}}Spec struct {
 
 // {{.Kind}}Status defines the observed state of {{.Kind}}
 type {{.Kind}}Status struct {
-}
-
-// DefaultingFunction sets default {{.Kind}} field values
-func ({{.Kind}}SchemeFns) DefaultingFunction(o interface{}) {
-	obj := o.(*{{.Kind}})
-	// set default field values here
-	log.Printf("Defaulting fields for {{.Kind}} %s\n", obj.Name)
 }
 `
 

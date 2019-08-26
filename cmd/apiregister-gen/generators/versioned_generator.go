@@ -142,14 +142,6 @@ func Resource(resource string) schema.GroupResource {
 }
 
 {{ range $api := .Resources -}}
-//
-// {{.Kind}} Functions and Structs
-//
-// +k8s:deepcopy-gen=false
-// Deprecated
-type {{.Kind}}SchemeFns struct {
-	builders.DefaultSchemeFns
-}
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 

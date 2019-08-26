@@ -20,10 +20,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+// Deprecated
 var _ SchemeFns = &DefaultSchemeFns{}
 
+// Deprecated
 var SchemeFnsSingleton = DefaultSchemeFns{}
 
+// Deprecated
 type DefaultSchemeFns struct {
 }
 
