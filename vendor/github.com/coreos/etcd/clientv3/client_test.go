@@ -15,6 +15,7 @@
 package clientv3
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"testing"
@@ -22,8 +23,7 @@ import (
 
 	"github.com/coreos/etcd/etcdserver/api/v3rpc/rpctypes"
 	"github.com/coreos/etcd/pkg/testutil"
-
-	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 )
 
 func TestDialCancel(t *testing.T) {
@@ -79,18 +79,18 @@ func TestDialCancel(t *testing.T) {
 }
 
 func TestDialTimeout(t *testing.T) {
-	t.Skip()
-
 	defer testutil.AfterTest(t)
 
 	testCfgs := []Config{
 		{
 			Endpoints:   []string{"http://254.0.0.1:12345"},
+			DialOptions: []grpc.DialOption{grpc.WithBlock()},
 			DialTimeout: 2 * time.Second,
 		},
 		{
 			Endpoints:   []string{"http://254.0.0.1:12345"},
 			DialTimeout: time.Second,
+			DialOptions: []grpc.DialOption{grpc.WithBlock()},
 			Username:    "abc",
 			Password:    "def",
 		},
