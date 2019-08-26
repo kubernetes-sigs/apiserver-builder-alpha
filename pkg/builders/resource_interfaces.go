@@ -71,6 +71,7 @@ type StorageBuilder interface {
 	BasicMatch(label labels.Selector, field fields.Selector) storage.SelectionPredicate
 }
 
+// Deprecated
 type SchemeFns interface {
 	DefaultingFunction(obj interface{})
 	GetConversionFunctions() []interface{}
