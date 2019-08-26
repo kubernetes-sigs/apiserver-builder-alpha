@@ -1,0 +1,5 @@
+apiVersion: sqlite.example.com/v1alpha1
+kind: Tik
+metadata:
+  name: tik-example
+spec:

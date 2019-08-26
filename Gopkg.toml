@@ -144,3 +144,11 @@ required = [
   name = "sigs.k8s.io/structured-merge-diff"
   revision = "e85c7b244fd2cc57bb829d73a061f93a441e63ce"
 
+[[constraint]]
+  name = "github.com/rancher/kine"
+  revision = "c308515dee837fd00d480e482f763d76e7572df5"
+  source = "https://github.com/ibuildthecloud/kine"
+
+[[constraint]]
+  name = "github.com/coreos/etcd"
+  version = "v3.3.13"

@@ -23,7 +23,7 @@ import (
 
 	"github.com/coreos/etcd/pkg/transport"
 
-	"github.com/ghodss/yaml"
+	"sigs.k8s.io/yaml"
 )
 
 func TestConfigFileOtherFields(t *testing.T) {
@@ -147,4 +147,23 @@ func mustCreateCfgFile(t *testing.T, b []byte) *os.File {
 		t.Fatal(err)
 	}
 	return tmpfile
+}
+
+func TestAutoCompactionModeInvalid(t *testing.T) {
+	cfg := NewConfig()
+	cfg.AutoCompactionMode = "period"
+	err := cfg.Validate()
+	if err == nil {
+		t.Errorf("expected non-nil error, got %v", err)
+	}
+}
+
+func TestAutoCompactionModeParse(t *testing.T) {
+	dur, err := parseCompactionRetention("revision", "1")
+	if err != nil {
+		t.Error(err)
+	}
+	if dur != 1 {
+		t.Fatalf("AutoCompactionRetention expected 1, got %d", dur)
+	}
 }

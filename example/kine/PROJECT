@@ -1,0 +1,4 @@
+
+version: "1"
+domain: example.com
+repo: sigs.k8s.io/apiserver-builder-alpha/example/kine

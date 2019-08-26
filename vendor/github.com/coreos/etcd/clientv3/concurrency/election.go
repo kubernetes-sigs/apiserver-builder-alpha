@@ -15,14 +15,13 @@
 package concurrency
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	v3 "github.com/coreos/etcd/clientv3"
 	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 	"github.com/coreos/etcd/mvcc/mvccpb"
-
-	"golang.org/x/net/context"
 )
 
 var (
@@ -50,6 +49,7 @@ func NewElection(s *Session, pfx string) *Election {
 func ResumeElection(s *Session, pfx string, leaderKey string, leaderRev int64) *Election {
 	return &Election{
 		session:       s,
+		keyPrefix:     pfx,
 		leaderKey:     leaderKey,
 		leaderRev:     leaderRev,
 		leaderSession: s,

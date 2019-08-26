@@ -50,12 +50,6 @@
   revision = "3ac7bf7a47d159a033b107610db8a1b6575507a4"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/cockroachdb/cmux"
-  packages = ["."]
-  revision = "30d10be492927e2dcae0089c374c455d42414fcb"
-
-[[projects]]
   name = "github.com/coreos/bbolt"
   packages = ["."]
   revision = "583e8937c61f1af6513608ccc75c97b6abdf4ff9"
@@ -70,9 +64,16 @@
     "auth/authpb",
     "client",
     "clientv3",
+    "clientv3/balancer",
+    "clientv3/balancer/connectivity",
+    "clientv3/balancer/picker",
+    "clientv3/balancer/resolver/endpoint",
     "clientv3/concurrency",
+    "clientv3/credentials",
+    "clientv3/leasing",
     "clientv3/namespace",
     "clientv3/naming",
+    "clientv3/ordering",
     "compactor",
     "discovery",
     "embed",
@@ -83,6 +84,7 @@
     "etcdserver/api/etcdhttp",
     "etcdserver/api/v2http",
     "etcdserver/api/v2http/httptypes",
+    "etcdserver/api/v2v3",
     "etcdserver/api/v3client",
     "etcdserver/api/v3election",
     "etcdserver/api/v3election/v3electionpb",
@@ -115,7 +117,6 @@
     "pkg/idutil",
     "pkg/ioutil",
     "pkg/logutil",
-    "pkg/monotime",
     "pkg/netutil",
     "pkg/osutil",
     "pkg/pathutil",
@@ -123,6 +124,7 @@
     "pkg/runtime",
     "pkg/schedule",
     "pkg/srv",
+    "pkg/systemd",
     "pkg/tlsutil",
     "pkg/transport",
     "pkg/types",
@@ -142,8 +144,8 @@
     "wal",
     "wal/walpb"
   ]
-  revision = "420a452267a7ce45b3fcbed04d54030d69964fc1"
-  version = "v3.2.24"
+  revision = "94745a4eed0425653b3b4275a208d38babceeaec"
+  version = "v3.3.15"
 
 [[projects]]
   name = "github.com/coreos/go-semver"
@@ -200,12 +202,6 @@
   packages = ["."]
   revision = "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9"
   version = "v1.4.7"
-
-[[projects]]
-  name = "github.com/ghodss/yaml"
-  packages = ["."]
-  revision = "0ca9ea5df5451ffdf184b4428c902747c2c11cd7"
-  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/go-logr/logr"
@@ -271,9 +267,17 @@
   revision = "deaf2c9013bc1a7f4c774662259a506ba874d80f"
 
 [[projects]]
+  name = "github.com/go-sql-driver/mysql"
+  packages = ["."]
+  revision = "72cd26f257d44c1114970e19afddcd812016007e"
+  version = "v1.4.1"
+
+[[projects]]
   name = "github.com/gogo/protobuf"
   packages = [
+    "gogoproto",
     "proto",
+    "protoc-gen-gogo/descriptor",
     "sortkeys"
   ]
   revision = "c0656edd0d9eab7c66d1eb0c568f9039345796f7"
@@ -354,6 +358,18 @@
   revision = "2bf16b94fdd9b01557c4d076e567fe5cbbe5a961"
 
 [[projects]]
+  name = "github.com/gorilla/websocket"
+  packages = ["."]
+  revision = "c3e18be99d19e6b3e8f1559eea2c161a665c4b6b"
+  version = "v1.4.1"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/grpc-ecosystem/go-grpc-middleware"
+  packages = ["."]
+  revision = "e0797f438f94f4d032395b8f71aae0e73d6efa08"
+
+[[projects]]
   name = "github.com/grpc-ecosystem/go-grpc-prometheus"
   packages = ["."]
   revision = "2500245aa6110c562d17020fb31a2c133d737799"
@@ -428,6 +444,22 @@
   revision = "f2b4162afba35581b6d4a50d3b8f34e33c144682"
 
 [[projects]]
+  name = "github.com/konsorten/go-windows-terminal-sequences"
+  packages = ["."]
+  revision = "f55edac94c9bbba5d6182a4be46d86a2c9b5b50e"
+  version = "v1.0.2"
+
+[[projects]]
+  name = "github.com/lib/pq"
+  packages = [
+    ".",
+    "oid",
+    "scram"
+  ]
+  revision = "3427c32cb71afc948325f299f040e53c1dd78979"
+  version = "v1.2.0"
+
+[[projects]]
   name = "github.com/magiconair/properties"
   packages = ["."]
   revision = "d419a98cdbed11a922bf76f257b7c4be79b50e73"
@@ -447,6 +479,12 @@
   name = "github.com/markbates/inflect"
   packages = ["."]
   revision = "a12c3aec81a6a938bf584a4bac567afed9256586"
+
+[[projects]]
+  name = "github.com/mattn/go-sqlite3"
+  packages = ["."]
+  revision = "b612a2feea6aa87c6d052d9086572551df06497e"
+  version = "v1.11.0"
 
 [[projects]]
   name = "github.com/matttproud/golang_protobuf_extensions"
@@ -578,6 +616,35 @@
   revision = "65c1f6f8f0fc1e2185eb9863a3bc751496404259"
 
 [[projects]]
+  name = "github.com/rancher/kine"
+  packages = [
+    "pkg/broadcaster",
+    "pkg/drivers/generic",
+    "pkg/drivers/mysql",
+    "pkg/drivers/pgsql",
+    "pkg/drivers/sqlite",
+    "pkg/endpoint",
+    "pkg/logstructured",
+    "pkg/logstructured/sqllog",
+    "pkg/server",
+    "pkg/tls"
+  ]
+  revision = "c308515dee837fd00d480e482f763d76e7572df5"
+  source = "https://github.com/ibuildthecloud/kine"
+
+[[projects]]
+  name = "github.com/sirupsen/logrus"
+  packages = ["."]
+  revision = "839c75faf7f98a33d445d181f3018b5c3409a45e"
+  version = "v1.4.2"
+
+[[projects]]
+  name = "github.com/soheilhy/cmux"
+  packages = ["."]
+  revision = "e09e9389d85d8492d313d73d1469c029e710623f"
+  version = "v0.1.4"
+
+[[projects]]
   name = "github.com/spf13/afero"
   packages = [
     ".",
@@ -614,9 +681,10 @@
   revision = "7fb2782df3d83e0036cc89f461ed0422628776f4"
 
 [[projects]]
-  name = "github.com/ugorji/go"
-  packages = ["codec"]
-  revision = "ded73eae5db7e7a0ef6f55aace87a2873c5d2b74"
+  branch = "master"
+  name = "github.com/tmc/grpc-websocket-proxy"
+  packages = ["wsproxy"]
+  revision = "0ad062ec5ee553a48f6dbd280b7a1b5638e8a113"
 
 [[projects]]
   name = "github.com/xiang90/probing"
@@ -756,6 +824,7 @@
   name = "google.golang.org/appengine"
   packages = [
     ".",
+    "cloudsql",
     "internal",
     "internal/app_identity",
     "internal/base",
@@ -792,6 +861,7 @@
     "encoding",
     "encoding/proto",
     "grpclog",
+    "health",
     "health/grpc_health_v1",
     "internal",
     "internal/backoff",
@@ -1389,6 +1459,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "705780a668dd78db0fb2d688f8ecbc8f49c7bc6378195113f180634c39bebe7c"
+  inputs-digest = "f234684f575ca0c6ed176aedbf8de2196678f2860cc4a3d3faa33e7bafbd7443"
   solver-name = "gps-cdcl"
   solver-version = 1
