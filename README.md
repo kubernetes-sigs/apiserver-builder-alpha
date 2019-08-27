@@ -40,6 +40,13 @@ same capabilities when building from scratch.
 - Easily add new resources and subresources
 - Provides sane defaults for most values, but can be overridden
 
+## Examples
+
+- [BasicExample](https://sigs.k8s.io/apiserver-builder-alpha/example/basic): Various simple resource examples.
+- [KineExample](https://sigs.k8s.io/apiserver-builder-alpha/example/kine): Plumbs aggregated apiserver over SQL-storages including sqlite, mysql, etc..
+- [PodLogsExample](https://sigs.k8s.io/apiserver-builder-alpha/example/podlogs): Serves `pod/logs` in aggregation layer to offload kube-apiserver connections.
+- [PodExecExample](https://sigs.k8s.io/apiserver-builder-alpha/example/podexec): Serves `pod/exec` in aggregation layer to offload kube-apiserver connections.
+
 ## Guides
 
 **Note:** The guides are presented roughly in the order of recommended progression.
