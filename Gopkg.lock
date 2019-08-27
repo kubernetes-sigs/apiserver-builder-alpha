@@ -1096,6 +1096,7 @@
     "pkg/features",
     "pkg/registry/generic",
     "pkg/registry/generic/registry",
+    "pkg/registry/generic/rest",
     "pkg/registry/rest",
     "pkg/server",
     "pkg/server/filters",
@@ -1459,6 +1460,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f234684f575ca0c6ed176aedbf8de2196678f2860cc4a3d3faa33e7bafbd7443"
+  inputs-digest = "fd35b93245eb1ab47daf76ba4a5f60a7db85d805843e51d4b46780ba27d748c3"
   solver-name = "gps-cdcl"
   solver-version = 1
