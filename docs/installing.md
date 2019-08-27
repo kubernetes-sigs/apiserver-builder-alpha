@@ -12,7 +12,7 @@ Requires the following to already be installed:
 
 Installation instructions:
 
-- Download the latest [release](https://sigs.k8s.io/apiserver-builder-alpha/releases)
+- Download the latest [release](https://github.com/kubernetes-sigs/apiserver-builder-alpha/releases)
 - Extract to `/usr/local/apiserver-builder/`
   - Create this directory if it does not already exist
 - Add `/usr/local/apiserver-builder/bin` to your path
