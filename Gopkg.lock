@@ -184,6 +184,15 @@
   version = "v3.2.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/docker/spdystream"
+  packages = [
+    ".",
+    "spdy"
+  ]
+  revision = "6480d4af844c189cf5dd913db24ddd339d3a4f85"
+
+[[projects]]
   name = "github.com/emicklei/go-restful"
   packages = [
     ".",
@@ -514,6 +523,12 @@
   name = "github.com/munnerz/goautoneg"
   packages = ["."]
   revision = "2ae31c8b6b30d2f4c8100c20d527b571e9c433bb"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/mxk/go-flowrate"
+  packages = ["flowrate"]
+  revision = "cca7078d478f8520f85629ad7c68962d31ed7682"
 
 [[projects]]
   name = "github.com/onsi/ginkgo"
@@ -1009,12 +1024,16 @@
     "pkg/util/diff",
     "pkg/util/errors",
     "pkg/util/framer",
+    "pkg/util/httpstream",
+    "pkg/util/httpstream/spdy",
     "pkg/util/intstr",
     "pkg/util/json",
     "pkg/util/mergepatch",
     "pkg/util/naming",
     "pkg/util/net",
+    "pkg/util/proxy",
     "pkg/util/rand",
+    "pkg/util/remotecommand",
     "pkg/util/runtime",
     "pkg/util/sets",
     "pkg/util/strategicpatch",
@@ -1027,6 +1046,7 @@
     "pkg/version",
     "pkg/watch",
     "third_party/forked/golang/json",
+    "third_party/forked/golang/netutil",
     "third_party/forked/golang/reflect"
   ]
   revision = "f2f3a405f61d6c2cdc0d00687c1b5d90de91e9f0"
@@ -1290,9 +1310,12 @@
     "tools/record",
     "tools/record/util",
     "tools/reference",
+    "tools/remotecommand",
     "transport",
+    "transport/spdy",
     "util/cert",
     "util/connrotation",
+    "util/exec",
     "util/flowcontrol",
     "util/homedir",
     "util/jsonpath",
@@ -1460,6 +1483,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fd35b93245eb1ab47daf76ba4a5f60a7db85d805843e51d4b46780ba27d748c3"
+  inputs-digest = "e73618a5185408d475a96761b41956d4acb1524d3ef9828dc93be17f20519ed2"
   solver-name = "gps-cdcl"
   solver-version = 1
