@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package podlogs
+package podexec
 
 import (
 	"context"
@@ -22,7 +22,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
@@ -30,22 +29,22 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/proxy"
 	"k8s.io/apiserver/pkg/endpoints/request"
+	genericfeatures "k8s.io/apiserver/pkg/features"
 	"k8s.io/apiserver/pkg/registry/generic"
-	genericrest "k8s.io/apiserver/pkg/registry/generic/rest"
 	"k8s.io/apiserver/pkg/registry/rest"
+	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	"k8s.io/client-go/kubernetes"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 	restclient "k8s.io/client-go/rest"
-	"sigs.k8s.io/apiserver-builder-alpha/example/podlogs/pkg/kubelet"
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
+	"sigs.k8s.io/apiserver-builder-alpha/example/podexec/pkg/kubelet"
 )
 
-var _ rest.GetterWithOptions = &PodLogsREST{}
+var _ rest.Connecter = &PodExecREST{}
 
-func NewPodLogsREST(getter generic.RESTOptionsGetter) rest.Storage {
+func NewPodExecREST(getter generic.RESTOptionsGetter) rest.Storage {
 
 	inClusterClientConfig, err := restclient.InClusterConfig()
 	if err != nil {
@@ -76,78 +75,80 @@ func NewPodLogsREST(getter generic.RESTOptionsGetter) rest.Storage {
 			HTTPTimeout: time.Duration(5) * time.Second,
 		})
 
-	return &PodLogsREST{
+	return &PodExecREST{
 		podClient:   client.CoreV1(),
 		KubeletConn: nodeConnGetter,
 	}
 }
 
 // +k8s:deepcopy-gen=false
-type PodLogsREST struct {
+type PodExecREST struct {
 	podClient   corev1client.CoreV1Interface
 	KubeletConn kubelet.ConnectionInfoGetter
 }
 
-func (r *PodLogsREST) NewGetOptions() (runtime.Object, bool, string) {
-	builders.ParameterScheme.AddKnownTypes(SchemeGroupVersion, &PodLogs{})
-	return &PodLogs{}, false, ""
-}
-
-// Connect returns a handler for the pod exec proxy
-func (r *PodLogsREST) Get(ctx context.Context, name string, opts runtime.Object) (runtime.Object, error) {
-	logOpts, ok := opts.(*PodLogs)
+func (r *PodExecREST) Connect(ctx context.Context, name string, opts runtime.Object, responder rest.Responder) (http.Handler, error) {
+	execOpts, ok := opts.(*PodExec)
 	if !ok {
 		return nil, fmt.Errorf("invalid options object: %#v", opts)
 	}
-	// TODO(developers): apply validations here
-	//if errs := validation.ValidatePodLogOptions(logOpts); len(errs) > 0 {
-	//	return nil, errors.NewInvalid(api.Kind("PodLogs"), name, errs)
-	//}
-	location, transport, err := LogLocation(func(name string) (*corev1.Pod, error) {
-		ns, _ := request.NamespaceFrom(ctx)
-		return r.podClient.Pods(ns).Get(name, metav1.GetOptions{})
-	}, r.KubeletConn, ctx, name, logOpts)
+	location, transport, err := ExecLocation(r.podClient, r.KubeletConn, ctx, name, execOpts)
 	if err != nil {
 		return nil, err
 	}
-	return &genericrest.LocationStreamer{
-		Location:    location,
-		Transport:   transport,
-		ContentType: "text/plain",
-		Flush:       logOpts.Follow,
-		ResponseChecker: genericrest.NewGenericHttpResponseChecker(
-			schema.GroupResource{Group: "podlogs", Resource: "pods/log"},
-			name),
-		RedirectChecker: genericrest.PreventRedirects,
-	}, nil
-
+	return newThrottledUpgradeAwareProxyHandler(location, transport, false, true, true, responder), nil
 }
 
-func (r *PodLogsREST) New() runtime.Object {
-	builders.ParameterScheme.AddKnownTypes(SchemeGroupVersion, &PodLogs{})
-	return &PodLogs{}
+func (r *PodExecREST) NewConnectOptions() (runtime.Object, bool, string) {
+	return &PodExec{}, false, ""
 }
 
-type PodGetter func(name string) (*corev1.Pod, error)
+func (r *PodExecREST) ConnectMethods() []string {
+	return []string{"GET", "POST"}
+}
 
-// LogLocation returns the log URL for a pod container. If opts.Container is blank
+func (r *PodExecREST) New() runtime.Object {
+	return &PodExec{}
+}
+
+func newThrottledUpgradeAwareProxyHandler(location *url.URL, transport http.RoundTripper, wrapTransport, upgradeRequired, interceptRedirects bool, responder rest.Responder) *proxy.UpgradeAwareHandler {
+	handler := proxy.NewUpgradeAwareHandler(location, transport, wrapTransport, upgradeRequired, proxy.NewErrorResponder(responder))
+	handler.InterceptRedirects = interceptRedirects && utilfeature.DefaultFeatureGate.Enabled(genericfeatures.StreamingProxyRedirects)
+	handler.RequireSameHostRedirects = utilfeature.DefaultFeatureGate.Enabled(genericfeatures.ValidateProxyRedirects)
+	handler.MaxBytesPerSec = 0
+	return handler
+}
+
+// ExecLocation returns the exec URL for a pod container. If opts.Container is blank
 // and only one container is present in the pod, that container is used.
-func LogLocation(
-	getter PodGetter,
+func ExecLocation(
+	getter corev1client.CoreV1Interface,
 	connInfo kubelet.ConnectionInfoGetter,
 	ctx context.Context,
 	name string,
-	opts *PodLogs,
+	opts *PodExec,
 ) (*url.URL, http.RoundTripper, error) {
-	pod, err := getter(name)
+	return streamLocation(getter, connInfo, ctx, name, opts, opts.Container, "exec")
+}
+
+func streamLocation(
+	getter corev1client.CoreV1Interface,
+	connInfo kubelet.ConnectionInfoGetter,
+	ctx context.Context,
+	name string,
+	opts runtime.Object,
+	container,
+	path string,
+) (*url.URL, http.RoundTripper, error) {
+	ns, _ := request.NamespaceFrom(ctx)
+	pod, err := getter.Pods(ns).Get(name, metav1.GetOptions{})
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Try to figure out a container
 	// If a container was provided, it must be valid
-	container := opts.Container
-	if len(container) == 0 {
+	if container == "" {
 		switch len(pod.Spec.Containers) {
 		case 1:
 			container = pod.Spec.Containers[0].Name
@@ -170,38 +171,20 @@ func LogLocation(
 	nodeName := types.NodeName(pod.Spec.NodeName)
 	if len(nodeName) == 0 {
 		// If pod has not been assigned a host, return an empty location
-		return nil, nil, nil
+		return nil, nil, errors.NewBadRequest(fmt.Sprintf("pod %s does not have a host assigned", name))
 	}
 	nodeInfo, err := connInfo.GetConnectionInfo(ctx, nodeName)
 	if err != nil {
 		return nil, nil, err
 	}
 	params := url.Values{}
-	if opts.Follow {
-		params.Add("follow", "true")
-	}
-	if opts.Previous {
-		params.Add("previous", "true")
-	}
-	if opts.Timestamps {
-		params.Add("timestamps", "true")
-	}
-	if opts.SinceSeconds != nil {
-		params.Add("sinceSeconds", strconv.FormatInt(*opts.SinceSeconds, 10))
-	}
-	if opts.SinceTime != nil {
-		params.Add("sinceTime", opts.SinceTime.Format(time.RFC3339))
-	}
-	if opts.TailLines != nil {
-		params.Add("tailLines", strconv.FormatInt(*opts.TailLines, 10))
-	}
-	if opts.LimitBytes != nil {
-		params.Add("limitBytes", strconv.FormatInt(*opts.LimitBytes, 10))
+	if err := streamParams(params, opts); err != nil {
+		return nil, nil, err
 	}
 	loc := &url.URL{
 		Scheme:   nodeInfo.Scheme,
 		Host:     net.JoinHostPort(nodeInfo.Hostname, nodeInfo.Port),
-		Path:     fmt.Sprintf("/containerLogs/%s/%s/%s", pod.Namespace, pod.Name, container),
+		Path:     fmt.Sprintf("/%s/%s/%s/%s", path, pod.Namespace, pod.Name, container),
 		RawQuery: params.Encode(),
 	}
 	return loc, nodeInfo.Transport, nil
@@ -226,3 +209,26 @@ func podHasContainerWithName(pod *corev1.Pod, containerName string) bool {
 	return hasContainer
 }
 
+func streamParams(params url.Values, opts runtime.Object) error {
+	switch opts := opts.(type) {
+	case *PodExec:
+		if opts.Stdin {
+			params.Add(corev1.ExecStdinParam, "1")
+		}
+		if opts.Stdout {
+			params.Add(corev1.ExecStdoutParam, "1")
+		}
+		if opts.Stderr {
+			params.Add(corev1.ExecStderrParam, "1")
+		}
+		if opts.TTY {
+			params.Add(corev1.ExecTTYParam, "1")
+		}
+		for _, c := range opts.Command {
+			params.Add("command", c)
+		}
+	default:
+		return fmt.Errorf("Unknown object for streaming: %v", opts)
+	}
+	return nil
+}

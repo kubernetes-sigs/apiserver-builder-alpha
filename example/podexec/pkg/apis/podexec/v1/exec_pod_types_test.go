@@ -25,8 +25,8 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	. "sigs.k8s.io/apiserver-builder-alpha/example/podlogs/pkg/apis/podlogs/v1"
-	. "sigs.k8s.io/apiserver-builder-alpha/example/podlogs/pkg/client/clientset_generated/clientset/typed/podlogs/v1"
+	. "sigs.k8s.io/apiserver-builder-alpha/example/podexec/pkg/apis/podexec/v1"
+	. "sigs.k8s.io/apiserver-builder-alpha/example/podexec/pkg/client/clientset_generated/clientset/typed/podexec/v1"
 )
 
 var _ = Describe("Pod", func() {
@@ -45,20 +45,19 @@ var _ = Describe("Pod", func() {
 		client.Delete(instance.Name, &metav1.DeleteOptions{})
 	})
 
-	Describe("when sending a logs request", func() {
+	Describe("when sending a exec request", func() {
 		It("should return success", func() {
-			client = cs.PodlogsV1().Pods("pod-test-logs")
+			client = cs.PodexecV1().Pods("pod-test-exec")
 			_, err := client.Create(&instance)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			logs := &PodLogs{}
-			logs.Name = instance.Name
-			restClient := cs.PodlogsV1().RESTClient()
-			err = restClient.Post().Namespace("pod-test-logs").
+			exec := &PodExec{}
+			restClient := cs.PodexecV1().RESTClient()
+			err = restClient.Post().Namespace("pod-test-exec").
 				Name(instance.Name).
 				Resource("pods").
-				SubResource("logs").
-				Body(logs).Do().Error()
+				SubResource("exec").
+				Body(exec).Do().Error()
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 	})
