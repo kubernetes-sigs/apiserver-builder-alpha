@@ -1,0 +1,7 @@
+note: Pod Example
+sample: |
+  apiVersion: podlogs.example.com/v1
+  kind: Pod
+  metadata:
+    name: pod-example
+  spec:
