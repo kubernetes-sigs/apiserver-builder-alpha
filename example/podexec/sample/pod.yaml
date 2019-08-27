@@ -1,0 +1,5 @@
+apiVersion: podexec.example.com/v1
+kind: Pod
+metadata:
+  name: pod-example
+spec:
