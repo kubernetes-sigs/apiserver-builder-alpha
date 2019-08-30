@@ -1,5 +1,5 @@
-hash: 07c144a2a5e467842765e2a08596313487db815a43a5e873cbb828b4405da542
-updated: 2019-08-23T15:18:47.644734+08:00
+hash: 9f1f1472316d7d0e22f57c908e4f0056e8165be6468fb3f828e5eadb52a24256
+updated: 2019-08-30T18:22:04.221488+08:00
 imports:
 - name: github.com/emicklei/go-restful
   version: ff4f55a206334ef123e4f79bbf348980da81ca46
@@ -131,4 +131,6 @@ imports:
   - pkg/scaffold/input
   - pkg/scaffold/manager
   - pkg/scaffold/resource
+- name: sigs.k8s.io/structured-merge-diff
+  version: 960c3cc04183c02e4dfa851017580d7570d44c25
 testImports: []
