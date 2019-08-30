@@ -1,5 +1,5 @@
-hash: 9f1f1472316d7d0e22f57c908e4f0056e8165be6468fb3f828e5eadb52a24256
-updated: 2019-08-30T18:22:04.221488+08:00
+hash: d6b78a52aae5e3bc29b73677c98afd422431dea096b82f999b9ba48961b8cd4e
+updated: 2019-08-30T20:47:37.928481+08:00
 imports:
 - name: github.com/emicklei/go-restful
   version: ff4f55a206334ef123e4f79bbf348980da81ca46
@@ -118,7 +118,7 @@ imports:
 - name: k8s.io/klog
   version: 89e63fd5117f8c20208186ef85f096703a280c20
 - name: k8s.io/kube-openapi
-  version: 743ec37842bffe49dd4221d9026f30fb1d5adbc4
+  version: b3a7cee44a305be0a69e1b9ac03018307287e1b0
 - name: sigs.k8s.io/controller-tools
   version: b8adde9bc6d7f3fba449d306613a9daed23676c8
   subpackages:
@@ -132,5 +132,5 @@ imports:
   - pkg/scaffold/manager
   - pkg/scaffold/resource
 - name: sigs.k8s.io/structured-merge-diff
-  version: 960c3cc04183c02e4dfa851017580d7570d44c25
+  version: e85c7b244fd2cc57bb829d73a061f93a441e63ce
 testImports: []
