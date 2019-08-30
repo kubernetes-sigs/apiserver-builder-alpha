@@ -28,9 +28,8 @@ import (
 	"strings"
 	"text/template"
 
-	"os/signal"
-
 	"github.com/markbates/inflect"
+	"k8s.io/apiserver/pkg/server"
 )
 
 var Domain string
@@ -147,8 +146,7 @@ func CancelWhenSignaled(parent context.Context) context.Context {
 	ctx, cancel := context.WithCancel(parent)
 
 	go func() {
-		signalChannel := make(chan os.Signal)
-		signal.Notify(signalChannel, os.Interrupt, os.Kill)
+		signalChannel := server.SetupSignalHandler()
 		<-signalChannel
 		cancel()
 	}()
