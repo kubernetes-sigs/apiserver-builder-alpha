@@ -17,6 +17,7 @@ limitations under the License.
 package util
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -28,6 +29,7 @@ import (
 	"text/template"
 
 	"github.com/markbates/inflect"
+	"k8s.io/apiserver/pkg/server"
 )
 
 var Domain string
@@ -138,4 +140,16 @@ func CheckInstall() {
 			"\napiserver-boot must be installed using a release tar.gz downloaded from the git repo.",
 			strings.Join(missing, ","))
 	}
+}
+
+func CancelWhenSignaled(parent context.Context) context.Context {
+	ctx, cancel := context.WithCancel(parent)
+
+	go func() {
+		signalChannel := server.SetupSignalHandler()
+		<-signalChannel
+		cancel()
+	}()
+
+	return ctx
 }

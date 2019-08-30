@@ -17,6 +17,7 @@ limitations under the License.
 package run
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -26,9 +27,10 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"k8s.io/client-go/util/homedir"
 
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/build"
-	"k8s.io/client-go/util/homedir"
+	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 )
 
 var localMinikubeCmd = &cobra.Command{
@@ -93,6 +95,10 @@ func RunLocalMinikube(cmd *cobra.Command, args []string) {
 		build.RunBuildExecutables(cmd, args)
 	}
 
+	// parent context to indicate whether cmds quit
+	ctx, cancel := context.WithCancel(context.Background())
+	ctx = util.CancelWhenSignaled(ctx)
+
 	r := map[string]interface{}{}
 	for _, s := range toRun {
 		r[s] = nil
@@ -112,24 +118,23 @@ func RunLocalMinikube(cmd *cobra.Command, args []string) {
 	// Start etcd
 	if _, f := r["etcd"]; f {
 		etcd = "http://localhost:2379"
-		etcdCmd := RunEtcd()
-		defer etcdCmd.Process.Kill()
+		RunEtcd(ctx, cancel)
 		time.Sleep(time.Second * 2)
 	}
 
 	// Start apiserver
 	if _, f := r["apiserver"]; f {
-		go RunApiserverMinikube()
+		RunApiserver(ctx, cancel)
 		time.Sleep(time.Second * 2)
 	}
 
 	// Start controller manager
 	if _, f := r["controller-manager"]; f {
-		go RunControllerManager()
+		RunControllerManager(ctx, cancel)
 	}
 
 	fmt.Printf("to test the server run `kubectl api-versions`, if you specified --kubeconfig you must also provide the flag `--kubeconfig %s`\n", config)
-	select {} // wait forever
+	<-ctx.Done() // wait forever
 }
 
 func RunApiserverMinikube() *exec.Cmd {
