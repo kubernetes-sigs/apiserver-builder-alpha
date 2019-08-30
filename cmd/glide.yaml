@@ -40,8 +40,6 @@ import:
   version: release-12.0
 - package: k8s.io/api
   version: kubernetes-1.15.3
-- package: k8s.io/kube-openapi
-  version: 743ec37842bffe49dd4221d9026f30fb1d5adbc4
 - package: github.com/onsi/ginkgo
   version: v1.4.0
 - package: github.com/onsi/gomega
@@ -60,3 +58,6 @@ import:
   version: fcf65347b25607dba28903ec6f66f8574bb49a17
 - package: sigs.k8s.io/kubebuilder
 - package: sigs.k8s.io/structured-merge-diff
+  version: e85c7b244fd2cc57bb829d73a061f93a441e63ce
+- package: k8s.io/kube-openapi
+  version: b3a7cee44a305be0a69e1b9ac03018307287e1b0
