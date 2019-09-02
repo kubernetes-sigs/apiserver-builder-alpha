@@ -29,6 +29,10 @@ type VersionedApiBuilder struct {
 	Kinds         []*versionedResourceBuilder
 	GroupVersion  schema.GroupVersion
 	SchemeBuilder runtime.SchemeBuilder
+
+	// Deprecated: Only for compiliation backward-compatibility w/ 1.12+ version generators
+	// removing in the future
+	SchemaBuilder runtime.SchemeBuilder
 }
 
 func NewApiVersion(group, version string) *VersionedApiBuilder {
