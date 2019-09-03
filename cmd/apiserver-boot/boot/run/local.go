@@ -19,7 +19,7 @@ package run
 import (
 	"context"
 	"fmt"
-	"log"
+	"k8s.io/klog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -128,7 +128,7 @@ func RunLocal(cmd *cobra.Command, args []string) {
 		RunControllerManager(ctx, cancel)
 	}
 
-	fmt.Printf("to test the server run `kubectl --kubeconfig %s api-versions`\n", config)
+	klog.Infof("to test the server run `kubectl --kubeconfig %s api-versions`", config)
 	<-ctx.Done() // wait forever
 }
 
@@ -196,13 +196,13 @@ func runCommon(cmd *exec.Cmd, ctx context.Context, cancel context.CancelFunc) {
 	stopCh := make(chan error)
 	cmdName := cmd.Args[0]
 
-	fmt.Printf("%s\n", strings.Join(cmd.Args, " "))
+	klog.Infof("%s", strings.Join(cmd.Args, " "))
 	go func() {
 		err := cmd.Run()
 		if err != nil {
-			log.Printf("Failed to run %s, error: %v\n", cmdName, err)
+			klog.Infof("Failed to run %s, error: %v", cmdName, err)
 		} else {
-			log.Printf("Command %s quitted normally\n", cmdName)
+			klog.Infof("Command %s quitted normally", cmdName)
 		}
 		stopCh <- err
 	}()
@@ -223,7 +223,7 @@ func WriteKubeConfig() {
 	// Write a kubeconfig
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Fatalf("Cannot get working directory %v", err)
+		klog.Fatalf("Cannot get working directory %v", err)
 		os.Exit(-1)
 	}
 	path := filepath.Join(dir, "apiserver.local.config", "certificates", "apiserver")

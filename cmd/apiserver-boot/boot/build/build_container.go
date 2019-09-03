@@ -17,7 +17,7 @@ limitations under the License.
 package build
 
 import (
-	"log"
+	"k8s.io/klog"
 	"os"
 	"path/filepath"
 
@@ -54,21 +54,21 @@ func AddBuildContainerFlags(cmd *cobra.Command) {
 
 func RunBuildContainer(cmd *cobra.Command, args []string) {
 	if len(Image) == 0 {
-		log.Fatalf("Must specify --image")
+		klog.Fatalf("Must specify --image")
 	}
 
 	dir, err := ioutil.TempDir(os.TempDir(), "apiserver-boot-build-container")
 	if err != nil {
-		log.Fatalf("failed to create temp directory %s %v", dir, err)
+		klog.Fatalf("failed to create temp directory %s %v", dir, err)
 	}
-	log.Printf("Will build docker Image from directory %s", dir)
+	klog.Infof("Will build docker Image from directory %s", dir)
 
-	log.Printf("Writing the Dockerfile.")
+	klog.Infof("Writing the Dockerfile.")
 
 	path := filepath.Join(dir, "Dockerfile")
 	util.WriteIfNotFound(path, "dockerfile-template", dockerfileTemplate, dockerfileTemplateArguments{})
 
-	log.Printf("Building binaries for linux amd64.")
+	klog.Infof("Building binaries for linux amd64.")
 
 	// Set the goos and goarch
 	goos = "linux"
@@ -76,7 +76,7 @@ func RunBuildContainer(cmd *cobra.Command, args []string) {
 	outputdir = dir
 	RunBuildExecutables(cmd, args)
 
-	log.Printf("Building the docker Image using %s.", path)
+	klog.Infof("Building the docker Image using %s.", path)
 
 	util.DoCmd("docker", "build", "-t", Image, dir)
 }

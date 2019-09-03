@@ -17,7 +17,7 @@ limitations under the License.
 package init_repo
 
 import (
-	"log"
+	"k8s.io/klog"
 	"os"
 	"path/filepath"
 
@@ -55,7 +55,7 @@ func AddInitRepo(cmd *cobra.Command) {
 
 func RunInitRepo(cmd *cobra.Command, args []string) {
 	if len(domain) == 0 {
-		log.Fatal("Must specify --domain")
+		klog.Fatal("Must specify --domain")
 	}
 	cr := util.GetCopyright(copyright)
 
@@ -72,7 +72,7 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 	os.MkdirAll("bin", 0700)
 
 	if installDeps {
-		log.Printf("installing vendor/ directory.  To disable this, run with --install-deps=false.")
+		klog.Infof("installing vendor/ directory.  To disable this, run with --install-deps=false.")
 		RunVendorInstall(nil, nil)
 	}
 }
@@ -80,7 +80,7 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 func createKubeBuilderProjectFile() {
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 	path := filepath.Join(dir, "PROJECT")
 	util.WriteIfNotFound(path, "project-template", projectFileTemplate,
@@ -96,7 +96,7 @@ repo: {{.Repo}}
 func createBazelWorkspace() {
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 	path := filepath.Join(dir, "WORKSPACE")
 	util.WriteIfNotFound(path, "bazel-workspace-template", workspaceTemplate, nil)
@@ -120,7 +120,7 @@ func createControllerManager(boilerplate string) {
 			},
 		})
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 }
 
@@ -169,7 +169,7 @@ func main() {
 func createApiserver(boilerplate string) {
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 	path := filepath.Join(dir, "cmd", "apiserver", "main.go")
 	util.WriteIfNotFound(path, "apiserver-template", apiserverTemplate,
@@ -185,7 +185,7 @@ func createPackage(boilerplate, path string) {
 	pkg := filepath.Base(path)
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 	path = filepath.Join(dir, path, "doc.go")
 	util.WriteIfNotFound(path, "pkg-template", packageDocTemplate,
@@ -211,7 +211,7 @@ package {{.Package}}
 func createAPIs(boilerplate string) {
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 	path := filepath.Join(dir, "pkg", "apis", "doc.go")
 	util.WriteIfNotFound(path, "apis-template", apisDocTemplate,

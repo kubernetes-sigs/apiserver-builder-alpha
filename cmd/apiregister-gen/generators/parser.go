@@ -18,7 +18,6 @@ package generators
 
 import (
 	"fmt"
-	"log"
 	"path"
 	"path/filepath"
 	"strings"
@@ -28,6 +27,7 @@ import (
 	"k8s.io/gengo/args"
 	"k8s.io/gengo/generator"
 	"k8s.io/gengo/types"
+	"k8s.io/klog"
 )
 
 type APIs struct {
@@ -351,7 +351,7 @@ func (b *APIsBuilder) GetSubresources(c *APIResource) map[string]*APISubresource
 			sr.Request, sr.ImportPackage = b.GetNameAndImport(tags)
 		}
 		if v, found := r[sr.Path]; found {
-			log.Fatalf("Multiple subresources registered for path %s: %v %v",
+			klog.Fatalf("Multiple subresources registered for path %s: %v %v",
 				sr.Path, v, subresource)
 		}
 		r[sr.Path] = sr
@@ -391,7 +391,7 @@ func ParseResourceTag(tag string) ResourceTags {
 	for _, elem := range strings.Split(tag, ",") {
 		kv := strings.Split(elem, "=")
 		if len(kv) != 2 {
-			log.Fatalf("// +resource: tags must be key value pairs.  Expected "+
+			klog.Fatalf("// +resource: tags must be key value pairs.  Expected "+
 				"keys [path=<subresourcepath>] "+
 				"Got string: [%s]", tag)
 		}
@@ -424,7 +424,7 @@ func ParseSubresourceTag(c *APIResource, tag string) SubresourceTags {
 	for _, elem := range strings.Split(tag, ",") {
 		kv := strings.Split(elem, "=")
 		if len(kv) != 2 {
-			log.Fatalf("// +subresource: tags must be key value pairs.  Expected "+
+			klog.Fatalf("// +subresource: tags must be key value pairs.  Expected "+
 				"keys [request=<requestType>,rest=<restImplType>,path=<subresourcepath>] "+
 				"Got string: [%s]", tag)
 		}

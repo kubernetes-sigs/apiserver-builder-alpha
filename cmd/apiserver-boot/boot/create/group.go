@@ -17,14 +17,13 @@ limitations under the License.
 package create
 
 import (
-	"log"
 	"os"
 	"path/filepath"
-
 	"strings"
 
-	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
+	"k8s.io/klog"
+	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 )
 
 var createGroupCmd = &cobra.Command{
@@ -46,16 +45,16 @@ func AddCreateGroup(cmd *cobra.Command) {
 
 func RunCreateGroup(cmd *cobra.Command, args []string) {
 	if _, err := os.Stat("pkg"); err != nil {
-		log.Fatalf("could not find 'pkg' directory.  must run apiserver-boot init before creating resources")
+		klog.Fatalf("could not find 'pkg' directory.  must run apiserver-boot init before creating resources")
 	}
 
 	util.GetDomain()
 	if len(groupName) == 0 {
-		log.Fatalf("Must specify --group")
+		klog.Fatalf("Must specify --group")
 	}
 
 	if strings.ToLower(groupName) != groupName {
-		log.Fatalf("--group must be lowercase was (%s)", groupName)
+		klog.Fatalf("--group must be lowercase was (%s)", groupName)
 	}
 
 	createGroup(util.GetCopyright(copyright))
@@ -64,7 +63,7 @@ func RunCreateGroup(cmd *cobra.Command, args []string) {
 func createGroup(boilerplate string) {
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 
 	a := groupTemplateArgs{
@@ -79,7 +78,7 @@ func createGroup(boilerplate string) {
 	path = filepath.Join(dir, "pkg", "apis", groupName, "install", "doc.go")
 	created = util.WriteIfNotFound(path, "install-template", installTemplate, a)
 	if !created && !ignoreGroupExists {
-		log.Fatalf("API group %s already exists.", groupName)
+		klog.Fatalf("API group %s already exists.", groupName)
 	}
 }
 

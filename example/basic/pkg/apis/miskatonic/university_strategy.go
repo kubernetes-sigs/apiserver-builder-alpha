@@ -18,16 +18,16 @@ package miskatonic
 
 import (
 	"context"
-	"log"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+	"k8s.io/klog"
 )
 
 // Resource Validation
 func (UniversityStrategy) Validate(ctx context.Context, obj runtime.Object) field.ErrorList {
 	university := obj.(*University)
-	log.Printf("Validating University %s\n", university.Name)
+	klog.Infof("Validating University %s\n", university.Name)
 	errors := field.ErrorList{}
 	if university.Spec.MaxStudents == nil || *university.Spec.MaxStudents < 1 || *university.Spec.MaxStudents > 150 {
 		errors = append(errors, field.Invalid(

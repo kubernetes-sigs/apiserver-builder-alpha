@@ -19,7 +19,7 @@ package create
 import (
 	"bufio"
 	"fmt"
-	"log"
+	"k8s.io/klog"
 	"regexp"
 	"strings"
 
@@ -32,13 +32,13 @@ import (
 func ValidateResourceFlags() {
 	util.GetDomain()
 	if len(groupName) == 0 {
-		log.Fatalf("Must specify --group")
+		klog.Fatalf("Must specify --group")
 	}
 	if len(versionName) == 0 {
-		log.Fatalf("Must specify --version")
+		klog.Fatalf("Must specify --version")
 	}
 	if len(kindName) == 0 {
-		log.Fatal("Must specify --kind")
+		klog.Fatal("Must specify --kind")
 	}
 	if len(resourceName) == 0 {
 		resourceName = inflect.NewDefaultRuleset().Pluralize(strings.ToLower(kindName))
@@ -46,18 +46,18 @@ func ValidateResourceFlags() {
 
 	groupMatch := regexp.MustCompile("^[a-z]+$")
 	if !groupMatch.MatchString(groupName) {
-		log.Fatalf("--group must match regex ^[a-z]+$ but was (%s)", groupName)
+		klog.Fatalf("--group must match regex ^[a-z]+$ but was (%s)", groupName)
 	}
 	versionMatch := regexp.MustCompile("^v\\d+(alpha\\d+|beta\\d+)*$")
 	if !versionMatch.MatchString(versionName) {
-		log.Fatalf(
+		klog.Fatalf(
 			"--version has bad format. must match ^v\\d+(alpha\\d+|beta\\d+)*$.  "+
 				"e.g. v1alpha1,v1beta1,v1 but was (%s)", versionName)
 	}
 
 	kindMatch := regexp.MustCompile("^[A-Z]+[A-Za-z0-9]*$")
 	if !kindMatch.MatchString(kindName) {
-		log.Fatalf("--kind must match regex ^[A-Z]+[A-Za-z0-9]*$ but was (%s)", kindName)
+		klog.Fatalf("--kind must match regex ^[A-Z]+[A-Za-z0-9]*$ but was (%s)", kindName)
 	}
 }
 
@@ -86,11 +86,11 @@ func Yesno(reader *bufio.Reader) bool {
 }
 
 // Readstdin reads a line from stdin trimming spaces, and returns the value.
-// log.Fatal's if there is an error.
+// klog.Fatal's if there is an error.
 func readstdin(reader *bufio.Reader) string {
 	text, err := reader.ReadString('\n')
 	if err != nil {
-		log.Fatalf("Error when reading input: %v", err)
+		klog.Fatalf("Error when reading input: %v", err)
 	}
 	return strings.TrimSpace(text)
 }

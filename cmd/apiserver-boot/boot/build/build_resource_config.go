@@ -21,15 +21,15 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"regexp"
 
-	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/klog"
+	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 )
 
 var Name, Namespace string
@@ -90,18 +90,18 @@ func AddBuildResourceConfigFlags(cmd *cobra.Command) {
 
 func RunBuildResourceConfig(cmd *cobra.Command, args []string) {
 	if len(Name) == 0 {
-		log.Fatalf("must specify --name")
+		klog.Fatalf("must specify --name")
 	}
 	if len(Namespace) == 0 {
-		log.Fatalf("must specify --namespace")
+		klog.Fatalf("must specify --namespace")
 	}
 	if len(Image) == 0 && !LocalMinikube {
-		log.Fatalf("Must specify --image")
+		klog.Fatalf("Must specify --image")
 	}
 	util.GetDomain()
 
 	if _, err := os.Stat("pkg"); err != nil {
-		log.Fatalf("could not find 'pkg' directory.  must run apiserver-boot init before generating config")
+		klog.Fatalf("could not find 'pkg' directory.  must run apiserver-boot init before generating config")
 	}
 
 	createCerts()
@@ -112,19 +112,19 @@ func getBase64(file string) string {
 	//out, err := exec.Command("bash", "-c",
 	//	fmt.Sprintf("base64 %s | awk 'BEGIN{ORS=\"\";} {print}'", file)).CombinedOutput()
 	//if err != nil {
-	//	log.Fatalf("Could not base64 encode file: %v", err)
+	//	klog.Fatalf("Could not base64 encode file: %v", err)
 	//}
 
 	buff := bytes.Buffer{}
 	enc := base64.NewEncoder(base64.StdEncoding, &buff)
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
-		log.Fatalf("Could not read file %s: %v", file, err)
+		klog.Fatalf("Could not read file %s: %v", file, err)
 	}
 
 	_, err = enc.Write(data)
 	if err != nil {
-		log.Fatalf("Could not write bytes: %v", err)
+		klog.Fatalf("Could not write bytes: %v", err)
 	}
 	enc.Close()
 	return buff.String()
@@ -167,7 +167,7 @@ func buildResourceConfig() {
 	}
 	created := util.WriteIfNotFound(path, "config-template", temp, a)
 	if !created {
-		log.Fatalf("Resource config already exists.")
+		klog.Fatalf("Resource config already exists.")
 	}
 }
 
@@ -185,7 +185,7 @@ func createCerts() {
 			"-subj", fmt.Sprintf("/C=un/ST=st/L=l/O=o/OU=ou/CN=%s-certificate-authority", Name),
 		)
 	} else {
-		log.Printf("Skipping generate CA cert.  File already exists.")
+		klog.Infof("Skipping generate CA cert.  File already exists.")
 	}
 
 	if _, err := os.Stat(filepath.Join(dir, "apiserver.csr")); os.IsNotExist(err) {
@@ -199,7 +199,7 @@ func createCerts() {
 			"-subj", fmt.Sprintf("/C=un/ST=st/L=l/O=o/OU=ou/CN=%s.%s.svc", Name, Namespace),
 		)
 	} else {
-		log.Printf("Skipping generate apiserver csr.  File already exists.")
+		klog.Infof("Skipping generate apiserver csr.  File already exists.")
 	}
 
 	if _, err := os.Stat(filepath.Join(dir, "apiserver.crt")); os.IsNotExist(err) {
@@ -212,26 +212,26 @@ func createCerts() {
 			"-out", filepath.Join(dir, "apiserver.crt"),
 		)
 	} else {
-		log.Printf("Skipping signing apiserver crt.  File already exists.")
+		klog.Infof("Skipping signing apiserver crt.  File already exists.")
 	}
 }
 
 func initVersionedApis() {
 	groups, err := ioutil.ReadDir(filepath.Join("pkg", "apis"))
 	if err != nil {
-		log.Fatalf("could not read pkg/apis directory to find api Versions")
+		klog.Fatalf("could not read pkg/apis directory to find api Versions")
 	}
-	log.Printf("Adding APIs:")
+	klog.Infof("Adding APIs:")
 	for _, g := range groups {
 		if g.IsDir() {
 			versionFiles, err := ioutil.ReadDir(filepath.Join("pkg", "apis", g.Name()))
 			if err != nil {
-				log.Fatalf("could not read pkg/apis/%s directory to find api Versions", g.Name())
+				klog.Fatalf("could not read pkg/apis/%s directory to find api Versions", g.Name())
 			}
 			versionMatch := regexp.MustCompile("^v\\d+(alpha\\d+|beta\\d+)*$")
 			for _, v := range versionFiles {
 				if v.IsDir() && versionMatch.MatchString(v.Name()) {
-					log.Printf("\t%s.%s", g.Name(), v.Name())
+					klog.Infof("\t%s.%s", g.Name(), v.Name())
 					Versions = append(Versions, schema.GroupVersion{
 						Group:   g.Name(),
 						Version: v.Name(),

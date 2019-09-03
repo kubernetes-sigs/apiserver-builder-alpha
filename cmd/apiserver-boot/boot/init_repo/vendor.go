@@ -20,7 +20,7 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"io/ioutil"
-	"log"
+	"k8s.io/klog"
 	"os"
 	"path/filepath"
 
@@ -53,7 +53,7 @@ func DeleteOld() {
 	// releases.
 	e, err := os.Executable()
 	if err != nil {
-		log.Fatal("unable to get directory of apiserver-builder tools")
+		klog.Fatal("unable to get directory of apiserver-builder tools")
 	}
 
 	e = filepath.Dir(filepath.Dir(e))
@@ -62,14 +62,14 @@ func DeleteOld() {
 	f := filepath.Join(e, "bin", "vendor.tar.gz")
 	fr, err := os.Open(f)
 	if err != nil {
-		log.Fatalf("failed to read vendor tar file %s %v", f, err)
+		klog.Fatalf("failed to read vendor tar file %s %v", f, err)
 	}
 	defer fr.Close()
 
 	// setup gzip of tar
 	gr, err := gzip.NewReader(fr)
 	if err != nil {
-		log.Fatalf("failed to read vendor tar file %s %v", f, err)
+		klog.Fatalf("failed to read vendor tar file %s %v", f, err)
 	}
 	defer gr.Close()
 
@@ -103,7 +103,7 @@ func RunVendorInstall(cmd *cobra.Command, args []string) {
 	// releases.
 	e, err := os.Executable()
 	if err != nil {
-		log.Fatal("unable to get directory of apiserver-builder tools")
+		klog.Fatal("unable to get directory of apiserver-builder tools")
 	}
 
 	e = filepath.Dir(filepath.Dir(e))
@@ -112,14 +112,14 @@ func RunVendorInstall(cmd *cobra.Command, args []string) {
 	f := filepath.Join(e, "bin", "vendor.tar.gz")
 	fr, err := os.Open(f)
 	if err != nil {
-		log.Fatalf("failed to read vendor tar file %s %v", f, err)
+		klog.Fatalf("failed to read vendor tar file %s %v", f, err)
 	}
 	defer fr.Close()
 
 	// setup gzip of tar
 	gr, err := gzip.NewReader(fr)
 	if err != nil {
-		log.Fatalf("failed to read vendor tar file %s %v", f, err)
+		klog.Fatalf("failed to read vendor tar file %s %v", f, err)
 	}
 	defer gr.Close()
 
@@ -135,15 +135,15 @@ func RunVendorInstall(cmd *cobra.Command, args []string) {
 
 		err := os.MkdirAll(filepath.Dir(p), 0700)
 		if err != nil {
-			log.Fatalf("Could not create directory %s: %v", filepath.Dir(p), err)
+			klog.Fatalf("Could not create directory %s: %v", filepath.Dir(p), err)
 		}
 		b, err := ioutil.ReadAll(tr)
 		if err != nil {
-			log.Fatalf("Could not read file %s: %v", file.Name, err)
+			klog.Fatalf("Could not read file %s: %v", file.Name, err)
 		}
 		err = ioutil.WriteFile(p, b, os.FileMode(file.Mode))
 		if err != nil {
-			log.Fatalf("Could not write file %s: %v", p, err)
+			klog.Fatalf("Could not write file %s: %v", p, err)
 		}
 	}
 }

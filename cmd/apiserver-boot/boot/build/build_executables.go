@@ -18,13 +18,13 @@ package build
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
+	"k8s.io/klog"
 )
 
 var GenerateForBuild bool = true
@@ -82,30 +82,31 @@ func RunBuildExecutables(cmd *cobra.Command, args []string) {
 
 func BazelBuild(cmd *cobra.Command, args []string) {
 	if GenerateForBuild {
-		log.Printf("regenerating generated code.  To disable regeneration, run with --generate=false.")
+		klog.Infof("regenerating generated code.  To disable regeneration, run with --generate=false.")
 		RunGenerate(cmd, args)
 	}
 
 	if Gazelle {
 		c := exec.Command("bazel", "run", "//:gazelle")
-		fmt.Printf("%s\n", strings.Join(c.Args, " "))
+		klog.Infof("%s", strings.Join(c.Args, " "))
+
 		c.Stderr = os.Stderr
 		c.Stdout = os.Stdout
 		err := c.Run()
 		if err != nil {
-			log.Fatal(err)
+			klog.Fatal(err)
 		}
 	}
 
 	c := exec.Command("bazel", "build",
 		filepath.Join("cmd", "apiserver"),
 		filepath.Join("cmd", "controller-manager"))
-	fmt.Printf("%s\n", strings.Join(c.Args, " "))
+	klog.Infof("%s", strings.Join(c.Args, " "))
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout
 	err := c.Run()
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 
 	os.RemoveAll(filepath.Join("bin", "apiserver"))
@@ -114,29 +115,29 @@ func BazelBuild(cmd *cobra.Command, args []string) {
 	c = exec.Command("cp",
 		filepath.Join("bazel-bin", "cmd", "apiserver", "apiserver"),
 		filepath.Join("bin", "apiserver"))
-	fmt.Printf("%s\n", strings.Join(c.Args, " "))
+	klog.Infof("%s", strings.Join(c.Args, " "))
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout
 	err = c.Run()
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 
 	c = exec.Command("cp",
 		filepath.Join("bazel-bin", "cmd", "controller-manager", "controller-manager"),
 		filepath.Join("bin", "controller-manager"))
-	fmt.Printf("%s\n", strings.Join(c.Args, " "))
+	klog.Infof("%s", strings.Join(c.Args, " "))
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout
 	err = c.Run()
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 }
 
 func GoBuild(cmd *cobra.Command, args []string) {
 	if GenerateForBuild {
-		log.Printf("regenerating generated code.  To disable regeneration, run with --generate=false.")
+		klog.Infof("regenerating generated code.  To disable regeneration, run with --generate=false.")
 		RunGenerate(cmd, args)
 	}
 
@@ -147,22 +148,22 @@ func GoBuild(cmd *cobra.Command, args []string) {
 	path := filepath.Join("cmd", "apiserver", "main.go")
 	c := exec.Command("go", "build", "-o", filepath.Join(outputdir, "apiserver"), path)
 	c.Env = append(os.Environ(), "CGO_ENABLED=0")
-	log.Printf("CGO_ENABLED=0")
+	klog.Infof("CGO_ENABLED=0")
 	if len(goos) > 0 {
 		c.Env = append(c.Env, fmt.Sprintf("GOOS=%s", goos))
-		log.Printf(fmt.Sprintf("GOOS=%s", goos))
+		klog.Infof(fmt.Sprintf("GOOS=%s", goos))
 	}
 	if len(goarch) > 0 {
 		c.Env = append(c.Env, fmt.Sprintf("GOARCH=%s", goarch))
-		log.Printf(fmt.Sprintf("GOARCH=%s", goarch))
+		klog.Infof(fmt.Sprintf("GOARCH=%s", goarch))
 	}
 
-	fmt.Printf("%s\n", strings.Join(c.Args, " "))
+	klog.Infof("%s", strings.Join(c.Args, " "))
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout
 	err := c.Run()
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 
 	// Build the controller manager
@@ -176,11 +177,11 @@ func GoBuild(cmd *cobra.Command, args []string) {
 		c.Env = append(c.Env, fmt.Sprintf("GOARCH=%s", goarch))
 	}
 
-	fmt.Println(strings.Join(c.Args, " "))
+	klog.Infof(strings.Join(c.Args, " "))
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout
 	err = c.Run()
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 }

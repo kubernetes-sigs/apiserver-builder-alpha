@@ -17,14 +17,14 @@ limitations under the License.
 package create
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 
-	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
+	"k8s.io/klog"
+	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 )
 
 var versionName string
@@ -47,23 +47,23 @@ func AddCreateVersion(cmd *cobra.Command) {
 
 func RunCreateVersion(cmd *cobra.Command, args []string) {
 	if _, err := os.Stat("pkg"); err != nil {
-		log.Fatalf("could not find 'pkg' directory.  must run apiserver-boot init before creating resources")
+		klog.Fatalf("could not find 'pkg' directory.  must run apiserver-boot init before creating resources")
 	}
 
 	util.GetDomain()
 	if len(groupName) == 0 {
-		log.Fatalf("Must specify --group")
+		klog.Fatalf("Must specify --group")
 	}
 	if len(versionName) == 0 {
-		log.Fatalf("Must specify --version")
+		klog.Fatalf("Must specify --version")
 	}
 
 	if strings.ToLower(groupName) != groupName {
-		log.Fatalf("--group must be lowercase was (%s)", groupName)
+		klog.Fatalf("--group must be lowercase was (%s)", groupName)
 	}
 	versionMatch := regexp.MustCompile("^v\\d+(alpha\\d+|beta\\d+)*$")
 	if !versionMatch.MatchString(versionName) {
-		log.Fatalf(
+		klog.Fatalf(
 			"--version has bad format. must match ^v\\d+(alpha\\d+|beta\\d+)*$.  "+
 				"e.g. v1alpha1,v1beta1,v1 was(%s)", versionName)
 	}
@@ -78,7 +78,7 @@ func RunCreateVersion(cmd *cobra.Command, args []string) {
 func createVersion(boilerplate string) {
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Fatalf("%v\n", err)
+		klog.Fatalf("%v", err)
 		os.Exit(-1)
 	}
 	path := filepath.Join(dir, "pkg", "apis", groupName, versionName, "doc.go")
@@ -90,7 +90,7 @@ func createVersion(boilerplate string) {
 		util.Repo,
 	})
 	if !created && !ignoreVersionExists {
-		log.Fatalf("API group version %s/%s already exists.", groupName, versionName)
+		klog.Fatalf("API group version %s/%s already exists.", groupName, versionName)
 	}
 }
 

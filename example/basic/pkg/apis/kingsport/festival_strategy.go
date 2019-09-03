@@ -18,10 +18,10 @@ package kingsport
 
 import (
 	"context"
-	"log"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+	"k8s.io/klog"
 )
 
 func (FestivalStrategy) NamespaceScoped() bool { return false }
@@ -31,7 +31,7 @@ func (FestivalStatusStrategy) NamespaceScoped() bool { return false }
 // Validate checks that an instance of Festival is well formed
 func (FestivalStrategy) Validate(ctx context.Context, obj runtime.Object) field.ErrorList {
 	o := obj.(*Festival)
-	log.Printf("Validating fields for Festival %s\n", o.Name)
+	klog.Infof("Validating fields for Festival %s", o.Name)
 	errors := field.ErrorList{}
 
 	if o.Spec.Year < 0 {
