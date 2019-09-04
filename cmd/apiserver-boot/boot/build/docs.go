@@ -19,7 +19,7 @@ package build
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
+	"k8s.io/klog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -112,7 +112,7 @@ func RunCleanDocs(cmd *cobra.Command, args []string) {
 
 func RunDocs(cmd *cobra.Command, args []string) {
 	if len(server) == 0 && buildOpenapi {
-		log.Fatal("Must specifiy --server or --build-openapi=false")
+		klog.Fatal("Must specifiy --server or --build-openapi=false")
 	}
 
 	os.RemoveAll(filepath.Join(outputDir, "includes"))
@@ -134,12 +134,12 @@ func RunDocs(cmd *cobra.Command, args []string) {
 
 		etcdStopFunc := RunEtcd()
 		defer etcdStopFunc()
-		log.Printf("starting local etcd...\n")
+		klog.Infof("starting local etcd...")
 
 		c := exec.Command(server,
 			flags...,
 		)
-		log.Printf("%s\n", strings.Join(c.Args, " "))
+		klog.Infof("%s", strings.Join(c.Args, " "))
 
 		var b bytes.Buffer
 		c.Stdout = &b
@@ -147,19 +147,19 @@ func RunDocs(cmd *cobra.Command, args []string) {
 
 		err := c.Run()
 		if err != nil {
-			log.Fatalf("error: %v\n", err)
+			klog.Fatalf("error: %v", err)
 		}
 
 		err = ioutil.WriteFile(filepath.Join(outputDir, "openapi-spec", "swagger.json"), b.Bytes(), 0644)
 		if err != nil {
-			log.Fatalf("error: %v\n", err)
+			klog.Fatalf("error: %v", err)
 		}
 	}
 
 	// Build the docs
 	dir, err := os.Executable()
 	if err != nil {
-		log.Fatalf("error: %v\n", err)
+		klog.Fatalf("error: %v", err)
 	}
 	dir = filepath.Dir(dir)
 	c := exec.Command(filepath.Join(dir, "gen-apidocs"),
@@ -167,17 +167,17 @@ func RunDocs(cmd *cobra.Command, args []string) {
 		fmt.Sprintf("--use-tags=%v", generateToc),
 		"--allow-errors",
 		"--config-dir="+outputDir)
-	log.Printf("%s\n", strings.Join(c.Args, " "))
+	klog.Infof("%s", strings.Join(c.Args, " "))
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout
 	err = c.Run()
 	if err != nil {
-		log.Fatalf("error: %v\n", err)
+		klog.Fatalf("error: %v", err)
 	}
 
 	wd, err := os.Getwd()
 	if err != nil {
-		log.Fatalf("error: %v\n", err)
+		klog.Fatalf("error: %v", err)
 	}
 
 	// Run the docker command to build the docs
@@ -188,12 +188,12 @@ func RunDocs(cmd *cobra.Command, args []string) {
 		"-v", fmt.Sprintf("%s:%s", filepath.Join(wd, outputDir), "/manifest"),
 		"pwittrock/brodocs",
 	)
-	log.Println(strings.Join(c.Args, " "))
+	klog.Infof(strings.Join(c.Args, " "))
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout
 	err = c.Run()
 	if err != nil {
-		log.Fatalf("error: %v\n", err)
+		klog.Fatalf("error: %v", err)
 	}
 
 	// Cleanup intermediate files
@@ -211,11 +211,11 @@ func RunDocs(cmd *cobra.Command, args []string) {
 func RunEtcd() func() {
 	etcdCmd := exec.Command("etcd")
 
-	log.Printf("%s\n", strings.Join(etcdCmd.Args, " "))
+	klog.Infof("%s", strings.Join(etcdCmd.Args, " "))
 	go func() {
 		err := etcdCmd.Run()
 		if err != nil {
-			log.Fatalf("Failed to run etcd %v", err)
+			klog.Fatalf("Failed to run etcd %v", err)
 			os.Exit(-1)
 		}
 	}()

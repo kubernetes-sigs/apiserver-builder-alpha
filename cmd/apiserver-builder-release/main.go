@@ -21,7 +21,6 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,6 +28,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"k8s.io/klog"
 )
 
 var targets []string
@@ -69,7 +69,7 @@ func main() {
 	cmd.AddCommand(installCmd)
 
 	if err := cmd.Execute(); err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 }
 
@@ -94,32 +94,32 @@ var buildCmd = &cobra.Command{
 func TmpDir() string {
 	dir, err := ioutil.TempDir(os.TempDir(), "apiserver-builder-release")
 	if err != nil {
-		log.Fatalf("failed to create temp directory %s %v", dir, err)
+		klog.Fatalf("failed to create temp directory %s %v", dir, err)
 	}
 
 	dir, err = filepath.EvalSymlinks(dir)
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 
 	err = os.Mkdir(filepath.Join(dir, "src"), 0700)
 	if err != nil {
-		log.Fatalf("failed to create directory %s %v", filepath.Join(dir, "src"), err)
+		klog.Fatalf("failed to create directory %s %v", filepath.Join(dir, "src"), err)
 	}
 
 	err = os.Mkdir(filepath.Join(dir, "bin"), 0700)
 	if err != nil {
-		log.Fatalf("failed to create directory %s %v", filepath.Join(dir, "bin"), err)
+		klog.Fatalf("failed to create directory %s %v", filepath.Join(dir, "bin"), err)
 	}
 	return dir
 }
 
 func RunBuild(cmd *cobra.Command, args []string) {
 	if len(version) == 0 {
-		log.Fatal("must specify the --version flag")
+		klog.Fatal("must specify the --version flag")
 	}
 	if len(targets) == 0 {
-		log.Fatal("must provide at least one --targets flag when building tools")
+		klog.Fatal("must provide at least one --targets flag when building tools")
 	}
 
 	dir, err := os.Getwd()
@@ -130,7 +130,7 @@ func RunBuild(cmd *cobra.Command, args []string) {
 	vendor := filepath.Join(dir, "src")
 
 	if _, err := os.Stat(vendor); os.IsNotExist(err) {
-		log.Fatalf("must first run `apiserver-builder-release vendor`.  could not find %s", vendor)
+		klog.Fatalf("must first run `apiserver-builder-release vendor`.  could not find %s", vendor)
 	}
 
 	if !useBazel {
@@ -139,7 +139,7 @@ func RunBuild(cmd *cobra.Command, args []string) {
 			// Build binaries for this os:arch
 			parts := strings.Split(target, ":")
 			if len(parts) != 2 {
-				log.Fatalf("--targets flags must be GOOS:GOARCH pairs [%s]", target)
+				klog.Fatalf("--targets flags must be GOOS:GOARCH pairs [%s]", target)
 			}
 			goos := parts[0]
 			goarch := parts[1]
@@ -147,7 +147,7 @@ func RunBuild(cmd *cobra.Command, args []string) {
 			os.RemoveAll(filepath.Join(dir, "bin"))
 			err := os.Mkdir(filepath.Join(dir, "bin"), 0700)
 			if err != nil {
-				log.Fatalf("failed to create directory %s %v", filepath.Join(dir, "bin"), err)
+				klog.Fatalf("failed to create directory %s %v", filepath.Join(dir, "bin"), err)
 			}
 
 			BuildVendorTar(dir)
@@ -206,11 +206,11 @@ func RunCmd(cmd *exec.Cmd, gopath string) {
 	setgopath := len(gopath) > 0
 	gopath, err := filepath.Abs(gopath)
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 	gopath, err = filepath.EvalSymlinks(gopath)
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 	if setgopath {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("GOPATH=%s", gopath))
@@ -230,7 +230,7 @@ func RunCmd(cmd *exec.Cmd, gopath string) {
 	fmt.Printf("%s\n", strings.Join(cmd.Args, " "))
 	err = cmd.Run()
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 }
 
@@ -239,7 +239,7 @@ func Build(input, output, goos, goarch string) {
 	if strings.HasSuffix(output, "apiserver-boot") {
 		commit, err := exec.Command("git", "rev-parse", "HEAD").CombinedOutput()
 		if err != nil {
-			log.Fatalf("%v", err)
+			klog.Fatalf("%v", err)
 		}
 
 		t := time.Now().Local()
@@ -306,7 +306,7 @@ func BuildVendorTar(dir string) {
 	f := filepath.Join(dir, "bin", "vendor.tar.gz")
 	fw, err := os.Create(f)
 	if err != nil {
-		log.Fatalf("failed to create vendor tar file %s %v", f, err)
+		klog.Fatalf("failed to create vendor tar file %s %v", f, err)
 	}
 	defer fw.Close()
 
@@ -331,7 +331,7 @@ func PackageTar(goos, goarch, tooldir, vendordir string) {
 	// create the new file
 	fw, err := os.Create(fmt.Sprintf("%s-%s-%s-%s.tar.gz", output, version, goos, goarch))
 	if err != nil {
-		log.Fatalf("failed to create output file %s %v", output, err)
+		klog.Fatalf("failed to create output file %s %v", output, err)
 	}
 	defer fw.Close()
 
@@ -367,7 +367,7 @@ func (t TarFile) Do(path string, info os.FileInfo, err error) error {
 
 	eval, err := filepath.EvalSymlinks(path)
 	if err != nil && !os.IsNotExist(err) {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 	if eval != path {
 		name := strings.Replace(path, t.Root, "", -1)
@@ -384,7 +384,7 @@ func (t TarFile) Do(path string, info os.FileInfo, err error) error {
 			Linkname: linkName,
 		}
 		if err := t.Writer.WriteHeader(hdr); err != nil {
-			log.Fatalf("failed to write output for %s %v", path, err)
+			klog.Fatalf("failed to write output for %s %v", path, err)
 		}
 		return nil
 	}
@@ -400,7 +400,7 @@ func (t TarFile) Write(path string) error {
 	}
 	body, err := ioutil.ReadFile(path)
 	if err != nil {
-		log.Fatalf("failed to read file %s %v", path, err)
+		klog.Fatalf("failed to read file %s %v", path, err)
 	}
 	if len(body) == 0 && strings.HasSuffix(path, "vendor.tar.gz") {
 		return nil
@@ -412,10 +412,10 @@ func (t TarFile) Write(path string) error {
 		Size: int64(len(body)),
 	}
 	if err := t.Writer.WriteHeader(hdr); err != nil {
-		log.Fatalf("failed to write output for %s %v", path, err)
+		klog.Fatalf("failed to write output for %s %v", path, err)
 	}
 	if _, err := t.Writer.Write(body); err != nil {
-		log.Fatalf("failed to write output for %s %v", path, err)
+		klog.Fatalf("failed to write output for %s %v", path, err)
 	}
 	return nil
 }
@@ -429,7 +429,7 @@ var vendorCmd = &cobra.Command{
 
 func RunVendor(cmd *cobra.Command, args []string) {
 	if len(version) == 0 {
-		log.Fatal("must specify the --version flag")
+		klog.Fatal("must specify the --version flag")
 	}
 
 	// Create the release directory
@@ -481,14 +481,14 @@ var installCmd = &cobra.Command{
 
 func RunInstall(cmd *cobra.Command, args []string) {
 	if len(version) == 0 {
-		log.Fatal("must specify the --version flag")
+		klog.Fatal("must specify the --version flag")
 	}
 	goos := os.Getenv("GOOS")
 	goarch := os.Getenv("GOARCH")
 	gopath := os.Getenv("GOPATH")
 
 	if len(goos) == 0 || len(goarch) == 0 || len(gopath) == 0 {
-		log.Fatalf("missing environment variable: GOOS(%s), GOARCH(%s), GOPATH(%s)", goos, goarch, gopath)
+		klog.Fatalf("missing environment variable: GOOS(%s), GOARCH(%s), GOPATH(%s)", goos, goarch, gopath)
 	}
 
 	// Untar to to GOPATH

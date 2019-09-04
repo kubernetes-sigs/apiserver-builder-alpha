@@ -1,4 +1,3 @@
-
 /*
 Copyright 2019 The Kubernetes Authors.
 
@@ -15,22 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
-
 package podlogs
 
 import (
 	"context"
-	"log"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+	"k8s.io/klog"
 )
 
 // Validate checks that an instance of Pod is well formed
 func (PodStrategy) Validate(ctx context.Context, obj runtime.Object) field.ErrorList {
 	o := obj.(*Pod)
-	log.Printf("Validating fields for Pod %s\n", o.Name)
+	klog.Infof("Validating fields for Pod %s", o.Name)
 	errors := field.ErrorList{}
 	// perform validation here and add to errors using field.Invalid
 	return errors

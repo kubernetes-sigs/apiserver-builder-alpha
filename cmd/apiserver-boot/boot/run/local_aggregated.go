@@ -19,7 +19,6 @@ package run
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,6 +28,7 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/util/homedir"
 
+	"k8s.io/klog"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/build"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 )
@@ -104,14 +104,14 @@ func RunLocalMinikube(cmd *cobra.Command, args []string) {
 		r[s] = nil
 	}
 
-	fmt.Printf("Checking sudo credentials for binding port 443\n")
+	klog.Infof("Checking sudo credentials for binding port 443\n")
 	sudo := exec.Command("sudo", "-v")
 	sudo.Stderr = os.Stderr
 	sudo.Stdout = os.Stdout
 	sudo.Stdin = os.Stdin
 	err := sudo.Run()
 	if err != nil {
-		log.Fatalf("Failed to validate sudo credentials %v", err)
+		klog.Fatalf("Failed to validate sudo credentials %v", err)
 		os.Exit(-1)
 	}
 
@@ -133,7 +133,7 @@ func RunLocalMinikube(cmd *cobra.Command, args []string) {
 		RunControllerManager(ctx, cancel)
 	}
 
-	fmt.Printf("to test the server run `kubectl api-versions`, if you specified --kubeconfig you must also provide the flag `--kubeconfig %s`\n", config)
+	klog.Infof("to test the server run `kubectl api-versions`, if you specified --kubeconfig you must also provide the flag `--kubeconfig %s`\n", config)
 	<-ctx.Done() // wait forever
 }
 
@@ -157,8 +157,8 @@ func RunApiserverMinikube() *exec.Cmd {
 	}
 
 	apiserverCmd := exec.Command("sudo", flags...)
-	fmt.Printf("%s\n", strings.Join(apiserverCmd.Args, " "))
-	fmt.Printf("Running apiserver with sudo to bind to port 443.  If this fails run `sudo -v`\n")
+	klog.Infof("%s\n", strings.Join(apiserverCmd.Args, " "))
+	klog.Infof("Running apiserver with sudo to bind to port 443.  If this fails run `sudo -v`\n")
 	if printapiserver {
 		apiserverCmd.Stderr = os.Stderr
 		apiserverCmd.Stdout = os.Stdout
@@ -168,7 +168,7 @@ func RunApiserverMinikube() *exec.Cmd {
 	err := apiserverCmd.Run()
 	if err != nil {
 		defer apiserverCmd.Process.Kill()
-		log.Fatalf("Failed to run apiserver %v", err)
+		klog.Fatalf("Failed to run apiserver %v", err)
 		os.Exit(-1)
 	}
 

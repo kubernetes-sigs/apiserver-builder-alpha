@@ -20,7 +20,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -30,6 +29,7 @@ import (
 
 	"github.com/markbates/inflect"
 	"k8s.io/apiserver/pkg/server"
+	"k8s.io/klog"
 )
 
 var Domain string
@@ -45,7 +45,7 @@ func WriteIfNotFound(path, templateName, templateValue string, data interface{})
 	if _, err := os.Stat(path); err == nil {
 		return false
 	} else if !os.IsNotExist(err) {
-		log.Fatalf("Could not stat %s: %v", path, err)
+		klog.Fatalf("Could not stat %s: %v", path, err)
 
 	}
 	create(path)
@@ -60,13 +60,13 @@ func WriteIfNotFound(path, templateName, templateValue string, data interface{})
 
 	f, err := os.OpenFile(path, os.O_WRONLY, 0)
 	if err != nil {
-		log.Fatalf("Failed to create %s: %v", path, err)
+		klog.Fatalf("Failed to create %s: %v", path, err)
 	}
 	defer f.Close()
 
 	err = t.Execute(f, data)
 	if err != nil {
-		log.Fatalf("Failed to create %s: %v", path, err)
+		klog.Fatalf("Failed to create %s: %v", path, err)
 	}
 
 	return true
@@ -78,7 +78,7 @@ func GetCopyright(file string) string {
 	}
 	cr, err := ioutil.ReadFile(file)
 	if err != nil {
-		log.Fatalf("Must create boilerplate.go.txt file with copyright and file headers")
+		klog.Fatalf("Must create boilerplate.go.txt file with copyright and file headers")
 	}
 	return string(cr)
 }
@@ -86,12 +86,12 @@ func GetCopyright(file string) string {
 func GetDomain() string {
 	b, err := ioutil.ReadFile(filepath.Join("pkg", "apis", "doc.go"))
 	if err != nil {
-		log.Fatalf("Could not find pkg/apis/doc.go.  First run `apiserver-boot init --domain <domain>`.")
+		klog.Fatalf("Could not find pkg/apis/doc.go.  First run `apiserver-boot init --domain <domain>`.")
 	}
 	r := regexp.MustCompile("\\+domain=(.*)")
 	l := r.FindSubmatch(b)
 	if len(l) < 2 {
-		log.Fatalf("pkg/apis/doc.go does not contain the domain (// +domain=.*)")
+		klog.Fatalf("pkg/apis/doc.go does not contain the domain (// +domain=.*)")
 	}
 	Domain = string(l[1])
 	return Domain
@@ -110,10 +110,10 @@ func DoCmd(cmd string, args ...string) {
 	c := exec.Command(cmd, args...)
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout
-	log.Printf("%s\n", strings.Join(c.Args, " "))
+	klog.Infof("%s", strings.Join(c.Args, " "))
 	err := c.Run()
 	if err != nil {
-		log.Fatalf("command failed %v", err)
+		klog.Fatalf("command failed %v", err)
 	}
 }
 
@@ -124,7 +124,7 @@ func CheckInstall() {
 
 	e, err := os.Executable()
 	if err != nil {
-		log.Fatal("unable to get directory of apiserver-builder tools")
+		klog.Fatal("unable to get directory of apiserver-builder tools")
 	}
 
 	dir := filepath.Dir(e)
@@ -135,7 +135,7 @@ func CheckInstall() {
 		}
 	}
 	if len(missing) > 0 {
-		log.Fatalf("Error running apiserver-boot."+
+		klog.Fatalf("Error running apiserver-boot."+
 			"\nThe following files are missing [%s]"+
 			"\napiserver-boot must be installed using a release tar.gz downloaded from the git repo.",
 			strings.Join(missing, ","))

@@ -31,7 +31,6 @@ var controllerSuiteTestTemplate = `{{ .Boilerplate }}
 package {{ lower .Resource.Kind }}
 
 import (
-	stdlog "log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -40,6 +39,7 @@ import (
 	"github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	stdlog "k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -65,12 +65,12 @@ func TestMain(m *testing.M) {
 
 	code := m.Run()
 
-	stdlog.Print("stopping aggregated-apiserver..")
+	stdlog.Info("stopping aggregated-apiserver..")
 	if err := env.StopLocalAggregatedAPIServer(); err != nil {
 		stdlog.Fatal(err)
 		return
 	}
-	stdlog.Print("stopping kube-apiserver..")
+	stdlog.Info("stopping kube-apiserver..")
 	if err := env.StopLocalKubeAPIServer(); err != nil {
 		stdlog.Fatal(err)
 		return

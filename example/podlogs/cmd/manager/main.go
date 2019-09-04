@@ -22,7 +22,6 @@ import (
 
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/apiserver-builder-alpha/example/podlogs/pkg/apis"
-	"sigs.k8s.io/apiserver-builder-alpha/example/podlogs/pkg/controller"
 	"sigs.k8s.io/apiserver-builder-alpha/example/podlogs/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -63,11 +62,11 @@ func main() {
 	}
 
 	// Setup all Controllers
-	log.Info("Setting up controller")
-	if err := controller.AddToManager(mgr); err != nil {
-		log.Error(err, "unable to register controllers to the manager")
-		os.Exit(1)
-	}
+	//log.Info("Setting up controller")
+	//if err := controller.AddToManager(mgr); err != nil {
+	//	log.Error(err, "unable to register controllers to the manager")
+	//	os.Exit(1)
+	//}
 
 	log.Info("setting up webhooks")
 	if err := webhook.AddToManager(mgr); err != nil {

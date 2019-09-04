@@ -17,13 +17,13 @@ limitations under the License.
 package main
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
 
+	"k8s.io/klog"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/build"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/create"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/init_repo"
@@ -37,17 +37,17 @@ func main() {
 	util.CheckInstall()
 	gopath := os.Getenv("GOPATH")
 	if len(gopath) == 0 {
-		log.Fatal("GOPATH not defined")
+		klog.Fatal("GOPATH not defined")
 	}
 	util.GoSrc = filepath.Join(gopath, "src")
 
 	wd, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 
 	if !strings.HasPrefix(filepath.Dir(wd), util.GoSrc) {
-		log.Fatalf("apiserver-boot must be run from the directory containing the go package to "+
+		klog.Fatalf("apiserver-boot must be run from the directory containing the go package to "+
 			"bootstrap. This must be under $GOPATH/src/<package>. "+
 			"\nCurrent GOPATH=%s.  \nCurrent directory=%s", gopath, wd)
 	}
@@ -61,7 +61,7 @@ func main() {
 	version.AddVersion(cmd)
 
 	if err := cmd.Execute(); err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 }
 

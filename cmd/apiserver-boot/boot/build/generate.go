@@ -19,7 +19,6 @@ package build
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -27,10 +26,10 @@ import (
 	"regexp"
 	"strings"
 
-	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/klog"
+	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 )
 
 var versionedAPIs []string
@@ -102,7 +101,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 
 	root, err := os.Executable()
 	if err != nil {
-		log.Fatalf("error: %v", err)
+		klog.Fatalf("error: %v", err)
 	}
 	root = filepath.Dir(root)
 
@@ -131,10 +130,10 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 		}
 
 		c := exec.Command(filepath.Join(root, "apiregister-gen"), inputDirsArgs...)
-		fmt.Printf("%s\n", strings.Join(c.Args, " "))
+		klog.Infof("%s", strings.Join(c.Args, " "))
 		out, err := c.CombinedOutput()
 		if err != nil {
-			log.Fatalf("failed to run apiregister-gen %s %v", out, err)
+			klog.Fatalf("failed to run apiregister-gen %s %v", out, err)
 		}
 	}
 
@@ -146,10 +145,10 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 				"-O", "zz_generated.conversion",
 				"--extra-peer-dirs", extraAPI)...,
 		)
-		fmt.Printf("%s\n", strings.Join(c.Args, " "))
+		klog.Infof("%s", strings.Join(c.Args, " "))
 		out, err := c.CombinedOutput()
 		if err != nil {
-			log.Fatalf("failed to run conversion-gen %s %v", out, err)
+			klog.Fatalf("failed to run conversion-gen %s %v", out, err)
 		}
 	}
 
@@ -160,10 +159,10 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 				"--go-header-file", copyright,
 				"-O", "zz_generated.deepcopy")...,
 		)
-		fmt.Printf("%s\n", strings.Join(c.Args, " "))
+		klog.Infof("%s", strings.Join(c.Args, " "))
 		out, err := c.CombinedOutput()
 		if err != nil {
-			log.Fatalf("failed to run deepcopy-gen %s %v", out, err)
+			klog.Fatalf("failed to run deepcopy-gen %s %v", out, err)
 		}
 	}
 
@@ -206,14 +205,14 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 				c.Env = append(c.Env,
 					fmt.Sprintf("GOROOT=%s", filepath.Dir(filepath.Dir(strings.Trim(string(p), "\n")))))
 			} else {
-				klog.Warningf("Warning: $GOROOT not set, and unable to run `which go` to find it: %v\n", err)
+				klog.Warningf("Warning: $GOROOT not set, and unable to run `which go` to find it: %v", err)
 			}
 		}
 
-		fmt.Printf("%s\n", strings.Join(c.Args, " "))
+		klog.Infof("%s", strings.Join(c.Args, " "))
 		out, err := c.CombinedOutput()
 		if err != nil {
-			log.Fatalf("failed to run openapi-gen %s %v", out, err)
+			klog.Fatalf("failed to run openapi-gen %s %v", out, err)
 		}
 	}
 
@@ -225,10 +224,10 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 				"-O", "zz_generated.defaults",
 				"--extra-peer-dirs=", extraAPI)...,
 		)
-		fmt.Printf("%s\n", strings.Join(c.Args, " "))
+		klog.Infof("%s", strings.Join(c.Args, " "))
 		out, err := c.CombinedOutput()
 		if err != nil {
-			log.Fatalf("failed to run defaulter-gen %s %v", out, err)
+			klog.Fatalf("failed to run defaulter-gen %s %v", out, err)
 		}
 	}
 
@@ -244,10 +243,10 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 			"--clientset-path", clientset,
 			"--clientset-name", "clientset",
 		)
-		fmt.Printf("%s\n", strings.Join(c.Args, " "))
+		klog.Infof("%s", strings.Join(c.Args, " "))
 		out, err := c.CombinedOutput()
 		if err != nil {
-			log.Fatalf("failed to run client-gen %s %v", out, err)
+			klog.Fatalf("failed to run client-gen %s %v", out, err)
 		}
 
 		toGen := versioned
@@ -260,10 +259,10 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 				"--input", strings.Join(unversionedAPIs, ","),
 				"--clientset-path", clientset,
 				"--clientset-name", "internalclientset")
-			fmt.Printf("%s\n", strings.Join(c.Args, " "))
+			klog.Infof("%s", strings.Join(c.Args, " "))
 			out, err = c.CombinedOutput()
 			if err != nil {
-				log.Fatalf("failed to run client-gen for unversioned APIs %s %v", out, err)
+				klog.Fatalf("failed to run client-gen for unversioned APIs %s %v", out, err)
 			}
 		}
 
@@ -274,10 +273,10 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 				"--go-header-file", copyright,
 				"--output-package", listerPkg)...,
 		)
-		fmt.Printf("%s\n", strings.Join(c.Args, " "))
+		klog.Infof("%s", strings.Join(c.Args, " "))
 		out, err = c.CombinedOutput()
 		if err != nil {
-			log.Fatalf("failed to run lister-gen %s %v", out, err)
+			klog.Fatalf("failed to run lister-gen %s %v", out, err)
 		}
 
 		informerPkg := filepath.Join(clientPkg, "informers_generated")
@@ -289,10 +288,10 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 				"--listers-package", listerPkg,
 				"--versioned-clientset-package", filepath.Join(clientset, "clientset"))...,
 		)
-		fmt.Printf("%s\n", strings.Join(c.Args, " "))
+		klog.Infof("%s", strings.Join(c.Args, " "))
 		out, err = c.CombinedOutput()
 		if err != nil {
-			log.Fatalf("failed to run informer-gen %s %v", out, err)
+			klog.Fatalf("failed to run informer-gen %s %v", out, err)
 		}
 	}
 }
@@ -325,13 +324,13 @@ func initApis() {
 	if len(versionedAPIs) == 0 {
 		groups, err := ioutil.ReadDir(filepath.Join("pkg", "apis"))
 		if err != nil {
-			log.Fatalf("could not read pkg/apis directory to find api Versions")
+			klog.Fatalf("could not read pkg/apis directory to find api Versions")
 		}
 		for _, g := range groups {
 			if g.IsDir() {
 				versionFiles, err := ioutil.ReadDir(filepath.Join("pkg", "apis", g.Name()))
 				if err != nil {
-					log.Fatalf("could not read pkg/apis/%s directory to find api Versions", g.Name())
+					klog.Fatalf("could not read pkg/apis/%s directory to find api Versions", g.Name())
 				}
 				versionMatch := regexp.MustCompile("^v\\d+(alpha\\d+|beta\\d+)*$")
 				for _, v := range versionFiles {

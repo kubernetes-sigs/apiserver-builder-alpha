@@ -18,20 +18,20 @@ package olympus
 
 import (
 	"context"
-	"log"
 
+	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
-	"k8s.io/apiserver/pkg/storage"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apiserver/pkg/registry/generic"
+	"k8s.io/apiserver/pkg/storage"
+	"k8s.io/klog"
 )
 
 // Validate checks that an instance of Poseidon is well formed
 func (PoseidonStrategy) Validate(ctx context.Context, obj runtime.Object) field.ErrorList {
 	o := obj.(*Poseidon)
-	log.Printf("Validating fields for Poseidon %s\n", o.Name)
+	klog.Infof("Validating fields for Poseidon %s\n", o.Name)
 	errors := field.ErrorList{}
 	// perform validation here and add to errors using field.Invalid
 	return errors

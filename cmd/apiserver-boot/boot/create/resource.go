@@ -19,15 +19,14 @@ package create
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 	"github.com/markbates/inflect"
 	"github.com/spf13/cobra"
 	"k8s.io/klog"
+	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 	"sigs.k8s.io/kubebuilder/pkg/scaffold"
 	"sigs.k8s.io/kubebuilder/pkg/scaffold/controller"
 	"sigs.k8s.io/kubebuilder/pkg/scaffold/input"
@@ -66,7 +65,7 @@ func AddCreateResource(cmd *cobra.Command) {
 
 func RunCreateResource(cmd *cobra.Command, args []string) {
 	if _, err := os.Stat("pkg"); err != nil {
-		log.Fatalf("could not find 'pkg' directory.  must run apiserver-boot init before creating resources")
+		klog.Fatalf("could not find 'pkg' directory.  must run apiserver-boot init before creating resources")
 	}
 
 	util.GetDomain()
@@ -102,7 +101,7 @@ func RunCreateResource(cmd *cobra.Command, args []string) {
 func createResource(boilerplate string) {
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 
 	//
@@ -126,7 +125,7 @@ func createResource(boilerplate string) {
 		created := util.WriteIfNotFound(unversionedPath, "unversioned-strategy-template", unversionedStrategyTemplate, a)
 		if !created {
 			if !found {
-				log.Printf("API group version kind %s/%s/%s already exists.",
+				klog.Infof("API group version kind %s/%s/%s already exists.",
 					groupName, versionName, kindName)
 				found = true
 			}
@@ -137,7 +136,7 @@ func createResource(boilerplate string) {
 		created = util.WriteIfNotFound(path, "versioned-resource-template", versionedResourceTemplate, a)
 		if !created {
 			if !found {
-				log.Printf("API group version kind %s/%s/%s already exists.",
+				klog.Infof("API group version kind %s/%s/%s already exists.",
 					groupName, versionName, kindName)
 				found = true
 			}
@@ -148,7 +147,7 @@ func createResource(boilerplate string) {
 		created = util.WriteIfNotFound(docpath, "example-template", exampleTemplate, a)
 		if !created {
 			if !found {
-				log.Printf("Example %s already exists.", docpath)
+				klog.Infof("Example %s already exists.", docpath)
 				found = true
 			}
 		}
@@ -158,7 +157,7 @@ func createResource(boilerplate string) {
 		created = util.WriteIfNotFound(samplepath, "sample-template", sampleTemplate, a)
 		if !created {
 			if !found {
-				log.Printf("Sample %s already exists.", docpath)
+				klog.Infof("Sample %s already exists.", docpath)
 				found = true
 			}
 		}
@@ -173,7 +172,7 @@ func createResource(boilerplate string) {
 		created = util.WriteIfNotFound(path, "resource-test-template", resourceTestTemplate, a)
 		if !created {
 			if !found {
-				log.Printf("API group version kind %s/%s/%s test already exists.",
+				klog.Infof("API group version kind %s/%s/%s test already exists.",
 					groupName, versionName, kindName)
 				found = true
 			}
@@ -188,7 +187,7 @@ func createResource(boilerplate string) {
 		created := util.WriteIfNotFound(path, "admission-initializer-template", admissionControllerInitializerTemplate, a)
 		if !created {
 			if !found {
-				log.Printf("admission initializer already exists.")
+				klog.Infof("admission initializer already exists.")
 				// found = true
 			}
 		}
@@ -200,7 +199,7 @@ func createResource(boilerplate string) {
 		created = util.WriteIfNotFound(path, "admission-controller-template", admissionControllerTemplate, a)
 		if !created {
 			if !found {
-				log.Printf("admission controller for kind %s test already exists.", kindName)
+				klog.Infof("admission controller for kind %s test already exists.", kindName)
 				found = true
 			}
 		}
@@ -284,8 +283,8 @@ package {{.Group}}
 
 import (
 	"context"
-	"log"
 
+	"k8s.io/klog"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 )
@@ -293,7 +292,7 @@ import (
 // Validate checks that an instance of {{.Kind}} is well formed
 func ({{.Kind}}Strategy) Validate(ctx context.Context, obj runtime.Object) field.ErrorList {
 	o := obj.(*{{.Kind}})
-	log.Printf("Validating fields for {{.Kind}} %s\n", o.Name)
+	klog.V(5).Infof("Validating fields for {{.Kind}} %s", o.Name)
 	errors := field.ErrorList{}
 	// perform validation here and add to errors using field.Invalid
 	return errors

@@ -17,7 +17,7 @@ limitations under the License.
 package version
 
 import (
-	"fmt"
+	"k8s.io/klog"
 
 	"github.com/spf13/cobra"
 )
@@ -53,7 +53,7 @@ func GetVersion() Version {
 }
 
 func (v Version) Print() {
-	fmt.Printf("Version: %#v\n", v)
+	klog.Infof("Version: %#v", v)
 }
 
 var versionCmd = &cobra.Command{

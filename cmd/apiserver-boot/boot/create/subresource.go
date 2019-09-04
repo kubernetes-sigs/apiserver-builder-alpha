@@ -19,7 +19,7 @@ package create
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
+	"k8s.io/klog"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -51,18 +51,18 @@ func AddCreateSubresource(cmd *cobra.Command) {
 
 func RunCreateSubresource(cmd *cobra.Command, args []string) {
 	if _, err := os.Stat("pkg"); err != nil {
-		log.Fatalf("could not find 'pkg' directory.  must run apiserver-boot init before creating resources")
+		klog.Fatalf("could not find 'pkg' directory.  must run apiserver-boot init before creating resources")
 	}
 
 	util.GetDomain()
 	if len(subresourceName) == 0 {
-		log.Fatalf("Must specify --subresource")
+		klog.Fatalf("Must specify --subresource")
 	}
 	ValidateResourceFlags()
 
 	subresourceMatch := regexp.MustCompile("^[a-z]+$")
 	if !subresourceMatch.MatchString(subresourceName) {
-		log.Fatalf("--subresource must match regex ^[a-z]+$ but was (%s)", subresourceName)
+		klog.Fatalf("--subresource must match regex ^[a-z]+$ but was (%s)", subresourceName)
 	}
 
 	cr := util.GetCopyright(copyright)
@@ -78,7 +78,7 @@ func RunCreateSubresource(cmd *cobra.Command, args []string) {
 func createSubresource(boilerplate string) {
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 	a := subresourceTemplateArgs{
 		boilerplate,
@@ -102,7 +102,7 @@ func createSubresource(boilerplate string) {
 	created = util.WriteIfNotFound(path, "sub-resource-template", versionedSubresourceTemplate, a)
 	if !created {
 		if !found {
-			log.Printf("API subresourceName %s for group version kind %s/%s/%s already exists.",
+			klog.Infof("API subresourceName %s for group version kind %s/%s/%s already exists.",
 				subresourceName, groupName, versionName, kindName)
 			found = true
 		}
@@ -113,7 +113,7 @@ func createSubresource(boilerplate string) {
 	created = util.WriteIfNotFound(path, "sub-resource-test-template", subresourceTestTemplate, a)
 	if !created {
 		if !found {
-			log.Printf("API subresourceName %s for group version kind %s/%s/%s already exists.",
+			klog.Infof("API subresourceName %s for group version kind %s/%s/%s already exists.",
 				subresourceName, groupName, versionName, kindName)
 			found = true
 		}
@@ -124,7 +124,7 @@ func createSubresource(boilerplate string) {
 		path = filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
 		types, err := ioutil.ReadFile(path)
 		if err != nil {
-			log.Fatal(err)
+			klog.Fatal(err)
 		}
 		structName := fmt.Sprintf("type %s struct {", kindName)
 		sub := fmt.Sprintf("// +subresource:request=%s,path=%s,kind=%s",
