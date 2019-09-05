@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -593,6 +594,10 @@ func (b *APIsBuilder) ParseStructsAndAliases(apigroup *APIGroup) {
 			remaining = append(remaining, GenUnversionedType{at, nil})
 		}
 	}
+	sort.Slice(apigroup.Structs, func(i, j int) bool {
+		// alphabetic sort by struct names
+		return apigroup.Structs[i].Name < apigroup.Structs[j].Name
+	})
 }
 
 func (apigroup *APIGroup) DoType(t *types.Type) (*Struct, []*types.Type) {
