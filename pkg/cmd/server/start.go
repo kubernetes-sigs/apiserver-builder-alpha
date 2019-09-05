@@ -423,7 +423,7 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string,
 }
 
 func readOpenapi(bearerToken string, handler *genericapiserver.APIServerHandler) string {
-	req, err := http.NewRequest("GET", "/swagger.json", nil)
+	req, err := http.NewRequest("GET", "/openapi/v2", nil)
 	req.Header.Set("Authorization", fmt.Sprintf("bearer %s", bearerToken))
 	if err != nil {
 		panic(fmt.Errorf("Could not create openapi request %v", err))
