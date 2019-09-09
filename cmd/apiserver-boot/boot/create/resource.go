@@ -36,6 +36,7 @@ import (
 
 var kindName string
 var resourceName string
+var shortName string
 var nonNamespacedKind bool
 var skipGenerateAdmissionController bool
 var skipGenerateResource bool
@@ -54,6 +55,7 @@ apiserver-boot create group version resource --group insect --version v1beta1 --
 func AddCreateResource(cmd *cobra.Command) {
 	RegisterResourceFlags(createResourceCmd)
 
+	createResourceCmd.Flags().StringVar(&shortName, "short-name", "", "if set, add a short name for the resource. It must be all lowercase.")
 	createResourceCmd.Flags().BoolVar(&nonNamespacedKind, "non-namespaced", false, "if set, the API kind will be non namespaced")
 
 	createResourceCmd.Flags().BoolVar(&skipGenerateResource, "skip-resource", false, "if set, the resources will not be generated")
@@ -112,6 +114,7 @@ func createResource(boilerplate string) {
 		versionName,
 		kindName,
 		resourceName,
+		shortName,
 		util.Repo,
 		inflect.NewDefaultRuleset().Pluralize(kindName),
 		nonNamespacedKind,
@@ -271,6 +274,7 @@ type resourceTemplateArgs struct {
 	Version           string
 	Kind              string
 	Resource          string
+	ShortName         string
 	Repo              string
 	PluralizedKind    string
 	NonNamespacedKind bool
@@ -323,7 +327,7 @@ import (
 
 // {{.Kind}}
 // +k8s:openapi-gen=true
-// +resource:path={{.Resource}},strategy={{.Kind}}Strategy
+// +resource:path={{.Resource}},strategy={{.Kind}}Strategy{{ if .ShortName }},shortname={{.ShortName}}{{ end }}
 type {{.Kind}} struct {
 	metav1.TypeMeta   ` + "`" + `json:",inline"` + "`" + `
 	metav1.ObjectMeta ` + "`" + `json:"metadata,omitempty"` + "`" + `

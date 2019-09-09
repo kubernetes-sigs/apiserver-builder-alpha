@@ -19,12 +19,14 @@ package create
 import (
 	"bufio"
 	"fmt"
-	"k8s.io/klog"
 	"regexp"
 	"strings"
 
 	"github.com/markbates/inflect"
 	"github.com/spf13/cobra"
+
+	utilvalidation "k8s.io/apimachinery/pkg/util/validation"
+	"k8s.io/klog"
 
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 )
@@ -42,6 +44,12 @@ func ValidateResourceFlags() {
 	}
 	if len(resourceName) == 0 {
 		resourceName = inflect.NewDefaultRuleset().Pluralize(strings.ToLower(kindName))
+	}
+	if len(shortName) > 0 {
+		if errs := utilvalidation.IsDNS1035Label(shortName); len(errs) > 0 {
+			detail := strings.Join(errs, ",")
+			klog.Fatalf("--short-name %q has bad format: %s", shortName, detail)
+		}
 	}
 
 	groupMatch := regexp.MustCompile("^[a-z]+$")
