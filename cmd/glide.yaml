@@ -49,7 +49,7 @@ import:
 - package: k8s.io/klog
   version: v0.3.1
 - package: k8s.io/gengo
-  version: 26a664648505d962332bda642b27306bc10d1082
+  version: ebc107f98eab922ef99d645781b87caca01f4f48
 - package: github.com/golang/glog
   repo: https://github.com/kubernetes/klog
   vcs: git

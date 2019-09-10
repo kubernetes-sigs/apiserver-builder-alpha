@@ -1,5 +1,5 @@
-hash: d6b78a52aae5e3bc29b73677c98afd422431dea096b82f999b9ba48961b8cd4e
-updated: 2019-09-05T15:42:54.706417+08:00
+hash: 84d52a9014d37d2f46ff84ce814bb0b5e3246bd9aa66a4f45a78ff37f6728492
+updated: 2019-09-10T16:59:17.041353+08:00
 imports:
 - name: github.com/beorn7/perks
   version: 3a771d992973f24aa725d07868b467d1ddfceafb
@@ -606,7 +606,7 @@ imports:
   - featuregate
   - logs
 - name: k8s.io/gengo
-  version: 26a664648505d962332bda642b27306bc10d1082
+  version: ebc107f98eab922ef99d645781b87caca01f4f48
   subpackages:
   - args
   - generator
