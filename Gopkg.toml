@@ -135,6 +135,10 @@ required = [
 [prune]
   unused-packages = true
   non-go = true
+  [[prune.project]]
+    name = "k8s.io/apimachinery"
+    unused-packages = false
+    non-go = false
 
 [[constraint]]
   name = "sigs.k8s.io/controller-runtime"
