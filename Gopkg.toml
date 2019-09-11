@@ -139,6 +139,10 @@ required = [
     name = "k8s.io/apimachinery"
     unused-packages = false
     non-go = false
+  [[prune.project]]
+    name = "github.com/gogo/protobuf"
+    unused-packages = false
+    non-go = false
 
 [[constraint]]
   name = "sigs.k8s.io/controller-runtime"
