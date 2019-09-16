@@ -58,7 +58,7 @@ func AddGenerate(cmd *cobra.Command) {
 	generateCmd.Flags().StringVar(&copyright, "copyright", "boilerplate.go.txt", "Location of copyright boilerplate file.")
 	generateCmd.Flags().StringVar(&vendorDir, "vendor-dir", "", "Location of directory containing vendor files.")
 	generateCmd.Flags().StringArrayVar(&versionedAPIs, "api-versions", []string{}, "API version to generate code for.  Can be specified multiple times.  e.g. --api-versions foo/v1beta1 --api-versions bar/v1  defaults to all versions found under directories pkg/apis/<group>/<version>")
-	generateCmd.Flags().StringArrayVar(&codegenerators, "generator", []string{}, "list of generators to run.  e.g. --generator apiregister --generator conversion Valid values: [apiregister,conversion,client,deepcopy,defaulter,openapi]")
+	generateCmd.Flags().StringArrayVar(&codegenerators, "generator", []string{}, "list of generators to run.  e.g. --generator apiregister --generator conversion Valid values: [apiregister,conversion,client,deepcopy,defaulter,openapi,protobuf]")
 	generateCmd.AddCommand(generateCleanCmd)
 
 	generateCleanCmd.Flags().MarkDeprecated("gen-unversioned-client", "generate unversioned client is highly unrecommended, please use versioned client instead")
@@ -86,7 +86,13 @@ func RunCleanGenerate(cmd *cobra.Command, args []string) {
 }
 
 func doGen(g string) bool {
-	g = strings.Replace(g, "-gen", "", -1)
+	switch g {
+	case "go-to-protobuf":
+		// disable protobuf generation by default
+		return generators.Has("protobuf")
+	default:
+		g = strings.Replace(g, "-gen", "", -1)
+	}
 	return generators.Has(g) || generators.Len() == 0
 }
 
@@ -292,6 +298,35 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 		out, err = c.CombinedOutput()
 		if err != nil {
 			klog.Fatalf("failed to run informer-gen %s %v", out, err)
+		}
+	}
+
+	if doGen("go-to-protobuf") {
+		versionedAPIPackages := sets.NewString()
+		for _, versionedAPI := range versionedAPIs {
+			versionedAPIPackages.Insert(filepath.Join(util.Repo, "pkg", "apis", versionedAPI))
+		}
+		c := exec.Command(filepath.Join(root, "go-to-protobuf"),
+			"--packages", strings.Join(versionedAPIPackages.List(), ","),
+			"--apimachinery-packages", strings.Join([]string{
+				"-k8s.io/apimachinery/pkg/util/intstr",
+				"-k8s.io/apimachinery/pkg/api/resource",
+				"-k8s.io/apimachinery/pkg/runtime/schema",
+				"-k8s.io/apimachinery/pkg/runtime",
+				"-k8s.io/apimachinery/pkg/apis/meta/v1",
+				"-sigs.k8s.io/apiserver-builder-alpha/pkg/builders",
+			}, ","),
+			"--drop-embedded-fields", strings.Join([]string{
+				"k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta",
+				"k8s.io/apimachinery/pkg/runtime.Serializer",
+			}, ","),
+			"--proto-import=./vendor",
+			"--vendor-output-base=./vendor/",
+		)
+		klog.Infof("%s", strings.Join(c.Args, " "))
+		out, err := c.CombinedOutput()
+		if err != nil {
+			klog.Fatalf("failed to run go-to-protobuf %s %v", out, err)
 		}
 	}
 }
