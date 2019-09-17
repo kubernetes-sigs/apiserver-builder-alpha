@@ -61,3 +61,7 @@ import:
   version: e85c7b244fd2cc57bb829d73a061f93a441e63ce
 - package: k8s.io/kube-openapi
   version: b3a7cee44a305be0a69e1b9ac03018307287e1b0
+- package: gonum.org/v1/gonum
+  repo: https://github.com/gonum/gonum
+  vcs: git
+  version: master
