@@ -1,5 +1,5 @@
-hash: 84d52a9014d37d2f46ff84ce814bb0b5e3246bd9aa66a4f45a78ff37f6728492
-updated: 2019-09-10T16:59:17.041353+08:00
+hash: d6efafb897001c6fe79cef5b71212e9881a68b0351a42237bfa07c4dc3079a07
+updated: 2019-09-17T12:55:14.848098+08:00
 imports:
 - name: github.com/beorn7/perks
   version: 3a771d992973f24aa725d07868b467d1ddfceafb
@@ -227,6 +227,10 @@ imports:
   - internal/gopathwalk
   - internal/module
   - internal/semver
+- name: gonum.org/v1/gonum
+  version: 975d99cd20a9b4fd8e0a597f1d71ccc21461d73a
+  repo: https://github.com/gonum/gonum
+  vcs: git
 - name: google.golang.org/appengine
   version: 54a98f90d1c46b7731eb8fb305d2a321c30ef610
   subpackages:

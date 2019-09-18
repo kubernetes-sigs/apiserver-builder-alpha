@@ -26,10 +26,10 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"k8s.io/apiserver/pkg/admission"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
+	"k8s.io/apiserver/pkg/admission"
 	genericapifilters "k8s.io/apiserver/pkg/endpoints/filters"
 	openapinamer "k8s.io/apiserver/pkg/endpoints/openapi"
 	"k8s.io/apiserver/pkg/features"
@@ -37,6 +37,7 @@ import (
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	genericfilters "k8s.io/apiserver/pkg/server/filters"
 	genericoptions "k8s.io/apiserver/pkg/server/options"
+	"k8s.io/apiserver/pkg/server/storage"
 	"k8s.io/apiserver/pkg/util/feature"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -318,6 +319,17 @@ func (o ServerOptions) Config(tweakConfigFuncs ...func(config *apiserver.Config)
 					klog.Info("skip admission controller initialization because `--kubeconfig` is not specified")
 				}
 				return nil
+			},
+			func(cfg *genericapiserver.Config) error {
+				storageFactory := storage.NewDefaultStorageFactory(
+					o.RecommendedOptions.Etcd.StorageConfig,
+					o.RecommendedOptions.Etcd.DefaultStorageMediaType,
+					builders.Codecs,
+					storage.NewDefaultResourceEncodingConfig(builders.Scheme),
+					storage.NewResourceConfig(),
+					make(map[schema.GroupResource]string),
+				)
+				return o.RecommendedOptions.Etcd.ApplyWithStorageFactoryTo(storageFactory, cfg)
 			},
 		)
 		if err != nil {
