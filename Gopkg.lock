@@ -356,13 +356,6 @@
   revision = "c0656edd0d9eab7c66d1eb0c568f9039345796f7"
 
 [[projects]]
-  digest = "1:8be956363341b9d89039380a86c682d32ace773c6de3255db709e5fb6dda9806"
-  name = "github.com/golang/glog"
-  packages = ["."]
-  pruneopts = "NU"
-  revision = "44145f04b68cf362d9c4df2182967c2275eaefed"
-
-[[projects]]
   branch = "master"
   digest = "1:27706045b28a9cf3a3276bb11a000f61d9a54e5e322c402d4eb988c7e7b0a505"
   name = "github.com/golang/groupcache"
@@ -1142,7 +1135,7 @@
   version = "v2.2.2"
 
 [[projects]]
-  digest = "1:ee6c211280faef35d9a07f06319abe04fb81fdd4bcf3be339ce5ca15b07ca553"
+  digest = "1:10eebafc84e46eb29e19559c00670eb175f8be8db767cfaa720761bfd3b356af"
   name = "k8s.io/api"
   packages = [
     "admission/v1beta1",
@@ -1183,7 +1176,7 @@
     "storage/v1alpha1",
     "storage/v1beta1",
   ]
-  pruneopts = "NU"
+  pruneopts = ""
   revision = "3544db3b9e4494309507e02eced5cd9dcff47e6a"
   version = "kubernetes-1.15.3"
 
@@ -1545,6 +1538,31 @@
   version = "v12.0.0"
 
 [[projects]]
+  digest = "1:559e29865df733d697a8b075b9904a870400a28ddaccccc2afa35d72da6435f6"
+  name = "k8s.io/code-generator"
+  packages = [
+    "cmd/client-gen",
+    "cmd/client-gen/args",
+    "cmd/client-gen/generators",
+    "cmd/client-gen/generators/fake",
+    "cmd/client-gen/generators/scheme",
+    "cmd/client-gen/generators/util",
+    "cmd/client-gen/path",
+    "cmd/client-gen/types",
+    "cmd/informer-gen",
+    "cmd/informer-gen/args",
+    "cmd/informer-gen/generators",
+    "cmd/lister-gen",
+    "cmd/lister-gen/args",
+    "cmd/lister-gen/generators",
+    "pkg/namer",
+    "pkg/util",
+  ]
+  pruneopts = ""
+  revision = "18da4a14b22b17d2fa761e50037fabfbacec225b"
+  version = "kubernetes-1.15.3"
+
+[[projects]]
   branch = "master"
   digest = "1:86478fecd76dbb3f9282f62867c7a70bca7208a778bacc7646099edd7c2fdb56"
   name = "k8s.io/component-base"
@@ -1557,7 +1575,7 @@
   revision = "1391c9d535aef80fd1d8fef45bb0b29d8f617ac2"
 
 [[projects]]
-  digest = "1:382837d55d2768e111c5b96dac734c4288497caad5c3e042f8cabe8c680f6c14"
+  digest = "1:a8c60fdc825be548a5cd9f599565d2c0dceff8d77a2b5ea00ff891e4aca33de5"
   name = "k8s.io/gengo"
   packages = [
     "args",
@@ -1567,8 +1585,8 @@
     "parser",
     "types",
   ]
-  pruneopts = "NU"
-  revision = "fdcf9f9480fdd5bf2b3c3df9bf4ecd22b25b87e2"
+  pruneopts = ""
+  revision = "ebc107f98eab922ef99d645781b87caca01f4f48"
 
 [[projects]]
   digest = "1:d872664ea7a69768d128d9cc61cfec53814d2908c7dc2422cb10fccdfe1f2e91"
@@ -1593,7 +1611,7 @@
   version = "kubernetes-1.15.3"
 
 [[projects]]
-  digest = "1:2ae08a002570b974034a847e8e1adac27211a120c9b2d48c2aa61359a12c70f1"
+  digest = "1:59cce16b16002977ebfa3cbc6a72922d04704d3d4b9ee85ec916057d6b52762e"
   name = "k8s.io/kube-openapi"
   packages = [
     "cmd/openapi-gen",
@@ -1608,7 +1626,7 @@
     "pkg/util/proto",
     "pkg/util/sets",
   ]
-  pruneopts = "NU"
+  pruneopts = ""
   revision = "b3a7cee44a305be0a69e1b9ac03018307287e1b0"
 
 [[projects]]
@@ -1787,6 +1805,7 @@
     "k8s.io/apiserver/pkg/server",
     "k8s.io/apiserver/pkg/server/filters",
     "k8s.io/apiserver/pkg/server/options",
+    "k8s.io/apiserver/pkg/server/storage",
     "k8s.io/apiserver/pkg/storage",
     "k8s.io/apiserver/pkg/storage/names",
     "k8s.io/apiserver/pkg/util/feature",
@@ -1807,6 +1826,9 @@
     "k8s.io/client-go/util/flowcontrol",
     "k8s.io/client-go/util/homedir",
     "k8s.io/client-go/util/workqueue",
+    "k8s.io/code-generator/cmd/client-gen",
+    "k8s.io/code-generator/cmd/informer-gen",
+    "k8s.io/code-generator/cmd/lister-gen",
     "k8s.io/gengo/args",
     "k8s.io/gengo/generator",
     "k8s.io/gengo/namer",
