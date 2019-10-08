@@ -11,5 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+//go:generate go run ../../vendor/k8s.io/kube-openapi/cmd/openapi-gen/openapi-gen.go -o . --output-package ../../pkg/openapi --report-filename violations.report -i ../../pkg/apis/...,../../vendor/k8s.io/api/core/v1,../../vendor/k8s.io/apimachinery/pkg/apis/meta/v1 -h ../../boilerplate.go.txt
+
 // Package openapi exists to hold generated openapi code
 package openapi

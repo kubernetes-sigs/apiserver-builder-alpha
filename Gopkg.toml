@@ -30,6 +30,9 @@ required = [
   "google.golang.org/grpc",
   "github.com/imdario/mergo",
   "k8s.io/kube-openapi/cmd/openapi-gen",
+  "k8s.io/code-generator/cmd/client-gen",
+  "k8s.io/code-generator/cmd/informer-gen",
+  "k8s.io/code-generator/cmd/lister-gen",
   "github.com/modern-go/reflect2",
   "sigs.k8s.io/controller-runtime/pkg/envtest",
   "sigs.k8s.io/controller-runtime/pkg/client",
@@ -103,12 +106,16 @@ required = [
   name = "k8s.io/apiserver"
 
 [[override]]
+  version = "kubernetes-1.15.3"
+  name = "k8s.io/code-generator"
+
+[[override]]
   version = "v12.0.0"
   name = "k8s.io/client-go"
 
 [[constraint]]
   name = "k8s.io/gengo"
-  revision = "fdcf9f9480fdd5bf2b3c3df9bf4ecd22b25b87e2"
+  revision = "ebc107f98eab922ef99d645781b87caca01f4f48"
 
 [[override]]
   name = "k8s.io/kube-openapi"
@@ -143,6 +150,30 @@ required = [
     name = "github.com/gogo/protobuf"
     unused-packages = false
     non-go = false
+  [[prune.project]]
+    name = "k8s.io/code-generator"
+    non-go = false
+    unused-packages = false
+  [[prune.project]]
+    name = "k8s.io/api"
+    non-go = false
+    unused-packages = false
+  [[prune.project]]
+    name = "k8s.io/gengo"
+    non-go = false
+    unused-packages = false
+  [[prune.project]]
+    name = "k8s.io/kube-openapi"
+    non-go = false
+    unused-packages = false
+  [[prune.project]]
+    name = "sigs.k8s.io/apiserver-builder-alpha"
+    non-go = false
+    unused-packages = false
+  [[prune.project]]
+    name = "sigs.k8s.io/apiserver-builder-alpha"
+    non-go = false
+    unused-packages = false
 
 [[constraint]]
   name = "sigs.k8s.io/controller-runtime"

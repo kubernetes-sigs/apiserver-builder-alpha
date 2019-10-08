@@ -65,9 +65,15 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 	createControllerManager(cr)
 	createAPIs(cr)
 
-	createPackage(cr, filepath.Join("pkg"))
-	createPackage(cr, filepath.Join("pkg", "controller"))
-	createPackage(cr, filepath.Join("pkg", "openapi"))
+	createPackage(cr, filepath.Join("pkg"), "")
+	createPackage(cr, filepath.Join("pkg", "controller"), "")
+	createPackage(cr, filepath.Join("pkg", "openapi"), "//go:generate " +
+		"go run ../../vendor/k8s.io/kube-openapi/cmd/openapi-gen/openapi-gen.go " +
+		"-o . " +
+		"--output-package ../../pkg/openapi " +
+		"--report-filename violations.report " +
+		"-i ../../pkg/apis/...,../../vendor/k8s.io/api/core/v1,../../vendor/k8s.io/apimachinery/pkg/apis/meta/v1 " +
+		"-h ../../boilerplate.go.txt")
 
 	os.MkdirAll("bin", 0700)
 
@@ -181,7 +187,7 @@ func createApiserver(boilerplate string) {
 
 }
 
-func createPackage(boilerplate, path string) {
+func createPackage(boilerplate, path, goGenerateCommand string) {
 	pkg := filepath.Base(path)
 	dir, err := os.Getwd()
 	if err != nil {
@@ -192,18 +198,20 @@ func createPackage(boilerplate, path string) {
 		packageDocTemplateArguments{
 			boilerplate,
 			pkg,
+			goGenerateCommand,
 		})
 }
 
 type packageDocTemplateArguments struct {
-	BoilerPlate string
-	Package     string
+	BoilerPlate       string
+	Package           string
+	GoGenerateCommand string
 }
 
 var packageDocTemplate = `
 {{.BoilerPlate}}
 
-
+{{.GoGenerateCommand}}
 package {{.Package}}
 
 `
@@ -229,6 +237,8 @@ type apisDocTemplateArguments struct {
 var apisDocTemplate = `
 {{.BoilerPlate}}
 
+
+//go:generate go run ../../vendor/sigs.k8s.io/apiserver-builder-alpha/cmd/apiregister-gen/main.go --input-dirs ./... -h ../../boilerplate.go.txt
 
 //
 // +domain={{.Domain}}
