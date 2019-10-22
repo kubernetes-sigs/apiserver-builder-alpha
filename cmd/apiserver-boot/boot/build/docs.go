@@ -184,7 +184,6 @@ func RunDocs(cmd *cobra.Command, args []string) {
 	c = exec.Command("docker", "run",
 		"-v", fmt.Sprintf("%s:%s", filepath.Join(wd, outputDir, "includes"), "/source"),
 		"-v", fmt.Sprintf("%s:%s", filepath.Join(wd, outputDir, "build"), "/build"),
-		"-v", fmt.Sprintf("%s:%s", filepath.Join(wd, outputDir, "build"), "/build"),
 		"-v", fmt.Sprintf("%s:%s", filepath.Join(wd, outputDir), "/manifest"),
 		"pwittrock/brodocs",
 	)
@@ -201,7 +200,6 @@ func RunDocs(cmd *cobra.Command, args []string) {
 		os.RemoveAll(filepath.Join(wd, outputDir, "includes"))
 		os.RemoveAll(filepath.Join(wd, outputDir, "manifest.json"))
 		os.RemoveAll(filepath.Join(wd, outputDir, "openapi-spec"))
-		os.RemoveAll(filepath.Join(wd, outputDir, "build", "documents"))
 		os.RemoveAll(filepath.Join(wd, outputDir, "build", "documents"))
 		os.RemoveAll(filepath.Join(wd, outputDir, "build", "runbrodocs.sh"))
 		os.RemoveAll(filepath.Join(wd, outputDir, "build", "node_modules", "marked", "Makefile"))
