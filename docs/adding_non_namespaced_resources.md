@@ -18,7 +18,7 @@ Use the `--non-namespaced=true` flag when creating a resource:
 Non-namespaced resources have the following differences from namespaced resources:
 
 - nonNamespaced comment directive above the type in `pkg/apis/{group}/{version}/{Kind}_types.go`
-  - `// // +genclient:nonNamespaced` comment under `// +genclient`
+  - `// +genclient:nonNamespaced` comment under `// +genclient`
 - Strategy and StatusStrategy override NamespacedScoped to false in `pkg/apis/{group}/{Kind}_strategy.go`
   - `func ({{.Kind}}Strategy) NamespaceScoped() bool { return false }`
   - `func ({{.Kind}}StatusStrategy) NamespaceScoped() bool { return false }`
