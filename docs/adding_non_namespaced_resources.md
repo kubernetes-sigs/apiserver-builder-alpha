@@ -17,19 +17,20 @@ Use the `--non-namespaced=true` flag when creating a resource:
 
 Non-namespaced resources have the following differences from namespaced resources:
 
-- nonNamespaced comment directive above the type
-  - `// +nonNamespaced=true` comment under `// +genclient=true`
-- Strategy and StatusStrategy override NamespacedScoped to false
+- nonNamespaced comment directive above the type in `pkg/apis/{group}/{version}/{Kind}_types.go`
+  - `// +genclient:nonNamespaced` comment under `// +genclient`
+- Strategy and StatusStrategy override NamespacedScoped to false in `pkg/apis/{group}/{Kind}_strategy.go`
   - `func ({{.Kind}}Strategy) NamespaceScoped() bool { return false }`
   - `func ({{.Kind}}StatusStrategy) NamespaceScoped() bool { return false }`
 - Do not provide namespace when creating the client from a clientset
 
 Example:
 
+File : `pkg/apis/{group}/{version}/{Kind}_types.go`
 ```go
 // +genclient=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// +nonNamespaced=true
+// +genclient:nonNamespaced
 
 // +resource:path=foos
 // +k8s:openapi-gen=true
@@ -37,7 +38,10 @@ Example:
 type Foo struct {
 ...
 }
+```
 
+File: `pkg/apis/{group}/{Kind}_strategy.go`
+```go
 ...
 
 func (FooStrategy) NamespaceScoped() bool { return false }
