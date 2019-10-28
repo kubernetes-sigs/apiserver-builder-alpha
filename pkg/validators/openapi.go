@@ -19,11 +19,11 @@ package validators
 var OpenAPI = OpenAPIValidator{}
 
 type OpenAPIValidator struct {
-	OpenApi string
+	OpenAPI string
 }
 
 func (o *OpenAPIValidator) SetSchema(openapi string) error {
 	var err error
-	o.OpenApi = openapi
+	o.OpenAPI = openapi
 	return err
 }
