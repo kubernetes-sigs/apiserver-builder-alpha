@@ -18,6 +18,7 @@ package builders
 
 import (
 	"context"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
@@ -66,7 +67,7 @@ type StorageBuilder interface {
 	Validate(ctx context.Context, obj runtime.Object) field.ErrorList
 	ValidateUpdate(ctx context.Context, obj, old runtime.Object) field.ErrorList
 	GetAttrs(obj runtime.Object) (labels.Set, fields.Set, error)
-	TriggerFunc(obj runtime.Object) []storage.MatchValue
+	GetTriggerFuncs() storage.IndexerFuncs
 	GetSelectableFields(obj HasObjectMeta) fields.Set
 	BasicMatch(label labels.Selector, field fields.Selector) storage.SelectionPredicate
 }

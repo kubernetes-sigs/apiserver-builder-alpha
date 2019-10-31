@@ -32,6 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	internalrecorder "sigs.k8s.io/controller-runtime/pkg/internal/recorder"
 	"sigs.k8s.io/controller-runtime/pkg/leaderelection"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
@@ -52,6 +53,12 @@ type Manager interface {
 	// SetFields will set any dependencies on an object for which the object has implemented the inject
 	// interface - e.g. inject.Client.
 	SetFields(interface{}) error
+
+	// AddHealthzCheck allows you to add Healthz checker
+	AddHealthzCheck(name string, check healthz.Checker) error
+
+	// AddReadyzCheck allows you to add Readyz checker
+	AddReadyzCheck(name string, check healthz.Checker) error
 
 	// Start starts all registered Controllers and blocks until the Stop channel is closed.
 	// Returns an error if there is an error starting any controller.
@@ -142,6 +149,16 @@ type Options struct {
 	// It can be set to "0" to disable the metrics serving.
 	MetricsBindAddress string
 
+	// HealthProbeBindAddress is the TCP address that the controller should bind to
+	// for serving health probes
+	HealthProbeBindAddress string
+
+	// Readiness probe endpoint name, defaults to "readyz"
+	ReadinessEndpointName string
+
+	// Liveness probe endpoint name, defaults to "healthz"
+	LivenessEndpointName string
+
 	// Port is the port that the webhook server serves at.
 	// It is used to set webhook.Server.Port.
 	Port int
@@ -149,6 +166,10 @@ type Options struct {
 	// It is used to set webhook.Server.Host.
 	Host string
 
+	// CertDir is the directory that contains the server key and certificate.
+	// if not set, webhook server would look up the server key and certificate in
+	// {TempDir}/k8s-webhook-server/serving-certs
+	CertDir string
 	// Functions to all for a user to customize the values that will be injected.
 
 	// NewCache is the function that will create the cache to be used
@@ -160,10 +181,15 @@ type Options struct {
 	// use the cache for reads and the client for writes.
 	NewClient NewClientFunc
 
+	// EventBroadcaster records Events emitted by the manager and sends them to the Kubernetes API
+	// Use this to customize the event correlator and spam filter
+	EventBroadcaster record.EventBroadcaster
+
 	// Dependency injection for testing
-	newRecorderProvider func(config *rest.Config, scheme *runtime.Scheme, logger logr.Logger) (recorder.Provider, error)
-	newResourceLock     func(config *rest.Config, recorderProvider recorder.Provider, options leaderelection.Options) (resourcelock.Interface, error)
-	newMetricsListener  func(addr string) (net.Listener, error)
+	newRecorderProvider    func(config *rest.Config, scheme *runtime.Scheme, logger logr.Logger, broadcaster record.EventBroadcaster) (recorder.Provider, error)
+	newResourceLock        func(config *rest.Config, recorderProvider recorder.Provider, options leaderelection.Options) (resourcelock.Interface, error)
+	newMetricsListener     func(addr string) (net.Listener, error)
+	newHealthProbeListener func(addr string) (net.Listener, error)
 }
 
 // NewClientFunc allows a user to define how to create a client
@@ -231,7 +257,7 @@ func New(config *rest.Config, options Options) (Manager, error) {
 	// Create the recorder provider to inject event recorders for the components.
 	// TODO(directxman12): the log for the event provider should have a context (name, tags, etc) specific
 	// to the particular controller that it's being injected into, rather than a generic one like is here.
-	recorderProvider, err := options.newRecorderProvider(config, options.Scheme, log.WithName("events"))
+	recorderProvider, err := options.newRecorderProvider(config, options.Scheme, log.WithName("events"), options.EventBroadcaster)
 	if err != nil {
 		return nil, err
 	}
@@ -253,27 +279,37 @@ func New(config *rest.Config, options Options) (Manager, error) {
 		return nil, err
 	}
 
+	// Create health probes listener. This will throw an error if the bind
+	// address is invalid or already in use.
+	healthProbeListener, err := options.newHealthProbeListener(options.HealthProbeBindAddress)
+	if err != nil {
+		return nil, err
+	}
+
 	stop := make(chan struct{})
 
 	return &controllerManager{
-		config:           config,
-		scheme:           options.Scheme,
-		errChan:          make(chan error),
-		cache:            cache,
-		fieldIndexes:     cache,
-		client:           writeObj,
-		apiReader:        apiReader,
-		recorderProvider: recorderProvider,
-		resourceLock:     resourceLock,
-		mapper:           mapper,
-		metricsListener:  metricsListener,
-		internalStop:     stop,
-		internalStopper:  stop,
-		port:             options.Port,
-		host:             options.Host,
-		leaseDuration:    *options.LeaseDuration,
-		renewDeadline:    *options.RenewDeadline,
-		retryPeriod:      *options.RetryPeriod,
+		config:                config,
+		scheme:                options.Scheme,
+		cache:                 cache,
+		fieldIndexes:          cache,
+		client:                writeObj,
+		apiReader:             apiReader,
+		recorderProvider:      recorderProvider,
+		resourceLock:          resourceLock,
+		mapper:                mapper,
+		metricsListener:       metricsListener,
+		internalStop:          stop,
+		internalStopper:       stop,
+		port:                  options.Port,
+		host:                  options.Host,
+		certDir:               options.CertDir,
+		leaseDuration:         *options.LeaseDuration,
+		renewDeadline:         *options.RenewDeadline,
+		retryPeriod:           *options.RetryPeriod,
+		healthProbeListener:   healthProbeListener,
+		readinessEndpointName: options.ReadinessEndpointName,
+		livenessEndpointName:  options.LivenessEndpointName,
 	}, nil
 }
 
@@ -295,6 +331,19 @@ func defaultNewClient(cache cache.Cache, config *rest.Config, options client.Opt
 	}, nil
 }
 
+// defaultHealthProbeListener creates the default health probes listener bound to the given address
+func defaultHealthProbeListener(addr string) (net.Listener, error) {
+	if addr == "" || addr == "0" {
+		return nil, nil
+	}
+
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return nil, fmt.Errorf("error listening on %s: %v", addr, err)
+	}
+	return ln, nil
+}
+
 // setOptionsDefaults set default values for Options fields
 func setOptionsDefaults(options Options) Options {
 	// Use the Kubernetes client-go scheme if none is specified
@@ -303,7 +352,9 @@ func setOptionsDefaults(options Options) Options {
 	}
 
 	if options.MapperProvider == nil {
-		options.MapperProvider = apiutil.NewDiscoveryRESTMapper
+		options.MapperProvider = func(c *rest.Config) (meta.RESTMapper, error) {
+			return apiutil.NewDynamicRESTMapper(c)
+		}
 	}
 
 	// Allow newClient to be mocked
@@ -340,6 +391,22 @@ func setOptionsDefaults(options Options) Options {
 
 	if options.RetryPeriod == nil {
 		options.RetryPeriod = &retryPeriod
+	}
+
+	if options.EventBroadcaster == nil {
+		options.EventBroadcaster = record.NewBroadcaster()
+	}
+
+	if options.ReadinessEndpointName == "" {
+		options.ReadinessEndpointName = defaultReadinessEndpoint
+	}
+
+	if options.LivenessEndpointName == "" {
+		options.LivenessEndpointName = defaultLivenessEndpoint
+	}
+
+	if options.newHealthProbeListener == nil {
+		options.newHealthProbeListener = defaultHealthProbeListener
 	}
 
 	return options

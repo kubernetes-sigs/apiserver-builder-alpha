@@ -86,32 +86,36 @@ required = [
   name = "github.com/spf13/viper"
 
 [[override]]
-  version = "kubernetes-1.15.3"
+  version = "kubernetes-1.16.0"
   name = "k8s.io/api"
 
 [[override]]
-  version = "kubernetes-1.15.3"
+  version = "kubernetes-1.16.0"
   name = "k8s.io/apiextensions-apiserver"
 
 [[override]]
-  version = "kubernetes-1.15.3"
+  version = "kubernetes-1.16.0"
   name = "k8s.io/kube-aggregator"
 
 [[override]]
-  version = "kubernetes-1.15.3"
+  version = "kubernetes-1.16.0"
   name = "k8s.io/apimachinery"
 
 [[override]]
-  version = "kubernetes-1.15.3"
+  version = "kubernetes-1.16.0"
   name = "k8s.io/apiserver"
 
 [[override]]
-  version = "kubernetes-1.15.3"
+  version = "kubernetes-1.16.0"
   name = "k8s.io/code-generator"
 
 [[override]]
-  version = "v12.0.0"
+  version = "kubernetes-1.16.0"
   name = "k8s.io/client-go"
+
+[[override]]
+  version = "kubernetes-1.16.0"
+  name = "k8s.io/component-base"
 
 [[constraint]]
   name = "k8s.io/gengo"
@@ -119,7 +123,7 @@ required = [
 
 [[override]]
   name = "k8s.io/kube-openapi"
-  revision = "b3a7cee44a305be0a69e1b9ac03018307287e1b0"
+  revision = "743ec37842bffe49dd4221d9026f30fb1d5adbc4"
 
 [[constraint]]
   name = "github.com/imdario/mergo"
@@ -132,6 +136,14 @@ required = [
 [[constraint]]
   name = "github.com/Azure/go-autorest"
   version = "v11.1.2"
+
+[[override]]
+  name = "github.com/gogo/protobuf"
+  version = "v1.2.2"
+
+[[override]]
+  name = "github.com/grpc-ecosystem/go-grpc-prometheus"
+  version = "v1.2.0"
 
 # For dependency below: Refer to issue https://github.com/golang/dep/issues/1799
 [[override]]
@@ -177,11 +189,11 @@ required = [
 
 [[constraint]]
   name = "sigs.k8s.io/controller-runtime"
-  version = "v0.2.0-rc.0"
+  revision = "40070e2a1958c3d974ba95da883a2bd088137789"
 
 [[override]]
   name = "sigs.k8s.io/structured-merge-diff"
-  revision = "e85c7b244fd2cc57bb829d73a061f93a441e63ce"
+  revision = "6149e4549fca4602cb9449007ff8ef61b2feff3b"
 
 [[constraint]]
   name = "github.com/rancher/kine"

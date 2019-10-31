@@ -37,9 +37,9 @@ func (PoseidonStrategy) Validate(ctx context.Context, obj runtime.Object) field.
 	return errors
 }
 
-func (b PoseidonStrategy) TriggerFunc(obj runtime.Object) []storage.MatchValue {
+func (b PoseidonStrategy) GetTriggerFuncs() storage.IndexerFuncs {
 	// Change this function to override the trigger fn that is used
-	value := b.DefaultStorageStrategy.TriggerFunc(obj)
+	value := b.DefaultStorageStrategy.GetTriggerFuncs()
 	return value
 }
 
