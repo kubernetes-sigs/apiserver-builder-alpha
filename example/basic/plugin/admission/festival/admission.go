@@ -20,6 +20,7 @@ limitations under the License.
 package festivaladmission
 
 import (
+	"context"
 	"fmt"
 	aggregatedadmission "sigs.k8s.io/apiserver-builder-alpha/example/basic/plugin/admission"
 	aggregatedinformerfactory "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/client/informers_generated/externalversions"
@@ -52,12 +53,12 @@ func (p *festivalPlugin) ValidateInitialization() error {
 	return nil
 }
 
-func (p *festivalPlugin) Admit(a admission.Attributes, o admission.ObjectInterfaces) error {
+func (p *festivalPlugin) Admit(ctx context.Context, a admission.Attributes, o admission.ObjectInterfaces) error {
 	fmt.Println("admitting festivals")
 	return nil
 }
 
-func (p *festivalPlugin) Validate(a admission.Attributes, o admission.ObjectInterfaces) error {
+func (p *festivalPlugin) Validate(ctx context.Context, a admission.Attributes, o admission.ObjectInterfaces) error {
 	return nil
 }
 

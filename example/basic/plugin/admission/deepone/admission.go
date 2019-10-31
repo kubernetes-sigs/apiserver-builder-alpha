@@ -20,6 +20,7 @@ limitations under the License.
 package deeponeadmission
 
 import (
+	"context"
 	"fmt"
 	aggregatedadmission "sigs.k8s.io/apiserver-builder-alpha/example/basic/plugin/admission"
 	aggregatedinformerfactory "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/client/informers_generated/externalversions"
@@ -52,12 +53,12 @@ func (p *deeponePlugin) ValidateInitialization() error {
 	return nil
 }
 
-func (p *deeponePlugin) Admit(a admission.Attributes, o admission.ObjectInterfaces) error {
+func (p *deeponePlugin) Admit(ctx context.Context, a admission.Attributes, o admission.ObjectInterfaces) error {
 	fmt.Println("admitting deepones")
 	return nil
 }
 
-func (p *deeponePlugin) Validate(a admission.Attributes, o admission.ObjectInterfaces) error {
+func (p *deeponePlugin) Validate(ctx context.Context, a admission.Attributes, o admission.ObjectInterfaces) error {
 	return nil
 }
 
