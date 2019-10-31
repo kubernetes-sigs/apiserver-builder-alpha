@@ -66,7 +66,7 @@ func (DefaultStorageStrategy) Build(builder StorageBuilder, store *StorageWrappe
 	store.DeleteStrategy = builder
 
 	options.AttrFunc = builder.GetAttrs
-	options.TriggerFunc = builder.TriggerFunc
+	options.TriggerFunc = builder.GetTriggerFuncs()
 }
 
 func (DefaultStorageStrategy) NamespaceScoped() bool { return true }
@@ -124,8 +124,8 @@ func (b DefaultStorageStrategy) GetAttrs(obj runtime.Object) (labels.Set, fields
 	}
 }
 
-func (b DefaultStorageStrategy) TriggerFunc(obj runtime.Object) []storage.MatchValue {
-	return []storage.MatchValue{}
+func (b DefaultStorageStrategy) GetTriggerFuncs() storage.IndexerFuncs {
+	return nil
 }
 
 // GetSelectableFields returns a field set that represents the object.
