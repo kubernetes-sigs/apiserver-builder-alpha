@@ -18,9 +18,12 @@ all: test
 
 NON_INTERACTIVE_FLAG=--skip-resource=false --skip-controller=false --skip-admission-controller=false
 
-test: build
+test: build check
 	go test ./pkg/...
 	bash -c "find pkg/apis/ -name apiserver.local.config | xargs rm -rf"
+
+check: build
+	go vet $$(go list ./... | grep -vE '(clientset|listers|informers)_generated')
 
 skeleton: cmds
 	apiserver-boot init repo --domain sample.kubernetes.io

@@ -471,6 +471,7 @@ var admissionControllerTemplate = `
 package {{ lower .Kind }}admission
 
 import (
+	"context"
 	aggregatedadmission "{{.Repo}}/plugin/admission"
 	aggregatedinformerfactory "{{.Repo}}/pkg/client/informers_generated/externalversions"
 	aggregatedclientset "{{.Repo}}/pkg/client/clientset_generated/clientset"
@@ -502,11 +503,11 @@ func (p *{{ lower .Kind }}Plugin) ValidateInitialization() error {
 	return nil
 }
 
-func (p *{{ lower .Kind }}Plugin) Admit(ctx context.Context, a admission.Attributes, o admission.ObjectInterface) error {
+func (p *{{ lower .Kind }}Plugin) Admit(ctx context.Context, a admission.Attributes, o admission.ObjectInterfaces) error {
 	return nil
 }
 
-func (p *{{ lower .Kind }}Plugin) Validate(ctx context.Context, a admission.Attributes, o admission.ObjectInterface) error {
+func (p *{{ lower .Kind }}Plugin) Validate(ctx context.Context, a admission.Attributes, o admission.ObjectInterfaces) error {
 	return nil
 }
 

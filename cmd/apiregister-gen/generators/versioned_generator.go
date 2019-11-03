@@ -96,7 +96,7 @@ var (
 			{{ $api.Group }}.Internal{{ $api.Kind }}Status,
 			func() runtime.Object { return &{{ $api.Kind }}{} },     // Register versioned resource
 			func() runtime.Object { return &{{ $api.Kind }}List{} }, // Register versioned resource list
-			&{{ $api.Group }}.{{ $api.StatusStrategy }}{builders.StatusStorageStrategySingleton},
+			&{{ $api.Group }}.{{ $api.StatusStrategy }}{DefaultStatusStorageStrategy: builders.StatusStorageStrategySingleton},
 		),{{ end -}}
 
 		{{ range $subresource := $api.Subresources -}}
@@ -105,7 +105,7 @@ var (
 			func() runtime.Object { return &{{ $subresource.Request }}{} }, // Register versioned resource
 			nil,
             {{ if $subresource.REST }}{{ $api.Group }}.New{{ $subresource.REST }}{{ else -}}
-			func(generic.RESTOptionsGetter) rest.Storage { return &{{ $api.Group }}.{{ $subresource.Kind }}REST{ {{$api.Group}}.New{{$api.Kind}}Registry({{$api.Group}}.{{$api.Group|public}}{{$api.Kind}}Storage) } },
+			func(generic.RESTOptionsGetter) rest.Storage { return &{{ $api.Group }}.{{ $subresource.Kind }}REST{Registry: {{$api.Group}}.New{{$api.Kind}}Registry({{$api.Group}}.{{$api.Group|public}}{{$api.Kind}}Storage) } },
 			{{ end -}}
 		),
 		{{ end -}}
