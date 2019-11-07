@@ -16,9 +16,12 @@
 
 all: test
 
-test: build
+test: build check
 	go test ./pkg/...
 	bash -c "find pkg/apis/ -name apiserver.local.config | xargs rm -rf"
+
+check:
+	go vet $$(go list ./... | grep -vE '(clientset|listers|informers)_generated')
 
 build: cmds
 	bin/apiserver-boot build executables --vendor-dir ../../
