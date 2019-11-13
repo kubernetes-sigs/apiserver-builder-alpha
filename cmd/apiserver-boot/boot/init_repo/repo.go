@@ -151,6 +151,7 @@ import (
 
 	"{{.Repo}}/pkg/apis"
 	"{{.Repo}}/pkg/openapi"
+	_ "{{.Repo}}/plugin/admission/install"
 )
 
 func main() {
