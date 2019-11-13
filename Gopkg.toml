@@ -43,7 +43,7 @@ required = [
 
 # Comment to update deps with dep tool
 #[[constraint]]
-#  version = "v1.15.alpha.1"
+#  version = "v1.16.alpha.0"
 #  name = "sigs.k8s.io/apiserver-builder-alpha"
 
 [[constraint]]
@@ -132,10 +132,6 @@ required = [
 [[constraint]]
   name = "github.com/modern-go/reflect2"
   version = "1.0.1"
-
-[[constraint]]
-  name = "github.com/Azure/go-autorest"
-  version = "v11.1.2"
 
 [[override]]
   name = "github.com/gogo/protobuf"
