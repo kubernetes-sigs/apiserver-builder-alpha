@@ -30,9 +30,10 @@ import (
 	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/internal/objectutil"
 )
 
-// CacheReader is a client.Reader
+// CacheReader is a CacheReader
 var _ client.Reader = &CacheReader{}
 
 // CacheReader wraps a cache.Index to implement the client.CacheReader interface for a single type
@@ -124,22 +125,15 @@ func (c *CacheReader) List(_ context.Context, out runtime.Object, opts ...client
 		if !isObj {
 			return fmt.Errorf("cache contained %T, which is not an Object", obj)
 		}
-		meta, err := apimeta.Accessor(obj)
-		if err != nil {
-			return err
-		}
-		if labelSel != nil {
-			lbls := labels.Set(meta.GetLabels())
-			if !labelSel.Matches(lbls) {
-				continue
-			}
-		}
-
 		outObj := obj.DeepCopyObject()
 		outObj.GetObjectKind().SetGroupVersionKind(c.groupVersionKind)
 		runtimeObjs = append(runtimeObjs, outObj)
 	}
-	return apimeta.SetList(out, runtimeObjs)
+	filteredItems, err := objectutil.FilterWithLabels(runtimeObjs, labelSel)
+	if err != nil {
+		return err
+	}
+	return apimeta.SetList(out, filteredItems)
 }
 
 // objectKeyToStorageKey converts an object key to store key.

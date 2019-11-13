@@ -106,7 +106,6 @@ func (s *Server) Register(path string, hook http.Handler) {
 	// TODO(directxman12): call setfields if we've already started the server
 	s.webhooks[path] = hook
 	s.WebhookMux.Handle(path, instrumentedHook(path, hook))
-	log.Info("registering webhook", "path", path)
 }
 
 // instrumentedHook adds some instrumentation on top of the given webhook.
@@ -126,8 +125,6 @@ func (s *Server) Start(stop <-chan struct{}) error {
 	s.defaultingOnce.Do(s.setDefaults)
 
 	baseHookLog := log.WithName("webhooks")
-	baseHookLog.Info("starting webhook server")
-
 	// inject fields here as opposed to in Register so that we're certain to have our setFields
 	// function available.
 	for hookPath, webhook := range s.webhooks {
@@ -167,8 +164,6 @@ func (s *Server) Start(stop <-chan struct{}) error {
 		return err
 	}
 
-	log.Info("serving webhook server", "host", s.Host, "port", s.Port)
-
 	srv := &http.Server{
 		Handler: s.WebhookMux,
 	}
@@ -176,7 +171,6 @@ func (s *Server) Start(stop <-chan struct{}) error {
 	idleConnsClosed := make(chan struct{})
 	go func() {
 		<-stop
-		log.Info("shutting down webhook server")
 
 		// TODO: use a context with reasonable timeout
 		if err := srv.Shutdown(context.Background()); err != nil {

@@ -198,42 +198,6 @@ var _ = Describe("manger.Manager", func() {
 
 			Expect(ln.Close()).ToNot(HaveOccurred())
 		})
-
-		It("should create a listener for the health probes if a valid address is provided", func() {
-			var listener net.Listener
-			m, err := New(cfg, Options{
-				HealthProbeBindAddress: ":0",
-				newHealthProbeListener: func(addr string) (net.Listener, error) {
-					var err error
-					listener, err = defaultHealthProbeListener(addr)
-					return listener, err
-				},
-			})
-			Expect(m).ToNot(BeNil())
-			Expect(err).ToNot(HaveOccurred())
-			Expect(listener).ToNot(BeNil())
-			Expect(listener.Close()).ToNot(HaveOccurred())
-		})
-
-		It("should return an error if the health probes bind address is already in use", func() {
-			ln, err := defaultHealthProbeListener(":0")
-			Expect(err).ShouldNot(HaveOccurred())
-
-			var listener net.Listener
-			m, err := New(cfg, Options{
-				HealthProbeBindAddress: ln.Addr().String(),
-				newHealthProbeListener: func(addr string) (net.Listener, error) {
-					var err error
-					listener, err = defaultHealthProbeListener(addr)
-					return listener, err
-				},
-			})
-			Expect(m).To(BeNil())
-			Expect(err).To(HaveOccurred())
-			Expect(listener).To(BeNil())
-
-			Expect(ln.Close()).ToNot(HaveOccurred())
-		})
 	})
 
 	Describe("Start", func() {
@@ -283,7 +247,7 @@ var _ = Describe("manger.Manager", func() {
 				mgr.startCache = func(stop <-chan struct{}) error {
 					return fmt.Errorf("expected error")
 				}
-				Expect(m.Start(stop)).To(MatchError(ContainSubstring("expected error")))
+				Expect(m.Start(stop).Error()).To(ContainSubstring("expected error"))
 
 				close(done)
 			})
@@ -314,9 +278,7 @@ var _ = Describe("manger.Manager", func() {
 
 				go func() {
 					defer GinkgoRecover()
-					// NB(directxman12): this should definitely return an error.  If it doesn't happen,
-					// it means someone was signaling "stop: error" with a nil "error".
-					Expect(m.Start(stop)).NotTo(Succeed())
+					Expect(m.Start(stop)).NotTo(HaveOccurred())
 					close(done)
 				}()
 				<-c1
@@ -469,117 +431,6 @@ var _ = Describe("manger.Manager", func() {
 		})
 	})
 
-	Context("should start serving health probes", func() {
-		var listener net.Listener
-		var opts Options
-
-		BeforeEach(func() {
-			listener = nil
-			opts = Options{
-				newHealthProbeListener: func(addr string) (net.Listener, error) {
-					var err error
-					listener, err = defaultHealthProbeListener(addr)
-					return listener, err
-				},
-			}
-		})
-
-		AfterEach(func() {
-			if listener != nil {
-				listener.Close()
-			}
-		})
-
-		It("should stop serving health probes when stop is called", func(done Done) {
-			opts.HealthProbeBindAddress = ":0"
-			m, err := New(cfg, opts)
-			Expect(err).NotTo(HaveOccurred())
-
-			s := make(chan struct{})
-			go func() {
-				defer GinkgoRecover()
-				Expect(m.Start(s)).NotTo(HaveOccurred())
-				close(done)
-			}()
-
-			// Check the health probes started
-			endpoint := fmt.Sprintf("http://%s", listener.Addr().String())
-			_, err = http.Get(endpoint)
-			Expect(err).NotTo(HaveOccurred())
-
-			// Shutdown the server
-			close(s)
-
-			// Expect the health probes server to shutdown
-			Eventually(func() error {
-				_, err = http.Get(endpoint)
-				return err
-			}).ShouldNot(Succeed())
-		})
-
-		It("should serve readiness endpoint", func(done Done) {
-			opts.HealthProbeBindAddress = ":0"
-			m, err := New(cfg, opts)
-			Expect(err).NotTo(HaveOccurred())
-
-			res := fmt.Errorf("not ready yet")
-			err = m.AddReadyzCheck("check", func(_ *http.Request) error { return res })
-			Expect(err).NotTo(HaveOccurred())
-
-			s := make(chan struct{})
-			defer close(s)
-			go func() {
-				defer GinkgoRecover()
-				Expect(m.Start(s)).NotTo(HaveOccurred())
-				close(done)
-			}()
-
-			readinessEndpoint := fmt.Sprint("http://", listener.Addr().String(), defaultReadinessEndpoint)
-
-			// Controller is not ready
-			resp, err := http.Get(readinessEndpoint)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(resp.StatusCode).To(Equal(http.StatusInternalServerError))
-
-			// Controller is ready
-			res = nil
-			resp, err = http.Get(readinessEndpoint)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(resp.StatusCode).To(Equal(http.StatusOK))
-		})
-
-		It("should serve liveness endpoint", func(done Done) {
-			opts.HealthProbeBindAddress = ":0"
-			m, err := New(cfg, opts)
-			Expect(err).NotTo(HaveOccurred())
-
-			res := fmt.Errorf("not alive")
-			err = m.AddHealthzCheck("check", func(_ *http.Request) error { return res })
-			Expect(err).NotTo(HaveOccurred())
-
-			s := make(chan struct{})
-			defer close(s)
-			go func() {
-				defer GinkgoRecover()
-				Expect(m.Start(s)).NotTo(HaveOccurred())
-				close(done)
-			}()
-
-			livenessEndpoint := fmt.Sprint("http://", listener.Addr().String(), defaultLivenessEndpoint)
-
-			// Controller is not ready
-			resp, err := http.Get(livenessEndpoint)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(resp.StatusCode).To(Equal(http.StatusInternalServerError))
-
-			// Controller is ready
-			res = nil
-			resp, err = http.Get(livenessEndpoint)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(resp.StatusCode).To(Equal(http.StatusOK))
-		})
-	})
-
 	Describe("Add", func() {
 		It("should immediately start the Component if the Manager has already Started another Component",
 			func(done Done) {
@@ -602,11 +453,7 @@ var _ = Describe("manger.Manager", func() {
 				}()
 
 				// Wait for the Manager to start
-				Eventually(func() bool {
-					mgr.mu.Lock()
-					defer mgr.mu.Unlock()
-					return mgr.started
-				}).Should(BeTrue())
+				Eventually(func() bool { return mgr.started }).Should(BeTrue())
 
 				// Add another component after starting
 				c2 := make(chan struct{})
@@ -633,11 +480,7 @@ var _ = Describe("manger.Manager", func() {
 			}()
 
 			// Wait for the Manager to start
-			Eventually(func() bool {
-				mgr.mu.Lock()
-				defer mgr.mu.Unlock()
-				return mgr.started
-			}).Should(BeTrue())
+			Eventually(func() bool { return mgr.started }).Should(BeTrue())
 
 			c1 := make(chan struct{})
 			Expect(m.Add(RunnableFunc(func(s <-chan struct{}) error {

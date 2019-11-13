@@ -189,7 +189,7 @@ required = [
 
 [[constraint]]
   name = "sigs.k8s.io/controller-runtime"
-  revision = "40070e2a1958c3d974ba95da883a2bd088137789"
+  version = "v0.2.2"
 
 [[override]]
   name = "sigs.k8s.io/structured-merge-diff"

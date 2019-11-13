@@ -29,7 +29,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	machinerytypes "k8s.io/apimachinery/pkg/types"
 
-	logf "sigs.k8s.io/controller-runtime/pkg/internal/log"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 )
 
@@ -46,7 +45,6 @@ var _ = Describe("Admission Webhooks", func() {
 		}
 		webhook := &Webhook{
 			Handler: handler,
-			log:     logf.RuntimeLog.WithName("webhook"),
 		}
 
 		return webhook
@@ -96,7 +94,6 @@ var _ = Describe("Admission Webhooks", func() {
 					},
 				}
 			}),
-			log: logf.RuntimeLog.WithName("webhook"),
 		}
 
 		By("invoking the webhook")
@@ -113,7 +110,6 @@ var _ = Describe("Admission Webhooks", func() {
 			Handler: HandlerFunc(func(ctx context.Context, req Request) Response {
 				return Patched("", jsonpatch.Operation{Operation: "add", Path: "/a", Value: 2}, jsonpatch.Operation{Operation: "replace", Path: "/b", Value: 4})
 			}),
-			log: logf.RuntimeLog.WithName("webhook"),
 		}
 
 		By("invoking the webhook")
@@ -139,7 +135,6 @@ var _ = Describe("Admission Webhooks", func() {
 			handler := &fakeHandler{}
 			webhook := &Webhook{
 				Handler: handler,
-				log:     logf.RuntimeLog.WithName("webhook"),
 			}
 			Expect(setFields(webhook)).To(Succeed())
 			Expect(inject.InjectorInto(setFields, webhook)).To(BeTrue())
@@ -159,7 +154,6 @@ var _ = Describe("Admission Webhooks", func() {
 			handler := &fakeHandler{}
 			webhook := &Webhook{
 				Handler: handler,
-				log:     logf.RuntimeLog.WithName("webhook"),
 			}
 			Expect(setFields(webhook)).To(Succeed())
 			Expect(inject.InjectorInto(setFields, webhook)).To(BeTrue())

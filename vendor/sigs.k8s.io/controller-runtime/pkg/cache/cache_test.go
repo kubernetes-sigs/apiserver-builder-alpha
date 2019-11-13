@@ -115,11 +115,10 @@ func CacheTest(createCacheFunc func(config *rest.Config, opts cache.Options) (ca
 			informerCache, err = createCacheFunc(cfg, cache.Options{})
 			Expect(err).NotTo(HaveOccurred())
 			By("running the cache and waiting for it to sync")
-			// pass as an arg so that we don't race between close and re-assign
-			go func(stopCh chan struct{}) {
+			go func() {
 				defer GinkgoRecover()
-				Expect(informerCache.Start(stopCh)).To(Succeed())
-			}(stop)
+				Expect(informerCache.Start(stop)).To(Succeed())
+			}()
 			Expect(informerCache.WaitForCacheSync(stop)).To(BeTrue())
 		})
 

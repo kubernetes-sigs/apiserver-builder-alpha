@@ -1027,17 +1027,6 @@
   revision = "45ff765b4815d34d8b80220fd05c79063b185ce1"
 
 [[projects]]
-  branch = "master"
-  digest = "1:7e53669a98a8e1fa49a4635921086e91207fc39ae201deac9fcbf88531610ad9"
-  name = "golang.org/x/xerrors"
-  packages = [
-    ".",
-    "internal",
-  ]
-  pruneopts = "NU"
-  revision = "1b5146add8981d58be77b16229c0ff0f8bebd8c1"
-
-[[projects]]
   digest = "1:fcf7fdb840d181f6038b4323cc5b70026253e477e88d7912ce584d3e6b72814b"
   name = "gomodules.xyz/jsonpatch"
   packages = ["v2"]
@@ -1691,7 +1680,7 @@
   revision = "6c36bc71fc4aeb1f49801054e71aebdaef1fbeb4"
 
 [[projects]]
-  digest = "1:9550eebf84bc2d3a1d1480b30e54b8e3d6dac0556182ec2d0433b1603b070a08"
+  digest = "1:2fade43210eb65db67c8ea46fe41b6da42da9d1aabd37b0bce6c417003534e52"
   name = "sigs.k8s.io/controller-runtime"
   packages = [
     "pkg/cache",
@@ -1705,7 +1694,6 @@
     "pkg/envtest/printer",
     "pkg/event",
     "pkg/handler",
-    "pkg/healthz",
     "pkg/internal/controller",
     "pkg/internal/controller/metrics",
     "pkg/internal/log",
@@ -1731,7 +1719,8 @@
     "pkg/webhook/internal/metrics",
   ]
   pruneopts = "NU"
-  revision = "40070e2a1958c3d974ba95da883a2bd088137789"
+  revision = "fc5542c693e3340f8abbe91c6345bd64c494a60c"
+  version = "v0.2.2"
 
 [[projects]]
   branch = "master"
