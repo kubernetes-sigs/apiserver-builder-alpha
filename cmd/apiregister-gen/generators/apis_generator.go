@@ -52,7 +52,7 @@ func (d *apiGenerator) Imports(c *generator.Context) []string {
 	}
 	for _, group := range d.apis.Groups {
 		imports = append(imports, fmt.Sprintf(
-			"_ \"%s/install\"", group.Pkg.Path))
+			"_ \"%s/install\" // Install the %s group", group.Pkg.Path, group.Group))
 	}
 
 	return imports
