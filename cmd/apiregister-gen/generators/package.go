@@ -26,6 +26,7 @@ import (
 	"k8s.io/gengo/generator"
 	"k8s.io/gengo/namer"
 	"k8s.io/gengo/types"
+	"k8s.io/klog"
 
 	"github.com/pkg/errors"
 )
@@ -84,40 +85,46 @@ func (g *Gen) ParsePackages(context *generator.Context, arguments *args.Generato
 }
 
 func (g *Gen) Packages(context *generator.Context, arguments *args.GeneratorArgs) generator.Packages {
+	boilerplate, err := arguments.LoadGoBoilerplate()
+	if err != nil {
+		klog.Warningf("failed loading boilerplate, fallback to default boilerplate: %v", err)
+		boilerplate = getHeader()
+	}
 	g.p = generator.Packages{}
 
 	b := NewAPIsBuilder(context, arguments)
 	for _, apigroup := range b.APIs.Groups {
 		for _, apiversion := range apigroup.Versions {
-			factory := &packageFactory{apiversion.Pkg.Path, arguments}
+			factory := &packageFactory{apiversion.Pkg.Path, arguments, boilerplate}
 			// Add generators for versioned types
 			gen := CreateVersionedGenerator(apiversion, apigroup, arguments.OutputFileBaseName)
 			g.p = append(g.p, factory.createPackage(gen))
 		}
 
-		factory := &packageFactory{apigroup.Pkg.Path, arguments}
+		factory := &packageFactory{apigroup.Pkg.Path, arguments, boilerplate}
 		gen := CreateUnversionedGenerator(apigroup, arguments.OutputFileBaseName)
 		g.p = append(g.p, factory.createPackage(gen))
 
-		factory = &packageFactory{path.Join(apigroup.Pkg.Path, "install"), arguments}
+		factory = &packageFactory{path.Join(apigroup.Pkg.Path, "install"), arguments, boilerplate}
 		gen = CreateInstallGenerator(apigroup, arguments.OutputFileBaseName)
 		g.p = append(g.p, factory.createPackage(gen))
 	}
 
-	apisFactory := &packageFactory{b.APIs.Pkg.Path, arguments}
+	apisFactory := &packageFactory{b.APIs.Pkg.Path, arguments, boilerplate}
 	gen := CreateApisGenerator(b.APIs, arguments.OutputFileBaseName)
 	g.p = append(g.p, apisFactory.createPackage(gen))
 
 	projectRootPath := filepath.Dir(filepath.Dir(b.APIs.Pkg.Path))
-	admissionFactory := &packageFactory{filepath.Join(projectRootPath, "plugin", "admission", "install"), arguments}
+	admissionFactory := &packageFactory{filepath.Join(projectRootPath, "plugin", "admission", "install"), arguments, boilerplate}
 	admissionGen := CreateAdmissionGenerator(b.APIs, arguments.OutputFileBaseName, projectRootPath, b.arguments.OutputBase)
 	g.p = append(g.p, admissionFactory.createPackage(admissionGen))
 	return g.p
 }
 
 type packageFactory struct {
-	path      string
-	arguments *args.GeneratorArgs
+	path       string
+	arguments  *args.GeneratorArgs
+	headerText []byte
 }
 
 // Creates a package with a generator
@@ -127,7 +134,7 @@ func (f *packageFactory) createPackage(gen generator.Generator) generator.Packag
 	return &generator.DefaultPackage{
 		PackageName: name,
 		PackagePath: path,
-		HeaderText:  f.getHeader(),
+		HeaderText:  f.headerText,
 		GeneratorFunc: func(c *generator.Context) (generators []generator.Generator) {
 			return []generator.Generator{gen}
 		},
@@ -138,7 +145,7 @@ func (f *packageFactory) createPackage(gen generator.Generator) generator.Packag
 }
 
 // Returns the header for generated files
-func (f *packageFactory) getHeader() []byte {
+func getHeader() []byte {
 	header := []byte(`/*
 Copyright 2017 The Kubernetes Authors.
 
