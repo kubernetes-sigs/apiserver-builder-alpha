@@ -134,6 +134,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 		} else {
 			klog.Warningf("ignoring controller package code-generation due to %v", err)
 		}
+		inputDirsArgs = append(inputDirsArgs, "--go-header-file", copyright)
 
 		c := exec.Command(filepath.Join(root, "apiregister-gen"), inputDirsArgs...)
 		klog.Infof("%s", strings.Join(c.Args, " "))
