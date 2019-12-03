@@ -87,6 +87,7 @@ func StartApiServer(etcdPath string, apis []*builders.APIGroupBuilder, openapide
 	return StartApiServerWithOptions(&StartOptions{
 		EtcdPath:         etcdPath,
 		Apis:             apis,
+
 		Openapidefs:      openapidefs,
 		Title:            title,
 		Version:          version,
@@ -410,7 +411,7 @@ func (o *ServerOptions) RunServer(stopCh <-chan struct{}, title, version string,
 	s := genericServer.GenericAPIServer.PrepareRun()
 	err = validators.OpenAPI.SetSchema(readOpenapi(genericConfig.LoopbackClientConfig.BearerToken, genericServer.GenericAPIServer.Handler))
 	if o.PrintOpenapi {
-		fmt.Printf("%s", validators.OpenAPI.OpenApi)
+		fmt.Printf("%s", validators.OpenAPI.OpenAPI)
 		os.Exit(0)
 	}
 	if err != nil {
