@@ -23,6 +23,10 @@ import (
 	"sigs.k8s.io/testing_frameworks/integration/addr"
 )
 
+const (
+	envLocalAPIServerBin = "TEST_ASSET_LOCAL_APISERVER"
+)
+
 type Environment struct {
 	KubeAPIServerEnvironment envtest.Environment
 
@@ -79,10 +83,13 @@ func (e *Environment) initAPIAggregationEnvironment() (err error) {
 }
 
 func (e *Environment) buildAggregatedAPIServer() (err error) {
-	// Compiling aggregated apiserver binary
-	compiledPath, err := gexec.Build("../../../cmd/apiserver/main.go")
-	if err != nil {
-		return err
+	compiledPath := os.Getenv(envLocalAPIServerBin)
+	if len(compiledPath) == 0 {
+		// Compiling aggregated apiserver binary
+		compiledPath, err = gexec.Build("../../../cmd/apiserver/main.go")
+		if err != nil {
+			return err
+		}
 	}
 
 	e.AggregatedAPIServerBinaryPath = compiledPath
