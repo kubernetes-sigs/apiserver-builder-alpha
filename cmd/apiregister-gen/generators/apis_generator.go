@@ -42,6 +42,7 @@ func CreateApisGenerator(apis *APIs, filename string) generator.Generator {
 func (d *apiGenerator) Imports(c *generator.Context) []string {
 	imports := []string{
 		"sigs.k8s.io/apiserver-builder-alpha/pkg/builders",
+		"k8s.io/apimachinery/pkg/runtime",
 	}
 	for _, group := range d.apis.Groups {
 		imports = append(imports, group.PkgPath)
