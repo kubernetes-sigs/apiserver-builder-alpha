@@ -20,5 +20,3 @@ require (
 	sigs.k8s.io/controller-tools v0.1.10 // indirect
 	sigs.k8s.io/kubebuilder v0.0.0-20190320190143-2621a6fdb324
 )
-
-replace github.com/golang/glog => k8s.io/klog v0.3.1
