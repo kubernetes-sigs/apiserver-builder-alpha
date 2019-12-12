@@ -1,12 +1,24 @@
-http_archive(
-    name = "io_bazel_rules_go",
-    url = "https://github.com/bazelbuild/rules_go/releases/download/0.6.0/rules_go-0.6.0.tar.gz",
-    sha256 = "ba6feabc94a5d205013e70792accb6cce989169476668fbaf98ea9b342e13b59",
+# gazelle:repository_macro repos.bzl%go_repositories
+workspace(name = "io_k8s_sigs_apiserver_builder_alpha")
+
+load("//:load.bzl", "repositories")
+
+repositories()
+
+load("@io_k8s_repo_infra//:load.bzl", _repo_infra_repos = "repositories")
+
+_repo_infra_repos()
+
+load("@io_k8s_repo_infra//:repos.bzl", "configure")
+
+# use k8s.io/repo-infra to configure go and bazel
+# default minimum_bazel_version is 0.29.1
+configure(
+    go_version = "1.13",
+    rbe_name = None,
 )
-load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
-go_rules_dependencies()
-go_register_toolchains()
 
-load("@io_bazel_rules_go//proto:def.bzl", "proto_register_toolchains")
-proto_register_toolchains()
+load("//:repos.bzl", "go_repositories")
 
+# load go dependencies imported from cmd/go.mod
+go_repositories()
