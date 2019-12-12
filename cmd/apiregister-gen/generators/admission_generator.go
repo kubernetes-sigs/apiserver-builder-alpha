@@ -58,7 +58,7 @@ func (d *admissionGenerator) Imports(c *generator.Context) []string {
 	imports = append(imports,
 		fmt.Sprintf(`aggregatedinformerfactory "%s/pkg/client/informers_generated/externalversions"`, d.projectRootPath))
 	imports = append(imports,
-		fmt.Sprintf(`intializer "%s/plugin/admission"`, d.projectRootPath))
+		fmt.Sprintf(`initializer "%s/plugin/admission"`, d.projectRootPath))
 	return imports
 }
 
@@ -91,7 +91,7 @@ func GetAggregatedResourceAdmissionControllerInitializer(config *rest.Config) (a
 	// init aggregated resource clients
 	aggregatedResourceClient := aggregatedclientset.NewForConfigOrDie(config)
 	aggregatedInformerFactory := aggregatedinformerfactory.NewSharedInformerFactory(aggregatedResourceClient, 0)
-	aggregatedResourceInitializer := intializer.New(aggregatedResourceClient, aggregatedInformerFactory)
+	aggregatedResourceInitializer := initializer.New(aggregatedResourceClient, aggregatedInformerFactory)
 
 	return aggregatedResourceInitializer, func(context genericserver.PostStartHookContext) error {
 		aggregatedInformerFactory.Start(context.StopCh)
