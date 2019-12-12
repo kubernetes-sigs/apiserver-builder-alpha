@@ -7,14 +7,14 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//cmd/apiregister-gen/generators:go_default_library",
-        "//vendor/github.com/golang/glog:go_default_library",
-        "//vendor/k8s.io/gengo/args:go_default_library",
+        "@io_k8s_gengo//args:go_default_library",
+        "@io_k8s_klog//:go_default_library",
     ],
 )
 
 go_binary(
     name = "apiregister-gen",
+    embed = [":go_default_library"],
     importpath = "sigs.k8s.io/apiserver-builder-alpha/cmd/apiregister-gen",
-    library = ":go_default_library",
     visibility = ["//visibility:public"],
 )

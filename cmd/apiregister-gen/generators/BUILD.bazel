@@ -3,8 +3,8 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = [
+        "admission_generator.go",
         "apis_generator.go",
-        "controller_generator.go",
         "install_generator.go",
         "package.go",
         "parser.go",
@@ -15,13 +15,12 @@ go_library(
     importpath = "sigs.k8s.io/apiserver-builder-alpha/cmd/apiregister-gen/generators",
     visibility = ["//visibility:public"],
     deps = [
-        "//vendor/github.com/markbates/inflect:go_default_library",
-        "//vendor/github.com/pkg/errors:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
-        "//vendor/k8s.io/apimachinery/pkg/util/sets:go_default_library",
-        "//vendor/k8s.io/gengo/args:go_default_library",
-        "//vendor/k8s.io/gengo/generator:go_default_library",
-        "//vendor/k8s.io/gengo/namer:go_default_library",
-        "//vendor/k8s.io/gengo/types:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
+        "@io_k8s_apimachinery//pkg/util/sets:go_default_library",
+        "@io_k8s_gengo//args:go_default_library",
+        "@io_k8s_gengo//generator:go_default_library",
+        "@io_k8s_gengo//namer:go_default_library",
+        "@io_k8s_gengo//types:go_default_library",
+        "@io_k8s_klog//:go_default_library",
     ],
 )

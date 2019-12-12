@@ -3,6 +3,9 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = [
+        "controller.go",
+        "controller_test_suite.go",
+        "controllertest.go",
         "create.go",
         "group.go",
         "resource.go",
@@ -14,7 +17,14 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//cmd/apiserver-boot/boot/util:go_default_library",
-        "//vendor/github.com/markbates/inflect:go_default_library",
-        "//vendor/github.com/spf13/cobra:go_default_library",
+        "@com_github_markbates_inflect//:go_default_library",
+        "@com_github_spf13_cobra//:go_default_library",
+        "@io_k8s_apimachinery//pkg/util/validation:go_default_library",
+        "@io_k8s_klog//:go_default_library",
+        "@io_k8s_sigs_kubebuilder//pkg/scaffold:go_default_library",
+        "@io_k8s_sigs_kubebuilder//pkg/scaffold/controller:go_default_library",
+        "@io_k8s_sigs_kubebuilder//pkg/scaffold/input:go_default_library",
+        "@io_k8s_sigs_kubebuilder//pkg/scaffold/manager:go_default_library",
+        "@io_k8s_sigs_kubebuilder//pkg/scaffold/resource:go_default_library",
     ],
 )
