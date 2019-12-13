@@ -1,14 +1,14 @@
+# gazelle:prefix sigs.k8s.io/apiserver-builder-alpha
 # gazelle:proto disable
-load("@io_bazel_rules_go//go:def.bzl", "gazelle")
+# gazelle:exclude vendor
+# gazelle:exclude cmd/vendor
+load("@bazel_gazelle//:def.bzl", "gazelle")
 
 gazelle(
     name = "gazelle",
     command = "fix",
-    prefix = "sigs.k8s.io/apiserver-builder-alpha",
-    external = "vendored",
     args = [
         "-build_file_name",
         "BUILD,BUILD.bazel",
     ],
 )
-

@@ -10,7 +10,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//cmd/apiserver-boot/boot/init_repo:go_default_library",
-        "//vendor/github.com/emicklei/go-restful/log:go_default_library",
-        "//vendor/github.com/spf13/cobra:go_default_library",
+        "@com_github_emicklei_go_restful//log:go_default_library",
+        "@com_github_spf13_cobra//:go_default_library",
     ],
 )
