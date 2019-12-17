@@ -3,6 +3,7 @@
 # gazelle:exclude vendor
 # gazelle:exclude cmd/vendor
 load("@bazel_gazelle//:def.bzl", "gazelle")
+load("@rules_pkg//:pkg.bzl", "pkg_tar")
 
 gazelle(
     name = "gazelle",
@@ -11,4 +12,21 @@ gazelle(
         "-build_file_name",
         "BUILD,BUILD.bazel",
     ],
+)
+
+pkg_tar(
+    name = "vendor",
+    srcs = glob([
+        "pkg/**",
+        "vendor/**",
+    ]) + [
+        "Gopkg.lock",
+        "Gopkg.toml",
+    ],
+    extension = "tar.gz",
+    remap_paths = {
+        "pkg": "vendor/sigs.k8s.io/apiserver-builder-alpha/pkg",
+    },
+    strip_prefix = ".",
+    visibility = ["//visibility:public"],
 )
