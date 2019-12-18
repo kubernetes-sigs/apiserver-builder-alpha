@@ -1,20 +1,23 @@
-load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar", "pkg_deb")
+load("@rules_pkg//:pkg.bzl", "pkg_tar")
 
 pkg_tar(
     name = "apiserver-builder",
-    extension = "tar.gz",
-    package_dir = "apiserver-builder",
     srcs = [
-            "//cmd/apiregister-gen",
-            "//cmd/apiserver-boot",
-            "//cmd/vendor/github.com/kubernetes-incubator/reference-docs/gen-apidocs",
-            "//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/client-gen",
-            "//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/conversion-gen",
-            "//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/deepcopy-gen",
-            "//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/defaulter-gen",
-            "//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/informer-gen",
-            "//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/lister-gen",
-            "//cmd/vendor/k8s.io/kubernetes/cmd/libs/go2idl/openapi-gen",
+        "//cmd/apiregister-gen",
+        "//cmd/apiserver-boot",
+        "@com_github_kubernetes_incubator_reference_docs//gen-apidocs",
+        "@io_k8s_code_generator//cmd/client-gen",
+        "@io_k8s_code_generator//cmd/conversion-gen",
+        "@io_k8s_code_generator//cmd/deepcopy-gen",
+        "@io_k8s_code_generator//cmd/defaulter-gen",
+        "@io_k8s_code_generator//cmd/go-to-protobuf",
+        "@io_k8s_code_generator//cmd/go-to-protobuf/protoc-gen-gogo",
+        "@io_k8s_code_generator//cmd/informer-gen",
+        "@io_k8s_code_generator//cmd/lister-gen",
+        "@io_k8s_kube_openapi//cmd/openapi-gen",
+        "//:vendor",
     ],
+    extension = "tar.gz",
     mode = "0755",
+    package_dir = "bin",
 )
