@@ -56,9 +56,10 @@ type TestEnvironment struct {
 
 func NewTestEnvironment(apis []*builders.APIGroupBuilder, openapidefs openapi.GetOpenAPIDefinitions) *TestEnvironment {
 	te := &TestEnvironment{
-		EtcdPath:   "/registry/test.kubernetes.io",
-		StopServer: make(chan struct{}),
-		etcdready:  make(chan string),
+		EtcdPath:       "/registry/test.kubernetes.io",
+		StopServer:     make(chan struct{}),
+		etcdready:      make(chan string),
+		apiserverready: make(chan *rest.Config),
 	}
 
 	te.EtcdClientPort = te.getPort()

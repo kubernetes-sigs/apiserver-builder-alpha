@@ -1,4 +1,3 @@
-
 /*
 Copyright 2019 The Kubernetes Authors.
 
@@ -15,8 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
-
 package v1_test
 
 import (
@@ -24,8 +21,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/test"
 	"k8s.io/client-go/rest"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/test"
 
 	"sigs.k8s.io/apiserver-builder-alpha/example/podlogs/pkg/apis"
 	"sigs.k8s.io/apiserver-builder-alpha/example/podlogs/pkg/client/clientset_generated/clientset"
@@ -42,8 +39,8 @@ func TestV1(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-	testenv = test.NewTestEnvironment()
-	config = testenv.Start(apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions)
+	testenv = test.NewTestEnvironment(apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions)
+	config = testenv.Start()
 	cs = clientset.NewForConfigOrDie(config)
 })
 

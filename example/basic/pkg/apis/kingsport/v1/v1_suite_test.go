@@ -19,10 +19,10 @@ package v1_test
 import (
 	"testing"
 
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/test"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/rest"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/test"
 
 	"sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis"
 	"sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/client/clientset_generated/clientset"
@@ -39,8 +39,8 @@ func TestV1(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-	testenv = test.NewTestEnvironment()
-	config = testenv.Start(apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions)
+	testenv = test.NewTestEnvironment(apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions)
+	config = testenv.Start()
 	cs = clientset.NewForConfigOrDie(config)
 })
 
