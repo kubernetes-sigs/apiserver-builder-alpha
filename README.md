@@ -78,7 +78,7 @@ Instructions on how to use the tools packaged with apiserver-builder to build an
 
 List of commits showing `apiserver-boot` commands run and the corresponding changes:
 
-https://sigs.k8s.io/apiserver-builder-alpha/commits/example-simple
+https://github.com/kubernetes-sigs/apiserver-builder-alpha/commits/example-simple
 
 #### Coding and libraries user guide
 
