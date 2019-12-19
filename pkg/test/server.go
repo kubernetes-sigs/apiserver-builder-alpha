@@ -28,78 +28,43 @@ import (
 	"strings"
 	"time"
 
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/cmd/server"
+	"github.com/spf13/cobra"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	genericoptions "k8s.io/apiserver/pkg/server/options"
 	"k8s.io/client-go/rest"
 	openapi "k8s.io/kube-openapi/pkg/common"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/cmd/server"
 )
 
 type TestEnvironment struct {
-	StopServer     chan struct{}
-	ServerOutput    *io.PipeWriter
-	ApiserverPort  int
-	BearerToken    string
-	EtcdClientPort int
-	EtcdPeerPort   int
-	EtcdPath       string
-	EtcdCmd        *exec.Cmd
-	Done           bool
+	StopServer        chan struct{}
+	ServerOutput      *io.PipeWriter
+	ApiserverCobraCmd *cobra.Command
+	ApiserverOptions  *server.ServerOptions
+	ApiserverPort     int
+	BearerToken       string
+	EtcdClientPort    int
+	EtcdPeerPort      int
+	EtcdPath          string
+	EtcdCmd           *exec.Cmd
+	Done              bool
+
+	apiserverready chan *rest.Config
+	etcdready      chan string
 }
 
-func NewTestEnvironment() *TestEnvironment {
-	return &TestEnvironment{
-		EtcdPath: "/registry/test.kubernetes.io",
+func NewTestEnvironment(apis []*builders.APIGroupBuilder, openapidefs openapi.GetOpenAPIDefinitions) *TestEnvironment {
+	te := &TestEnvironment{
+		EtcdPath:   "/registry/test.kubernetes.io",
+		StopServer: make(chan struct{}),
+		etcdready:  make(chan string),
 	}
-}
-
-func (te *TestEnvironment) getPort() int {
-	l, _ := net.Listen("tcp", ":0")
-	defer l.Close()
-	println(l.Addr().String())
-	pieces := strings.Split(l.Addr().String(), ":")
-	i, err := strconv.Atoi(pieces[len(pieces)-1])
-	if err != nil {
-		panic(err)
-	}
-	return i
-}
-
-// Stop stops a running server
-func (te *TestEnvironment) Stop() {
-	te.Done = true
-	te.StopServer <- struct{}{}
-	te.EtcdCmd.Process.Kill()
-}
-
-// Start starts a local Kubernetes server and updates te.ApiserverPort with the port it is listening on
-func (te *TestEnvironment) Start(
-	apis []*builders.APIGroupBuilder, openapidefs openapi.GetOpenAPIDefinitions) *rest.Config {
 
 	te.EtcdClientPort = te.getPort()
 	te.EtcdPeerPort = te.getPort()
 	te.ApiserverPort = te.getPort()
 
-	etcdready := make(chan string)
-	go te.startEtcd(etcdready)
-
-	// Wait for etcd to start
-	// TODO: Poll the /health address to wait for etcd to become healthy
-	time.Sleep(time.Second * 1)
-
-	apiserverready := make(chan *rest.Config)
-	go te.startApiserver(apiserverready, apis, openapidefs)
-
-	// Wait for everything to be ready
-	loopback := <-apiserverready
-	<-etcdready
-	return loopback
-}
-
-func (te *TestEnvironment) startApiserver(
-	ready chan *rest.Config, apis []*builders.APIGroupBuilder, openapidefs openapi.GetOpenAPIDefinitions) {
-	te.StopServer = make(chan struct{})
 	_, te.ServerOutput = io.Pipe()
 	server.GetOpenApiDefinition = openapidefs
 	cmd, options := server.NewCommandStartServer(
@@ -123,22 +88,64 @@ func (te *TestEnvironment) startApiserver(
 	// Notify once the apiserver is ready to serve traffic
 	options.PostStartHooks = []server.PostStartHook{
 		{
-			func(context genericapiserver.PostStartHookContext) error {
+			Fn: func(context genericapiserver.PostStartHookContext) error {
 				// Let the test know the server is ready
-				ready <- context.LoopbackClientConfig
+				te.apiserverready <- context.LoopbackClientConfig
 				return nil
 			},
-			"apiserver-ready",
+			Name: "apiserver-ready",
 		},
 	}
 
-	if err := cmd.Execute(); err != nil {
+	te.ApiserverCobraCmd = cmd
+	te.ApiserverOptions = options
+
+	return te
+}
+
+func (te *TestEnvironment) getPort() int {
+	l, _ := net.Listen("tcp", ":0")
+	defer l.Close()
+	println(l.Addr().String())
+	pieces := strings.Split(l.Addr().String(), ":")
+	i, err := strconv.Atoi(pieces[len(pieces)-1])
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
+
+// Stop stops a running server
+func (te *TestEnvironment) Stop() {
+	te.Done = true
+	te.StopServer <- struct{}{}
+	te.EtcdCmd.Process.Kill()
+}
+
+// Start starts a local Kubernetes server and updates te.ApiserverPort with the port it is listening on
+func (te *TestEnvironment) Start() *rest.Config {
+	go te.startEtcd()
+
+	// Wait for etcd to start
+	// TODO: Poll the /health address to wait for etcd to become healthy
+	time.Sleep(time.Second * 1)
+
+	go te.startApiserver()
+
+	// Wait for everything to be ready
+	loopback := <-te.apiserverready
+	<-te.etcdready
+	return loopback
+}
+
+func (te *TestEnvironment) startApiserver() {
+	if err := te.ApiserverCobraCmd.Execute(); err != nil {
 		panic(err)
 	}
 }
 
 // startEtcd starts a new etcd process using a random temp data directory and random free port
-func (te *TestEnvironment) startEtcd(ready chan string) {
+func (te *TestEnvironment) startEtcd() {
 	dirname, err := ioutil.TempDir("/tmp", "apiserver-test")
 	if err != nil {
 		panic(err)
@@ -168,8 +175,8 @@ func (te *TestEnvironment) startEtcd(ready chan string) {
 		panic(err)
 	}
 
-	go te.waitForEtcdReady(ready, stdout)
-	go te.waitForEtcdReady(ready, stderr)
+	go te.waitForEtcdReady(stdout)
+	go te.waitForEtcdReady(stderr)
 
 	err = cmd.Wait()
 	if err != nil && !te.Done {
@@ -178,7 +185,7 @@ func (te *TestEnvironment) startEtcd(ready chan string) {
 }
 
 // waitForEtcdReady notify's read once the etcd instances is ready to receive traffic
-func (te *TestEnvironment) waitForEtcdReady(ready chan string, reader io.Reader) {
+func (te *TestEnvironment) waitForEtcdReady(reader io.Reader) {
 	started := regexp.MustCompile("serving insecure client requests on (.+), this is strongly discouraged!")
 	buffered := bufio.NewReader(reader)
 	for {
@@ -190,7 +197,7 @@ func (te *TestEnvironment) waitForEtcdReady(ready chan string, reader io.Reader)
 		if started.MatchString(line) {
 			addr := started.FindStringSubmatch(line)[1]
 			// etcd is ready
-			ready <- addr
+			te.etcdready <- addr
 			return
 		}
 	}
