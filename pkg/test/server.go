@@ -38,7 +38,7 @@ import (
 
 type TestEnvironment struct {
 	StopServer     chan struct{}
-	ServerOuput    *io.PipeWriter
+	ServerOutput    *io.PipeWriter
 	ApiserverPort  int
 	BearerToken    string
 	EtcdClientPort int
@@ -100,11 +100,11 @@ func (te *TestEnvironment) Start(
 func (te *TestEnvironment) startApiserver(
 	ready chan *rest.Config, apis []*builders.APIGroupBuilder, openapidefs openapi.GetOpenAPIDefinitions) {
 	te.StopServer = make(chan struct{})
-	_, te.ServerOuput = io.Pipe()
+	_, te.ServerOutput = io.Pipe()
 	server.GetOpenApiDefinition = openapidefs
 	cmd, options := server.NewCommandStartServer(
 		te.EtcdPath,
-		te.ServerOuput, te.ServerOuput, apis, te.StopServer, "API", "v0")
+		te.ServerOutput, te.ServerOutput, apis, te.StopServer, "API", "v0")
 
 	options.RecommendedOptions.SecureServing.BindPort = te.ApiserverPort
 	options.RunDelegatedAuth = false
