@@ -20,4 +20,5 @@ pkg_tar(
     extension = "tar.gz",
     mode = "0755",
     package_dir = "bin",
+    visibility = ["//visibility:public"],
 )
