@@ -36,8 +36,8 @@ func TestOpenapi(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-	testenv = test.NewTestEnvironment()
-	config = testenv.Start(apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions)
+	testenv = test.NewTestEnvironment(apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions)
+	config = testenv.Start()
 	cs = clientset.NewForConfigOrDie(config)
 })
 
