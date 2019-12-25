@@ -58,8 +58,11 @@ clean:
 
 .PHONY: build
 build: clean ## Create release artefacts for darwin:amd64, linux:amd64 and windows:amd64. Requires etcd, glide, hg.
-	go run ./cmd/apiserver-builder-release/main.go vendor --version $(VERSION) --commit $(COMMIT)
-	go run ./cmd/apiserver-builder-release/main.go build --version $(VERSION)
+	mkdir -p release/$(VERSION)/src
+	bazel build --platforms=@io_bazel_rules_go//go/toolchain:$(GOOS)_$(GOARCH) cmd:apiserver-builder
+	tar xzf bazel-bin/vendor.tar.gz -C release/$(VERSION)/src
+	cp bazel-bin/cmd/apiserver-builder.tar.gz apiserver-builder-alpha-$(VERSION)-$(GOOS)-$(GOARCH).tar.gz
+	tar xzf apiserver-builder-alpha-$(VERSION)-$(GOOS)-$(GOARCH).tar.gz -C release/$(VERSION)
 
 .PHONY: package
 package: package-linux-amd64
