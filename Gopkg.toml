@@ -193,8 +193,7 @@ required = [
 
 [[constraint]]
   name = "github.com/rancher/kine"
-  revision = "c308515dee837fd00d480e482f763d76e7572df5"
-  source = "https://github.com/ibuildthecloud/kine"
+  version = "v0.3.2"
 
 [[constraint]]
   name = "github.com/coreos/etcd"

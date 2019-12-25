@@ -25,7 +25,7 @@ var (
 		`create table if not exists kine
  			(
  				id SERIAL PRIMARY KEY,
- 				name TEXT,
+				name VARCHAR(630),
 				created INTEGER,
 				deleted INTEGER,
  				create_revision INTEGER,
@@ -40,7 +40,7 @@ var (
 	createDB = "create database "
 )
 
-func New(dataSourceName string, tlsInfo tls.Config) (server.Backend, error) {
+func New(ctx context.Context, dataSourceName string, tlsInfo tls.Config) (server.Backend, error) {
 	parsedDSN, err := prepareDSN(dataSourceName, tlsInfo)
 	if err != nil {
 		return nil, err
@@ -50,9 +50,15 @@ func New(dataSourceName string, tlsInfo tls.Config) (server.Backend, error) {
 		return nil, err
 	}
 
-	dialect, err := generic.Open("postgres", parsedDSN, "$", true)
+	dialect, err := generic.Open(ctx, "postgres", parsedDSN, "$", true)
 	if err != nil {
 		return nil, err
+	}
+	dialect.TranslateErr = func(err error) error {
+		if err, ok := err.(*pq.Error); ok && err.Code == "23505" {
+			return server.ErrKeyExists
+		}
+		return err
 	}
 
 	if err := setup(dialect.DB); err != nil {

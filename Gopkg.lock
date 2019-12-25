@@ -49,6 +49,19 @@
   revision = "5bd2802263f21d8788851d5305584c82a5c75d7e"
 
 [[projects]]
+  digest = "1:7b795b80227cc62bdba871c25ece6b32fc16a90e8388e689bea8af4a7ad63e1e"
+  name = "github.com/Rican7/retry"
+  packages = [
+    ".",
+    "backoff",
+    "jitter",
+    "strategy",
+  ]
+  pruneopts = "NU"
+  revision = "28d17f812805614e76f170aa3c8698155ea8e019"
+  version = "v0.1.0"
+
+[[projects]]
   digest = "1:7d819a5d4cc72cf426d5ad000e6bc2e88113bf81f5e2f9f37de6a1dfe2049495"
   name = "github.com/asaskevich/govalidator"
   packages = ["."]
@@ -70,6 +83,21 @@
   pruneopts = "NU"
   revision = "ba2c2ddd89069b46a7011d4106f6868f17ee1705"
   version = "v3.6.1"
+
+[[projects]]
+  digest = "1:dba837d0f7dd6b85f7078c36bab33a7715c4dbbc0317c56607cce4c403f67959"
+  name = "github.com/canonical/go-dqlite"
+  packages = [
+    ".",
+    "client",
+    "driver",
+    "internal/bindings",
+    "internal/logging",
+    "internal/protocol",
+  ]
+  pruneopts = "NU"
+  revision = "3a78703cdb53b9e1c5a0b35a762445abe7749af6"
+  version = "v1.2.0"
 
 [[projects]]
   digest = "1:3b799afc43d1ed5acb67281cee5ce29d92a8598cacbb97d878a010e93b700894"
@@ -782,10 +810,11 @@
   revision = "65c1f6f8f0fc1e2185eb9863a3bc751496404259"
 
 [[projects]]
-  digest = "1:9aa3f416aa538a09bccd025904d0bb1febe1b2ffe8884a2881b14e1bb080d608"
+  digest = "1:4be1807f161b8d431226f71b40bd999b9fcb23f06d5c712c61c2915c4b318418"
   name = "github.com/rancher/kine"
   packages = [
     "pkg/broadcaster",
+    "pkg/drivers/dqlite",
     "pkg/drivers/generic",
     "pkg/drivers/mysql",
     "pkg/drivers/pgsql",
@@ -797,8 +826,8 @@
     "pkg/tls",
   ]
   pruneopts = "NU"
-  revision = "c308515dee837fd00d480e482f763d76e7572df5"
-  source = "https://github.com/ibuildthecloud/kine"
+  revision = "9d26066f1f3b9c371a09ed5c05978d1cbeae1b06"
+  version = "v0.3.2"
 
 [[projects]]
   digest = "1:5c057fbbe77b1730c50d2f680dae9640f15d2d953bc632e683415fd6f1745e9b"
@@ -879,6 +908,20 @@
   pruneopts = "NU"
   revision = "07dd2e8dfe18522e9c447ba95f2fe95262f63bb2"
   version = "0.0.1"
+
+[[projects]]
+  digest = "1:aeff4b514614ef5f42389fe3340222cc8a2fd919a8afc79e687701bb1fc3e3d7"
+  name = "go.etcd.io/etcd"
+  packages = [
+    "auth/authpb",
+    "etcdserver/etcdserverpb",
+    "mvcc/mvccpb",
+    "pkg/tlsutil",
+    "pkg/transport",
+  ]
+  pruneopts = "NU"
+  revision = "3cf2f69b5738fb702ba1a935590f36b52b18979b"
+  version = "v3.4.3"
 
 [[projects]]
   digest = "1:24b066d5990b983ca6a0ada861c86ebfb6c4c7ac67c80af013f0abcfe16968f6"

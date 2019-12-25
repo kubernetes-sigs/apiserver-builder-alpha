@@ -5,9 +5,9 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/coreos/etcd/etcdserver/etcdserverpb"
-	"github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/sirupsen/logrus"
+	"go.etcd.io/etcd/etcdserver/etcdserverpb"
+	"go.etcd.io/etcd/mvcc/mvccpb"
 )
 
 var (
@@ -87,7 +87,7 @@ func (w *watcher) Start(r *etcdserverpb.WatchCreateRequest) {
 				Events:  toEvents(events...),
 			}); err != nil {
 				w.Cancel(id)
-				return
+				continue
 			}
 		}
 		logrus.Debugf("WATCH CLOSE id=%d, key=%s", id, key)
