@@ -2,6 +2,8 @@
 # gazelle:proto disable
 # gazelle:exclude vendor
 # gazelle:exclude cmd/vendor
+# gazelle:exclude example
+# gazelle:exclude pkg
 load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
 
