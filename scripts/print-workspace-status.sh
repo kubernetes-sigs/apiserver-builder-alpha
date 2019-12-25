@@ -4,8 +4,11 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-apiserver_builder_version="v1.16.alpha.0"
-k8s_vendor="v1.16.0"
+SCRIPT_ROOT=$(dirname "${BASH_SOURCE[0]}")/..
+VERSION_FILE=${SCRIPT_ROOT}/VERSION
+
+apiserver_builder_version=$(cat ${VERSION_FILE})
+k8s_vendor=kubernetes-1.16.0
 git_commit="$(git rev-parse HEAD)"
 build_date="$(date +%Y-%m-%d-%H:%M:%S)"
 
