@@ -2,6 +2,8 @@
 # gazelle:proto disable
 # gazelle:exclude vendor
 # gazelle:exclude cmd/vendor
+# gazelle:exclude example
+# gazelle:exclude pkg
 load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
 
@@ -27,6 +29,7 @@ pkg_tar(
     remap_paths = {
         "pkg": "vendor/sigs.k8s.io/apiserver-builder-alpha/pkg",
     },
+    mode = "0644",
     strip_prefix = ".",
     visibility = ["//visibility:public"],
 )

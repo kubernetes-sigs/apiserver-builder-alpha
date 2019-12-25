@@ -19,12 +19,12 @@ package init_repo
 import (
 	"archive/tar"
 	"compress/gzip"
-	"io/ioutil"
 	"k8s.io/klog"
 	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 )
 
 var vendorInstallCmd = &cobra.Command{
@@ -116,34 +116,7 @@ func RunVendorInstall(cmd *cobra.Command, args []string) {
 	}
 	defer fr.Close()
 
-	// setup gzip of tar
-	gr, err := gzip.NewReader(fr)
-	if err != nil {
-		klog.Fatalf("failed to read vendor tar file %s %v", f, err)
-	}
-	defer gr.Close()
-
-	// setup tar reader
-	tr := tar.NewReader(gr)
-
-	for file, err := tr.Next(); err == nil; file, err = tr.Next() {
-		p := filepath.Join(".", file.Name)
-
-		if Update && filepath.Dir(p) == "." {
-			continue
-		}
-
-		err := os.MkdirAll(filepath.Dir(p), 0700)
-		if err != nil {
-			klog.Fatalf("Could not create directory %s: %v", filepath.Dir(p), err)
-		}
-		b, err := ioutil.ReadAll(tr)
-		if err != nil {
-			klog.Fatalf("Could not read file %s: %v", file.Name, err)
-		}
-		err = ioutil.WriteFile(p, b, os.FileMode(file.Mode))
-		if err != nil {
-			klog.Fatalf("Could not write file %s: %v", p, err)
-		}
+	if err = util.Untar(fr, "."); err != nil {
+		klog.Fatalf("Could not untar from vendor.tar.gz")
 	}
 }

@@ -1,0 +1,14 @@
+filegroup(
+    name = "apiserver-builder",
+    srcs = ["//cmd:apiserver-builder"],
+)
+
+sh_binary(
+    name = "build-tools",
+    srcs = ["build-tools.sh"],
+    args = [
+        "$(location build-tools.sh)",  # path of build-tools.sh
+        "$(execpath :apiserver-builder)",
+    ],
+    data = [":apiserver-builder"],
+)

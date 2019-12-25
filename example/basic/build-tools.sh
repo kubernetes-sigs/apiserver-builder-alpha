@@ -4,34 +4,20 @@
 # Otherwise, download the pre-built apiserver-builder tar release from
 # https://sigs.k8s.io/apiserver-builder-alpha/releases instead.
 
-CMD_VENDOR="../../cmd/vendor"
-
-# Install generators from other repos
-if [ ! -f bin/client-gen ] ; then
-    go build -o bin/client-gen $CMD_VENDOR/k8s.io/code-generator/cmd/client-gen
-fi
-if [ ! -f bin/bin/conversion-gen ] ; then
-    go build -o bin/conversion-gen $CMD_VENDOR/k8s.io/code-generator/cmd/conversion-gen
-fi
-if [ ! -f bin/bin/deepcopy-gen ] ; then
-    go build -o bin/deepcopy-gen $CMD_VENDOR/k8s.io/code-generator/cmd/deepcopy-gen
-fi
-if [ ! -f bin/openapi-gen ] ; then
-    go build -o bin/openapi-gen $CMD_VENDOR/k8s.io/kube-openapi/cmd/openapi-gen
-fi
-if [ ! -f bin/defaulter-gen ] ; then
-    go build -o bin/defaulter-gen $CMD_VENDOR/k8s.io/code-generator/cmd/defaulter-gen
-fi
-if [ ! -f bin/lister-gen ] ; then
-    go build -o bin/lister-gen $CMD_VENDOR/k8s.io/code-generator/cmd/lister-gen
-fi
-if [ ! -f bin/informer-gen ] ; then
-    go build -o bin/informer-gen $CMD_VENDOR/k8s.io/code-generator/cmd/informer-gen
-fi
-if [ ! -f bin/gen-apidocs ] ; then
-    go build -o bin/gen-apidocs $CMD_VENDOR/github.com/kubernetes-incubator/reference-docs/gen-apidocs
+if [[ -n "${BUILD_WORKSPACE_DIRECTORY:-}" ]]; then # Running inside bazel
+  echo "Updating codegen files..." >&2
+elif ! command -v bazel &>/dev/null; then
+  echo "Install bazel at https://bazel.build" >&2
+  exit 1
+else
+  (
+    set -o xtrace
+    bazel run //example/basic:build-tools
+  )
+  exit 0
 fi
 
-# Install generators from this repo
-go build -o bin/apiserver-boot ../../cmd/apiserver-boot/main.go
-go build -o bin/apiregister-gen ../../cmd/apiregister-gen/main.go
+out_dir=$BUILD_WORKSPACE_DIRECTORY/$(dirname "$1")
+out_tar=$BUILD_WORKSPACE_DIRECTORY/$2
+
+tar -zxvf "$out_tar" -C "$out_dir"

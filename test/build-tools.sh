@@ -6,20 +6,20 @@ set -x -e
 # Otherwise, download the pre-built apiserver-builder tar release from
 # https://sigs.k8s.io/apiserver-builder-alpha/releases instead.
 
-(
-    mkdir -p /home/travis/gopath/src/github.com/Masterminds
-	cd /home/travis/gopath/src/github.com/Masterminds
-	git clone https://github.com/Masterminds/glide.git
-	cd glide
-	make build
-)
+if [[ -n "${BUILD_WORKSPACE_DIRECTORY:-}" ]]; then # Running inside bazel
+  echo "Updating codegen files..." >&2
+elif ! command -v bazel &>/dev/null; then
+  echo "Install bazel at https://bazel.build" >&2
+  exit 1
+else
+  (
+    set -o xtrace
+    bazel run //test:build-tools
+  )
+  exit 0
+fi
 
-export PATH=/home/travis/gopath/src/github.com/Masterminds/glide:$PATH
+out_dir=$BUILD_WORKSPACE_DIRECTORY/$(dirname "$1")
+out_tar=$BUILD_WORKSPACE_DIRECTORY/$2
 
-# Install generators from this repo
-cd ..
-go build -o bin/apiserver-builder-release cmd/apiserver-builder-release/main.go
-./bin/apiserver-builder-release vendor --version 1.0
-./bin/apiserver-builder-release build --version 1.0 --targets linux:amd64
-
-tar -xzf apiserver-builder-alpha-1.0-linux-amd64.tar.gz -C test
+tar -zxvf "$out_tar" -C "$out_dir"
