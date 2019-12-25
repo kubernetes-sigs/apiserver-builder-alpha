@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/coreos/etcd/etcdserver/etcdserverpb"
-	"github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/sirupsen/logrus"
+	"go.etcd.io/etcd/etcdserver/etcdserverpb"
+	"go.etcd.io/etcd/mvcc/mvccpb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
@@ -104,10 +104,8 @@ func toKVs(kvs ...*KeyValue) []*mvccpb.KeyValue {
 	ret := make([]*mvccpb.KeyValue, 0, len(kvs))
 	for _, kv := range kvs {
 		newKV := toKV(kv)
-		if newKV == nil {
-			fmt.Println("HIHIHIH")
-		} else {
-			ret = append(ret, toKV(kv))
+		if newKV != nil {
+			ret = append(ret, newKV)
 		}
 	}
 	return ret

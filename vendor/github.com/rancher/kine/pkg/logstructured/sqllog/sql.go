@@ -31,22 +31,27 @@ type Dialect interface {
 	List(ctx context.Context, prefix, startKey string, limit, revision int64, includeDeleted bool) (*sql.Rows, error)
 	Count(ctx context.Context, prefix string) (int64, int64, error)
 	CurrentRevision(ctx context.Context) (int64, error)
-	After(ctx context.Context, prefix string, rev int64) (*sql.Rows, error)
+	After(ctx context.Context, prefix string, rev, limit int64) (*sql.Rows, error)
 	Insert(ctx context.Context, key string, create, delete bool, createRevision, previousRevision int64, ttl int64, value, prevValue []byte) (int64, error)
 	GetRevision(ctx context.Context, revision int64) (*sql.Rows, error)
 	DeleteRevision(ctx context.Context, revision int64) error
 	GetCompactRevision(ctx context.Context) (int64, error)
 	SetCompactRevision(ctx context.Context, revision int64) error
+	Fill(ctx context.Context, revision int64) error
+	IsFill(key string) bool
 }
 
-func (s *SQLLog) Start(ctx context.Context) error {
+func (s *SQLLog) Start(ctx context.Context) (err error) {
 	s.ctx = ctx
-	go s.compact()
-	return nil
+	return
 }
 
 func (s *SQLLog) compact() {
-	t := time.NewTicker(2 * time.Second)
+	var (
+		nextEnd int64
+	)
+	t := time.NewTicker(5 * time.Minute)
+	nextEnd, _ = s.d.CurrentRevision(s.ctx)
 
 outer:
 	for {
@@ -56,11 +61,14 @@ outer:
 		case <-t.C:
 		}
 
-		end, err := s.d.CurrentRevision(s.ctx)
+		currentRev, err := s.d.CurrentRevision(s.ctx)
 		if err != nil {
 			logrus.Errorf("failed to get current revision: %v", err)
 			continue
 		}
+
+		end := nextEnd
+		nextEnd = currentRev
 
 		cursor, err := s.d.GetCompactRevision(s.ctx)
 		if err != nil {
@@ -68,10 +76,8 @@ outer:
 			continue
 		}
 
-		if end-cursor < 100 {
-			// Only run if we have at least 100 rows to process
-			continue
-		}
+		// leave the last 1000
+		end = end - 1000
 
 		savedCursor := cursor
 		// Purposefully start at the current and redo the current as
@@ -146,12 +152,12 @@ func (s *SQLLog) CurrentRevision(ctx context.Context) (int64, error) {
 	return s.d.CurrentRevision(ctx)
 }
 
-func (s *SQLLog) After(ctx context.Context, prefix string, revision int64) (int64, []*server.Event, error) {
+func (s *SQLLog) After(ctx context.Context, prefix string, revision, limit int64) (int64, []*server.Event, error) {
 	if strings.HasSuffix(prefix, "/") {
 		prefix += "%"
 	}
 
-	rows, err := s.d.After(ctx, prefix, revision)
+	rows, err := s.d.After(ctx, prefix, revision, limit)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -166,8 +172,16 @@ func (s *SQLLog) List(ctx context.Context, prefix, startKey string, limit, revis
 		err  error
 	)
 
+	// It's assumed that when there is a start key that that key exists.
 	if strings.HasSuffix(prefix, "/") {
+		// In the situation of a list start the startKey will not exist so set to ""
+		if prefix == startKey {
+			startKey = ""
+		}
 		prefix += "%"
+	} else {
+		// Also if this isn't a list there is no reason to pass startKey
+		startKey = ""
 	}
 
 	if revision == 0 {
@@ -224,7 +238,7 @@ func RowsToEvents(rows *sql.Rows) (int64, int64, []*server.Event, error) {
 }
 
 func (s *SQLLog) Watch(ctx context.Context, prefix string) <-chan []*server.Event {
-	res := make(chan []*server.Event)
+	res := make(chan []*server.Event, 100)
 	values, err := s.broadcaster.Subscribe(ctx, s.startWatch)
 	if err != nil {
 		return nil
@@ -259,38 +273,52 @@ func filter(events interface{}, checkPrefix bool, prefix string) ([]*server.Even
 }
 
 func (s *SQLLog) startWatch() (chan interface{}, error) {
+	pollStart, err := s.d.GetCompactRevision(s.ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	c := make(chan interface{})
-	go s.poll(c)
+	// start compaction and polling at the same time to watch starts
+	// at the oldest revision, but compaction doesn't create gaps
+	go s.compact()
+	go s.poll(c, pollStart)
 	return c, nil
 }
 
-func (s *SQLLog) poll(result chan interface{}) {
+func (s *SQLLog) poll(result chan interface{}, pollStart int64) {
 	var (
-		last int64
+		last        = pollStart
+		skip        int64
+		skipTime    time.Time
+		waitForMore = true
 	)
 
-	wait := time.NewTicker(120 * time.Second)
+	wait := time.NewTicker(time.Second)
 	defer wait.Stop()
 	defer close(result)
 
 	for {
-		select {
-		case <-s.ctx.Done():
-			return
-		case check := <-s.notify:
-			if check <= last {
-				continue
+		if waitForMore {
+			select {
+			case <-s.ctx.Done():
+				return
+			case check := <-s.notify:
+				if check <= last {
+					continue
+				}
+			case <-wait.C:
 			}
-		case <-wait.C:
 		}
+		waitForMore = true
 
-		rows, err := s.d.After(s.ctx, "%", last)
+		rows, err := s.d.After(s.ctx, "%", last, 500)
 		if err != nil {
 			logrus.Errorf("fail to list latest changes: %v", err)
 			continue
 		}
 
-		rev, _, events, err := RowsToEvents(rows)
+		_, _, events, err := RowsToEvents(rows)
 		if err != nil {
 			logrus.Errorf("fail to convert rows changes: %v", err)
 			continue
@@ -300,13 +328,73 @@ func (s *SQLLog) poll(result chan interface{}) {
 			continue
 		}
 
+		waitForMore = len(events) < 100
+
+		rev := last
+		var (
+			sequential []*server.Event
+			saveLast   bool
+		)
+
 		for _, event := range events {
-			logrus.Debugf("TRIGGERED %s, revision=%d, delete=%v", event.KV.Key, event.KV.ModRevision, event.Delete)
+			next := rev + 1
+			// Ensure that we are notifying events in a sequential fashion. For example if we find row 4 before 3
+			// we don't want to notify row 4 because 3 is essentially dropped forever.
+			if event.KV.ModRevision != next {
+				if canSkipRevision(next, skip, skipTime) {
+					// This situation should never happen, but we have it here as a fallback just for unknown reasons
+					// we don't want to pause all watches forever
+					logrus.Errorf("GAP %s, revision=%d, delete=%v, next=%d", event.KV.Key, event.KV.ModRevision, event.Delete, next)
+				} else if skip != next {
+					// This is the first time we have encountered this missing revision, so record time start
+					// and trigger a quick retry for simple out of order events
+					skip = next
+					skipTime = time.Now()
+					select {
+					case s.notify <- next:
+					default:
+					}
+					break
+				} else {
+					if err := s.d.Fill(s.ctx, next); err == nil {
+						logrus.Debugf("FILL, revision=%d, err=%v", next, err)
+						select {
+						case s.notify <- next:
+						default:
+						}
+					} else {
+						logrus.Debugf("FILL FAILED, revision=%d, err=%v", next, err)
+					}
+					break
+				}
+			}
+
+			// we have done something now that we should save the last revision.  We don't save here now because
+			// the next loop could fail leading to saving the reported revision without reporting it.  In practice this
+			// loop right now has no error exit so the next loop shouldn't fail, but if we for some reason add a method
+			// that returns error, that would be a tricky bug to find.  So instead we only save the last revision at
+			// the same time we write to the channel.
+			saveLast = true
+			rev = event.KV.ModRevision
+			if s.d.IsFill(event.KV.Key) {
+				logrus.Debugf("NOT TRIGGER FILL %s, revision=%d, delete=%v", event.KV.Key, event.KV.ModRevision, event.Delete)
+			} else {
+				sequential = append(sequential, event)
+				logrus.Debugf("TRIGGERED %s, revision=%d, delete=%v", event.KV.Key, event.KV.ModRevision, event.Delete)
+			}
 		}
 
-		result <- events
-		last = rev
+		if saveLast {
+			last = rev
+			if len(sequential) > 0 {
+				result <- sequential
+			}
+		}
 	}
+}
+
+func canSkipRevision(rev, skip int64, skipTime time.Time) bool {
+	return rev == skip && time.Now().Sub(skipTime) > time.Second
 }
 
 func (s *SQLLog) Count(ctx context.Context, prefix string) (int64, int64, error) {

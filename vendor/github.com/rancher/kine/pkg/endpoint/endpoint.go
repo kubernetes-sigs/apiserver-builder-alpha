@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/pkg/errors"
+	"github.com/rancher/kine/pkg/drivers/dqlite"
 	"github.com/rancher/kine/pkg/drivers/mysql"
 	"github.com/rancher/kine/pkg/drivers/pgsql"
 	"github.com/rancher/kine/pkg/drivers/sqlite"
@@ -19,6 +21,7 @@ import (
 const (
 	KineSocket      = "unix://kine.sock"
 	SQLiteBackend   = "sqlite"
+	DQLiteBackend   = "dqlite"
 	ETCDBackend     = "etcd3"
 	MySQLBackend    = "mysql"
 	PostgresBackend = "postgres"
@@ -48,13 +51,13 @@ func Listen(ctx context.Context, config Config) (ETCDConfig, error) {
 		}, nil
 	}
 
-	leaderelect, backend, err := getKineStorageBackend(driver, dsn, config)
+	leaderelect, backend, err := getKineStorageBackend(ctx, driver, dsn, config)
 	if err != nil {
-		return ETCDConfig{}, err
+		return ETCDConfig{}, errors.Wrap(err, "building kine")
 	}
 
 	if err := backend.Start(ctx); err != nil {
-		return ETCDConfig{}, err
+		return ETCDConfig{}, errors.Wrap(err, "starting kine backend")
 	}
 
 	listen := config.Listener
@@ -112,7 +115,7 @@ func grpcServer(config Config) *grpc.Server {
 	return grpc.NewServer()
 }
 
-func getKineStorageBackend(driver, dsn string, cfg Config) (bool, server.Backend, error) {
+func getKineStorageBackend(ctx context.Context, driver, dsn string, cfg Config) (bool, server.Backend, error) {
 	var (
 		backend     server.Backend
 		leaderElect = true
@@ -121,11 +124,13 @@ func getKineStorageBackend(driver, dsn string, cfg Config) (bool, server.Backend
 	switch driver {
 	case SQLiteBackend:
 		leaderElect = false
-		backend, err = sqlite.New(dsn)
+		backend, err = sqlite.New(ctx, dsn)
+	case DQLiteBackend:
+		backend, err = dqlite.New(ctx, dsn)
 	case PostgresBackend:
-		backend, err = pgsql.New(dsn, cfg.Config)
+		backend, err = pgsql.New(ctx, dsn, cfg.Config)
 	case MySQLBackend:
-		backend, err = mysql.New(dsn, cfg.Config)
+		backend, err = mysql.New(ctx, dsn, cfg.Config)
 	default:
 		return false, nil, fmt.Errorf("storage backend is not defined")
 	}
