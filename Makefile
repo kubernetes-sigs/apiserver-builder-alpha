@@ -34,8 +34,8 @@ DESCRIPTION=apiserver-builder implements libraries and tools to quickly and easi
 MAINTAINER=The Kubernetes Authors
 URL=https://github.com/$(VENDOR)/$(NAME)
 LICENSE=Apache-2.0
-GOOS?=linux
-GOARCH?=amd64
+GOOS?=$(shell go env GOOS)
+GOARCH?=$(shell go env GOARCH)
 
 .PHONY: default
 default: install

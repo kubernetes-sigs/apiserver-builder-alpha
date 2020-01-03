@@ -249,17 +249,29 @@ package apis
 `
 
 var workspaceTemplate = `
-http_archive(
-    name = "io_bazel_rules_go",
-    url = "https://github.com/bazelbuild/rules_go/releases/download/0.6.0/rules_go-0.6.0.tar.gz",
-    sha256 = "ba6feabc94a5d205013e70792accb6cce989169476668fbaf98ea9b342e13b59",
-)
-load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
-go_rules_dependencies()
-go_register_toolchains()
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-load("@io_bazel_rules_go//proto:def.bzl", "proto_register_toolchains")
-proto_register_toolchains()
+http_archive(
+    name = "io_k8s_repo_infra",
+    sha256 = "5ee2a8e306af0aaf2844b5e2c79b5f3f53fc9ce3532233f0615b8d0265902b2a",
+    strip_prefix = "repo-infra-0.0.1-alpha.1",
+    urls = [
+        "https://github.com/kubernetes/repo-infra/archive/v0.0.1-alpha.1.tar.gz",
+    ],
+)
+
+load("@io_k8s_repo_infra//:load.bzl", _repo_infra_repos = "repositories")
+
+_repo_infra_repos()
+
+load("@io_k8s_repo_infra//:repos.bzl", "configure")
+
+# use k8s.io/repo-infra to configure go and bazel
+# default minimum_bazel_version is 0.29.1
+configure(
+    go_version = "1.13",
+    rbe_name = None,
+)
 `
 
 type buildTemplateArguments struct {
@@ -268,18 +280,12 @@ type buildTemplateArguments struct {
 }
 
 var buildTemplate = `
-# gazelle:proto disable
-# gazelle:exclude vendor
-load("@io_bazel_rules_go//go:def.bzl", "gazelle")
+load("@bazel_gazelle//:def.bzl", "gazelle")
 
+# gazelle:proto disable_global
+# gazelle:prefix {{.Repo}}
 gazelle(
     name = "gazelle",
     command = "fix",
-    prefix = "{{.Repo}}",
-    external = "vendored",
-    args = [
-        "-build_file_name",
-        "BUILD,BUILD.bazel",
-    ],
 )
 `
