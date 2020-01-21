@@ -74,7 +74,7 @@ func (r *StudentREST) Categories() []string {
 // Custom REST storage that delegates to the generated standard Registry
 func NewStudentREST(optsGetter generic.RESTOptionsGetter) rest.Storage {
 	groupResource := schema.GroupResource{
-		Group:    "miskatonic",
+		Group:    "miskatonic.k8s.io",
 		Resource: "students",
 	}
 	strategy := &StudentStrategy{builders.StorageStrategySingleton}
