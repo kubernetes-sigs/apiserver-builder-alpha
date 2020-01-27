@@ -120,7 +120,7 @@ require (
 	k8s.io/kube-aggregator v0.0.0-20190918161219-8c8f079fddc3
 	k8s.io/kube-openapi v0.0.0-20190816220812-743ec37842bf
 	k8s.io/utils v0.0.0-20190809000727-6c36bc71fc4a
-	sigs.k8s.io/controller-runtime v0.3.1-0.20191029211253-40070e2a1958
+	sigs.k8s.io/controller-runtime v0.4.0
 	sigs.k8s.io/controller-tools v0.1.11-0.20190405182121-56d42b19e55a
 	sigs.k8s.io/kubebuilder v1.0.8
 	sigs.k8s.io/structured-merge-diff v1.0.0
