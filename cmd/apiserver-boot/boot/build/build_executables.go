@@ -33,6 +33,12 @@ var goarch string = "amd64"
 var outputdir string = "bin"
 var Bazel bool
 var Gazelle bool
+var buildTargets []string
+
+const (
+	apiserverTarget  = "apiserver"
+	controllerTarget = "controller"
+)
 
 var createBuildExecutablesCmd = &cobra.Command{
 	Use:   "executables",
@@ -68,6 +74,7 @@ func AddBuildExecutables(cmd *cobra.Command) {
 	createBuildExecutablesCmd.Flags().StringVar(&outputdir, "output", "bin", "if set, write the binaries to this directory")
 	createBuildExecutablesCmd.Flags().BoolVar(&Bazel, "bazel", false, "if true, use bazel to build.  May require updating build rules with gazelle.")
 	createBuildExecutablesCmd.Flags().BoolVar(&Gazelle, "gazelle", false, "if true, run gazelle before running bazel.")
+	createBuildExecutablesCmd.Flags().StringArrayVar(&buildTargets, "targets", []string{apiserverTarget, controllerTarget}, "The target binaries to build")
 
 	createBuildExecutablesCmd.Flags().MarkDeprecated("gen-unversioned-client", "using internal clients in external systems is strongly not recommended")
 }
@@ -98,9 +105,14 @@ func BazelBuild(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	c := exec.Command("bazel", "build",
-		filepath.Join("cmd", "apiserver"),
-		filepath.Join("cmd", "controller-manager"))
+	targetDirs := make([]string, 0)
+	if buildApiserver() {
+		targetDirs = append(targetDirs, filepath.Join("cmd", "apiserver"))
+	}
+	if buildController() {
+		targetDirs = append(targetDirs, filepath.Join("cmd", "controller-manager"))
+	}
+	c := exec.Command("bazel", append([]string{"build"}, targetDirs...)...)
 	klog.Infof("%s", strings.Join(c.Args, " "))
 	c.Stderr = os.Stderr
 	c.Stdout = os.Stdout
@@ -112,26 +124,30 @@ func BazelBuild(cmd *cobra.Command, args []string) {
 	os.RemoveAll(filepath.Join("bin", "apiserver"))
 	os.RemoveAll(filepath.Join("bin", "controller-manager"))
 
-	c = exec.Command("cp",
-		filepath.Join("bazel-bin", "cmd", "apiserver", "apiserver"),
-		filepath.Join("bin", "apiserver"))
-	klog.Infof("%s", strings.Join(c.Args, " "))
-	c.Stderr = os.Stderr
-	c.Stdout = os.Stdout
-	err = c.Run()
-	if err != nil {
-		klog.Fatal(err)
+	if buildApiserver() {
+		c := exec.Command("cp",
+			filepath.Join("bazel-bin", "cmd", "apiserver", "apiserver"),
+			filepath.Join("bin", "apiserver"))
+		klog.Infof("%s", strings.Join(c.Args, " "))
+		c.Stderr = os.Stderr
+		c.Stdout = os.Stdout
+		err := c.Run()
+		if err != nil {
+			klog.Fatal(err)
+		}
 	}
 
-	c = exec.Command("cp",
-		filepath.Join("bazel-bin", "cmd", "controller-manager", "controller-manager"),
-		filepath.Join("bin", "controller-manager"))
-	klog.Infof("%s", strings.Join(c.Args, " "))
-	c.Stderr = os.Stderr
-	c.Stdout = os.Stdout
-	err = c.Run()
-	if err != nil {
-		klog.Fatal(err)
+	if buildController() {
+		c := exec.Command("cp",
+			filepath.Join("bazel-bin", "cmd", "controller-manager", "controller-manager"),
+			filepath.Join("bin", "controller-manager"))
+		klog.Infof("%s", strings.Join(c.Args, " "))
+		c.Stderr = os.Stderr
+		c.Stdout = os.Stdout
+		err := c.Run()
+		if err != nil {
+			klog.Fatal(err)
+		}
 	}
 }
 
@@ -144,44 +160,66 @@ func GoBuild(cmd *cobra.Command, args []string) {
 	os.RemoveAll(filepath.Join("bin", "apiserver"))
 	os.RemoveAll(filepath.Join("bin", "controller-manager"))
 
-	// Build the apiserver
-	path := filepath.Join("cmd", "apiserver", "main.go")
-	c := exec.Command("go", "build", "-o", filepath.Join(outputdir, "apiserver"), path)
-	c.Env = append(os.Environ(), "CGO_ENABLED=0")
-	klog.Infof("CGO_ENABLED=0")
-	if len(goos) > 0 {
-		c.Env = append(c.Env, fmt.Sprintf("GOOS=%s", goos))
-		klog.Infof(fmt.Sprintf("GOOS=%s", goos))
-	}
-	if len(goarch) > 0 {
-		c.Env = append(c.Env, fmt.Sprintf("GOARCH=%s", goarch))
-		klog.Infof(fmt.Sprintf("GOARCH=%s", goarch))
+	if buildApiserver() {
+		// Build the apiserver
+		path := filepath.Join("cmd", "apiserver", "main.go")
+		c := exec.Command("go", "build", "-o", filepath.Join(outputdir, "apiserver"), path)
+		c.Env = append(os.Environ(), "CGO_ENABLED=0")
+		klog.Infof("CGO_ENABLED=0")
+		if len(goos) > 0 {
+			c.Env = append(c.Env, fmt.Sprintf("GOOS=%s", goos))
+			klog.Infof(fmt.Sprintf("GOOS=%s", goos))
+		}
+		if len(goarch) > 0 {
+			c.Env = append(c.Env, fmt.Sprintf("GOARCH=%s", goarch))
+			klog.Infof(fmt.Sprintf("GOARCH=%s", goarch))
+		}
+
+		klog.Infof("%s", strings.Join(c.Args, " "))
+		c.Stderr = os.Stderr
+		c.Stdout = os.Stdout
+		err := c.Run()
+		if err != nil {
+			klog.Fatal(err)
+		}
 	}
 
-	klog.Infof("%s", strings.Join(c.Args, " "))
-	c.Stderr = os.Stderr
-	c.Stdout = os.Stdout
-	err := c.Run()
-	if err != nil {
-		klog.Fatal(err)
-	}
+	if buildController() {
+		// Build the controller manager
+		path := filepath.Join("cmd", "manager", "main.go")
+		c := exec.Command("go", "build", "-o", filepath.Join(outputdir, "controller-manager"), path)
+		c.Env = append(os.Environ(), "CGO_ENABLED=0")
+		if len(goos) > 0 {
+			c.Env = append(c.Env, fmt.Sprintf("GOOS=%s", goos))
+		}
+		if len(goarch) > 0 {
+			c.Env = append(c.Env, fmt.Sprintf("GOARCH=%s", goarch))
+		}
 
-	// Build the controller manager
-	path = filepath.Join("cmd", "manager", "main.go")
-	c = exec.Command("go", "build", "-o", filepath.Join(outputdir, "controller-manager"), path)
-	c.Env = append(os.Environ(), "CGO_ENABLED=0")
-	if len(goos) > 0 {
-		c.Env = append(c.Env, fmt.Sprintf("GOOS=%s", goos))
+		klog.Infof(strings.Join(c.Args, " "))
+		c.Stderr = os.Stderr
+		c.Stdout = os.Stdout
+		err := c.Run()
+		if err != nil {
+			klog.Fatal(err)
+		}
 	}
-	if len(goarch) > 0 {
-		c.Env = append(c.Env, fmt.Sprintf("GOARCH=%s", goarch))
-	}
+}
 
-	klog.Infof(strings.Join(c.Args, " "))
-	c.Stderr = os.Stderr
-	c.Stdout = os.Stdout
-	err = c.Run()
-	if err != nil {
-		klog.Fatal(err)
+func buildApiserver() bool {
+	for _, t := range buildTargets {
+		if t == apiserverTarget {
+			return true
+		}
 	}
+	return false
+}
+
+func buildController() bool {
+	for _, t := range buildTargets {
+		if t == controllerTarget {
+			return true
+		}
+	}
+	return false
 }
