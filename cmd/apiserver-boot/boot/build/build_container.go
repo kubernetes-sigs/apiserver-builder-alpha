@@ -50,6 +50,7 @@ func AddBuildContainer(cmd *cobra.Command) {
 func AddBuildContainerFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&Image, "image", "", "name of the image with tag")
 	cmd.Flags().BoolVar(&GenerateForBuild, "generate", true, "if true, generate code before building")
+	cmd.Flags().StringArrayVar(&buildTargets, "targets", []string{apiserverTarget, controllerTarget}, "The target binaries to build")
 }
 
 func RunBuildContainer(cmd *cobra.Command, args []string) {
@@ -66,7 +67,10 @@ func RunBuildContainer(cmd *cobra.Command, args []string) {
 	klog.Infof("Writing the Dockerfile.")
 
 	path := filepath.Join(dir, "Dockerfile")
-	util.WriteIfNotFound(path, "dockerfile-template", dockerfileTemplate, dockerfileTemplateArguments{})
+	util.WriteIfNotFound(path, "dockerfile-template", dockerfileTemplate, dockerfileTemplateArguments{
+		BuildApiserver:  buildApiserver(),
+		BuildController: buildController(),
+	})
 
 	klog.Infof("Building binaries for linux amd64.")
 
@@ -82,6 +86,8 @@ func RunBuildContainer(cmd *cobra.Command, args []string) {
 }
 
 type dockerfileTemplateArguments struct {
+	BuildApiserver  bool
+	BuildController bool
 }
 
 var dockerfileTemplate = `
@@ -90,6 +96,10 @@ FROM ubuntu:14.04
 RUN apt-get update
 RUN apt-get install -y ca-certificates
 
+{{ if .BuildApiserver }}
 ADD apiserver .
+{{ end }}
+{{ if .BuildController }}
 ADD controller-manager .
+{{ end }}
 `
