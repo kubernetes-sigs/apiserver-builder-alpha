@@ -19,8 +19,10 @@ package main
 import (
 	"os"
 	"runtime"
+	"flag"
 
 	"k8s.io/gengo/args"
+	"github.com/spf13/pflag"
 	"k8s.io/klog"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiregister-gen/generators"
 )
@@ -37,8 +39,14 @@ func main() {
 	arguments.OutputFileBaseName = "zz_generated.api.register"
 
 	// Custom args.
+	fs := &flag.FlagSet{}
+	klog.InitFlags(fs)
+	pfs := &pflag.FlagSet{}
+	pfs.AddGoFlagSet(fs)
+
 	customArgs := &generators.CustomArgs{}
 	arguments.CustomArgs = customArgs
+	arguments.AddFlags(pfs)
 
 	g := generators.Gen{}
 	if err := g.Execute(arguments); err != nil {

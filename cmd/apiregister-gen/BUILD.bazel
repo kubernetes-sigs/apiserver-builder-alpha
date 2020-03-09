@@ -7,6 +7,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//cmd/apiregister-gen/generators:go_default_library",
+        "@com_github_spf13_pflag//:go_default_library",
         "@io_k8s_gengo//args:go_default_library",
         "@io_k8s_klog//:go_default_library",
     ],
