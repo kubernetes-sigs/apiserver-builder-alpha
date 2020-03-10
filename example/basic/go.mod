@@ -3,41 +3,17 @@ module sigs.k8s.io/apiserver-builder-alpha/example/basic
 go 1.13
 
 require (
-	github.com/Azure/go-autorest v13.0.0+incompatible // indirect
-	github.com/asaskevich/govalidator v0.0.0-20171111151018-521b25f4b05f // indirect
-	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
-	github.com/go-logr/zapr v0.1.1 // indirect
-	github.com/go-openapi/analysis v0.0.0-20160815203709-b44dc874b601 // indirect
 	github.com/go-openapi/loads v0.0.0-20160704185440-18441dfa706d
 	github.com/go-openapi/runtime v0.0.0-20160704190703-11e322eeecc1
 	github.com/go-openapi/spec v0.19.2
 	github.com/go-openapi/validate v0.19.2
-	github.com/gogo/protobuf v1.3.1 // indirect
-	github.com/golang/groupcache v0.0.0-20181024230925-c65c006176ff // indirect
-	github.com/google/go-cmp v0.3.1 // indirect
-	github.com/gorilla/websocket v1.4.1 // indirect
-	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190723091251-e0797f438f94 // indirect
-	github.com/hashicorp/hcl v0.0.0-20171017181929-23c074d0eceb // indirect
-	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/lib/pq v1.2.0 // indirect
-	github.com/magiconair/properties v1.7.4 // indirect
-	github.com/mattn/go-sqlite3 v1.11.0 // indirect
-	github.com/mitchellh/mapstructure v0.0.0-20180111000720-b4575eea38cc // indirect
-	github.com/munnerz/goautoneg v0.0.0-20190414153302-2ae31c8b6b30 // indirect
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
-	github.com/pelletier/go-toml v1.1.0 // indirect
-	github.com/petar/GoLLRB v0.0.0-20130427215148-53be0d36a84c // indirect
 	github.com/rancher/kine v0.3.2
-	github.com/spf13/cast v1.1.0 // indirect
 	github.com/spf13/cobra v0.0.5
-	github.com/spf13/jwalterweatherman v0.0.0-20180109140146-7c0cea34c8ec // indirect
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v0.0.0-20160820190039-7fb2782df3d8
-	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
 	golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7
-	golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898 // indirect
-	gomodules.xyz/jsonpatch v2.0.0+incompatible // indirect
 	k8s.io/api v0.17.0
 	k8s.io/apiextensions-apiserver v0.17.0
 	k8s.io/apimachinery v0.17.0
@@ -47,10 +23,8 @@ require (
 	k8s.io/kube-aggregator v0.0.0-20190918161219-8c8f079fddc3
 	k8s.io/kube-openapi v0.0.0-20190816220812-743ec37842bf
 	k8s.io/utils v0.0.0-20190809000727-6c36bc71fc4a
+	sigs.k8s.io/apiserver-builder-alpha v0.0.0-20200303021738-6e294aee8ffe
 	sigs.k8s.io/controller-runtime v0.3.1-0.20191029211253-40070e2a1958
-	sigs.k8s.io/controller-tools v0.1.11-0.20190405182121-56d42b19e55a // indirect
-	sigs.k8s.io/kubebuilder v1.0.8 // indirect
-	sigs.k8s.io/structured-merge-diff v1.0.0 // indirect
 	sigs.k8s.io/testing_frameworks v0.1.1
 )
 
@@ -299,3 +273,5 @@ replace sigs.k8s.io/structured-merge-diff => sigs.k8s.io/structured-merge-diff v
 replace sigs.k8s.io/testing_frameworks => sigs.k8s.io/testing_frameworks v0.1.1
 
 replace sigs.k8s.io/yaml => sigs.k8s.io/yaml v1.1.0
+
+replace sigs.k8s.io/apiserver-builder-alpha => ../../../apiserver-builder-alpha

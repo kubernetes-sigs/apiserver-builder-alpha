@@ -299,3 +299,5 @@ replace sigs.k8s.io/structured-merge-diff => sigs.k8s.io/structured-merge-diff v
 replace sigs.k8s.io/testing_frameworks => sigs.k8s.io/testing_frameworks v0.1.1
 
 replace sigs.k8s.io/yaml => sigs.k8s.io/yaml v1.1.0
+
+replace sigs.k8s.io/apiserver-builder-alpha => ../../../apiserver-builder-alpha
