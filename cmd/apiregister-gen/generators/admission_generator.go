@@ -48,6 +48,7 @@ func (d *admissionGenerator) Imports(c *generator.Context) []string {
 		"sigs.k8s.io/apiserver-builder-alpha/pkg/cmd/server",
 		"k8s.io/client-go/rest",
 		`genericserver "k8s.io/apiserver/pkg/server"`,
+		"k8s.io/apiserver/pkg/admission",
 	}
 	for _, kind := range d.admissionKinds {
 		imports = append(imports, fmt.Sprintf(
