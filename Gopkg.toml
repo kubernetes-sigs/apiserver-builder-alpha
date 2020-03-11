@@ -43,7 +43,7 @@ required = [
 
 # Comment to update deps with dep tool
 #[[constraint]]
-#  version = "v1.16.alpha.1"
+#  version = "v1.16.alpha.2"
 #  name = "sigs.k8s.io/apiserver-builder-alpha"
 
 [[constraint]]
