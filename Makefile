@@ -50,7 +50,6 @@ install: build
 	@echo "GOOS: $(GOOS)"
 	@echo "GOARCH: $(GOARCH)"
 	@echo "ARCH: $(ARCH)"
-	GOOS=$(GOOS) GOARCH=$(GOARCH) go run ./cmd/apiserver-builder-release/main.go install --version $(VERSION)
 
 .PHONY: clean
 clean:
