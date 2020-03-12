@@ -3,7 +3,6 @@ module sigs.k8s.io/apiserver-builder-alpha
 go 1.13
 
 require (
-	github.com/emicklei/go-restful v2.9.5+incompatible
 	github.com/go-logr/zapr v0.1.1 // indirect
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/protobuf v1.3.4 // indirect
@@ -11,7 +10,8 @@ require (
 	github.com/gorilla/websocket v1.4.1 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190723091251-e0797f438f94 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/markbates/inflect v1.0.4
+	github.com/kubernetes-incubator/reference-docs v0.0.0 // indirect
+	github.com/markbates/inflect v0.0.0-00010101000000-000000000000
 	github.com/onsi/ginkgo v1.11.0
 	github.com/onsi/gomega v1.8.1
 	github.com/pkg/errors v0.8.1
@@ -42,3 +42,5 @@ replace sigs.k8s.io/controller-tools => sigs.k8s.io/controller-tools v0.1.12
 replace sigs.k8s.io/kubebuilder => sigs.k8s.io/kubebuilder v1.0.8
 
 replace github.com/markbates/inflect => github.com/markbates/inflect v1.0.4
+
+replace github.com/kubernetes-incubator/reference-docs => github.com/kubernetes-sigs/reference-docs v0.0.0-20170929004150-fcf65347b256

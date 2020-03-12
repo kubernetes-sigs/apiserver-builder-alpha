@@ -1705,3 +1705,12 @@ def go_repositories():
         sum = "h1:dOmIZBMfhcHS09XZkMyUgkq5trg3/jRyJYFZUiaOp8E=",
         version = "v3.0.0",
     )
+    go_repository(
+        name = "com_github_kubernetes_incubator_reference_docs",
+        build_file_generation = "on",
+        build_file_proto_mode = "disable",
+        importpath = "github.com/kubernetes-incubator/reference-docs",
+        replace = "github.com/kubernetes-sigs/reference-docs",
+        sum = "h1:5H0rNjhi9XVX98G0hC2ELjYJFbtBcfwQ61nsaop+6d0=",
+        version = "v0.0.0-20170929004150-fcf65347b256",
+    )
