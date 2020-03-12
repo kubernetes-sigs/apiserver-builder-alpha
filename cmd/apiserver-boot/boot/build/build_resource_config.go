@@ -307,7 +307,7 @@ spec:
     api: {{ .Name }}
     apiserver: "true"
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{.Name}}
@@ -316,6 +316,10 @@ metadata:
     api: {{.Name}}
     apiserver: "true"
 spec:
+  selector:
+    matchLabels:
+      api: {{.Name}}
+      apiserver: "true"
   replicas: 1
   template:
     metadata:
@@ -373,12 +377,15 @@ spec:
         secret:
           secretName: {{ .Name }}
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: etcd
   namespace: {{ .Namespace }}
 spec:
+  selector:
+    matchLabels:
+      app: etcd
   serviceName: "etcd"
   replicas: 1
   template:
