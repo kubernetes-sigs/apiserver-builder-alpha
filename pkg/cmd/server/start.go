@@ -315,7 +315,12 @@ func (o ServerOptions) Config(tweakConfigFuncs ...func(config *apiserver.Config)
 							return plugin, nil
 						})
 					}
-					return o.RecommendedOptions.Admission.ApplyTo(cfg, kubeInformerFactory, loopbackKubeConfig, pluginInitializers...)
+					return o.RecommendedOptions.Admission.ApplyTo(
+						cfg,
+						kubeInformerFactory,
+						loopbackKubeConfig,
+						o.RecommendedOptions.FeatureGate,
+						pluginInitializers...)
 				} else {
 					klog.Info("skip admission controller initialization because `--kubeconfig` is not specified")
 				}
