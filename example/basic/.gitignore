@@ -10,3 +10,4 @@ pkg/openapi/openapi_generated.go
 vendor/**
 Gopkg.*
 violations.report
+kubernetes/*

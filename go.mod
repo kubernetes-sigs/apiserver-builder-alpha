@@ -37,6 +37,8 @@ require (
 
 replace sigs.k8s.io/apiserver-builder-alpha/test => ./test
 
+replace sigs.k8s.io/apiserver-builder-alpha/example/basic => ./example/basic
+
 replace sigs.k8s.io/controller-tools => sigs.k8s.io/controller-tools v0.1.12
 
 replace sigs.k8s.io/kubebuilder => sigs.k8s.io/kubebuilder v1.0.8
