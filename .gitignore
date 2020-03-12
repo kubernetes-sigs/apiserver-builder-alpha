@@ -2,3 +2,4 @@ bazel-*
 .idea/***
 example/violations.report
 db/**
+test/bin/**
