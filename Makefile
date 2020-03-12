@@ -98,3 +98,13 @@ package-linux-amd64-rpm: ## Create an RPM package. Requires jordansissel/fpm, rp
 	  --package $(NAME)-$(VERSION)-amd64.rpm \
 	  --prefix /usr/local/apiserver-builder \
 	  $(NAME)-$(VERSION)-linux-amd64.tar.gz
+
+gazelle-reset:
+	bazel run \
+		//:gazelle -- \
+		update-repos \
+		--from_file=go.mod \
+		--to_macro=repos.bzl%go_repositories \
+		--build_file_generation=on \
+		--build_file_proto_mode=disable \
+		--prune
