@@ -17,12 +17,12 @@ limitations under the License.
 package init_repo
 
 import (
-	"k8s.io/klog"
 	"os"
 	"path/filepath"
 
-	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
+	"k8s.io/klog"
+	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 	"sigs.k8s.io/kubebuilder/pkg/scaffold"
 	"sigs.k8s.io/kubebuilder/pkg/scaffold/input"
 	"sigs.k8s.io/kubebuilder/pkg/scaffold/manager"
@@ -36,7 +36,6 @@ var repoCmd = &cobra.Command{
 	Run:     RunInitRepo,
 }
 
-var installDeps bool
 var domain string
 var copyright string
 
@@ -46,11 +45,6 @@ func AddInitRepo(cmd *cobra.Command) {
 
 	// Hide this flag by default
 	repoCmd.Flags().StringVar(&copyright, "copyright", "boilerplate.go.txt", "Location of copyright boilerplate file.")
-	repoCmd.Flags().
-		BoolVar(&installDeps, "install-deps", true, "if true, install the vendored deps packaged with apiserver-boot.")
-	repoCmd.Flags().
-		BoolVar(&Update, "update", false, "if true, don't touch Gopkg.toml or Gopkg.lock, and replace versions of packages managed by apiserver-boot.")
-	repoCmd.Flags().MarkHidden("install-deps")
 }
 
 func RunInitRepo(cmd *cobra.Command, args []string) {
@@ -67,20 +61,16 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 
 	createPackage(cr, filepath.Join("pkg"), "")
 	createPackage(cr, filepath.Join("pkg", "controller"), "")
-	createPackage(cr, filepath.Join("pkg", "openapi"), "//go:generate " +
-		"go run ../../vendor/k8s.io/kube-openapi/cmd/openapi-gen/openapi-gen.go " +
-		"-o . " +
-		"--output-package ../../pkg/openapi " +
-		"--report-filename violations.report " +
-		"-i ../../pkg/apis/...,../../vendor/k8s.io/api/core/v1,../../vendor/k8s.io/apimachinery/pkg/apis/meta/v1 " +
+	createPackage(cr, filepath.Join("pkg", "openapi"), "//go:generate "+
+		"go run ../../vendor/k8s.io/kube-openapi/cmd/openapi-gen/openapi-gen.go "+
+		"-o . "+
+		"--output-package ../../pkg/openapi "+
+		"--report-filename violations.report "+
+		"-i ../../pkg/apis/...,../../vendor/k8s.io/api/core/v1,../../vendor/k8s.io/apimachinery/pkg/apis/meta/v1 "+
 		"-h ../../boilerplate.go.txt")
 
 	os.MkdirAll("bin", 0700)
 
-	if installDeps {
-		klog.Infof("installing vendor/ directory.  To disable this, run with --install-deps=false.")
-		RunVendorInstall(nil, nil)
-	}
 }
 
 func createKubeBuilderProjectFile() {

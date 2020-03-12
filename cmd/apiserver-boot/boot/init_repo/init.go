@@ -34,7 +34,6 @@ apiserver-boot init repo --domain example.com
 func AddInit(cmd *cobra.Command) {
 	cmd.AddCommand(initCmd)
 	AddInitRepo(initCmd)
-	AddVendorInstallCmd(initCmd)
 }
 
 func RunInit(cmd *cobra.Command, args []string) {
