@@ -31,7 +31,6 @@ require (
 	sigs.k8s.io/controller-runtime v0.5.1
 	sigs.k8s.io/controller-tools v0.1.12 // indirect
 	sigs.k8s.io/kubebuilder v1.0.8
-	sigs.k8s.io/structured-merge-diff/v3 v3.0.0 // indirect
 	sigs.k8s.io/testing_frameworks v0.1.1
 )
 
@@ -46,3 +45,5 @@ replace sigs.k8s.io/kubebuilder => sigs.k8s.io/kubebuilder v1.0.8
 replace github.com/markbates/inflect => github.com/markbates/inflect v1.0.4
 
 replace github.com/kubernetes-incubator/reference-docs => github.com/kubernetes-sigs/reference-docs v0.0.0-20170929004150-fcf65347b256
+
+replace sigs.k8s.io/structured-merge-diff => sigs.k8s.io/structured-merge-diff v1.0.1-0.20191108220359-b1b620dd3f06
