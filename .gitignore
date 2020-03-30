@@ -3,3 +3,4 @@ bazel-*
 example/violations.report
 db/**
 test/bin/**
+vendor/**

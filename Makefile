@@ -36,6 +36,7 @@ URL=https://github.com/$(VENDOR)/$(NAME)
 LICENSE=Apache-2.0
 GOOS?=$(shell go env GOOS)
 GOARCH?=$(shell go env GOARCH)
+GOPATH?=$(shell go env GOPATH)
 
 .PHONY: default
 default: install
@@ -50,6 +51,7 @@ install: build
 	@echo "GOOS: $(GOOS)"
 	@echo "GOARCH: $(GOARCH)"
 	@echo "ARCH: $(ARCH)"
+	cp release/$(VERSION)/bin/* $(GOPATH)/bin/
 
 .PHONY: clean
 clean:

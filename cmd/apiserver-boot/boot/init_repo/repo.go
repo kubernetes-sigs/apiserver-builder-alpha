@@ -30,8 +30,8 @@ import (
 
 var repoCmd = &cobra.Command{
 	Use:     "repo",
-	Short:   "Initialize a repo with the apiserver scaffolding and vendor/ dependencies",
-	Long:    `Initialize a repo with the apiserver scaffolding and vendor/ dependencies`,
+	Short:   "Initialize a repo with the apiserver scaffolding",
+	Long:    `Initialize a repo with the apiserver scaffolding`,
 	Example: `apiserver-boot init repo --domain mydomain`,
 	Run:     RunInitRepo,
 }
@@ -70,6 +70,25 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 		"-h ../../boilerplate.go.txt")
 
 	os.MkdirAll("bin", 0700)
+
+	e, err := os.Executable()
+	if err != nil {
+		klog.Fatal("unable to get directory of apiserver-builder tools")
+	}
+
+	e = filepath.Dir(filepath.Dir(e))
+
+	// read the file
+	f := filepath.Join(e, "bin", "mod.tar.gz")
+	fr, err := os.Open(f)
+	if err != nil {
+		klog.Fatalf("failed to read go mod tar file %s %v", f, err)
+	}
+	defer fr.Close()
+
+	if err = util.Untar(fr, "."); err != nil {
+		klog.Fatalf("Could not untar from mod.tar.gz")
+	}
 
 }
 

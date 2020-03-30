@@ -15,6 +15,7 @@ pkg_tar(
         "@io_k8s_code_generator//cmd/informer-gen",
         "@io_k8s_code_generator//cmd/lister-gen",
         "@io_k8s_kube_openapi//cmd/openapi-gen",
+        "//:mod",
     ],
     extension = "tar.gz",
     mode = "0755",
