@@ -1,4 +1,4 @@
-module sigs.k8s.io/apiserver-builder-alpha
+module {{.Repo}}
 
 go 1.13
 

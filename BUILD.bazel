@@ -18,10 +18,7 @@ gazelle(
 
 pkg_tar(
     name = "mod",
-    srcs = glob([
-        "pkg/**",
-        "vendor/**",
-    ]) + [
+    srcs = [
         "go.mod.new",
         "go.sum",
     ],

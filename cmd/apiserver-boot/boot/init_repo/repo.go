@@ -17,8 +17,11 @@ limitations under the License.
 package init_repo
 
 import (
+	"bytes"
+	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"k8s.io/klog"
@@ -86,8 +89,19 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 	}
 	defer fr.Close()
 
-	if err = util.Untar(fr, "."); err != nil {
-		klog.Fatalf("Could not untar from mod.tar.gz")
+	if err = util.Untar(fr, ".", map[string]func(reader io.Reader)io.Reader{
+		"go.mod": func(reader io.Reader) io.Reader {
+			klog.Info("rendering go mod file")
+			buf := new(bytes.Buffer)
+			if _, err := io.Copy(buf, reader); err != nil {
+				klog.Fatal("failed rendering mod file", err)
+				return nil
+			}
+			newModContent := strings.Replace(string(buf.Bytes()), "{{.Repo}}", util.Repo, 1)
+			return bytes.NewBufferString(newModContent)
+		},
+	}); err != nil {
+		klog.Fatalf("Could not untar from mod.tar.gz: %v", err)
 	}
 
 }
