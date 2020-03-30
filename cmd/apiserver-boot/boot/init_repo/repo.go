@@ -65,7 +65,7 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 	createPackage(cr, filepath.Join("pkg"), "")
 	createPackage(cr, filepath.Join("pkg", "controller"), "")
 	createPackage(cr, filepath.Join("pkg", "openapi"), "//go:generate "+
-		"go run ../../vendor/k8s.io/kube-openapi/cmd/openapi-gen/openapi-gen.go "+
+		"openapi-gen"+
 		"-o . "+
 		"--output-package ../../pkg/openapi "+
 		"--report-filename violations.report "+
@@ -262,7 +262,7 @@ var apisDocTemplate = `
 {{.BoilerPlate}}
 
 
-//go:generate go run ../../vendor/sigs.k8s.io/apiserver-builder-alpha/cmd/apiregister-gen/main.go --input-dirs ./... -h ../../boilerplate.go.txt
+//go:generate apiregister-gen --input-dirs ./... -h ../../boilerplate.go.txt
 
 //
 // +domain={{.Domain}}

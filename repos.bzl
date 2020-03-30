@@ -861,6 +861,7 @@ def go_repositories():
         build_file_generation = "on",
         build_file_proto_mode = "disable",
         importpath = "sigs.k8s.io/structured-merge-diff",
+        replace = "sigs.k8s.io/structured-merge-diff",
         sum = "h1:zD2IemQ4LmOcAumeiyDWXKUI2SO0NYDe3H6QGvPOVgU=",
         version = "v1.0.1-0.20191108220359-b1b620dd3f06",
     )
@@ -1697,14 +1698,7 @@ def go_repositories():
         sum = "h1:5fh1gzTFhfae06u3hzHYO9xe3l3v3nW5Pwt3naLTP5g=",
         version = "v1.0.4",
     )
-    go_repository(
-        name = "io_k8s_sigs_structured_merge_diff_v3",
-        build_file_generation = "on",
-        build_file_proto_mode = "disable",
-        importpath = "sigs.k8s.io/structured-merge-diff/v3",
-        sum = "h1:dOmIZBMfhcHS09XZkMyUgkq5trg3/jRyJYFZUiaOp8E=",
-        version = "v3.0.0",
-    )
+
     go_repository(
         name = "com_github_kubernetes_incubator_reference_docs",
         build_file_generation = "on",
