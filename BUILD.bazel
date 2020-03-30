@@ -17,17 +17,14 @@ gazelle(
 )
 
 pkg_tar(
-    name = "vendor",
-    srcs = glob([
-        "pkg/**",
-        "vendor/**",
-    ]) + [
-        "go.mod",
+    name = "mod",
+    srcs = [
+        "go.mod.new",
         "go.sum",
     ],
     extension = "tar.gz",
     remap_paths = {
-        "pkg": "vendor/sigs.k8s.io/apiserver-builder-alpha/pkg",
+        "go.mod.new": "go.mod",
     },
     mode = "0644",
     strip_prefix = ".",

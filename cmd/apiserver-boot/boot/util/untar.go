@@ -26,11 +26,11 @@ import (
 // buildlet can use this code somehow.
 
 // Untar reads the gzip-compressed tar file from r and writes it into dir.
-func Untar(r io.Reader, dir string) error {
-	return untar(r, dir)
+func Untar(r io.Reader, dir string, renderFunc map[string]func(reader io.Reader) io.Reader) error {
+	return untar(r, dir, renderFunc)
 }
 
-func untar(r io.Reader, dir string) (err error) {
+func untar(r io.Reader, dir string, renderFunc map[string]func(reader io.Reader) io.Reader) (err error) {
 	t0 := time.Now()
 	nFiles := 0
 	madeDir := map[string]bool{}
@@ -82,14 +82,20 @@ func untar(r io.Reader, dir string) (err error) {
 			if err != nil {
 				return err
 			}
-			n, err := io.Copy(wf, tr)
+			var r io.Reader = tr
+			rendered := false
+			if renderFunc != nil && renderFunc[abs] != nil{
+				r = renderFunc[abs](r)
+				rendered = true
+			}
+			n, err := io.Copy(wf, r)
 			if closeErr := wf.Close(); closeErr != nil && err == nil {
 				err = closeErr
 			}
 			if err != nil {
 				return fmt.Errorf("error writing to %s: %v", abs, err)
 			}
-			if n != f.Size {
+			if !rendered && n != f.Size {
 				return fmt.Errorf("only wrote %d bytes to %s; expected %d", n, abs, f.Size)
 			}
 			modTime := f.ModTime
