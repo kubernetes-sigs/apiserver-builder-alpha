@@ -92,8 +92,8 @@ var groupTemplate = `
 {{.BoilerPlate}}
 
 
-//go:generate go run ../../../vendor/k8s.io/code-generator/cmd/deepcopy-gen/main.go -O zz_generated.deepcopy -i . -h ../../../boilerplate.go.txt
-//go:generate go run ../../../vendor/k8s.io/code-generator/cmd/defaulter-gen/main.go -O zz_generated.defaults -i . -h ../../../boilerplate.go.txt
+//go:generate deepcopy-gen -O zz_generated.deepcopy -i . -h ../../../boilerplate.go.txt
+//go:generate defaulter-gen -O zz_generated.defaults -i . -h ../../../boilerplate.go.txt
 
 // +k8s:deepcopy-gen=package,register
 // +groupName={{.Name}}.{{.Domain}}
