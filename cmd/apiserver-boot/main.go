@@ -28,7 +28,6 @@ import (
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/create"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/init_repo"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/run"
-	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/update"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/version"
 )
@@ -57,7 +56,6 @@ func main() {
 	create.AddCreate(cmd)
 	build.AddBuild(cmd)
 	run.AddRun(cmd)
-	update.AddUpdate(cmd)
 	version.AddVersion(cmd)
 
 	if err := cmd.Execute(); err != nil {

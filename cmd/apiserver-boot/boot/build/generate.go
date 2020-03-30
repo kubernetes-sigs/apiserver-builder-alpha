@@ -180,6 +180,8 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 			"k8s.io/apimachinery/pkg/version",
 			"k8s.io/apimachinery/pkg/runtime",
 			"k8s.io/apimachinery/pkg/util/intstr",
+			"k8s.io/api/core/v1",
+			"k8s.io/api/apps/v1",
 		}
 
 		// Add any vendored apis from core

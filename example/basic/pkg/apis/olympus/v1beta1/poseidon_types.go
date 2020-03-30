@@ -17,8 +17,8 @@ limitations under the License.
 package v1beta1
 
 import (
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -39,7 +39,7 @@ type Poseidon struct {
 // PoseidonSpec defines the desired state of Poseidon
 type PoseidonSpec struct {
 	PodSpec    v1.PodTemplate
-	Deployment v1beta1.Deployment
+	Deployment appsv1.Deployment
 }
 
 // PoseidonStatus defines the observed state of Poseidon

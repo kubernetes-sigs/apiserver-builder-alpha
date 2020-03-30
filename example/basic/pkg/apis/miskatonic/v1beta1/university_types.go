@@ -18,7 +18,7 @@ package v1beta1
 
 import (
 	corev1 "k8s.io/api/core/v1"
-	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
+	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -58,7 +58,7 @@ type UniversitySpec struct {
 
 	ServiceSpec corev1.ServiceSpec `json:"service_spec,omitempty"`
 
-	Rollout []extensionsv1beta1.Deployment `json:"rollout,omitempty"`
+	Rollout []appsv1.Deployment `json:"rollout,omitempty"`
 }
 
 // Require that the unversioned struct is manually created.  This is *NOT* the default behavior for

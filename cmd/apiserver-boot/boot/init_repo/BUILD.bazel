@@ -5,7 +5,6 @@ go_library(
     srcs = [
         "init.go",
         "repo.go",
-        "vendor.go",
     ],
     importpath = "sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/init_repo",
     visibility = ["//visibility:public"],
