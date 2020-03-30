@@ -24,7 +24,7 @@ check:
 	go vet $$(go list ./... | grep -vE '(clientset|listers|informers)_generated')
 
 build: cmds
-	bin/apiserver-boot build executables --vendor-dir ../../
+	bin/apiserver-boot build executables
 
 # Build docs
 docs: cleandocs build
