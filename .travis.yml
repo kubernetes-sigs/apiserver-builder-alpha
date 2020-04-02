@@ -7,8 +7,8 @@ go_import_path: sigs.k8s.io/apiserver-builder-alpha
 
 cache:
   directories:
-  - $HOME/.glide
-  - /usr/local/kubebuilder/bin
+  - /usr/local/kubebuilder
+  - /home/travis/.cache/bazel
 
 git:
   depth: 3
@@ -16,9 +16,11 @@ git:
 before_install:
   - wget https://github.com/bazelbuild/bazel/releases/download/0.29.1/bazel_0.29.1-linux-x86_64.deb
   - sudo dpkg -i bazel_0.29.1-linux-x86_64.deb
+  - scripts/install_etcd.sh
+  - test/install-kubebuilder.sh
 
 install:
-  - scripts/install_etcd.sh
+  - make install
 
 jobs:
   include:

@@ -25,7 +25,7 @@ test: build check
 check: build
 	go vet $$(go list ./... | grep -vE '(clientset|listers|informers)_generated')
 
-skeleton: cmds
+skeleton:
 	apiserver-boot init repo --domain sample.kubernetes.io
 	apiserver-boot create group version resource --group storage --version v1 --kind VolumeClaim $(NON_INTERACTIVE_FLAG)
 	apiserver-boot create group version resource --group storage --version v1 --kind SnapshotClaim $(NON_INTERACTIVE_FLAG)
@@ -38,12 +38,6 @@ build: cmds skeleton
 # Build docs
 docs: cleandocs build
 	apiserver-boot build docs --server bin/apiserver
-
-# Build the tools
-# Note: These are available in the apiserver-builder release tar.gz
-cmds:
-	./install-kubebuilder.sh
-	./build-tools.sh
 
 # Clean up functions
 clean: cleangenerated cleandocs

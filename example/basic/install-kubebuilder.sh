@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+[[ -f /usr/local/kubebuilder/bin/kubebuilder ]] && exit 0
+
 version=1.0.8 # latest stable version
 arch=amd64
 os=linux
