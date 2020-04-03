@@ -32,7 +32,7 @@ require (
 	sigs.k8s.io/controller-tools v0.1.12 // indirect
 	sigs.k8s.io/kubebuilder v1.0.8
 	sigs.k8s.io/testing_frameworks v0.1.1
-	sigs.k8s.io/apiserver-builder-alpha v1.16.3-0.20200330030152-67096ca470a2
+	sigs.k8s.io/apiserver-builder-alpha v1.17.0
 )
 
 replace sigs.k8s.io/controller-tools => sigs.k8s.io/controller-tools v0.1.12
