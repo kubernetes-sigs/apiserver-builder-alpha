@@ -61,7 +61,7 @@ clean:
 build: clean ## Create release artefacts for darwin:amd64, linux:amd64 and windows:amd64. Requires etcd, glide, hg.
 	mkdir -p release/$(VERSION)/src
 	bazel build --platforms=@io_bazel_rules_go//go/toolchain:$(GOOS)_$(GOARCH) cmd:apiserver-builder
-	tar xzf bazel-bin/vendor.tar.gz -C release/$(VERSION)/src
+	ls -lh bazel-bin/cmd
 	cp bazel-bin/cmd/apiserver-builder.tar.gz apiserver-builder-alpha-$(VERSION)-$(GOOS)-$(GOARCH).tar.gz
 	tar xzf apiserver-builder-alpha-$(VERSION)-$(GOOS)-$(GOARCH).tar.gz -C release/$(VERSION)
 

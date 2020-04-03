@@ -4,8 +4,8 @@ set -x -e
 
 if [ "$TEST" == "example" ]; then
 	cd example/basic
-	PATH=$PATH:/tmp/test-etcd make test
+	PATH=$GOPATH/bin:$PATH:/tmp/test-etcd make test
 elif [ "$TEST" == "test" ]; then
 	cd test
-	PATH=$PATH:/tmp/test-etcd:`pwd`/bin/ make test
+	PATH=$GOPATH/bin:$PATH:/tmp/test-etcd make test
 fi

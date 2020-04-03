@@ -23,24 +23,19 @@ test: build check
 check:
 	go vet $$(go list ./... | grep -vE '(clientset|listers|informers)_generated')
 
-build: cmds
-	bin/apiserver-boot build executables
+build:
+	apiserver-boot build executables
 
 # Build docs
 docs: cleandocs build
-	bin/apiserver-boot build docs --server bin/apiserver
+	apiserver-boot build docs --server bin/apiserver
 
-# Build the tools
-# Note: These are available in the apiserver-builder release tar.gz
-cmds:
-	./install-kubebuilder.sh
-	./build-tools.sh
 
 # Clean up functions
 clean: cleangenerated cleandocs
 
 cleangenerated: cmds
-	bin/apiserver-boot build generated clean
+	apiserver-boot build generated clean
 
 cleandocs: cmds
-	bin/apiserver-boot build docs clean
+	apiserver-boot build docs clean
