@@ -11,7 +11,7 @@ and providing a `newKindREST(generic.RESTOptionsGetter) rest.Storage {}` functio
 storage.
 
 For more information on custom REST implementations, see the
-[subresources doc](https://sigs.k8s.io/apiserver-builder-alpha/blob/master/docs/adding_subresources.md)
+[subresources doc](https://sigs.k8s.io/apiserver-builder-alpha/docs/adding_subresources.md)
 
 ```go
 // +genclient=true
