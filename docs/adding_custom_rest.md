@@ -1,6 +1,6 @@
 # Adding resources
 
-**Important:** Read [this doc](https://sigs.k8s.io/apiserver-builder-alpha/blob/master/docs/adding_resources.md)
+**Important:** Read [this doc](https://sigs.k8s.io/apiserver-builder-alpha/docs/adding_resources.md)
 first to understand how resources are added
 
 ## Create a resource with custom rest
