@@ -19,7 +19,7 @@ New server workflow:
 ## Download the latest release
 
 Make sure you downloaded and installed the latest release as described
-[here](https://sigs.k8s.io/apiserver-builder-alpha/blob/master/docs/installing.md)
+[here](https://sigs.k8s.io/apiserver-builder-alpha/docs/installing.md)
 
 ## Create your Go project
 
