@@ -7,8 +7,9 @@ go_import_path: sigs.k8s.io/apiserver-builder-alpha
 
 cache:
   directories:
-  - /usr/local/kubebuilder
-  - /home/travis/.cache/bazel
+  - /usr/local/kubebuilder/
+  - $GOPATH/pkg/mod
+  - /home/travis/.cache/bazel/
 
 git:
   depth: 3
