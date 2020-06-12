@@ -260,7 +260,6 @@ func (o ServerOptions) Config(tweakConfigFuncs ...func(config *apiserver.Config)
 
 	err = applyOptions(
 		&serverConfig.Config,
-		o.RecommendedOptions.Etcd.ApplyTo,
 		func(cfg *genericapiserver.Config) error {
 			return o.RecommendedOptions.SecureServing.ApplyTo(&cfg.SecureServing, &cfg.LoopbackClientConfig)
 		},
@@ -338,6 +337,11 @@ func (o ServerOptions) Config(tweakConfigFuncs ...func(config *apiserver.Config)
 				return o.RecommendedOptions.Etcd.ApplyWithStorageFactoryTo(storageFactory, cfg)
 			},
 		)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err := o.RecommendedOptions.Etcd.ApplyTo(&serverConfig.Config)
 		if err != nil {
 			return nil, err
 		}
