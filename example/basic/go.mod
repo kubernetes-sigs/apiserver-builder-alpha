@@ -20,7 +20,7 @@ require (
 	k8s.io/kube-openapi v0.0.0-20200410145947-61e04a5be9a6
 	k8s.io/utils v0.0.0-20200324210504-a9aa75ae1b89
 	sigs.k8s.io/apiserver-builder-alpha v0.0.0-00010101000000-000000000000
-	sigs.k8s.io/controller-runtime v0.5.1
+	sigs.k8s.io/controller-runtime v0.6.0
 	sigs.k8s.io/kubebuilder v1.0.8
 	sigs.k8s.io/testing_frameworks v0.1.1
 )

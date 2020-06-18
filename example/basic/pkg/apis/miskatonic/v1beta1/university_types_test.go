@@ -17,6 +17,8 @@ limitations under the License.
 package v1beta1_test
 
 import (
+	"context"
+
 	. "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/miskatonic/v1beta1"
 	. "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/client/clientset_generated/clientset/typed/miskatonic/v1beta1"
 	corev1 "k8s.io/api/core/v1"
@@ -46,7 +48,7 @@ var _ = Describe("University", func() {
 	})
 
 	AfterEach(func() {
-		client.Delete(instance.Name, &metav1.DeleteOptions{})
+		client.Delete(context.TODO(), instance.Name, metav1.DeleteOptions{})
 	})
 
 	Describe("when sending a storage request", func() {
@@ -55,27 +57,27 @@ var _ = Describe("University", func() {
 				client = cs.MiskatonicV1beta1().Universities("university-test-valid")
 
 				By("returning success from the create request")
-				actual, err := client.Create(&instance)
+				actual, err := client.Create(context.TODO(), &instance, metav1.CreateOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
 
 				By("defaulting the expected fields")
 				Expect(actual.Spec).To(Equal(expected.Spec))
 
 				By("returning the item for list requests")
-				result, err := client.List(metav1.ListOptions{})
+				result, err := client.List(context.TODO(), metav1.ListOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(result.Items).To(HaveLen(1))
 				Expect(result.Items[0].Spec).To(Equal(expected.Spec))
 
 				By("returning the item for get requests")
-				actual, err = client.Get(instance.Name, metav1.GetOptions{})
+				actual, err = client.Get(context.TODO(), instance.Name, metav1.GetOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(actual.Spec).To(Equal(expected.Spec))
 
 				By("deleting the item for delete requests")
-				err = client.Delete(instance.Name, &metav1.DeleteOptions{})
+				err = client.Delete(context.TODO(), instance.Name, metav1.DeleteOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
-				result, err = client.List(metav1.ListOptions{})
+				result, err = client.List(context.TODO(), metav1.ListOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(result.Items).To(HaveLen(0))
 			})
@@ -85,7 +87,7 @@ var _ = Describe("University", func() {
 				client = cs.MiskatonicV1beta1().Universities("university-test-too-many")
 				val := 151
 				instance.Spec.MaxStudents = &val
-				_, err := client.Create(&instance)
+				_, err := client.Create(context.TODO(), &instance, metav1.CreateOptions{})
 				Expect(err).Should(HaveOccurred())
 			})
 
@@ -93,7 +95,7 @@ var _ = Describe("University", func() {
 				client = cs.MiskatonicV1beta1().Universities("university-test-not-enough")
 				val := 0
 				instance.Spec.MaxStudents = &val
-				_, err := client.Create(&instance)
+				_, err := client.Create(context.TODO(), &instance, metav1.CreateOptions{})
 				Expect(err).Should(HaveOccurred())
 			})
 		})
@@ -102,7 +104,7 @@ var _ = Describe("University", func() {
 	Describe("when sending a campus request", func() {
 		It("should set the faculty count", func() {
 			client = cs.MiskatonicV1beta1().Universities("university-test-campus")
-			_, err := client.Create(&instance)
+			_, err := client.Create(context.TODO(), &instance, metav1.CreateOptions{})
 			Expect(err).ShouldNot(HaveOccurred())
 
 			campus := &UniversityCampus{
@@ -114,11 +116,11 @@ var _ = Describe("University", func() {
 				Name(instance.Name).
 				Resource("universities").
 				SubResource("campus").
-				Body(campus).Do().Error()
+				Body(campus).Do(context.TODO()).Error()
 			Expect(err).ShouldNot(HaveOccurred())
 
 			expected.Spec.FacultySize = 30
-			actual, err := client.Get(instance.Name, metav1.GetOptions{})
+			actual, err := client.Get(context.TODO(), instance.Name, metav1.GetOptions{})
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(actual.Spec).Should(Equal(expected.Spec))
 		})

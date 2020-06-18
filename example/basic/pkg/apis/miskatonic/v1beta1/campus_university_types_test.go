@@ -17,6 +17,7 @@ limitations under the License.
 package v1beta1_test
 
 import (
+	"context"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -42,13 +43,13 @@ var _ = Describe("University", func() {
 	})
 
 	AfterEach(func() {
-		client.Delete(instance.Name, &metav1.DeleteOptions{})
+		client.Delete(context.TODO(), instance.Name, metav1.DeleteOptions{})
 	})
 
 	Describe("when sending a campus request", func() {
 		It("should return success", func() {
 			client = cs.MiskatonicV1beta1().Universities("university-test-campus")
-			_, err := client.Create(&instance)
+			_, err := client.Create(context.TODO(), &instance, metav1.CreateOptions{})
 			Expect(err).ShouldNot(HaveOccurred())
 
 			campus := &UniversityCampus{
@@ -60,11 +61,11 @@ var _ = Describe("University", func() {
 				Name(instance.Name).
 				Resource("universities").
 				SubResource("campus").
-				Body(campus).Do().Error()
+				Body(campus).Do(context.TODO()).Error()
 			Expect(err).ShouldNot(HaveOccurred())
 
 			expected.Spec.FacultySize = 30
-			actual, err := client.Get(instance.Name, metav1.GetOptions{})
+			actual, err := client.Get(context.TODO(), instance.Name, metav1.GetOptions{})
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(actual.Spec).Should(Equal(expected.Spec))
 		})
