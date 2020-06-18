@@ -38,11 +38,11 @@ require (
 	golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7
 	golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898 // indirect
 	gomodules.xyz/jsonpatch v2.0.0+incompatible // indirect
-	k8s.io/api v0.17.0
-	k8s.io/apiextensions-apiserver v0.17.0
-	k8s.io/apimachinery v0.17.0
+	k8s.io/api v0.18.4
+	k8s.io/apiextensions-apiserver v0.18.4
+	k8s.io/apimachinery v0.18.4
 	k8s.io/apiserver v0.0.0-20190918160949-bfa5e2e684ad
-	k8s.io/client-go v0.17.0
+	k8s.io/client-go v0.18.4
 	k8s.io/klog v0.4.0
 	k8s.io/kube-aggregator v0.0.0-20190918161219-8c8f079fddc3
 	k8s.io/kube-openapi v0.0.0-20190816220812-743ec37842bf
