@@ -389,6 +389,8 @@ var resourceTestTemplate = `
 package {{.Version}}_test
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -411,7 +413,7 @@ var _ = Describe("{{.Kind}}", func() {
 	})
 
 	AfterEach(func() {
-		client.Delete(instance.Name, &metav1.DeleteOptions{})
+		client.Delete(context.TODO(), instance.Name, metav1.DeleteOptions{})
 	})
 
 	Describe("when sending a storage request", func() {
@@ -420,27 +422,27 @@ var _ = Describe("{{.Kind}}", func() {
 				client = cs.{{ title .Group}}{{title .Version}}().{{plural .Kind}}({{ if not .NonNamespacedKind }}"{{lower .Kind}}-test-valid"{{ end }})
 
 				By("returning success from the create request")
-				actual, err := client.Create(&instance)
+				actual, err := client.Create(context.TODO(), &instance, metav1.CreateOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
 
 				By("defaulting the expected fields")
 				Expect(actual.Spec).To(Equal(expected.Spec))
 
 				By("returning the item for list requests")
-				result, err := client.List(metav1.ListOptions{})
+				result, err := client.List(context.TODO(), metav1.ListOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(result.Items).To(HaveLen(1))
 				Expect(result.Items[0].Spec).To(Equal(expected.Spec))
 
 				By("returning the item for get requests")
-				actual, err = client.Get(instance.Name, metav1.GetOptions{})
+				actual, err = client.Get(context.TODO(), instance.Name, metav1.GetOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(actual.Spec).To(Equal(expected.Spec))
 
 				By("deleting the item for delete requests")
-				err = client.Delete(instance.Name, &metav1.DeleteOptions{})
+				err = client.Delete(context.TODO(), instance.Name, metav1.DeleteOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
-				result, err = client.List(metav1.ListOptions{})
+				result, err = client.List(context.TODO(), metav1.ListOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(result.Items).To(HaveLen(0))
 			})

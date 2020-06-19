@@ -249,7 +249,7 @@ var _ = Describe("{{.Kind}}", func() {
 	})
 
 	AfterEach(func() {
-		client.Delete(instance.Name, &metav1.DeleteOptions{})
+		client.Delete(context.TODO(), instance.Name, metav1.DeleteOptions{})
 	})
 
 	Describe("when sending a {{ .Subresource }} request", func() {
@@ -265,7 +265,9 @@ var _ = Describe("{{.Kind}}", func() {
 				Name(instance.Name).
 				Resource("{{ lower .Resource }}").
 				SubResource("{{ lower .Subresource }}").
-				Body({{ lower .Subresource }}).Do().Error()
+				Body({{ lower .Subresource }}).
+				Do(context.TODO()).
+				Error()
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 	})
