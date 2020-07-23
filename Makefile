@@ -17,14 +17,6 @@
 
 # from /
 
-gazelle:
-	find vendor -name BUILD | xargs rm
-	find vendor -name BUILD.bazel | xargs rm
-	gazelle fix -go_prefix sigs.k8s.io/apiserver-builder-alpha -external vendored .
-	bash -c "find vendor/ -name BUILD.bazel |  xargs sed -i '' s'|//k8s.io/|//vendor/k8s.io/|g'"
-	bash -c "find vendor/ -name BUILD |  xargs sed -i '' s'|//k8s.io/|//vendor/k8s.io/|g'"
-	bash -c "find vendor/ -name BUILD.bazel |  xargs sed -i '' s'|cgo = True,|cgo = False,|g'"
-	bash -c "find vendor/ -name BUILD |  xargs sed -i '' s'|cgo = True,|cgo = False,|g'"
 
 NAME=apiserver-builder
 VENDOR=kubernetes-incubator
@@ -99,6 +91,10 @@ package-linux-amd64-rpm: ## Create an RPM package. Requires jordansissel/fpm, rp
 	  --package $(NAME)-$(VERSION)-amd64.rpm \
 	  --prefix /usr/local/apiserver-builder \
 	  $(NAME)-$(VERSION)-linux-amd64.tar.gz
+
+.PHONY: gazelle gazelle-reset
+gazelle:
+	bazel run //:gazelle
 
 gazelle-reset:
 	bazel run \

@@ -17,6 +17,9 @@ go_library(
         "@com_github_spf13_cobra//:go_default_library",
         "@io_k8s_apimachinery//pkg/runtime/schema:go_default_library",
         "@io_k8s_apimachinery//pkg/util/sets:go_default_library",
+        "@io_k8s_code_generator//cmd/defaulter-gen/args:go_default_library",
+        "@io_k8s_gengo//args:go_default_library",
+        "@io_k8s_gengo//examples/defaulter-gen/generators:go_default_library",
         "@io_k8s_klog//:go_default_library",
     ],
 )

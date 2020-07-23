@@ -30,6 +30,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/klog"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
+
+	gengoargs "k8s.io/gengo/args"
+	defaultergenargs "k8s.io/code-generator/cmd/defaulter-gen/args"
+	defaultergen "k8s.io/gengo/examples/defaulter-gen/generators"
 )
 
 var versionedAPIs []string
@@ -226,17 +230,29 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	}
 
 	if doGen("defaulter-gen") {
-		c := exec.Command(filepath.Join(root, "defaulter-gen"),
-			append(append(all, unversioned...),
-				"-o", util.GoSrc,
-				"--go-header-file", copyright,
-				"-O", "zz_generated.defaults",
-				"--extra-peer-dirs=", extraAPI)...,
-		)
-		klog.Infof("%s", strings.Join(c.Args, " "))
-		out, err := c.CombinedOutput()
+		versionedAPIPkgs, unversionedAPIPkgs := make([]string, 0), make([]string, 0)
+		for _, api := range versionedAPIs {
+			versionedAPIPkgs = append(versionedAPIPkgs, filepath.Join(util.Repo, "pkg", "apis", api))
+		}
+		for _, api := range unversionedAPIs {
+			unversionedAPIPkgs = append(unversionedAPIPkgs, filepath.Join(util.Repo, "pkg", "apis", api))
+		}
+		defaulterGenArgs, customArgs := defaultergenargs.NewDefaults()
+		defaulterGenArgs.InputDirs = append(versionedAPIPkgs, unversionedAPIPkgs...)
+		defaulterGenArgs.GoHeaderFilePath = filepath.Join(gengoargs.DefaultSourceTree(), util.Repo, copyright)
+		defaulterGenArgs.OutputBase = util.GoSrc
+		defaulterGenArgs.OutputFileBaseName = "zz_generated.defaults"
+		customArgs.ExtraPeerDirs = []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1",
+			"k8s.io/apimachinery/pkg/conversion",
+			"k8s.io/apimachinery/pkg/runtime"}
+
+		err := defaulterGenArgs.Execute(
+			defaultergen.NameSystems(),
+			defaultergen.DefaultNameSystem(),
+			defaultergen.Packages)
 		if err != nil {
-			klog.Fatalf("failed to run defaulter-gen %s %v", out, err)
+			klog.Fatalf("failed to run defaulter-gen: %v", err)
 		}
 	}
 
