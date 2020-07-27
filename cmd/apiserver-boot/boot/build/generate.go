@@ -32,8 +32,12 @@ import (
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 
 	gengoargs "k8s.io/gengo/args"
+
 	defaultergenargs "k8s.io/code-generator/cmd/defaulter-gen/args"
 	defaultergen "k8s.io/gengo/examples/defaulter-gen/generators"
+
+	conversiongenargs "k8s.io/code-generator/cmd/conversion-gen/args"
+	conversiongen "k8s.io/code-generator/cmd/conversion-gen/generators"
 )
 
 var versionedAPIs []string
@@ -127,6 +131,13 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 		u = filepath.Join(util.Repo, "pkg", "apis", u)
 		unversioned = append(unversioned, "--input-dirs", u)
 	}
+	versionedAPIPkgs, unversionedAPIPkgs := make([]string, 0), make([]string, 0)
+	for _, api := range versionedAPIs {
+		versionedAPIPkgs = append(versionedAPIPkgs, filepath.Join(util.Repo, "pkg", "apis", api))
+	}
+	for _, api := range unversionedAPIs {
+		unversionedAPIPkgs = append(unversionedAPIPkgs, filepath.Join(util.Repo, "pkg", "apis", api))
+	}
 
 	if doGen("apiregister-gen") {
 		inputDirsArgs := []string{
@@ -149,17 +160,24 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	}
 
 	if doGen("conversion-gen") {
-		c := exec.Command(filepath.Join(root, "conversion-gen"),
-			append(append(all, unversioned...),
-				"-o", util.GoSrc,
-				"--go-header-file", copyright,
-				"-O", "zz_generated.conversion",
-				"--extra-peer-dirs", extraAPI)...,
-		)
-		klog.Infof("%s", strings.Join(c.Args, " "))
-		out, err := c.CombinedOutput()
+		conversionGenArgs, customArgs := conversiongenargs.NewDefaults()
+		conversionGenArgs.OutputBase = util.GoSrc
+		conversionGenArgs.GoHeaderFilePath = filepath.Join(gengoargs.DefaultSourceTree(), util.Repo, copyright)
+		conversionGenArgs.InputDirs = append(
+			append(versionedAPIPkgs, unversionedAPIPkgs...),
+			"k8s.io/apimachinery/pkg/runtime")
+		conversionGenArgs.OutputFileBaseName = "zz_generated.conversion"
+		customArgs.ExtraPeerDirs = []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1",
+			"k8s.io/apimachinery/pkg/conversion",
+			"k8s.io/apimachinery/pkg/runtime",
+		}
+		err := conversionGenArgs.Execute(
+			conversiongen.NameSystems(),
+			conversiongen.DefaultNameSystem(),
+			conversiongen.Packages)
 		if err != nil {
-			klog.Fatalf("failed to run conversion-gen %s %v", out, err)
+			klog.Fatalf("failed to run defaulter-gen: %v", err)
 		}
 	}
 
@@ -245,7 +263,8 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 		customArgs.ExtraPeerDirs = []string{
 			"k8s.io/apimachinery/pkg/apis/meta/v1",
 			"k8s.io/apimachinery/pkg/conversion",
-			"k8s.io/apimachinery/pkg/runtime"}
+			"k8s.io/apimachinery/pkg/runtime",
+		}
 
 		err := defaulterGenArgs.Execute(
 			defaultergen.NameSystems(),

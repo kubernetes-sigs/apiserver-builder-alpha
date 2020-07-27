@@ -7,7 +7,6 @@ pkg_tar(
         "//cmd/apiserver-boot",
         "@com_github_kubernetes_incubator_reference_docs//gen-apidocs",
         "@io_k8s_code_generator//cmd/client-gen",
-        "@io_k8s_code_generator//cmd/conversion-gen",
         "@io_k8s_code_generator//cmd/deepcopy-gen",
         "@io_k8s_code_generator//cmd/go-to-protobuf",
         "@io_k8s_code_generator//cmd/go-to-protobuf/protoc-gen-gogo",
