@@ -38,6 +38,9 @@ import (
 
 	conversiongenargs "k8s.io/code-generator/cmd/conversion-gen/args"
 	conversiongen "k8s.io/code-generator/cmd/conversion-gen/generators"
+
+	deepcopygenargs "k8s.io/code-generator/cmd/deepcopy-gen/args"
+	deepcopygen "k8s.io/gengo/examples/deepcopy-gen/generators"
 )
 
 var versionedAPIs []string
@@ -160,39 +163,11 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	}
 
 	if doGen("conversion-gen") {
-		conversionGenArgs, customArgs := conversiongenargs.NewDefaults()
-		conversionGenArgs.OutputBase = util.GoSrc
-		conversionGenArgs.GoHeaderFilePath = filepath.Join(gengoargs.DefaultSourceTree(), util.Repo, copyright)
-		conversionGenArgs.InputDirs = append(
-			append(versionedAPIPkgs, unversionedAPIPkgs...),
-			"k8s.io/apimachinery/pkg/runtime")
-		conversionGenArgs.OutputFileBaseName = "zz_generated.conversion"
-		customArgs.ExtraPeerDirs = []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1",
-			"k8s.io/apimachinery/pkg/conversion",
-			"k8s.io/apimachinery/pkg/runtime",
-		}
-		err := conversionGenArgs.Execute(
-			conversiongen.NameSystems(),
-			conversiongen.DefaultNameSystem(),
-			conversiongen.Packages)
-		if err != nil {
-			klog.Fatalf("failed to run defaulter-gen: %v", err)
-		}
+		runConversionGen(versionedAPIPkgs, unversionedAPIPkgs)
 	}
 
 	if doGen("deepcopy-gen") {
-		c := exec.Command(filepath.Join(root, "deepcopy-gen"),
-			append(append(all, unversioned...),
-				"-o", util.GoSrc,
-				"--go-header-file", copyright,
-				"-O", "zz_generated.deepcopy")...,
-		)
-		klog.Infof("%s", strings.Join(c.Args, " "))
-		out, err := c.CombinedOutput()
-		if err != nil {
-			klog.Fatalf("failed to run deepcopy-gen %s %v", out, err)
-		}
+		runDeepcopyGen(versionedAPIPkgs, unversionedAPIPkgs)
 	}
 
 	if doGen("openapi-gen") {
@@ -248,31 +223,7 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 	}
 
 	if doGen("defaulter-gen") {
-		versionedAPIPkgs, unversionedAPIPkgs := make([]string, 0), make([]string, 0)
-		for _, api := range versionedAPIs {
-			versionedAPIPkgs = append(versionedAPIPkgs, filepath.Join(util.Repo, "pkg", "apis", api))
-		}
-		for _, api := range unversionedAPIs {
-			unversionedAPIPkgs = append(unversionedAPIPkgs, filepath.Join(util.Repo, "pkg", "apis", api))
-		}
-		defaulterGenArgs, customArgs := defaultergenargs.NewDefaults()
-		defaulterGenArgs.InputDirs = append(versionedAPIPkgs, unversionedAPIPkgs...)
-		defaulterGenArgs.GoHeaderFilePath = filepath.Join(gengoargs.DefaultSourceTree(), util.Repo, copyright)
-		defaulterGenArgs.OutputBase = util.GoSrc
-		defaulterGenArgs.OutputFileBaseName = "zz_generated.defaults"
-		customArgs.ExtraPeerDirs = []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1",
-			"k8s.io/apimachinery/pkg/conversion",
-			"k8s.io/apimachinery/pkg/runtime",
-		}
-
-		err := defaulterGenArgs.Execute(
-			defaultergen.NameSystems(),
-			defaultergen.DefaultNameSystem(),
-			defaultergen.Packages)
-		if err != nil {
-			klog.Fatalf("failed to run defaulter-gen: %v", err)
-		}
+		runDefaulterGen(versionedAPIPkgs, unversionedAPIPkgs)
 	}
 
 	if doGen("client-gen") {
@@ -421,4 +372,66 @@ func initApis() {
 	for a, _ := range u {
 		unversionedAPIs = append(unversionedAPIs, a)
 	}
+}
+
+func runConversionGen(versionedAPIPkgs, unversionedAPIPkgs []string) {
+	conversionGenArgs, customArgs := conversiongenargs.NewDefaults()
+	conversionGenArgs.OutputBase = util.GoSrc
+	conversionGenArgs.GoHeaderFilePath = filepath.Join(gengoargs.DefaultSourceTree(), util.Repo, copyright)
+	conversionGenArgs.InputDirs = append(
+		append(versionedAPIPkgs, unversionedAPIPkgs...),
+		"k8s.io/apimachinery/pkg/runtime")
+	conversionGenArgs.OutputFileBaseName = "zz_generated.conversion"
+	customArgs.ExtraPeerDirs = []string{
+		"k8s.io/apimachinery/pkg/apis/meta/v1",
+		"k8s.io/apimachinery/pkg/conversion",
+		"k8s.io/apimachinery/pkg/runtime",
+	}
+	err := conversionGenArgs.Execute(
+		conversiongen.NameSystems(),
+		conversiongen.DefaultNameSystem(),
+		conversiongen.Packages)
+	if err != nil {
+		klog.Fatalf("failed to run defaulter-gen: %v", err)
+	}
+}
+
+func runDefaulterGen(versionedAPIPkgs, unversionedAPIPkgs []string) {
+	defaulterGenArgs, customArgs := defaultergenargs.NewDefaults()
+	defaulterGenArgs.InputDirs = append(versionedAPIPkgs, unversionedAPIPkgs...)
+	defaulterGenArgs.GoHeaderFilePath = filepath.Join(gengoargs.DefaultSourceTree(), util.Repo, copyright)
+	defaulterGenArgs.OutputBase = util.GoSrc
+	defaulterGenArgs.OutputFileBaseName = "zz_generated.defaults"
+	customArgs.ExtraPeerDirs = []string{
+		"k8s.io/apimachinery/pkg/apis/meta/v1",
+		"k8s.io/apimachinery/pkg/conversion",
+		"k8s.io/apimachinery/pkg/runtime",
+	}
+
+	err := defaulterGenArgs.Execute(
+		defaultergen.NameSystems(),
+		defaultergen.DefaultNameSystem(),
+		defaultergen.Packages)
+	if err != nil {
+		klog.Fatalf("failed to run defaulter-gen: %v", err)
+	}
+}
+
+func runDeepcopyGen(versionedAPIPkgs, unversionedAPIPkgs []string) {
+	deepcopyGenArgs, _ := deepcopygenargs.NewDefaults()
+	deepcopyGenArgs.InputDirs = append(versionedAPIPkgs, unversionedAPIPkgs...)
+	deepcopyGenArgs.GoHeaderFilePath = filepath.Join(gengoargs.DefaultSourceTree(), util.Repo, copyright)
+	deepcopyGenArgs.OutputBase = util.GoSrc
+	deepcopyGenArgs.OutputFileBaseName = "zz_generated.deepcopy"
+	if err := deepcopyGenArgs.Execute(
+		deepcopygen.NameSystems(),
+		deepcopygen.DefaultNameSystem(),
+		deepcopygen.Packages,
+	); err != nil {
+		klog.Fatalf("Error: %v", err)
+	}
+}
+
+func runClientGen() {
+
 }
