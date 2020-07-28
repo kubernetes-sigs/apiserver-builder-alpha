@@ -475,12 +475,12 @@ package {{ lower .Kind }}admission
 import (
 	"context"
 	aggregatedadmission "{{.Repo}}/plugin/admission"
-	aggregatedinformerfactory "{{.Repo}}/pkg/client/informers_generated/externalversions"
-	aggregatedclientset "{{.Repo}}/pkg/client/clientset_generated/clientset"
 	genericadmissioninitializer "k8s.io/apiserver/pkg/admission/initializer"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/apiserver/pkg/admission"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var _ admission.Interface 											= &{{ lower .Kind }}Plugin{}
@@ -513,9 +513,9 @@ func (p *{{ lower .Kind }}Plugin) Validate(ctx context.Context, a admission.Attr
 	return nil
 }
 
-func (p *{{ lower .Kind }}Plugin) SetAggregatedResourceInformerFactory(aggregatedinformerfactory.SharedInformerFactory) {}
+func (p *{{ lower .Kind }}Plugin) SetAggregatedResourceInformerFactory(cache.Cache) {}
 
-func (p *{{ lower .Kind }}Plugin) SetAggregatedResourceClientSet(aggregatedclientset.Interface) {}
+func (p *{{ lower .Kind }}Plugin) SetAggregatedResourceClientSet(client.Client) {}
 
 func (p *{{ lower .Kind }}Plugin) SetExternalKubeInformerFactory(informers.SharedInformerFactory) {}
 
@@ -528,27 +528,27 @@ var admissionControllerInitializerTemplate = `
 package admission
 
 import (
-	aggregatedclientset "{{.Repo}}/pkg/client/clientset_generated/clientset"
-	aggregatedinformerfactory "{{.Repo}}/pkg/client/informers_generated/externalversions"
 	"k8s.io/apiserver/pkg/admission"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // WantsAggregatedResourceClientSet defines a function which sets external ClientSet for admission plugins that need it
 type WantsAggregatedResourceClientSet interface {
-	SetAggregatedResourceClientSet(aggregatedclientset.Interface)
+	SetAggregatedResourceClientSet(client.Client)
 	admission.InitializationValidator
 }
 
 // WantsAggregatedResourceInformerFactory defines a function which sets InformerFactory for admission plugins that need it
 type WantsAggregatedResourceInformerFactory interface {
-	SetAggregatedResourceInformerFactory(aggregatedinformerfactory.SharedInformerFactory)
+	SetAggregatedResourceInformerFactory(cache.Cache)
 	admission.InitializationValidator
 }
 
 // New creates an instance of admission plugins initializer.
 func New(
-	clientset aggregatedclientset.Interface,
-	informers aggregatedinformerfactory.SharedInformerFactory,
+	clientset client.Client,
+	informers cache.Cache,
 ) pluginInitializer {
 	return pluginInitializer{
 		aggregatedResourceClient:    clientset,
@@ -557,8 +557,8 @@ func New(
 }
 
 type pluginInitializer struct {
-	aggregatedResourceClient    aggregatedclientset.Interface
-	aggregatedResourceInformers aggregatedinformerfactory.SharedInformerFactory
+	aggregatedResourceClient    client.Client
+	aggregatedResourceInformers cache.Cache
 }
 
 func (i pluginInitializer) Initialize(plugin admission.Interface) {

@@ -146,7 +146,15 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 
 	if doGen("apiregister-gen") {
 		apisPkg := filepath.Join(util.Repo, "pkg", "apis")
-		runApiRegisterGen(apisPkg, versionedAPIPkgs, unversionedAPIPkgs)
+		runApiRegisterGen(apisPkg, versionedAPIPkgs, unversionedAPIPkgs, []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1",
+			"k8s.io/apimachinery/pkg/api/resource",
+			"k8s.io/apimachinery/pkg/version",
+			"k8s.io/apimachinery/pkg/runtime",
+			"k8s.io/apimachinery/pkg/util/intstr",
+			"k8s.io/api/core/v1",
+			"k8s.io/api/apps/v1",
+		})
 	}
 
 	if doGen("defaulter-gen") {
@@ -221,11 +229,13 @@ func initApis() {
 	}
 }
 
-func runApiRegisterGen(apisPkg string, versionedAPIPkgs, unversionedAPIPkgs []string) {
+func runApiRegisterGen(apisPkg string, versionedAPIPkgs, unversionedAPIPkgs, additionalPkgs []string) {
 	klog.Info("running apiregister-gen..")
 	apiregisterGenArgs := gengoargs.Default()
 	apiregisterGenArgs.GoHeaderFilePath = filepath.Join(gengoargs.DefaultSourceTree(), util.Repo, copyright)
-	apiregisterGenArgs.InputDirs = append(versionedAPIPkgs, append(unversionedAPIPkgs, apisPkg)...)
+	apiregisterGenArgs.InputDirs = append(versionedAPIPkgs,
+		append(unversionedAPIPkgs,
+			append(additionalPkgs, apisPkg)...)...)
 	apiregisterGenArgs.OutputFileBaseName = "zz_generated.api.register"
 	apiregisterGenArgs.CustomArgs = apiregistergen.CustomArgs{}
 	gen := &apiregistergen.Gen{}
@@ -340,6 +350,7 @@ func execute(
 	pkgs func(*generator.Context, *gengoargs.GeneratorArgs) generator.Packages) error {
 
 	if parserBuilder == nil {
+		klog.Info("scanning packages (can take a few minutes)...")
 		b, err := g.NewBuilder()
 		if err != nil {
 			return fmt.Errorf("Failed making a parser: %v", err)

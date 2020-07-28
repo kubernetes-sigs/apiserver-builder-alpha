@@ -49,15 +49,13 @@ func (d *admissionGenerator) Imports(c *generator.Context) []string {
 		"k8s.io/client-go/rest",
 		`genericserver "k8s.io/apiserver/pkg/server"`,
 		"k8s.io/apiserver/pkg/admission",
+		"sigs.k8s.io/controller-runtime/pkg/cache",
+		"sigs.k8s.io/controller-runtime/pkg/client",
 	}
 	for _, kind := range d.admissionKinds {
 		imports = append(imports, fmt.Sprintf(
 			`. "%s/plugin/admission/%s"`, d.projectRootPath, strings.ToLower(kind)))
 	}
-	imports = append(imports,
-		fmt.Sprintf(`aggregatedclientset "%s/pkg/client/clientset_generated/clientset"`, d.projectRootPath))
-	imports = append(imports,
-		fmt.Sprintf(`aggregatedinformerfactory "%s/pkg/client/informers_generated/externalversions"`, d.projectRootPath))
 	imports = append(imports,
 		fmt.Sprintf(`initializer "%s/plugin/admission"`, d.projectRootPath))
 	return imports
@@ -90,12 +88,18 @@ func init() {
 
 func GetAggregatedResourceAdmissionControllerInitializer(config *rest.Config) (admission.PluginInitializer, genericserver.PostStartHookFunc) {
 	// init aggregated resource clients
-	aggregatedResourceClient := aggregatedclientset.NewForConfigOrDie(config)
-	aggregatedInformerFactory := aggregatedinformerfactory.NewSharedInformerFactory(aggregatedResourceClient, 0)
+	aggregatedResourceClient, err := client.New(config, client.Options{})
+	if err != nil {
+		klog.Fatal("failed to construct loopback client", err)
+	}
+	aggregatedInformerFactory, err := cache.New(config)
+	if err != nil {
+		klog.Fatal("failed to construct loopback informer-factory", err)
+	}
 	aggregatedResourceInitializer := initializer.New(aggregatedResourceClient, aggregatedInformerFactory)
 
 	return aggregatedResourceInitializer, func(context genericserver.PostStartHookContext) error {
-		aggregatedInformerFactory.Start(context.StopCh)
+		aggregatedInformerFactory.Run(context.StopCh)
 		return nil
 	}
 }
