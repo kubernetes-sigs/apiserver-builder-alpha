@@ -13,6 +13,7 @@ go_library(
     importpath = "sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/build",
     visibility = ["//visibility:public"],
     deps = [
+        "//cmd/apiregister-gen/generators:go_default_library",
         "//cmd/apiserver-boot/boot/util:go_default_library",
         "@com_github_spf13_cobra//:go_default_library",
         "@io_k8s_apimachinery//pkg/runtime/schema:go_default_library",
@@ -24,6 +25,11 @@ go_library(
         "@io_k8s_gengo//args:go_default_library",
         "@io_k8s_gengo//examples/deepcopy-gen/generators:go_default_library",
         "@io_k8s_gengo//examples/defaulter-gen/generators:go_default_library",
+        "@io_k8s_gengo//generator:go_default_library",
+        "@io_k8s_gengo//namer:go_default_library",
+        "@io_k8s_gengo//parser:go_default_library",
         "@io_k8s_klog//:go_default_library",
+        "@io_k8s_kube_openapi//cmd/openapi-gen/args:go_default_library",
+        "@io_k8s_kube_openapi//pkg/generators:go_default_library",
     ],
 )

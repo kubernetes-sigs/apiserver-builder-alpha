@@ -118,8 +118,7 @@ func DoCmd(cmd string, args ...string) {
 }
 
 func CheckInstall() {
-	bins := []string{"apiregister-gen", "client-gen", "deepcopy-gen", "gen-apidocs", "informer-gen",
-		"openapi-gen", "apiserver-boot", "lister-gen"}
+	bins := []string{"apiregister-gen", "gen-apidocs", "apiserver-boot"}
 	missing := []string{}
 
 	e, err := os.Executable()
