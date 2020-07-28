@@ -17,8 +17,8 @@ limitations under the License.
 package v1
 
 import (
-	"sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/innsmouth/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/innsmouth/common"
 )
 
 // +genclient

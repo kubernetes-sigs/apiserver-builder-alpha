@@ -1,4 +1,3 @@
-
 /*
 Copyright 2019 The Kubernetes Authors.
 
@@ -15,8 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
-
 package sqlite
 
 import (
@@ -27,9 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation/field"
 )
 
-
 func (TikStrategy) NamespaceScoped() bool { return false }
-
 
 // Validate checks that an instance of Tik is well formed
 func (TikStrategy) Validate(ctx context.Context, obj runtime.Object) field.ErrorList {

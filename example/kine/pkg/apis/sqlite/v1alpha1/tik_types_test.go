@@ -20,58 +20,62 @@ limitations under the License.
 package v1alpha1_test
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	. "sigs.k8s.io/apiserver-builder-alpha/example/kine/pkg/apis/sqlite/v1alpha1"
-	. "sigs.k8s.io/apiserver-builder-alpha/example/kine/pkg/client/clientset_generated/clientset/typed/sqlite/v1alpha1"
+
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var _ = Describe("Tik", func() {
 	var instance Tik
 	var expected Tik
-	var client TikInterface
 
 	BeforeEach(func() {
 		instance = Tik{}
 		instance.Name = "instance-1"
+		instance.Namespace = "default"
 
 		expected = instance
 	})
 
 	AfterEach(func() {
-		client.Delete(instance.Name, &metav1.DeleteOptions{})
+		cs.Delete(context.TODO(), &instance)
 	})
 
 	Describe("when sending a storage request", func() {
 		Context("for a valid config", func() {
 			It("should provide CRUD access to the object", func() {
-				client = cs.SqliteV1alpha1().Tiks("tik-test-valid")
-
+				actual := instance.DeepCopy()
 				By("returning success from the create request")
-				actual, err := client.Create(&instance)
+				err := cs.Create(context.TODO(), actual)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				By("defaulting the expected fields")
 				Expect(actual.Spec).To(Equal(expected.Spec))
 
 				By("returning the item for list requests")
-				result, err := client.List(metav1.ListOptions{})
+				var result TikList
+				err = cs.List(context.TODO(), &result)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(result.Items).To(HaveLen(1))
 				Expect(result.Items[0].Spec).To(Equal(expected.Spec))
 
 				By("returning the item for get requests")
-				actual, err = client.Get(instance.Name, metav1.GetOptions{})
+				err = cs.Get(context.TODO(), client.ObjectKey{
+					Name:instance.Name,
+					Namespace:instance.Namespace,
+				}, actual)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(actual.Spec).To(Equal(expected.Spec))
 
 				By("deleting the item for delete requests")
-				err = client.Delete(instance.Name, &metav1.DeleteOptions{})
+				err = cs.Delete(context.TODO(), &instance)
 				Expect(err).ShouldNot(HaveOccurred())
-				result, err = client.List(metav1.ListOptions{})
+				err = cs.List(context.TODO(), &result)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(result.Items).To(HaveLen(0))
 			})

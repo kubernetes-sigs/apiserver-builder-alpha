@@ -64,7 +64,7 @@ func (g *kineProxiedRESTOptionsGetter) GetRESTOptions(resource schema.GroupResou
 	}
 
 	restOptions.StorageConfig.Transport.ServerList = etcdConfig.Endpoints
-	restOptions.StorageConfig.Transport.CAFile = etcdConfig.TLSConfig.CAFile
+	restOptions.StorageConfig.Transport.TrustedCAFile = etcdConfig.TLSConfig.CAFile
 	restOptions.StorageConfig.Transport.CertFile = etcdConfig.TLSConfig.CertFile
 	restOptions.StorageConfig.Transport.KeyFile = etcdConfig.TLSConfig.KeyFile
 	return restOptions, nil

@@ -5,7 +5,6 @@ pkg_tar(
     srcs = [
         "//cmd/apiserver-boot",
         "@com_github_kubernetes_incubator_reference_docs//gen-apidocs",
-        "//:mod",
     ],
     extension = "tar.gz",
     mode = "0755",

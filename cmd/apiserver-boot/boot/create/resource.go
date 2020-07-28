@@ -355,17 +355,19 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/test"
 	"k8s.io/client-go/rest"
 
 	"{{ .Repo }}/pkg/apis"
-	"{{ .Repo }}/pkg/client/clientset_generated/clientset"
 	"{{ .Repo }}/pkg/openapi"
+
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/test"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var testenv *test.TestEnvironment
 var config *rest.Config
-var cs *clientset.Clientset
+var cs client.Client
 
 func Test{{title .Version}}(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -375,7 +377,9 @@ func Test{{title .Version}}(t *testing.T) {
 var _ = BeforeSuite(func() {
 	testenv = test.NewTestEnvironment(apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions)
 	config = testenv.Start()
-	cs = clientset.NewForConfigOrDie(config)
+	cs, _ = client.New(config, client.Options{
+		Scheme: builders.Scheme,
+	})
 })
 
 var _ = AfterSuite(func() {
@@ -394,55 +398,61 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	. "{{.Repo}}/pkg/apis/{{.Group}}/{{.Version}}"
-	. "{{.Repo}}/pkg/client/clientset_generated/clientset/typed/{{.Group}}/{{.Version}}"
+
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var _ = Describe("{{.Kind}}", func() {
 	var instance {{ .Kind}}
 	var expected {{ .Kind}}
-	var client {{ .Kind}}Interface
 
 	BeforeEach(func() {
 		instance = {{ .Kind}}{}
 		instance.Name = "instance-1"
+{{- if not .NonNamespacedKind }}
+		instance.Namespace = "default"
+{{- end }}
 
 		expected = instance
 	})
 
 	AfterEach(func() {
-		client.Delete(context.TODO(), instance.Name, metav1.DeleteOptions{})
+		cs.Delete(context.TODO(), &instance)
 	})
 
 	Describe("when sending a storage request", func() {
 		Context("for a valid config", func() {
 			It("should provide CRUD access to the object", func() {
-				client = cs.{{ title .Group}}{{title .Version}}().{{plural .Kind}}({{ if not .NonNamespacedKind }}"{{lower .Kind}}-test-valid"{{ end }})
-
+				actual := instance.DeepCopy()
 				By("returning success from the create request")
-				actual, err := client.Create(context.TODO(), &instance, metav1.CreateOptions{})
+				err := cs.Create(context.TODO(), actual)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				By("defaulting the expected fields")
 				Expect(actual.Spec).To(Equal(expected.Spec))
 
 				By("returning the item for list requests")
-				result, err := client.List(context.TODO(), metav1.ListOptions{})
+				var result {{ .Kind }}List
+				err = cs.List(context.TODO(), &result)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(result.Items).To(HaveLen(1))
 				Expect(result.Items[0].Spec).To(Equal(expected.Spec))
 
 				By("returning the item for get requests")
-				actual, err = client.Get(context.TODO(), instance.Name, metav1.GetOptions{})
+				err = cs.Get(context.TODO(), client.ObjectKey{
+					Name:instance.Name,
+{{- if not .NonNamespacedKind }}
+					Namespace:instance.Namespace,
+{{- end }}
+				}, actual)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(actual.Spec).To(Equal(expected.Spec))
 
 				By("deleting the item for delete requests")
-				err = client.Delete(context.TODO(), instance.Name, metav1.DeleteOptions{})
+				err = cs.Delete(context.TODO(), &instance)
 				Expect(err).ShouldNot(HaveOccurred())
-				result, err = client.List(context.TODO(), metav1.ListOptions{})
+				err = cs.List(context.TODO(), &result)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(result.Items).To(HaveLen(0))
 			})

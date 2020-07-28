@@ -1,3 +1,4 @@
+
 /*
 Copyright 2019 The Kubernetes Authors.
 
@@ -14,6 +15,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+
+
 package v1_test
 
 import (
@@ -22,16 +25,18 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/rest"
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/test"
 
 	"sigs.k8s.io/apiserver-builder-alpha/example/podexec/pkg/apis"
-	"sigs.k8s.io/apiserver-builder-alpha/example/podexec/pkg/client/clientset_generated/clientset"
 	"sigs.k8s.io/apiserver-builder-alpha/example/podexec/pkg/openapi"
+
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/test"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var testenv *test.TestEnvironment
 var config *rest.Config
-var cs *clientset.Clientset
+var cs client.Client
 
 func TestV1(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -41,7 +46,9 @@ func TestV1(t *testing.T) {
 var _ = BeforeSuite(func() {
 	testenv = test.NewTestEnvironment(apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions)
 	config = testenv.Start()
-	cs = clientset.NewForConfigOrDie(config)
+	cs, _ = client.New(config, client.Options{
+		Scheme: builders.Scheme,
+	})
 })
 
 var _ = AfterSuite(func() {

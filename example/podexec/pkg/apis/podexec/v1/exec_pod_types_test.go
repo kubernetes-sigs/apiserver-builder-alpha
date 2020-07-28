@@ -20,44 +20,54 @@ limitations under the License.
 package v1_test
 
 import (
+	"context"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	. "sigs.k8s.io/apiserver-builder-alpha/example/podexec/pkg/apis/podexec/v1"
-	. "sigs.k8s.io/apiserver-builder-alpha/example/podexec/pkg/client/clientset_generated/clientset/typed/podexec/v1"
+
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
 )
 
 var _ = Describe("Pod", func() {
 	var instance Pod
 	var expected Pod
-	var client PodInterface
 
 	BeforeEach(func() {
 		instance = Pod{}
 		instance.Name = "instance-1"
+		instance.Namespace = "default"
 
 		expected = instance
 	})
 
 	AfterEach(func() {
-		client.Delete(instance.Name, &metav1.DeleteOptions{})
+		cs.Delete(context.TODO(), &instance)
 	})
 
 	Describe("when sending a exec request", func() {
 		It("should return success", func() {
-			client = cs.PodexecV1().Pods("pod-test-exec")
-			_, err := client.Create(&instance)
+			err := cs.Create(context.TODO(), &instance)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			exec := &PodExec{}
-			restClient := cs.PodexecV1().RESTClient()
+			restClient, err := apiutil.RESTClientForGVK(schema.GroupVersionKind{
+				Group:   "podexec.example.com",
+				Version: "v1",
+				Kind:    "PodPodExec",
+			}, config, serializer.NewCodecFactory(builders.Scheme))
+			Expect(err).ShouldNot(HaveOccurred())
 			err = restClient.Post().Namespace("pod-test-exec").
 				Name(instance.Name).
 				Resource("pods").
 				SubResource("exec").
-				Body(exec).Do().Error()
+				Body(exec).
+				Do(context.TODO()).
+				Error()
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 	})

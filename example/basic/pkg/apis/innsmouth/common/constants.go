@@ -21,6 +21,6 @@ package common
 type CustomType string
 
 const (
-    CUSTOM1 CustomType = "test1"
-    CUSTOM2 CustomType = "test2"
+	CUSTOM1 CustomType = "test1"
+	CUSTOM2 CustomType = "test2"
 )

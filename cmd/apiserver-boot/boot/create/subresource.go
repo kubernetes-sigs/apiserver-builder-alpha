@@ -89,6 +89,7 @@ func createSubresource(boilerplate string) {
 		versionName,
 		kindName,
 		resourceName,
+		 util.GetDomain(),
 	}
 
 	found := false
@@ -152,6 +153,7 @@ type subresourceTemplateArgs struct {
 	Version         string
 	Kind            string
 	Resource        string
+	Domain          string
 }
 
 var unversionedSubresourceRESTTemplate = `
@@ -227,40 +229,47 @@ var subresourceTestTemplate = `
 package {{.Version}}_test
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	. "{{.Repo}}/pkg/apis/{{.Group}}/{{.Version}}"
-	. "{{.Repo}}/pkg/client/clientset_generated/clientset/typed/{{.Group}}/{{.Version}}"
+
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
 )
 
 var _ = Describe("{{.Kind}}", func() {
 	var instance {{ .Kind}}
 	var expected {{ .Kind}}
-	var client {{ .Kind}}Interface
 
 	BeforeEach(func() {
 		instance = {{ .Kind}}{}
 		instance.Name = "instance-1"
+		instance.Namespace = "default"
 
 		expected = instance
 	})
 
 	AfterEach(func() {
-		client.Delete(context.TODO(), instance.Name, metav1.DeleteOptions{})
+		cs.Delete(context.TODO(), &instance)
 	})
 
 	Describe("when sending a {{ .Subresource }} request", func() {
 		It("should return success", func() {
-			client = cs.{{ title .Group }}{{ title .Version }}().{{ title .Resource }}("{{ lower .Kind }}-test-{{ lower .Subresource }}")
-			_, err := client.Create(&instance)
+			err := cs.Create(context.TODO(), &instance)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			{{ lower .Subresource }} := &{{ title .SubresourceKind}}{}
 			{{ lower .Subresource }}.Name = instance.Name
-			restClient := cs.{{ title .Group }}{{ title .Version }}().RESTClient()
+			restClient, err := apiutil.RESTClientForGVK(schema.GroupVersionKind{
+				Group:   "{{ .Group }}.{{ .Domain }}",
+				Version: "{{ .Version }}",
+				Kind:    "{{ .Kind }}{{ .SubresourceKind }}",
+			}, config, serializer.NewCodecFactory(builders.Scheme))
+			Expect(err).ShouldNot(HaveOccurred())
 			err = restClient.Post().Namespace("{{ lower .Kind }}-test-{{ lower .Subresource}}").
 				Name(instance.Name).
 				Resource("{{ lower .Resource }}").

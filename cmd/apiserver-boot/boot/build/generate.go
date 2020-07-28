@@ -17,10 +17,7 @@ limitations under the License.
 package build
 
 import (
-	"fmt"
 	"io/ioutil"
-	"k8s.io/gengo/generator"
-	"k8s.io/gengo/namer"
 	"k8s.io/gengo/parser"
 	"os"
 	"path"
@@ -146,15 +143,11 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 
 	if doGen("apiregister-gen") {
 		apisPkg := filepath.Join(util.Repo, "pkg", "apis")
-		runApiRegisterGen(apisPkg, versionedAPIPkgs, unversionedAPIPkgs, []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1",
-			"k8s.io/apimachinery/pkg/api/resource",
-			"k8s.io/apimachinery/pkg/version",
-			"k8s.io/apimachinery/pkg/runtime",
-			"k8s.io/apimachinery/pkg/util/intstr",
-			"k8s.io/api/core/v1",
-			"k8s.io/api/apps/v1",
-		})
+		runApiRegisterGen(apisPkg, versionedAPIPkgs, unversionedAPIPkgs)
+	}
+
+	if doGen("openapi-gen") {
+		runOpenApiGen(versionedAPIPkgs, unversionedAPIPkgs)
 	}
 
 	if doGen("defaulter-gen") {
@@ -167,10 +160,6 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 
 	if doGen("deepcopy-gen") {
 		runDeepcopyGen(versionedAPIPkgs, unversionedAPIPkgs)
-	}
-
-	if doGen("openapi-gen") {
-		runOpenApiGen()
 	}
 
 }
@@ -229,21 +218,20 @@ func initApis() {
 	}
 }
 
-func runApiRegisterGen(apisPkg string, versionedAPIPkgs, unversionedAPIPkgs, additionalPkgs []string) {
+func runApiRegisterGen(apisPkg string, versionedAPIPkgs, unversionedAPIPkgs []string) {
 	klog.Info("running apiregister-gen..")
 	apiregisterGenArgs := gengoargs.Default()
 	apiregisterGenArgs.GoHeaderFilePath = filepath.Join(gengoargs.DefaultSourceTree(), util.Repo, copyright)
 	apiregisterGenArgs.InputDirs = append(versionedAPIPkgs,
-		append(unversionedAPIPkgs,
-			append(additionalPkgs, apisPkg)...)...)
+		append(unversionedAPIPkgs, apisPkg)...)
 	apiregisterGenArgs.OutputFileBaseName = "zz_generated.api.register"
 	apiregisterGenArgs.CustomArgs = apiregistergen.CustomArgs{}
 	gen := &apiregistergen.Gen{}
-	if err := execute(
-		apiregisterGenArgs,
+	if err := apiregisterGenArgs.Execute(
 		gen.NameSystems(),
 		gen.DefaultNameSystem(),
-		gen.Packages); err != nil {
+		gen.Packages,
+	); err != nil {
 		klog.Fatalf("Error: %v", err)
 	}
 }
@@ -262,11 +250,11 @@ func runConversionGen(versionedAPIPkgs, unversionedAPIPkgs []string) {
 		"k8s.io/apimachinery/pkg/conversion",
 		"k8s.io/apimachinery/pkg/runtime",
 	}
-	if err := execute(
-		conversionGenArgs,
+	if err := conversionGenArgs.Execute(
 		conversiongen.NameSystems(),
 		conversiongen.DefaultNameSystem(),
-		conversiongen.Packages); err != nil {
+		conversiongen.Packages,
+	); err != nil {
 		klog.Fatalf("failed to run defaulter-gen: %v", err)
 	}
 }
@@ -284,11 +272,11 @@ func runDefaulterGen(versionedAPIPkgs, unversionedAPIPkgs []string) {
 		"k8s.io/apimachinery/pkg/runtime",
 	}
 
-	if err := execute(
-		defaulterGenArgs,
+	if err := defaulterGenArgs.Execute(
 		defaultergen.NameSystems(),
 		defaultergen.DefaultNameSystem(),
-		defaultergen.Packages); err != nil {
+		defaultergen.Packages,
+	); err != nil {
 		klog.Fatalf("failed to run defaulter-gen: %v", err)
 	}
 }
@@ -300,16 +288,16 @@ func runDeepcopyGen(versionedAPIPkgs, unversionedAPIPkgs []string) {
 	deepcopyGenArgs.GoHeaderFilePath = filepath.Join(gengoargs.DefaultSourceTree(), util.Repo, copyright)
 	deepcopyGenArgs.OutputBase = util.GoSrc
 	deepcopyGenArgs.OutputFileBaseName = "zz_generated.deepcopy"
-	if err := execute(
-		deepcopyGenArgs,
+	if err := deepcopyGenArgs.Execute(
 		deepcopygen.NameSystems(),
 		deepcopygen.DefaultNameSystem(),
-		deepcopygen.Packages); err != nil {
+		deepcopygen.Packages,
+	); err != nil {
 		klog.Fatalf("Error: %v", err)
 	}
 }
 
-func runOpenApiGen() {
+func runOpenApiGen(versionedAPIPkgs, unversionedAPIPkgs []string) {
 	klog.Info("running openapi-gen..")
 	apis := []string{
 		"k8s.io/apimachinery/pkg/apis/meta/v1",
@@ -328,51 +316,18 @@ func runOpenApiGen() {
 	openapiGenArgs, customArgs := openapigenargs.NewDefaults()
 	openapiGenArgs.OutputBase = util.GoSrc
 	openapiGenArgs.GoHeaderFilePath = filepath.Join(gengoargs.DefaultSourceTree(), util.Repo, copyright)
-	openapiGenArgs.InputDirs = apis
+	openapiGenArgs.InputDirs = append(
+		append(versionedAPIPkgs, unversionedAPIPkgs...), apis...)
 	openapiGenArgs.OutputPackagePath = filepath.Join(util.Repo, "pkg", "openapi")
 	openapiGenArgs.OutputFileBaseName = "zz_generated.openapi"
 	customArgs.ReportFilename = "violations.report"
 
 	// Generates the code for the OpenAPIDefinitions.
-	if err := execute(
-		openapiGenArgs,
+	if err := openapiGenArgs.Execute(
 		openapigen.NameSystems(),
 		openapigen.DefaultNameSystem(),
-		openapigen.Packages); err != nil {
+		openapigen.Packages,
+	); err != nil {
 		klog.Fatalf("OpenAPI code generation error: %v", err)
 	}
-}
-
-func execute(
-	g *gengoargs.GeneratorArgs,
-	nameSystems namer.NameSystems,
-	defaultSystem string,
-	pkgs func(*generator.Context, *gengoargs.GeneratorArgs) generator.Packages) error {
-
-	if parserBuilder == nil {
-		klog.Info("scanning packages (can take a few minutes)...")
-		b, err := g.NewBuilder()
-		if err != nil {
-			return fmt.Errorf("Failed making a parser: %v", err)
-		}
-		parserBuilder = b
-	}
-	b := parserBuilder
-
-	// pass through the flag on whether to include *_test.go files
-	b.IncludeTestFiles = g.IncludeTestFiles
-
-	c, err := generator.NewContext(b, nameSystems, defaultSystem)
-	if err != nil {
-		return fmt.Errorf("Failed making a context: %v", err)
-	}
-
-	c.Verify = g.VerifyOnly
-	packages := pkgs(c, g)
-	if err := c.ExecutePackages(g.OutputBase, packages); err != nil {
-		return fmt.Errorf("Failed executing generator: %v", err)
-	}
-
-	return nil
-
 }

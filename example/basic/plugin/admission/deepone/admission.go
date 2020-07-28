@@ -1,4 +1,3 @@
-
 /*
 Copyright YEAR The Kubernetes Authors.
 
@@ -15,29 +14,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
-
 package deeponeadmission
 
 import (
 	"context"
 	"fmt"
-	aggregatedadmission "sigs.k8s.io/apiserver-builder-alpha/example/basic/plugin/admission"
-	aggregatedinformerfactory "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/client/informers_generated/externalversions"
-	aggregatedclientset "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/client/clientset_generated/clientset"
+	"k8s.io/apiserver/pkg/admission"
 	genericadmissioninitializer "k8s.io/apiserver/pkg/admission/initializer"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/apiserver/pkg/admission"
+	aggregatedadmission "sigs.k8s.io/apiserver-builder-alpha/example/basic/plugin/admission"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var _ admission.Interface 											= &deeponePlugin{}
-var _ admission.MutationInterface 									= &deeponePlugin{}
-var _ admission.ValidationInterface 								= &deeponePlugin{}
-var _ genericadmissioninitializer.WantsExternalKubeInformerFactory 	= &deeponePlugin{}
-var _ genericadmissioninitializer.WantsExternalKubeClientSet 		= &deeponePlugin{}
-var _ aggregatedadmission.WantsAggregatedResourceInformerFactory 	= &deeponePlugin{}
-var _ aggregatedadmission.WantsAggregatedResourceClientSet 			= &deeponePlugin{}
+var _ admission.Interface = &deeponePlugin{}
+var _ admission.MutationInterface = &deeponePlugin{}
+var _ admission.ValidationInterface = &deeponePlugin{}
+var _ genericadmissioninitializer.WantsExternalKubeInformerFactory = &deeponePlugin{}
+var _ genericadmissioninitializer.WantsExternalKubeClientSet = &deeponePlugin{}
+var _ aggregatedadmission.WantsAggregatedResourceInformerFactory = &deeponePlugin{}
+var _ aggregatedadmission.WantsAggregatedResourceClientSet = &deeponePlugin{}
 
 func NewDeepOnePlugin() *deeponePlugin {
 	return &deeponePlugin{
@@ -62,9 +59,9 @@ func (p *deeponePlugin) Validate(ctx context.Context, a admission.Attributes, o 
 	return nil
 }
 
-func (p *deeponePlugin) SetAggregatedResourceInformerFactory(aggregatedinformerfactory.SharedInformerFactory) {}
+func (p *deeponePlugin) SetAggregatedResourceInformerFactory(cache.Cache) {}
 
-func (p *deeponePlugin) SetAggregatedResourceClientSet(aggregatedclientset.Interface) {}
+func (p *deeponePlugin) SetAggregatedResourceClientSet(client.Client) {}
 
 func (p *deeponePlugin) SetExternalKubeInformerFactory(informers.SharedInformerFactory) {}
 

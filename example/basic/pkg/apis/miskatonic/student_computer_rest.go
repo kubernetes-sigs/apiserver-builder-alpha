@@ -3,10 +3,10 @@ package miskatonic
 import (
 	"context"
 
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apiserver/pkg/registry/rest"
-	"k8s.io/apiserver/pkg/registry/generic"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apiserver/pkg/registry/generic"
+	"k8s.io/apiserver/pkg/registry/rest"
 )
 
 var _ rest.CreaterUpdater = &StudentComputerREST{}

@@ -22,11 +22,11 @@ import (
 	"sync"
 	"testing"
 
-	"sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis"
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/test/suite"
 	"github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	"sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/test/suite"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )

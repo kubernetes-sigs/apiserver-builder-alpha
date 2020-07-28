@@ -48,4 +48,3 @@ type FestivalStatus struct {
 	// Attended holds the actual number of attendees
 	Attended uint `json:"attended,omitempty"`
 }
-

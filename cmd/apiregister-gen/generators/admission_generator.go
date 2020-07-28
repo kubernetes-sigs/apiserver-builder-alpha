@@ -51,6 +51,7 @@ func (d *admissionGenerator) Imports(c *generator.Context) []string {
 		"k8s.io/apiserver/pkg/admission",
 		"sigs.k8s.io/controller-runtime/pkg/cache",
 		"sigs.k8s.io/controller-runtime/pkg/client",
+		"sigs.k8s.io/apiserver-builder-alpha/pkg/builders",
 	}
 	for _, kind := range d.admissionKinds {
 		imports = append(imports, fmt.Sprintf(
@@ -88,18 +89,20 @@ func init() {
 
 func GetAggregatedResourceAdmissionControllerInitializer(config *rest.Config) (admission.PluginInitializer, genericserver.PostStartHookFunc) {
 	// init aggregated resource clients
-	aggregatedResourceClient, err := client.New(config, client.Options{})
+	aggregatedResourceClient, err := client.New(config, client.Options{
+		Scheme: builders.Scheme,
+	})
 	if err != nil {
 		klog.Fatal("failed to construct loopback client", err)
 	}
-	aggregatedInformerFactory, err := cache.New(config)
+	aggregatedInformerFactory, err := cache.New(config, cache.Options{})
 	if err != nil {
 		klog.Fatal("failed to construct loopback informer-factory", err)
 	}
 	aggregatedResourceInitializer := initializer.New(aggregatedResourceClient, aggregatedInformerFactory)
 
 	return aggregatedResourceInitializer, func(context genericserver.PostStartHookContext) error {
-		aggregatedInformerFactory.Run(context.StopCh)
+		aggregatedInformerFactory.Start(context.StopCh)
 		return nil
 	}
 }

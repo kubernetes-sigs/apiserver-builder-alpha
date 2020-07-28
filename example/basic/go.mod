@@ -3,13 +3,20 @@ module sigs.k8s.io/apiserver-builder-alpha/example/basic
 go 1.13
 
 require (
+	github.com/go-openapi/loads v0.19.4
+	github.com/go-openapi/runtime v0.19.4
+	github.com/go-openapi/spec v0.19.3
+	github.com/go-openapi/validate v0.19.5
 	github.com/markbates/inflect v0.0.0-00010101000000-000000000000
 	github.com/onsi/ginkgo v1.11.0
 	github.com/onsi/gomega v1.8.1
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
+	github.com/spf13/viper v1.3.2
+	golang.org/x/net v0.0.0-20191004110552-13f9640d40b9
 	k8s.io/api v0.18.4
+	k8s.io/apiextensions-apiserver v0.18.2
 	k8s.io/apimachinery v0.18.4
 	k8s.io/apiserver v0.18.4
 	k8s.io/client-go v0.18.4

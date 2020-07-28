@@ -18,24 +18,21 @@ package v1beta1_test
 
 import (
 	"context"
-
-	. "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/miskatonic/v1beta1"
-	. "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/client/clientset_generated/clientset/typed/miskatonic/v1beta1"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
+	. "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/miskatonic/v1beta1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var _ = Describe("University", func() {
 	var instance University
 	var expected University
-	var client UniversityInterface
 
 	BeforeEach(func() {
 		instance = University{}
 		instance.Name = "miskatonic-university"
+		instance.Namespace = "default"
 		instance.Spec.FacultySize = 7
 		instance.Spec.ServiceSpec = corev1.ServiceSpec{}
 		instance.Spec.ServiceSpec.ClusterIP = "1.1.1.1"
@@ -48,81 +45,61 @@ var _ = Describe("University", func() {
 	})
 
 	AfterEach(func() {
-		client.Delete(context.TODO(), instance.Name, metav1.DeleteOptions{})
+		cs.Delete(context.TODO(), &instance)
 	})
 
 	Describe("when sending a storage request", func() {
 		Context("for a valid config", func() {
 			It("should provide CRUD access to the object", func() {
-				client = cs.MiskatonicV1beta1().Universities("university-test-valid")
 
 				By("returning success from the create request")
-				actual, err := client.Create(context.TODO(), &instance, metav1.CreateOptions{})
+				actual := instance.DeepCopy()
+				err := cs.Create(context.TODO(), actual)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				By("defaulting the expected fields")
 				Expect(actual.Spec).To(Equal(expected.Spec))
 
 				By("returning the item for list requests")
-				result, err := client.List(context.TODO(), metav1.ListOptions{})
+
+				var result UniversityList
+				err = cs.List(context.TODO(), &result)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(result.Items).To(HaveLen(1))
 				Expect(result.Items[0].Spec).To(Equal(expected.Spec))
 
 				By("returning the item for get requests")
-				actual, err = client.Get(context.TODO(), instance.Name, metav1.GetOptions{})
+				err = cs.Get(context.TODO(), client.ObjectKey{
+					Namespace: instance.Namespace,
+					Name:      instance.Name,
+				}, actual)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(actual.Spec).To(Equal(expected.Spec))
 
 				By("deleting the item for delete requests")
-				err = client.Delete(context.TODO(), instance.Name, metav1.DeleteOptions{})
+				err = cs.Delete(context.TODO(), &instance)
 				Expect(err).ShouldNot(HaveOccurred())
-				result, err = client.List(context.TODO(), metav1.ListOptions{})
+				err = cs.List(context.TODO(), &result)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(result.Items).To(HaveLen(0))
 			})
 		})
 		Context("for an invalid config", func() {
 			It("should fail if there are too many students", func() {
-				client = cs.MiskatonicV1beta1().Universities("university-test-too-many")
 				val := 151
+				instance.Namespace = "university-test-too-many"
 				instance.Spec.MaxStudents = &val
-				_, err := client.Create(context.TODO(), &instance, metav1.CreateOptions{})
+				err := cs.Create(context.TODO(), &instance)
 				Expect(err).Should(HaveOccurred())
 			})
 
 			It("should fail if there are not enough students", func() {
-				client = cs.MiskatonicV1beta1().Universities("university-test-not-enough")
 				val := 0
+				instance.Namespace = "university-test-not-enough"
 				instance.Spec.MaxStudents = &val
-				_, err := client.Create(context.TODO(), &instance, metav1.CreateOptions{})
+				err := cs.Create(context.TODO(), &instance)
 				Expect(err).Should(HaveOccurred())
 			})
-		})
-	})
-
-	Describe("when sending a campus request", func() {
-		It("should set the faculty count", func() {
-			client = cs.MiskatonicV1beta1().Universities("university-test-campus")
-			_, err := client.Create(context.TODO(), &instance, metav1.CreateOptions{})
-			Expect(err).ShouldNot(HaveOccurred())
-
-			campus := &UniversityCampus{
-				Faculty: 30,
-			}
-			campus.Name = instance.Name
-			restClient := cs.MiskatonicV1beta1().RESTClient()
-			err = restClient.Post().Namespace("university-test-campus").
-				Name(instance.Name).
-				Resource("universities").
-				SubResource("campus").
-				Body(campus).Do(context.TODO()).Error()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			expected.Spec.FacultySize = 30
-			actual, err := client.Get(context.TODO(), instance.Name, metav1.GetOptions{})
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(actual.Spec).Should(Equal(expected.Spec))
 		})
 	})
 })

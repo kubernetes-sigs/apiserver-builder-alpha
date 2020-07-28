@@ -18,7 +18,6 @@ package v1beta1_test
 
 import (
 	"context"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	. "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/miskatonic/v1beta1"
 
 	. "github.com/onsi/ginkgo"
@@ -32,6 +31,7 @@ var _ = Describe("Student", func() {
 	BeforeEach(func() {
 		instance = Student{}
 		instance.Name = "joe"
+		instance.Namespace = "default"
 		instance.Spec.ID = 3
 
 		expected = instance
@@ -39,8 +39,8 @@ var _ = Describe("Student", func() {
 
 	Describe("when sending a storage request", func() {
 		It("should return the instance with an incremented the ID", func() {
-			client := cs.MiskatonicV1beta1().Students("test-create-delete-students")
-			actual, err := client.Create(context.TODO(), &instance, metav1.CreateOptions{})
+			actual := instance.DeepCopy()
+			err := cs.Create(context.TODO(), actual)
 			Expect(err).NotTo(HaveOccurred())
 			expected.Spec.ID = instance.Spec.ID + 1
 			Expect(actual.Spec).To(Equal(expected.Spec))

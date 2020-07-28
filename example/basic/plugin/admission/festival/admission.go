@@ -1,4 +1,3 @@
-
 /*
 Copyright YEAR The Kubernetes Authors.
 
@@ -15,29 +14,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
-
 package festivaladmission
 
 import (
 	"context"
 	"fmt"
-	aggregatedadmission "sigs.k8s.io/apiserver-builder-alpha/example/basic/plugin/admission"
-	aggregatedinformerfactory "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/client/informers_generated/externalversions"
-	aggregatedclientset "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/client/clientset_generated/clientset"
+	"k8s.io/apiserver/pkg/admission"
 	genericadmissioninitializer "k8s.io/apiserver/pkg/admission/initializer"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/apiserver/pkg/admission"
+	aggregatedadmission "sigs.k8s.io/apiserver-builder-alpha/example/basic/plugin/admission"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var _ admission.Interface 											= &festivalPlugin{}
-var _ admission.MutationInterface 									= &festivalPlugin{}
-var _ admission.ValidationInterface 								= &festivalPlugin{}
-var _ genericadmissioninitializer.WantsExternalKubeInformerFactory 	= &festivalPlugin{}
-var _ genericadmissioninitializer.WantsExternalKubeClientSet 		= &festivalPlugin{}
-var _ aggregatedadmission.WantsAggregatedResourceInformerFactory 	= &festivalPlugin{}
-var _ aggregatedadmission.WantsAggregatedResourceClientSet 			= &festivalPlugin{}
+var _ admission.Interface = &festivalPlugin{}
+var _ admission.MutationInterface = &festivalPlugin{}
+var _ admission.ValidationInterface = &festivalPlugin{}
+var _ genericadmissioninitializer.WantsExternalKubeInformerFactory = &festivalPlugin{}
+var _ genericadmissioninitializer.WantsExternalKubeClientSet = &festivalPlugin{}
+var _ aggregatedadmission.WantsAggregatedResourceInformerFactory = &festivalPlugin{}
+var _ aggregatedadmission.WantsAggregatedResourceClientSet = &festivalPlugin{}
 
 func NewFestivalPlugin() *festivalPlugin {
 	return &festivalPlugin{
@@ -62,9 +59,9 @@ func (p *festivalPlugin) Validate(ctx context.Context, a admission.Attributes, o
 	return nil
 }
 
-func (p *festivalPlugin) SetAggregatedResourceInformerFactory(aggregatedinformerfactory.SharedInformerFactory) {}
+func (p *festivalPlugin) SetAggregatedResourceInformerFactory(cache.Cache) {}
 
-func (p *festivalPlugin) SetAggregatedResourceClientSet(aggregatedclientset.Interface) {}
+func (p *festivalPlugin) SetAggregatedResourceClientSet(client.Client) {}
 
 func (p *festivalPlugin) SetExternalKubeInformerFactory(informers.SharedInformerFactory) {}
 

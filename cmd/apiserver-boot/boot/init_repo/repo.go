@@ -17,14 +17,10 @@ limitations under the License.
 package init_repo
 
 import (
-	"bytes"
-	"io"
-	"os"
-	"path/filepath"
-	"strings"
-
 	"github.com/spf13/cobra"
 	"k8s.io/klog"
+	"os"
+	"path/filepath"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 	"sigs.k8s.io/kubebuilder/pkg/scaffold"
 	"sigs.k8s.io/kubebuilder/pkg/scaffold/input"
@@ -73,37 +69,6 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 		"-h ../../boilerplate.go.txt")
 
 	os.MkdirAll("bin", 0700)
-
-	e, err := os.Executable()
-	if err != nil {
-		klog.Fatal("unable to get directory of apiserver-builder tools")
-	}
-
-	e = filepath.Dir(filepath.Dir(e))
-
-	// read the file
-	f := filepath.Join(e, "bin", "mod.tar.gz")
-	fr, err := os.Open(f)
-	if err != nil {
-		klog.Fatalf("failed to read go mod tar file %s %v", f, err)
-	}
-	defer fr.Close()
-
-	if err = util.Untar(fr, ".", map[string]func(reader io.Reader)io.Reader{
-		"go.mod": func(reader io.Reader) io.Reader {
-			klog.Info("rendering go mod file")
-			buf := new(bytes.Buffer)
-			if _, err := io.Copy(buf, reader); err != nil {
-				klog.Fatal("failed rendering mod file", err)
-				return nil
-			}
-			newModContent := strings.Replace(string(buf.Bytes()), "{{.Repo}}", util.Repo, 1)
-			return bytes.NewBufferString(newModContent)
-		},
-	}); err != nil {
-		klog.Fatalf("Could not untar from mod.tar.gz: %v", err)
-	}
-
 }
 
 func createKubeBuilderProjectFile() {
@@ -132,6 +97,11 @@ func createBazelWorkspace() {
 	path = filepath.Join(dir, "BUILD.bazel")
 	util.WriteIfNotFound(path, "bazel-build-template",
 		buildTemplate, buildTemplateArguments{domain, util.Repo})
+	path = filepath.Join(dir, "go.mod")
+	util.WriteIfNotFound(path, "go-mod-template",
+		goModTemplate, struct {
+			Repo string
+		}{util.Repo})
 }
 
 func createControllerManager(boilerplate string) {
@@ -311,4 +281,54 @@ gazelle(
     name = "gazelle",
     command = "fix",
 )
+`
+
+var goModTemplate = `
+module {{.Repo}}
+
+go 1.13
+
+require (
+	github.com/go-logr/zapr v0.1.1 // indirect
+	github.com/gogo/protobuf v1.3.1 // indirect
+	github.com/golang/protobuf v1.3.4 // indirect
+	github.com/google/go-cmp v0.3.1 // indirect
+	github.com/gorilla/websocket v1.4.1 // indirect
+	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190723091251-e0797f438f94 // indirect
+	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
+	github.com/kubernetes-incubator/reference-docs v0.0.0 // indirect
+	github.com/markbates/inflect v0.0.0-00010101000000-000000000000
+	github.com/onsi/ginkgo v1.11.0
+	github.com/onsi/gomega v1.8.1
+	github.com/pkg/errors v0.8.1
+	github.com/spf13/cobra v0.0.5
+	github.com/spf13/pflag v1.0.5
+	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
+	golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898 // indirect
+	k8s.io/api v0.18.4
+	k8s.io/apimachinery v0.18.4
+	k8s.io/apiserver v0.18.4
+	k8s.io/client-go v0.18.4
+	k8s.io/gengo v0.0.0-20190822140433-26a664648505
+	k8s.io/klog v1.0.0
+	k8s.io/kube-aggregator v0.18.4
+    k8s.io/code-generator v0.18.4
+	k8s.io/kube-openapi v0.0.0-20191107075043-30be4d16710a
+	k8s.io/utils v0.0.0-20191114184206-e782cd3c129f
+	sigs.k8s.io/controller-runtime v0.6.0
+	sigs.k8s.io/controller-tools v0.1.12 // indirect
+	sigs.k8s.io/kubebuilder v1.0.8
+	sigs.k8s.io/testing_frameworks v0.1.1
+	sigs.k8s.io/apiserver-builder-alpha v1.18.0
+)
+
+replace sigs.k8s.io/controller-tools => sigs.k8s.io/controller-tools v0.1.12
+
+replace sigs.k8s.io/kubebuilder => sigs.k8s.io/kubebuilder v1.0.8
+
+replace github.com/markbates/inflect => github.com/markbates/inflect v1.0.4
+
+replace github.com/kubernetes-incubator/reference-docs => github.com/kubernetes-sigs/reference-docs v0.0.0-20170929004150-fcf65347b256
+
+replace sigs.k8s.io/structured-merge-diff => sigs.k8s.io/structured-merge-diff v1.0.1-0.20191108220359-b1b620dd3f06
 `

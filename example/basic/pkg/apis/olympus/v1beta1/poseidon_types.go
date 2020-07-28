@@ -45,4 +45,3 @@ type PoseidonSpec struct {
 // PoseidonStatus defines the observed state of Poseidon
 type PoseidonStatus struct {
 }
-

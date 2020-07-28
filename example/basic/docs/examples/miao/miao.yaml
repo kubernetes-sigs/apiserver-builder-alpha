@@ -1,0 +1,7 @@
+note: Miao Example
+sample: |
+  apiVersion: foo.k8s.io/v1
+  kind: Miao
+  metadata:
+    name: miao-example
+  spec:

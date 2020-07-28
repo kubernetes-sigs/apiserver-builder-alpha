@@ -20,21 +20,23 @@ import (
 	"context"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 
 	. "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/miskatonic/v1beta1"
-	. "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/client/clientset_generated/clientset/typed/miskatonic/v1beta1"
 )
 
 var _ = Describe("University", func() {
 	var instance University
 	var expected University
-	var client UniversityInterface
 
 	BeforeEach(func() {
 		instance = University{}
 		instance.Name = "instance-1"
+		instance.Namespace = "default"
 		instance.Spec.FacultySize = 7
 
 		expected = instance
@@ -43,21 +45,25 @@ var _ = Describe("University", func() {
 	})
 
 	AfterEach(func() {
-		client.Delete(context.TODO(), instance.Name, metav1.DeleteOptions{})
+		cs.Delete(context.TODO(), &instance)
 	})
 
 	Describe("when sending a campus request", func() {
 		It("should return success", func() {
-			client = cs.MiskatonicV1beta1().Universities("university-test-campus")
-			_, err := client.Create(context.TODO(), &instance, metav1.CreateOptions{})
+			err := cs.Create(context.TODO(), &instance)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			campus := &UniversityCampus{
 				Faculty: 30,
 			}
 			campus.Name = instance.Name
-			restClient := cs.MiskatonicV1beta1().RESTClient()
-			err = restClient.Post().Namespace("university-test-campus").
+			restClient, err := apiutil.RESTClientForGVK(schema.GroupVersionKind{
+				Group:   "miskatonic.k8s.io",
+				Version: "v1beta1",
+				Kind:    "UniversityCampus",
+			}, config, serializer.NewCodecFactory(builders.Scheme))
+			Expect(err).ShouldNot(HaveOccurred())
+			err = restClient.Post().Namespace(instance.Namespace).
 				Name(instance.Name).
 				Resource("universities").
 				SubResource("campus").
@@ -65,7 +71,11 @@ var _ = Describe("University", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			expected.Spec.FacultySize = 30
-			actual, err := client.Get(context.TODO(), instance.Name, metav1.GetOptions{})
+			actual := instance.DeepCopy()
+			err = cs.Get(context.TODO(), client.ObjectKey{
+				Namespace: instance.Namespace,
+				Name:      instance.Name,
+			}, actual)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(actual.Spec).Should(Equal(expected.Spec))
 		})

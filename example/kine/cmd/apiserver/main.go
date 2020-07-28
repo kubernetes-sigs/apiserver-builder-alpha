@@ -1,4 +1,3 @@
-
 /*
 Copyright 2019 The Kubernetes Authors.
 
@@ -15,17 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
-
 package main
 
 import (
 	// Make sure dep tools picks up these dependencies
-	_ "k8s.io/apimachinery/pkg/apis/meta/v1"
 	_ "github.com/go-openapi/loads"
+	_ "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/cmd/server"
 	_ "k8s.io/client-go/plugin/pkg/client/auth" // Enable cloud provider auth
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/cmd/server"
 
 	"sigs.k8s.io/apiserver-builder-alpha/example/kine/pkg/apis"
 	"sigs.k8s.io/apiserver-builder-alpha/example/kine/pkg/openapi"
@@ -35,11 +32,11 @@ func main() {
 	version := "v0"
 
 	err := server.StartApiServerWithOptions(&server.StartOptions{
-		EtcdPath:         "/registry/example.com",
-		Apis:             apis.GetAllApiBuilders(),
-		Openapidefs:      openapi.GetOpenAPIDefinitions,
-		Title:            "Api",
-		Version:          version,
+		EtcdPath:    "/registry/example.com",
+		Apis:        apis.GetAllApiBuilders(),
+		Openapidefs: openapi.GetOpenAPIDefinitions,
+		Title:       "Api",
+		Version:     version,
 
 		// TweakConfigFuncs []func(apiServer *apiserver.Config) error
 		// FlagConfigFuncs []func(*cobra.Command) error
