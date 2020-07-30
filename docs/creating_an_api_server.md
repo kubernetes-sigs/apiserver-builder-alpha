@@ -2,7 +2,7 @@
 
 **Note:** This document explains how to manually create the files generated
 by `apiserver-boot`.  It is recommended to automatically create these files
-instead.  See [getting started](https://sigs.k8s.io/apiserver-builder-alpha/blob/master/docs/getting_started.md)
+instead.  See[api_building_overview](https://sigs.k8s.io/apiserver-builder-alpha/blob/master/docs/concepts/api_building_overview.md)
 for more details.
 
 ## Create the apiserver command
