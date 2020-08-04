@@ -104,4 +104,4 @@ Using a config.yaml supports:
 - Grouping subresources
 - Redefining display names for operations
 
-See an example [here](https://github.com/kubernetes-incubator/reference-docs/blob/master/gen-apidocs/generators/config.yaml)
+See an example [here](https://github.com/kubernetes-sigs/reference-docs/blob/master/gen-apidocs/config/config.yaml)
