@@ -62,7 +62,7 @@ More Comparision [here](https://kubernetes.io/docs/concepts/extend-kubernetes/ap
 
 ### Conclusion
 
-CRD/CR is the recommended approach to extend your workloads, while AA will still stand out under specific use cases because it keeps the possibility that Kube-APIServer could integrate with your heterogeneous systems. Note that developing and maintaining an AA extension would be much more costy than CR so consider it again unless you are sure to continue on with it. Also, any customization based on AA has to follow [kubernetes API convension](https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md). In a word, everything is under your control with AA, it would be beautiful but challenging.
+CRD/CR is the recommended approach to extend your workloads, while AA will still stand out under specific use cases because it keeps the possibility that Kube-APIServer could integrate with your heterogeneous systems. Note that developing and maintaining an AA extension would be much more costy than CR so consider it again unless you are sure to continue on with it. Also, any customization based on AA has to follow [kubernetes API convension](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md). In a word, everything is under your control with AA, it would be beautiful but challenging.
 
 
 

@@ -17,6 +17,7 @@ limitations under the License.
 package v1beta1_test
 
 import (
+	"context"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -39,7 +40,7 @@ var _ = Describe("Poseidon", func() {
 	})
 
 	AfterEach(func() {
-		client.Delete(instance.Name, &metav1.DeleteOptions{})
+		client.Delete(context.TODO(), instance.Name, metav1.DeleteOptions{})
 	})
 
 	Describe("when sending a storage request", func() {
@@ -48,27 +49,27 @@ var _ = Describe("Poseidon", func() {
 				client = cs.OlympusV1beta1().Poseidons("poseidon-test-valid")
 
 				By("returning success from the create request")
-				actual, err := client.Create(&instance)
+				actual, err := client.Create(context.TODO(), &instance, metav1.CreateOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
 
 				By("defaulting the expected fields")
 				Expect(actual.Spec).To(Equal(expected.Spec))
 
 				By("returning the item for list requests")
-				result, err := client.List(metav1.ListOptions{})
+				result, err := client.List(context.TODO(), metav1.ListOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(result.Items).To(HaveLen(1))
 				Expect(result.Items[0].Spec).To(Equal(expected.Spec))
 
 				By("returning the item for get requests")
-				actual, err = client.Get(instance.Name, metav1.GetOptions{})
+				actual, err = client.Get(context.TODO(), instance.Name, metav1.GetOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(actual.Spec).To(Equal(expected.Spec))
 
 				By("deleting the item for delete requests")
-				err = client.Delete(instance.Name, &metav1.DeleteOptions{})
+				err = client.Delete(context.TODO(), instance.Name, metav1.DeleteOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
-				result, err = client.List(metav1.ListOptions{})
+				result, err = client.List(context.TODO(), metav1.ListOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(result.Items).To(HaveLen(0))
 			})
@@ -93,27 +94,27 @@ var _ = Describe("Poseidon", func() {
 				expected2 := instance2
 
 				By("returning success from the create request")
-				_, err := client.Create(&instance1)
+				_, err := client.Create(context.TODO(), &instance1, metav1.CreateOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
 
 				By("returning success from the create request")
-				_, err = client.Create(&instance2)
+				_, err = client.Create(context.TODO(), &instance2, metav1.CreateOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
 
 				By("returning the item for list requests")
-				result, err := client.List(metav1.ListOptions{FieldSelector: "spec.deployment.name=i1"})
+				result, err := client.List(context.TODO(), metav1.ListOptions{FieldSelector: "spec.deployment.name=i1"})
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(result.Items).To(HaveLen(1))
 				Expect(result.Items[0].Name).To(Equal(expected1.Name))
 
 				By("returning the item for list requests")
-				result, err = client.List(metav1.ListOptions{FieldSelector: "spec.deployment.name=i2"})
+				result, err = client.List(context.TODO(), metav1.ListOptions{FieldSelector: "spec.deployment.name=i2"})
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(result.Items).To(HaveLen(1))
 				Expect(result.Items[0].Name).To(Equal(expected2.Name))
 
 				By("returning the item for list requests")
-				result, err = client.List(metav1.ListOptions{})
+				result, err = client.List(context.TODO(), metav1.ListOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(result.Items).To(HaveLen(2))
 			})

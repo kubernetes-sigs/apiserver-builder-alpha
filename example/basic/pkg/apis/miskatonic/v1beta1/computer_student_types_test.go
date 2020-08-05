@@ -17,6 +17,7 @@ limitations under the License.
 package v1beta1_test
 
 import (
+	"context"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -39,13 +40,13 @@ var _ = Describe("Student", func() {
 	})
 
 	AfterEach(func() {
-		client.Delete(instance.Name, &metav1.DeleteOptions{})
+		client.Delete(context.TODO(), instance.Name, metav1.DeleteOptions{})
 	})
 
 	Describe("when sending a computer request", func() {
 		It("should return success", func() {
 			client = cs.MiskatonicV1beta1().Students("student-test-computer")
-			_, err := client.Create(&instance)
+			_, err := client.Create(context.TODO(), &instance, metav1.CreateOptions{})
 			Expect(err).ShouldNot(HaveOccurred())
 
 			computer := &StudentComputer{}
@@ -55,7 +56,7 @@ var _ = Describe("Student", func() {
 				Name(instance.Name).
 				Resource("students").
 				SubResource("computer").
-				Body(computer).Do().Error()
+				Body(computer).Do(context.TODO()).Error()
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 	})

@@ -20,6 +20,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/client-go/scale/scheme/autoscalingv1"
 )
 
 // Scheme is the default instance of runtime.Scheme to which types in the Kubernetes API are already registered.
@@ -35,6 +36,7 @@ var ParameterScheme = runtime.NewScheme()
 var ParameterCodec = runtime.NewParameterCodec(ParameterScheme)
 
 func init() {
+	autoscalingv1.AddToScheme(Scheme)
 	ParameterScheme.AddUnversionedTypes(metav1.SchemeGroupVersion,
 		&metav1.ListOptions{},
 		&metav1.ExportOptions{},

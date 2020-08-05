@@ -1,6 +1,7 @@
 package suite
 
 import (
+	"context"
 	"fmt"
 	"k8s.io/utils/pointer"
 	"net"
@@ -110,7 +111,7 @@ func (e *Environment) installAggregatedAPIServer(group, version string) (err err
 	namespace := "default"
 
 	corev1Client := corev1client.NewForConfigOrDie(e.LoopbackClientConfig)
-	if _, err := corev1Client.Services(namespace).Create(&corev1.Service{
+	if _, err := corev1Client.Services(namespace).Create(context.TODO(), &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceName,
 			Namespace: namespace,
@@ -127,12 +128,12 @@ func (e *Environment) installAggregatedAPIServer(group, version string) (err err
 				},
 			},
 		},
-	}); err != nil {
+	}, metav1.CreateOptions{}); err != nil {
 		return err
 	}
 
 	apiserviceClient := apiregistrationv1client.NewForConfigOrDie(e.LoopbackClientConfig)
-	if _, err := apiserviceClient.APIServices().Create(&apiregistrationv1.APIService{
+	if _, err := apiserviceClient.APIServices().Create(context.TODO(), &apiregistrationv1.APIService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: version + "." + group,
 		},
@@ -148,7 +149,7 @@ func (e *Environment) installAggregatedAPIServer(group, version string) (err err
 				Port:      pointer.Int32Ptr(int32(e.AggregatedAPIServerSecurePort)),
 			},
 		},
-	}); err != nil {
+	}, metav1.CreateOptions{}); err != nil {
 		return err
 	}
 	if err := wait.PollImmediate(500*time.Millisecond, 5*time.Second, func() (done bool, err error) {
