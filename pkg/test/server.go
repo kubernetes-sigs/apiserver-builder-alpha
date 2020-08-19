@@ -22,6 +22,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
+	"os"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -151,6 +152,7 @@ func (te *TestEnvironment) startEtcd() {
 	if err != nil {
 		panic(err)
 	}
+	defer os.Remove(dirname)
 
 	clientAddr := fmt.Sprintf("http://localhost:%d", te.EtcdClientPort)
 	peerAddr := fmt.Sprintf("http://localhost:%d", te.EtcdPeerPort)
