@@ -163,7 +163,6 @@ func (te *TestEnvironment) startEtcd() {
 	}
 	// Using a relative path on windows means that the temp folder won't get purged
 	// at restart like the /tmp would on a unix-based system, so lets defer the removal
-	// of the folder
 	defer os.RemoveAll(dirname)
 
 	clientAddr := fmt.Sprintf("http://localhost:%d", te.EtcdClientPort)
