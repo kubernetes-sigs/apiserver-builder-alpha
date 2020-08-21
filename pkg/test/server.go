@@ -22,8 +22,10 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
+	"os"
 	"os/exec"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -147,10 +149,21 @@ func (te *TestEnvironment) startApiserver() {
 
 // startEtcd starts a new etcd process using a random temp data directory and random free port
 func (te *TestEnvironment) startEtcd() {
-	dirname, err := ioutil.TempDir("/tmp", "apiserver-test")
+	// Windows systems are unable to save files to the /tmp directory
+	var tempDir string
+	switch runtime.GOOS {
+	case "windows":
+		tempDir = "./tmp"
+	default:
+		tempDir = "/tmp"
+	}
+	dirname, err := ioutil.TempDir(tempDir, "apiserver-test")
 	if err != nil {
 		panic(err)
 	}
+	// Using a relative path on windows means that the temp folder won't get purged
+	// at restart like the /tmp would on a unix-based system, so lets defer the removal
+	defer os.RemoveAll(dirname)
 
 	clientAddr := fmt.Sprintf("http://localhost:%d", te.EtcdClientPort)
 	peerAddr := fmt.Sprintf("http://localhost:%d", te.EtcdPeerPort)
