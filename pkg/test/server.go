@@ -153,7 +153,8 @@ func (te *TestEnvironment) startEtcd() {
 	var tempDir string
 	switch runtime.GOOS {
 	case "windows":
-		tempDir = "./tmp"
+		// ioutil requires the dir to exist, we'll create our temp dir where we're at
+		tempDir = "./"
 	default:
 		tempDir = "/tmp"
 	}
