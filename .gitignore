@@ -4,3 +4,4 @@ example/violations.report
 db/**
 test/bin/**
 vendor/**
+bin/**

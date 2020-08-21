@@ -18,13 +18,7 @@
 # from /
 
 gazelle:
-	find vendor -name BUILD | xargs rm
-	find vendor -name BUILD.bazel | xargs rm
-	gazelle fix -go_prefix sigs.k8s.io/apiserver-builder-alpha -external vendored .
-	bash -c "find vendor/ -name BUILD.bazel |  xargs sed -i '' s'|//k8s.io/|//vendor/k8s.io/|g'"
-	bash -c "find vendor/ -name BUILD |  xargs sed -i '' s'|//k8s.io/|//vendor/k8s.io/|g'"
-	bash -c "find vendor/ -name BUILD.bazel |  xargs sed -i '' s'|cgo = True,|cgo = False,|g'"
-	bash -c "find vendor/ -name BUILD |  xargs sed -i '' s'|cgo = True,|cgo = False,|g'"
+	bazel run //:gazelle
 
 NAME=apiserver-builder
 VENDOR=kubernetes-incubator
@@ -59,6 +53,7 @@ clean:
 
 .PHONY: build
 build: clean ## Create release artefacts for darwin:amd64, linux:amd64 and windows:amd64. Requires etcd, glide, hg.
+	go mod vendor
 	mkdir -p release/$(VERSION)/src
 	bazel build --platforms=@io_bazel_rules_go//go/toolchain:$(GOOS)_$(GOARCH) cmd:apiserver-builder
 	ls -lh bazel-bin/cmd

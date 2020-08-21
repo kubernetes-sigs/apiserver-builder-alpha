@@ -84,7 +84,7 @@ func untar(r io.Reader, dir string, renderFunc map[string]func(reader io.Reader)
 			}
 			var r io.Reader = tr
 			rendered := false
-			if renderFunc != nil && renderFunc[abs] != nil{
+			if renderFunc != nil && renderFunc[abs] != nil {
 				r = renderFunc[abs](r)
 				rendered = true
 			}

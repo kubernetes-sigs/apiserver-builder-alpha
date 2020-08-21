@@ -17,13 +17,13 @@ limitations under the License.
 package apiserver
 
 import (
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/version"
 	genericapiserver "k8s.io/apiserver/pkg/server"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
 )
 
 type Installer struct {
@@ -57,7 +57,7 @@ func (c *Config) Init() *Config {
 }
 
 type Config struct {
-	RecommendedConfig       *genericapiserver.RecommendedConfig
+	RecommendedConfig   *genericapiserver.RecommendedConfig
 	InsecureServingInfo *genericapiserver.DeprecatedInsecureServingInfo
 
 	PostStartHooks map[string]genericapiserver.PostStartHookFunc

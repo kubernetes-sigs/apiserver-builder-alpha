@@ -23,8 +23,8 @@ import (
 
 	"io/ioutil"
 
-	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 	"github.com/spf13/cobra"
+	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 )
 
 var Image string
