@@ -19,7 +19,6 @@ package controller
 import (
 	"time"
 
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"
@@ -27,6 +26,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
 )
 
 // QueueingEventHandler queues the key for the object on add and update events

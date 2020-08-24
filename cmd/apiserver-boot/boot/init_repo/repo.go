@@ -89,7 +89,7 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 	}
 	defer fr.Close()
 
-	if err = util.Untar(fr, ".", map[string]func(reader io.Reader)io.Reader{
+	if err = util.Untar(fr, ".", map[string]func(reader io.Reader) io.Reader{
 		"go.mod": func(reader io.Reader) io.Reader {
 			klog.Info("rendering go mod file")
 			buf := new(bytes.Buffer)

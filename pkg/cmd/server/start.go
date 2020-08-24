@@ -85,8 +85,8 @@ type StartOptions struct {
 func StartApiServer(etcdPath string, apis []*builders.APIGroupBuilder, openapidefs openapi.GetOpenAPIDefinitions,
 	title, version string, tweakConfigFuncs ...func(apiServer *apiserver.Config) error) error {
 	return StartApiServerWithOptions(&StartOptions{
-		EtcdPath:         etcdPath,
-		Apis:             apis,
+		EtcdPath: etcdPath,
+		Apis:     apis,
 
 		Openapidefs:      openapidefs,
 		Title:            title,

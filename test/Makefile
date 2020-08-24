@@ -33,7 +33,7 @@ skeleton:
 	apiserver-boot create group version resource --group storage --version v1 --kind Snapshot --non-namespaced $(NON_INTERACTIVE_FLAG)
 
 build: cmds skeleton
-	apiserver-boot build executables
+	GO111MODULE=off apiserver-boot build executables
 
 # Build docs
 docs: cleandocs build

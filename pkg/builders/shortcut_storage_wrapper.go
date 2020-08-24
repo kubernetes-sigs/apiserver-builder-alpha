@@ -24,7 +24,7 @@ var _ rest.CategoriesProvider = &StorageWrapperWithShortcuts{}
 type StorageWrapperWithShortcuts struct {
 	*StorageWrapper
 	shortNames []string
-	categories  []string
+	categories []string
 }
 
 func (b *StorageWrapperWithShortcuts) ShortNames() []string {
