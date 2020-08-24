@@ -20,24 +20,34 @@ jobs:
           path: go/src/sigs.k8s.io/apiserver-builder-alpha/
       - uses: actions/cache@v2
         with:
-          path: ~/go/pkg/mod
+          path: |
+            ${{ github.workspace }}/go/pkg/mod
+            ${{ github.workspace }}/.cache/bazel
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
+      - name: Download Dependencies
+        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
+        run: |
+          wget https://github.com/bazelbuild/bazel/releases/download/0.29.1/bazel_0.29.1-linux-x86_64.deb
+          wget https://dl.k8s.io/v1.16.0/kubernetes-server-linux-amd64.tar.gz
+          wget https://github.com/coreos/etcd/releases/download/v3.2.0/etcd-v3.2.0-linux-amd64.tar.gz
       - name: Install
         working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
         env:
           GOPATH: ${{ github.workspace }}/go
         run: |
-          [[ ! -x "$(which bazel)" ]]  \
-            && wget https://github.com/bazelbuild/bazel/releases/download/0.29.1/bazel_0.29.1-linux-x86_64.deb \
-            && sudo dpkg -i bazel_0.29.1-linux-x86_64.deb && which bazel
-          which bazel
-          [[ ! -x "$(which etcd)" ]] \
-            && bash scripts/install_etcd.sh
-          which etcd
-          [[ -f /usr/local/kubebuilder/bin/kubebuilder ]] \
-            && bash test/install-kubebuilder.sh
+          sudo dpkg -i bazel_0.29.1-linux-x86_64.deb
+
+          sudo mkdir -p /usr/local/kubebuilder/bin/
+          tar -zxvf kubernetes-server-linux-amd64.tar.gz
+          sudo mv kubernetes/server/bin/kube-apiserver /usr/local/kubebuilder/bin/
+
+          mkdir -p /tmp/test-etcd/
+          tar xzvf etcd-v3.2.0-linux-amd64.tar.gz -C /tmp/test-etcd/ --strip-components=1
+          sudo cp /tmp/test-etcd/{etcd,etcdctl} /usr/local/kubebuilder/bin/
+          sudo cp /tmp/test-etcd/{etcd,etcdctl} /usr/local/bin/
+
           mkdir -p $(go env GOPATH)/bin/
           make install
       - name: Testing on examples
@@ -63,24 +73,35 @@ jobs:
           path: go/src/sigs.k8s.io/apiserver-builder-alpha/
       - uses: actions/cache@v2
         with:
-          path: ~/go/pkg/mod
+          path: |
+            ${{ github.workspace }}/go/pkg/mod
+            ${{ github.workspace }}/.cache/bazel
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
+      - name: Download Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
+        run: |
+          wget https://github.com/bazelbuild/bazel/releases/download/0.29.1/bazel_0.29.1-linux-x86_64.deb
+          wget https://dl.k8s.io/v1.16.0/kubernetes-server-linux-amd64.tar.gz
+          wget https://github.com/coreos/etcd/releases/download/v3.2.0/etcd-v3.2.0-linux-amd64.tar.gz
       - name: Install
         working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
         env:
           GOPATH: ${{ github.workspace }}/go
         run: |
-          [[ ! -x "$(which bazel)" ]]  \
-            && wget https://github.com/bazelbuild/bazel/releases/download/0.29.1/bazel_0.29.1-linux-x86_64.deb \
-            && sudo dpkg -i bazel_0.29.1-linux-x86_64.deb
-          which bazel
-          [[ ! -x "$(which etcd)" ]] \
-            && bash scripts/install_etcd.sh
-          which etcd
-          [[ -f /usr/local/kubebuilder/bin/kubebuilder ]] \
-            && bash test/install-kubebuilder.sh
+          sudo dpkg -i bazel_0.29.1-linux-x86_64.deb
+
+          sudo mkdir -p /usr/local/kubebuilder/bin/
+          tar -zxvf kubernetes-server-linux-amd64.tar.gz
+          sudo mv kubernetes/server/bin/kube-apiserver /usr/local/kubebuilder/bin/
+
+          mkdir -p /tmp/test-etcd/
+          tar xzvf etcd-v3.2.0-linux-amd64.tar.gz -C /tmp/test-etcd/ --strip-components=1
+          sudo cp /tmp/test-etcd/{etcd,etcdctl} /usr/local/kubebuilder/bin/
+          sudo cp /tmp/test-etcd/{etcd,etcdctl} /usr/local/bin/
+
           mkdir -p $(go env GOPATH)/bin/
           make install
       - name: Testing on new project
