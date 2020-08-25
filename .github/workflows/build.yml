@@ -7,59 +7,6 @@ on:
     branches: [ master ]
 
 jobs:
-  example:
-    runs-on: ubuntu-latest
-    name: Testing Examples
-    steps:
-      - name: Set up Golang
-        uses: actions/setup-go@v2.0.3
-        with:
-          go-version: 1.13
-      - uses: actions/checkout@v2.3.1
-        with:
-          path: go/src/sigs.k8s.io/apiserver-builder-alpha/
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ${{ github.workspace }}/go/pkg/mod
-            ${{ github.workspace }}/.cache/bazel
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-      - name: Download Dependencies
-        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
-        run: |
-          wget https://github.com/bazelbuild/bazel/releases/download/0.29.1/bazel_0.29.1-linux-x86_64.deb
-          wget https://dl.k8s.io/v1.16.0/kubernetes-server-linux-amd64.tar.gz
-          wget https://github.com/coreos/etcd/releases/download/v3.2.0/etcd-v3.2.0-linux-amd64.tar.gz
-      - name: Install
-        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
-        env:
-          GOPATH: ${{ github.workspace }}/go
-        run: |
-          sudo dpkg -i bazel_0.29.1-linux-x86_64.deb
-
-          sudo mkdir -p /usr/local/kubebuilder/bin/
-          tar -zxvf kubernetes-server-linux-amd64.tar.gz
-          sudo mv kubernetes/server/bin/kube-apiserver /usr/local/kubebuilder/bin/
-
-          mkdir -p /tmp/test-etcd/
-          tar xzvf etcd-v3.2.0-linux-amd64.tar.gz -C /tmp/test-etcd/ --strip-components=1
-          sudo cp /tmp/test-etcd/{etcd,etcdctl} /usr/local/kubebuilder/bin/
-          sudo cp /tmp/test-etcd/{etcd,etcdctl} /usr/local/bin/
-
-          mkdir -p $(go env GOPATH)/bin/
-          make install
-      - name: Testing on examples
-        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
-        env:
-          GOPATH: ${{ github.workspace }}/go
-        run: |
-          export GOPATH=$(go env GOPATH)
-          export GOBIN=${GOPATH}/bin/
-          export PATH=${PATH}:${GOBIN}
-          cd example/basic
-          PATH=$GOPATH/bin:$PATH:/tmp/test-etcd make test
   new:
     runs-on: ubuntu-latest
     name: Testing New Projects
@@ -79,38 +26,60 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-      - name: Download Dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
+      - name: Workspace Preparing
+        env:
+          GOPATH: ${{ github.workspace }}/go
         working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
-        run: |
-          wget https://github.com/bazelbuild/bazel/releases/download/0.29.1/bazel_0.29.1-linux-x86_64.deb
-          wget https://dl.k8s.io/v1.16.0/kubernetes-server-linux-amd64.tar.gz
-          wget https://github.com/coreos/etcd/releases/download/v3.2.0/etcd-v3.2.0-linux-amd64.tar.gz
+        run: bash scripts/workspace-install.sh
       - name: Install
         working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
         env:
           GOPATH: ${{ github.workspace }}/go
-        run: |
-          sudo dpkg -i bazel_0.29.1-linux-x86_64.deb
-
-          sudo mkdir -p /usr/local/kubebuilder/bin/
-          tar -zxvf kubernetes-server-linux-amd64.tar.gz
-          sudo mv kubernetes/server/bin/kube-apiserver /usr/local/kubebuilder/bin/
-
-          mkdir -p /tmp/test-etcd/
-          tar xzvf etcd-v3.2.0-linux-amd64.tar.gz -C /tmp/test-etcd/ --strip-components=1
-          sudo cp /tmp/test-etcd/{etcd,etcdctl} /usr/local/kubebuilder/bin/
-          sudo cp /tmp/test-etcd/{etcd,etcdctl} /usr/local/bin/
-
-          mkdir -p $(go env GOPATH)/bin/
-          make install
+        run: make install
       - name: Testing on new project
         working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
         env:
           GOPATH: ${{ github.workspace }}/go
+          GOBIN: ${{ github.workspace }}/go/bin
         run: |
-          export GOPATH=$(go env GOPATH)
-          export GOBIN=${GOPATH}/bin/
           export PATH=${PATH}:${GOBIN}
           cd test/
-          PATH=$GOPATH/bin:$PATH:/tmp/test-etcd make test
+          make test
+  example:
+    runs-on: ubuntu-latest
+    name: Testing Basic Examples
+    steps:
+      - name: Set up Golang
+        uses: actions/setup-go@v2.0.3
+        with:
+          go-version: 1.13
+      - uses: actions/checkout@v2.3.1
+        with:
+          path: go/src/sigs.k8s.io/apiserver-builder-alpha/
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ${{ github.workspace }}/go/pkg/mod
+            ${{ github.workspace }}/.cache/bazel
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Workspace Preparing
+        env:
+          GOPATH: ${{ github.workspace }}/go
+        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
+        run: bash scripts/workspace-install.sh
+      - name: Install
+        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
+        env:
+          GOPATH: ${{ github.workspace }}/go
+        run: make install
+      - name: Testing on examples
+        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
+        env:
+          GOPATH: ${{ github.workspace }}/go
+          GOBIN: ${{ github.workspace }}/go/bin
+        run: |
+          export PATH=${PATH}:${GOBIN}
+          cd example/basic
+          make test
