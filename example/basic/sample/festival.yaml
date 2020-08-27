@@ -1,0 +1,6 @@
+apiVersion: kingsport.k8s.io/v1
+kind: Festival
+metadata:
+  name: festival-example
+spec:
+  year: 2020

@@ -120,3 +120,7 @@ jobs:
           sleep 60 # Hold for 1min
 
           kubectl api-resources
+          kubectl create -f sample/festival.yaml
+
+          sleep 5 # Hold for 1min
+          kubectl get fs festival-example -o jsonpath="{.spec.invited}" | grep 1 # successfully processed by controller

@@ -91,5 +91,11 @@ func (r *ReconcileFestival) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, err
 	}
 
+	instance.Spec.Invited = 1
+
+	if err := r.Update(context.TODO(), instance); err != nil {
+		return reconcile.Result{}, err
+	}
+
 	return reconcile.Result{}, nil
 }
