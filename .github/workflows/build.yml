@@ -37,17 +37,16 @@ jobs:
           GOPATH: ${{ github.workspace }}/go
         run: make install
       - name: Testing on new project
-        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
+        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/test
         env:
           GOPATH: ${{ github.workspace }}/go
           GOBIN: ${{ github.workspace }}/go/bin
         run: |
           export PATH=${PATH}:${GOBIN}
-          cd test/
           make test
-  example:
+  basic-example-build:
     runs-on: ubuntu-latest
-    name: Testing Basic Examples
+    name: Testing Basic Example
     steps:
       - name: Set up Golang
         uses: actions/setup-go@v2.0.3
@@ -75,11 +74,53 @@ jobs:
           GOPATH: ${{ github.workspace }}/go
         run: make install
       - name: Testing on examples
-        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
+        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/example/basic
         env:
           GOPATH: ${{ github.workspace }}/go
           GOBIN: ${{ github.workspace }}/go/bin
         run: |
           export PATH=${PATH}:${GOBIN}
-          cd example/basic
           make test
+  basic-example-container:
+    runs-on: ubuntu-latest
+    name: Testing Basic Example Container Build
+    steps:
+      - name: Set up Golang
+        uses: actions/setup-go@v2.0.3
+        with:
+          go-version: 1.13
+      - uses: actions/checkout@v2.3.1
+        with:
+          path: go/src/sigs.k8s.io/apiserver-builder-alpha/
+      - name: Create k8s Kind Cluster
+        uses: helm/kind-action@v1.0.0
+      - name: Workspace Preparing
+        env:
+          GOPATH: ${{ github.workspace }}/go
+        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
+        run: bash scripts/workspace-install.sh
+      - name: Install
+        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
+        env:
+          GOPATH: ${{ github.workspace }}/go
+        run: make install
+      - name: Building and running container images
+        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/example/basic
+        env:
+          GOPATH: ${{ github.workspace }}/go
+          GOBIN: ${{ github.workspace }}/go/bin
+        run: |
+          export PATH=${PATH}:${GOBIN}
+          export IMAGE="example.io/basic"
+          apiserver-boot build container --image ${IMAGE}
+          kind load docker-image ${IMAGE} --name chart-testing
+          kubectl create -f config/rbac.yaml
+          kubectl create -f config/apiserver.yaml
+
+          sleep 60 # Hold for 1min
+
+          kubectl api-resources
+          kubectl create -f sample/festival.yaml
+
+          sleep 5 # Hold for 1min
+          kubectl get fs festival-example -o jsonpath="{.spec.invited}" | grep 1 # successfully processed by controller
