@@ -368,10 +368,10 @@ spec:
         resources:
           requests:
             cpu: 100m
-            memory: 20Mi
+            memory: 200Mi
           limits:
             cpu: 100m
-            memory: 30Mi
+            memory: 300Mi
       volumes:
       - name: apiserver-certs
         secret:
@@ -475,6 +475,116 @@ metadata:
 data:
   tls.crt: {{ .ClientCert }}
   tls.key: {{ .ClientKey }}
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: extension-apiserver-authentication-reader
+rules:
+  - apiGroups:
+      - ""
+    resourceNames:
+      - extension-apiserver-authentication
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: basic-example-apiserver-auth-reader
+  namespace: kube-system
+rules:
+  - apiGroups:
+      - ""
+    resourceNames:
+      - extension-apiserver-authentication
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: basic-example-apiserver-auth-reader
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: basic-example-apiserver-auth-reader
+subjects:
+  - kind: ServiceAccount
+    namespace: default
+    name: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: basic-example-apiserver-auth-delegator
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+  - kind: ServiceAccount
+    namespace: default
+    name: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: basic-example-controller
+  namespace: default
+rules:
+  - apiGroups:
+{{- range $api := .Versions }}
+      - '{{ $api.Group }}.{{ $config.Domain }}'
+{{- end }}
+    resources:
+      - '*'
+    verbs:
+      - '*'
+  - apiGroups:
+      - ''
+    resources:
+      - 'configmaps'
+      - 'namespaces'
+    verbs:
+      - 'get'
+      - 'list'
+      - 'watch'
+  - apiGroups:
+      - 'admissionregistration.k8s.io'
+    resources:
+      - '*'
+    verbs:
+      - 'list'
+      - 'watch'
+  - nonResourceURLs:
+      - '*'
+    verbs:
+      - '*'
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: basic-example-controller
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: basic-example-controller
+subjects:
+  - kind: ServiceAccount
+    namespace: default
+    name: default
 `
 
 var localConfigTemplate = `
