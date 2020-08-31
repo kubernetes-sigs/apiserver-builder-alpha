@@ -14,14 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package tik
+package tiger
 
 import (
 	"context"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	sqlitev1alpha1 "sigs.k8s.io/apiserver-builder-alpha/example/kine/pkg/apis/sqlite/v1alpha1"
+	mysqlv1 "sigs.k8s.io/apiserver-builder-alpha/example/kine/pkg/apis/mysql/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -35,7 +35,7 @@ import (
 * business logic.  Delete these comments after modifying this file.*
  */
 
-// Add creates a new Tik Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller
+// Add creates a new Tiger Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
 	return add(mgr, newReconciler(mgr))
@@ -43,28 +43,28 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileTik{Client: mgr.GetClient(), scheme: mgr.GetScheme()}
+	return &ReconcileTiger{Client: mgr.GetClient(), scheme: mgr.GetScheme()}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
-	c, err := controller.New("tik-controller", mgr, controller.Options{Reconciler: r})
+	c, err := controller.New("tiger-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
 		return err
 	}
 
-	// Watch for changes to Tik
-	err = c.Watch(&source.Kind{Type: &sqlitev1alpha1.Tik{}}, &handler.EnqueueRequestForObject{})
+	// Watch for changes to Tiger
+	err = c.Watch(&source.Kind{Type: &mysqlv1.Tiger{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
 
 	// TODO(user): Modify this to be the types you create
-	// Uncomment watch a Deployment created by Tik - change this for objects you create
+	// Uncomment watch a Deployment created by Tiger - change this for objects you create
 	// err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
 	//	IsController: true,
-	//	OwnerType:    &sqlitev1alpha1.Tik{},
+	//	OwnerType:    &mysqlv1.Tiger{},
 	// })
 	// if err != nil {
 	//	return err
@@ -73,23 +73,23 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	return nil
 }
 
-var _ reconcile.Reconciler = &ReconcileTik{}
+var _ reconcile.Reconciler = &ReconcileTiger{}
 
-// ReconcileTik reconciles a Tik object
-type ReconcileTik struct {
+// ReconcileTiger reconciles a Tiger object
+type ReconcileTiger struct {
 	client.Client
 	scheme *runtime.Scheme
 }
 
-// Reconcile reads that state of the cluster for a Tik object and makes changes based on the state read
-// and what is in the Tik.Spec
+// Reconcile reads that state of the cluster for a Tiger object and makes changes based on the state read
+// and what is in the Tiger.Spec
 // TODO(user): Modify this Reconcile function to implement your Controller logic.  The scaffolding writes
 // a Deployment as an example
-// +kubebuilder:rbac:groups=sqlite.example.com,resources=tiks,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=sqlite.example.com,resources=tiks/status,verbs=get;update;patch
-func (r *ReconcileTik) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	// Fetch the Tik instance
-	instance := &sqlitev1alpha1.Tik{}
+// +kubebuilder:rbac:groups=mysql.example.com,resources=tigers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=mysql.example.com,resources=tigers/status,verbs=get;update;patch
+func (r *ReconcileTiger) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+	// Fetch the Tiger instance
+	instance := &mysqlv1.Tiger{}
 	err := r.Get(context.TODO(), request.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {

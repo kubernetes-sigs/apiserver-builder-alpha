@@ -1,3 +1,4 @@
+
 /*
 Copyright 2019 The Kubernetes Authors.
 
@@ -14,15 +15,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1_test
+
+
+package v1_test
 
 import (
 	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"k8s.io/client-go/rest"
 	"sigs.k8s.io/apiserver-builder-alpha/pkg/test"
+	"k8s.io/client-go/rest"
 
 	"sigs.k8s.io/apiserver-builder-alpha/example/kine/pkg/apis"
 	"sigs.k8s.io/apiserver-builder-alpha/example/kine/pkg/client/clientset_generated/clientset"
@@ -33,7 +36,7 @@ var testenv *test.TestEnvironment
 var config *rest.Config
 var cs *clientset.Clientset
 
-func TestV1alpha1(t *testing.T) {
+func TestV1(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecsWithDefaultAndCustomReporters(t, "v1 Suite", []Reporter{test.NewlineReporter{}})
 }

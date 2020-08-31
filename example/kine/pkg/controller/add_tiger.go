@@ -17,10 +17,10 @@ limitations under the License.
 package controller
 
 import (
-	"sigs.k8s.io/apiserver-builder-alpha/example/kine/pkg/controller/tik"
+	"sigs.k8s.io/apiserver-builder-alpha/example/kine/pkg/controller/tiger"
 )
 
 func init() {
 	// AddToManagerFuncs is a list of functions to create controllers and add them to a manager.
-	AddToManagerFuncs = append(AddToManagerFuncs, tik.Add)
+	AddToManagerFuncs = append(AddToManagerFuncs, tiger.Add)
 }

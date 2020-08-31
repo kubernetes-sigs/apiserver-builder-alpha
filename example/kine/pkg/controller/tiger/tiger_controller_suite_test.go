@@ -14,10 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package tik
+package tiger
 
 import (
-	stdlog "log"
 	"os"
 	"sync"
 	"testing"
@@ -25,6 +24,7 @@ import (
 	"github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	stdlog "k8s.io/klog"
 	"sigs.k8s.io/apiserver-builder-alpha/example/kine/pkg/apis"
 	"sigs.k8s.io/apiserver-builder-alpha/pkg/test/suite"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -40,7 +40,7 @@ func TestMain(m *testing.M) {
 		stdlog.Fatal(err)
 		return
 	}
-	if err := env.StartLocalAggregatedAPIServer("sqlite.example.com", "v1alpha1"); err != nil {
+	if err := env.StartLocalAggregatedAPIServer("mysql.example.com", "v1"); err != nil {
 		stdlog.Fatal(err)
 		return
 	}
@@ -50,12 +50,12 @@ func TestMain(m *testing.M) {
 
 	code := m.Run()
 
-	stdlog.Print("stopping aggregated-apiserver..")
+	stdlog.Info("stopping aggregated-apiserver..")
 	if err := env.StopLocalAggregatedAPIServer(); err != nil {
 		stdlog.Fatal(err)
 		return
 	}
-	stdlog.Print("stopping kube-apiserver..")
+	stdlog.Info("stopping kube-apiserver..")
 	if err := env.StopLocalKubeAPIServer(); err != nil {
 		stdlog.Fatal(err)
 		return

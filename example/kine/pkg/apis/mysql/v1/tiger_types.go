@@ -17,7 +17,7 @@ limitations under the License.
 
 
 
-package v1alpha1
+package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -26,21 +26,21 @@ import (
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// Tik
+// Tiger
 // +k8s:openapi-gen=true
-// +resource:path=tiks,strategy=TikStrategy,rest=TikREST
-type Tik struct {
+// +resource:path=tigers,strategy=TigerStrategy,rest=TigerREST
+type Tiger struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   TikSpec   `json:"spec,omitempty"`
-	Status TikStatus `json:"status,omitempty"`
+	Spec   TigerSpec   `json:"spec,omitempty"`
+	Status TigerStatus `json:"status,omitempty"`
 }
 
-// TikSpec defines the desired state of Tik
-type TikSpec struct {
+// TigerSpec defines the desired state of Tiger
+type TigerSpec struct {
 }
 
-// TikStatus defines the observed state of Tik
-type TikStatus struct {
+// TigerStatus defines the observed state of Tiger
+type TigerStatus struct {
 }
