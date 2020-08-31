@@ -114,7 +114,6 @@ jobs:
           export IMAGE="example.io/basic"
           apiserver-boot build container --image ${IMAGE}
           kind load docker-image ${IMAGE} --name chart-testing
-          kubectl create -f config/rbac.yaml
           kubectl create -f config/apiserver.yaml
 
           sleep 60 # Hold for 1min
