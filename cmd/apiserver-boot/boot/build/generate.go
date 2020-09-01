@@ -124,6 +124,10 @@ func RunGenerate(cmd *cobra.Command, args []string) {
 		unversioned = append(unversioned, "--input-dirs", u)
 	}
 
+	if os.Getenv("GO111MODULE") != "off" {
+		klog.Warningf("code-generation for go mod project (without vendor packages) can take much longer time, consider run with GO111MODULE=off to make it faster")
+	}
+
 	if doGen("apiregister-gen") {
 		inputDirsArgs := []string{
 			"--input-dirs", filepath.Join(util.Repo, "pkg", "apis", "..."),
