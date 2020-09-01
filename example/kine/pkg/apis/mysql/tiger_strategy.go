@@ -17,14 +17,21 @@ limitations under the License.
 
 
 
-// Api versions allow the api contract for a resource to be changed while keeping
-// backward compatibility by support multiple concurrent versions
-// of the same resource
+package mysql
 
-// +k8s:openapi-gen=true
-// +k8s:deepcopy-gen=package,register
-// +k8s:conversion-gen=sigs.k8s.io/apiserver-builder-alpha/example/kine/pkg/apis/sqlite
-// +k8s:defaulter-gen=TypeMeta
-// +groupName=sqlite.example.com
-package v1alpha1 // import "sigs.k8s.io/apiserver-builder-alpha/example/kine/pkg/apis/sqlite/v1alpha1"
+import (
+	"context"
 
+	"k8s.io/klog"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/validation/field"
+)
+
+// Validate checks that an instance of Tiger is well formed
+func (TigerStrategy) Validate(ctx context.Context, obj runtime.Object) field.ErrorList {
+	o := obj.(*Tiger)
+	klog.V(5).Infof("Validating fields for Tiger %s", o.Name)
+	errors := field.ErrorList{}
+	// perform validation here and add to errors using field.Invalid
+	return errors
+}

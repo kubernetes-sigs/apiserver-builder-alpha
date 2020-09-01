@@ -1,0 +1,7 @@
+note: Tiger Example
+sample: |
+  apiVersion: mysql.example.com/v1
+  kind: Tiger
+  metadata:
+    name: tiger-example
+  spec:

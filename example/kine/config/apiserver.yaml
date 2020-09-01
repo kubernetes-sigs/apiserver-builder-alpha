@@ -1,0 +1,289 @@
+
+apiVersion: apiregistration.k8s.io/v1
+kind: APIService
+metadata:
+  name: v1.mysql.example.com
+  labels:
+    api: kine-example
+    apiserver: "true"
+spec:
+  version: v1
+  group: mysql.example.com
+  groupPriorityMinimum: 2000
+  service:
+    name: kine-example
+    namespace: default
+  versionPriority: 10
+  caBundle: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURWRENDQWp3Q0NRRFBmeDB4VUh3YzhqQU5CZ2txaGtpRzl3MEJBUXNGQURCc01Rc3dDUVlEVlFRR0V3SjEKYmpFTE1Ba0dBMVVFQ0F3Q2MzUXhDakFJQmdOVkJBY01BV3d4Q2pBSUJnTlZCQW9NQVc4eEN6QUpCZ05WQkFzTQpBbTkxTVNzd0tRWURWUVFERENKcmFXNWxMV1Y0WVcxd2JHVXRZMlZ5ZEdsbWFXTmhkR1V0WVhWMGFHOXlhWFI1Ck1CNFhEVEl3TURnek1UQTJOVEl3TkZvWERUSXhNRGd6TVRBMk5USXdORm93YkRFTE1Ba0dBMVVFQmhNQ2RXNHgKQ3pBSkJnTlZCQWdNQW5OME1Rb3dDQVlEVlFRSERBRnNNUW93Q0FZRFZRUUtEQUZ2TVFzd0NRWURWUVFMREFKdgpkVEVyTUNrR0ExVUVBd3dpYTJsdVpTMWxlR0Z0Y0d4bExXTmxjblJwWm1sallYUmxMV0YxZEdodmNtbDBlVENDCkFTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTWNIOHRtNWVMTFp6eWFIN01Od3NDK2MKMVl3c3FYRG1zVnptVDZBYVVqWnlBTU1ranY1L2VnRVpNV3I1WjNJZjZCTlo5SjJLakM0RWVkUnpYdWdFWmxaNAphZHJ3TE56Vis4Qzc1NWZvdXRWbkNpTGx5WGQzREVsZy91NmZwVTJSOEQ3Ry9weXJzWXYxbHY5cUlrRUNKUTZ5CkJTaDloazAxSjlabWpuUFY5ZmZaQ2ZBVDJiTU4vc09vZkN1Z0NweXJYMW5JSjRUWUJmcC9iS1dYaHdHbmRjdC8KT2dFckNLb1JFZm5ZNHh0UmZNMFAxcUNlTTllb2xwdWwvN3BxS2RLRGlYZUZ4N0dicGJ5cUdzUmpMYjJ1RFlJRwpScCtHM1RPcWV0clNMQ1k1Y1RMQXJJamNWSTh0aW1QVFZ3QTZVRXZmTHQ0TmI1SFdRdnFobjhnM3F6Yks3TzBDCkF3RUFBVEFOQmdrcWhraUc5dzBCQVFzRkFBT0NBUUVBZTRtNHJ4aEJ1b2N6dnNPUCtsRGVRY25sV2JRdzBZMXAKRWhhbnQyVE9aMjk3ZUJHSm9FMDlyU1lUSkN5NG42NWxYRElGN200UERtWGRYeUlSdFN2N1hQWVdWL1ZFSU12ZwpCNkpYN2RublhXK3FuYWZORU9PREVoWDRpM0x0SWRRSThYL1R6K1hFN01aRDIvOEdwYUlZTjluNi9mZURGTmE2CkJMbmZkMlBNQ1JvWkU4ZDlGWml6UER6OTRMeHIzVkdRTFF2NHZSZFRQMHVVTXBRRDlYWVVOc2N0VElrMk9DeWYKSnpCeU1kV0diNnBxQm01L1o4QzJGQnFqWFhHK05idm5LbTVQaFp1ZGdTUlZVOHdFZlFsb2dJN3FZWmdBeG5LeQoyT05LZzZXNC9YRjFTM1lBWGhNV1NGS3lGTnJEb3BaNGc5SnhnOE81azNLSlBsUkJFeUJjd0E9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg=="
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kine-example
+  namespace: default
+  labels:
+    api: kine-example
+    apiserver: "true"
+spec:
+  ports:
+  - port: 443
+    protocol: TCP
+    targetPort: 443
+  selector:
+    api: kine-example
+    apiserver: "true"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kine-example
+  namespace: default
+  labels:
+    api: kine-example
+    apiserver: "true"
+spec:
+  selector:
+    matchLabels:
+      api: kine-example
+      apiserver: "true"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        api: kine-example
+        apiserver: "true"
+    spec:
+      containers:
+      - name: apiserver
+        image: example.io/kine
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: apiserver-certs
+          mountPath: /apiserver.local.config/certificates
+          readOnly: true
+        command:
+        - "./apiserver"
+        args:
+        - "--etcd-servers=mysql://test:test@tcp(127.0.0.1:3306)/test"
+        - "--tls-cert-file=/apiserver.local.config/certificates/tls.crt"
+        - "--tls-private-key-file=/apiserver.local.config/certificates/tls.key"
+        - "--audit-log-path=-"
+        - "--audit-log-maxage=0"
+        - "--audit-log-maxbackup=0"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 20Mi
+          limits:
+            cpu: 100m
+            memory: 30Mi
+      - name: controller
+        image: example.io/kine
+        imagePullPolicy: IfNotPresent
+        command:
+        - "./controller-manager"
+        args:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 200Mi
+          limits:
+            cpu: 100m
+            memory: 300Mi
+      volumes:
+      - name: apiserver-certs
+        secret:
+          secretName: kine-example
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: etcd
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: etcd
+  serviceName: "etcd"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: etcd
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: etcd
+        image: quay.io/coreos/etcd:latest
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 100m
+            memory: 20Mi
+          limits:
+            cpu: 100m
+            memory: 30Mi
+        env:
+        - name: ETCD_DATA_DIR
+          value: /etcd-data-dir
+        command:
+        - /usr/local/bin/etcd
+        - --listen-client-urls
+        - http://0.0.0.0:2379
+        - --advertise-client-urls
+        - http://localhost:2379
+        ports:
+        - containerPort: 2379
+        volumeMounts:
+        - name: etcd-data-dir
+          mountPath: /etcd-data-dir
+        readinessProbe:
+          httpGet:
+            port: 2379
+            path: /health
+          failureThreshold: 1
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 2
+        livenessProbe:
+          httpGet:
+            port: 2379
+            path: /health
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 2
+  volumeClaimTemplates:
+  - metadata:
+     name: etcd-data-dir
+     annotations:
+        volume.beta.kubernetes.io/storage-class: standard
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+         storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: etcd-svc
+  namespace: default
+  labels:
+    app: etcd
+spec:
+  ports:
+  - port: 2379
+    name: etcd
+    targetPort: 2379
+  selector:
+    app: etcd
+---
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/tls
+metadata:
+  name: kine-example
+  namespace: default
+  labels:
+    api: kine-example
+    apiserver: "true"
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURTakNDQWpJQ0NRRHh3cU45K2V1RlZEQU5CZ2txaGtpRzl3MEJBUVVGQURCc01Rc3dDUVlEVlFRR0V3SjEKYmpFTE1Ba0dBMVVFQ0F3Q2MzUXhDakFJQmdOVkJBY01BV3d4Q2pBSUJnTlZCQW9NQVc4eEN6QUpCZ05WQkFzTQpBbTkxTVNzd0tRWURWUVFERENKcmFXNWxMV1Y0WVcxd2JHVXRZMlZ5ZEdsbWFXTmhkR1V0WVhWMGFHOXlhWFI1Ck1CNFhEVEl3TURnek1UQTJOVEl3TkZvWERUSXhNRGd6TVRBMk5USXdORm93WWpFTE1Ba0dBMVVFQmhNQ2RXNHgKQ3pBSkJnTlZCQWdNQW5OME1Rb3dDQVlEVlFRSERBRnNNUW93Q0FZRFZRUUtEQUZ2TVFzd0NRWURWUVFMREFKdgpkVEVoTUI4R0ExVUVBd3dZYTJsdVpTMWxlR0Z0Y0d4bExtUmxabUYxYkhRdWMzWmpNSUlCSWpBTkJna3Foa2lHCjl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF5b0hiYkdBQk9qZVFZZFUxMHF5OEpFcVBVcENKVVY5djg0NnkKTmxaelZsN2tGVWZlWFV4SWg5VEpIdkV5a1JhdXQwQzlOTzMrRnR1eU1SNVVxMHVYUXZYNWJlSHlUZ3Nhanh0dQpxcHE0NldtNkg2bWpwYzZ1ZTcySGVyTi9KZDU5c3JkVUFMVlQ4MjdhdHNaZHN2VlBHMWpRbTRmRUxWTDhYR2l2CnlCV2NHSGJnRm5mRGVLRTJKQXlwTC9qRFJkSlc4bGUwZFQrN1BzMXVieDRxemtNR1ZjeWc3dHorN0tkZk1QNVUKSDBla24xNy9kK284Z0RUOHF0VDVKd2IxbjE4R3Q1NHZ3eGZXZGg2cDZ0ejl4TXAzNy9sejY0TitOb1JXV2NiUwowa0pIV3dNa1RWVDZ1NkJ6TllPTDh0S29ZbmtxMTdMU1pmR3hBRWtCNDNYMmtkOWJTd0lEQVFBQk1BMEdDU3FHClNJYjNEUUVCQlFVQUE0SUJBUUNMc0ZLait5SVZXR3FqcENPRjk0NnJjeFYyYi9RR3kvMkxkbERSWEJocXVhNjEKSFIyRFk0T2Y0VUlQOXpUMTFkbmRUbkZ4VUwyUThJdndWVWJXL2o5VmVsdHR4cFhaRkltTlpuQUI3MFFSa0Y2VwptcXZDMUlGQVVNNytXelJ6NWU5UTh6SllQUjVjSWJuaTRvQmFJM0ZIZzh4d2NpY2pHaTZHclNyZi9aYnQvaUtFCmRjMzkyWk5DaldLVWY4RFVFVFk5elk5Yytsc3BaOGFERzBCb3QrSndCWjVXZUpDb3UydE5IZHppRENGSnQ0NmMKUWM4U1pkaHk0K2dRbC90WlA5eS9nSFdCV1hxa093aEdPUmd3Umg2VTV5WVRXbC9XTU1DWE1YVkQ5TTZ3ZXpQMApUbjQvWHRmb3BiUkVVT1FEbnI1UlREc2libFhvQkNVcDRjSnhJZ3BPCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+  tls.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRREtnZHRzWUFFNk41QmgKMVRYU3JMd2tTbzlTa0lsUlgyL3pqckkyVm5OV1h1UVZSOTVkVEVpSDFNa2U4VEtSRnE2M1FMMDA3ZjRXMjdJeApIbFNyUzVkQzlmbHQ0ZkpPQ3hxUEcyNnFtcmpwYWJvZnFhT2x6cTU3dllkNnMzOGwzbjJ5dDFRQXRWUHpidHEyCnhsMnk5VThiV05DYmg4UXRVdnhjYUsvSUZad1lkdUFXZDhONG9UWWtES2t2K01ORjBsYnlWN1IxUDdzK3pXNXYKSGlyT1F3WlZ6S0R1M1A3c3AxOHcvbFFmUjZTZlh2OTM2anlBTlB5cTFQa25CdldmWHdhM25pL0RGOVoySHFucQozUDNFeW5mditYUHJnMzQyaEZaWnh0TFNRa2RiQXlSTlZQcTdvSE0xZzR2eTBxaGllU3JYc3RKbDhiRUFTUUhqCmRmYVIzMXRMQWdNQkFBRUNnZ0VBV1QzS3hjSzFKOE91dy81aW5ybnltNGVrQzMyWWxoeVp5RnA5SE1jU1F1REUKWU1Cd05PdFdGMDNsWjlaaE0yRXNrNk5hL2tWWE1SbVdPR0VtYk9wOStVdE9wV2JxRWd5QW9zb3pCY256YlNGagpuV3B6ckxFZFlYaVBpTG9yY1RQUWJ2NnRiVFo3alk2dm9kWmZHbXRTZGptNGpLSFRDU3BGL2k5QUw4dWVJNFVPClRFUXRLeTd4ejJOMlAxM2hwNnkxRkwxVnk0MG0zQnVRZ1NNcEhESFM2UnJsTi9yRHF0bjg0QXcwak9nOU0xTjgKYlNDdUNjM0JMcUhMR0J1UWVjRkdvYWdVZXdxSWl1WkFnZXVjb1k4OVQwcHgyRS9wemloTTNZUmJacnZRWE9JMwpSRXU1dnBBRXFZZk5JSWlCNTVid0ZZWG4vN21FRGtEYmQ1WEtqZ2xDRVFLQmdRRDEzSjZaUTJwUGVWQ2NXTE9LCm5uZk1nbk5wSmZyTGErVEcyNi96L1RmdzY2SlFFQUg0YlJpNzZ3Ry9VdkdjR2hVYTJBd2pjQ3ZLdzdaWmNsQkYKaGplakxtT1I2NnE0a2huWWY1VTRwSzJTelVjTlZKdGgyWVFvSlhFNHlQZis5aWUyTloyc0NTd0thejY4NnE2TwpydjRORHBGRENvZXNpZkdnWm5VMW4yTkxjd0tCZ1FEUzI1TnRvZ0ExNFpVVUhHR3Nwc1AwQUx2cUFzOHFwdE1YCmpwTjNsMXR6eGEyMEdFU0FNZWwxMkdSV1l0U0o2NnVPOEtUVjAwSHhMd0d0Tk9PMkxSVU9BaUNIV2tJVi8zanEKSVZoU3NMR3RnbTRJSldvcGFSQkpQYnByelJOTWZlYk5HZE5qV1Bta09obnJSenpvSDhYM2JWOFpDMUxkNFNjZQplUXdkdGNicXlRS0JnSDY4bmtqVkZwMG5KU1dqRjlJU0JDRTQ4Yk0zTDhQaXQwakhBRG1ldzFKK3RPbmVocFYvCjcyc1hKb3h3ZmptQXZIWmMva3phU3NpNEFHeTFYNm1uR1ZFVjNaL2Z3dDVuK2NpL1k3V1NOaU5oakFuVUhsRGYKWnArblJXa0hOOGVITGt0ZjhnbzNwQ3N1dzJWdytGQjI1bURtckh6SmxjeWNReUR6RCtKM2FpRC9Bb0dCQUx4cwpRdjVCT2Zic01vL2FITjV2MThOL3RHeVZQaE5iS0Y5d3BRN0ZUby9TSWp0QlJGVmFSTWx1S1p1WWpWMENJRGlICmlvVVpWMS96SllobUx1Wm91dHZkd3J1eFNFVG9HbUQra3pLeGV0VVdMTVZTeWQ5Zlo1SkxldjlDTHZDM3dUdWUKekd1RzR1NkNqUTdXaGZMWUVjdmRESklRc0doZC90c1lTRjkwUk9FaEFvR0FGUXZJa0pSR0ZYNWVRcy9WZTFTSApyamtyQ3FWY09sZGoxNjh2WjdhZlJTOW1HaXRhd1VJd1pvWUlaS29USTVoT05mSDFBd01iL3dKMngzamNtMVYyCkF4bGdqbnZuZy9Qc1R2QU5LenNKOGwxcjh0bHJ0VnVSTGNRdlVNeldLYm5zT3ArZnB6aFhacmUzTjEzMG1UNEEKcnpJVkFaUG9kVDB2UDI0bEVPSyt4b2c9Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: extension-apiserver-authentication-reader
+rules:
+  - apiGroups:
+      - ""
+    resourceNames:
+      - extension-apiserver-authentication
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: basic-example-apiserver-auth-reader
+  namespace: kube-system
+rules:
+  - apiGroups:
+      - ""
+    resourceNames:
+      - extension-apiserver-authentication
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: basic-example-apiserver-auth-reader
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: basic-example-apiserver-auth-reader
+subjects:
+  - kind: ServiceAccount
+    namespace: default
+    name: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: basic-example-apiserver-auth-delegator
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+  - kind: ServiceAccount
+    namespace: default
+    name: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: basic-example-controller
+  namespace: default
+rules:
+  - apiGroups:
+      - ''
+      - 'admissionregistration.k8s.io'
+      - 'mysql.example.com'
+    resources:
+      - '*'
+    verbs:
+      - '*'
+  - nonResourceURLs:
+      - '*'
+    verbs:
+      - '*'
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: basic-example-controller
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: basic-example-controller
+subjects:
+  - kind: ServiceAccount
+    namespace: default
+    name: default
