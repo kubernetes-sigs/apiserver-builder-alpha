@@ -1,0 +1,7 @@
+note: Burger Example
+sample: |
+  apiVersion: filepath.example.com/v1
+  kind: Burger
+  metadata:
+    name: burger-example
+  spec:
