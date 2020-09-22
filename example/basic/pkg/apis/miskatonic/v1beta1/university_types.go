@@ -17,9 +17,16 @@ limitations under the License.
 package v1beta1
 
 import (
+	"context"
 	corev1 "k8s.io/api/core/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/validation/field"
+	"k8s.io/klog/v2"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource/resourcestrategy"
 )
 
 // Generating code from university_types.go file will generate storage and status REST endpoints for
@@ -87,3 +94,75 @@ type UniversityStatus struct {
 	FacultyEmployed []string `json:"faculty_employed,omitempty"`
 }
 
+var _ resource.Object = &University{}
+var _ resourcestrategy.Defaulter = &University{}
+var _ resourcestrategy.Validater = &University{}
+var _ resource.ObjectWithStatusSubResource = &University{}
+var _ resource.ObjectList = &UniversityList{}
+
+func (in *University) GetObjectMeta() *metav1.ObjectMeta {
+	return &in.ObjectMeta
+}
+
+func (in *University) NamespaceScoped() bool {
+	return true
+}
+
+func (in *University) New() runtime.Object {
+	return &University{}
+}
+
+func (in *University) NewList() runtime.Object {
+	return &UniversityList{}
+}
+
+func (in *University) GetGroupVersionResource() schema.GroupVersionResource {
+	return schema.GroupVersionResource{
+		Group:    "miskatonic.k8s.io",
+		Version:  "v1beta1",
+		Resource: "universities",
+	}
+}
+
+func (in *University) IsStorageVersion() bool {
+	return true
+}
+
+func (in *University) Default() {
+	klog.Infof("Defaulting University %s", in.Name)
+	if in.Spec.MaxStudents == nil {
+		n := 15
+		in.Spec.MaxStudents = &n
+	}
+}
+
+func (in *University) Validate(ctx context.Context) field.ErrorList {
+	klog.Infof("Validating University %s\n", in.Name)
+	errors := field.ErrorList{}
+	if in.Spec.MaxStudents == nil || *in.Spec.MaxStudents < 1 || *in.Spec.MaxStudents > 150 {
+		errors = append(errors, field.Invalid(
+			field.NewPath("spec", "MaxStudents"),
+			*in.Spec.MaxStudents,
+			"Must be between 1 and 150"))
+	}
+	return errors
+}
+
+func (in *University) SetStatus(statusSubResource interface{}) {
+	in.Status = statusSubResource.(UniversityStatus)
+}
+
+func (in *University) GetStatus() (statusSubResource interface{}) {
+	return in.Status
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type UniversityList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []University `json:"items"`
+}
+
+func (in *UniversityList) GetListMeta() *metav1.ListMeta {
+	return &in.ListMeta
+}

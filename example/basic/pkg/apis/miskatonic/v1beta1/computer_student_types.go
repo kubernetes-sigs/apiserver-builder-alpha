@@ -17,17 +17,29 @@ limitations under the License.
 package v1beta1
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
+	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource"
 )
 
-// +genclient
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-
-// +subresource-request
 type StudentComputer struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
 }
 
+var _ resource.ObjectWithArbitrarySubResource = &Student{}
 
+func (in *Student) SubResourceNames() []string {
+	return []string{"computer"}
+}
+
+func (in *Student) SetSubResource(subResourceName string, subResource interface{}) {
+	switch subResourceName {
+	case "computer":
+	}
+	panic("unknown subresource " + subResourceName)
+}
+
+func (in *Student) GetSubResource(subResourceName string) (subResource interface{}) {
+	switch subResourceName {
+	case "computer":
+		return StudentComputer{}
+	}
+	panic("unknown subresource " + subResourceName)
+}

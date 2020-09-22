@@ -18,6 +18,10 @@ package v1beta1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	runtime "k8s.io/apimachinery/pkg/runtime"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource/resourcerest"
 )
 
 // Generating code from student_types.go file will generate storage and status REST endpoints for
@@ -46,4 +50,65 @@ type StudentSpec struct {
 type StudentStatus struct {
 	// GPA is the GPA of the student.
 	GPA float64 `json:"GPA,omitempty"`
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type StudentList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []Student `json:"items"`
+}
+
+var _ resource.Object = &Student{}
+var _ resource.ObjectWithStatusSubResource = &Student{}
+var _ resource.ObjectList = &StudentList{}
+var _ resourcerest.ShortNamesProvider = &Student{}
+var _ resourcerest.CategoriesProvider = &Student{}
+
+func (in *Student) GetObjectMeta() *metav1.ObjectMeta {
+	return &in.ObjectMeta
+}
+
+func (in *Student) NamespaceScoped() bool {
+	return true
+}
+
+func (in *Student) New() runtime.Object {
+	return &Student{}
+}
+
+func (in *Student) NewList() runtime.Object {
+	return &StudentList{}
+}
+
+func (in *Student) GetGroupVersionResource() schema.GroupVersionResource {
+	return schema.GroupVersionResource{
+		Group:    "miskatonic.k8s.io",
+		Version:  "v1beta1",
+		Resource: "students",
+	}
+}
+
+func (in *Student) IsStorageVersion() bool {
+	return true
+}
+
+func (in *Student) SetStatus(statusSubResource interface{}) {
+	in.Status = statusSubResource.(StudentStatus)
+}
+
+func (in *Student) GetStatus() (statusSubResource interface{}) {
+	return in.Status
+}
+
+func (in *Student) ShortNames() []string {
+	return []string{"st"}
+}
+
+func (in *Student) Categories() []string {
+	return []string{""}
+}
+
+func (in *StudentList) GetListMeta() *metav1.ListMeta {
+	return &in.ListMeta
 }

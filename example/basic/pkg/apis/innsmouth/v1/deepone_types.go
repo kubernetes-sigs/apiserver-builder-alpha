@@ -17,8 +17,11 @@ limitations under the License.
 package v1
 
 import (
-	"sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/innsmouth/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/innsmouth/common"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource"
 )
 
 // +genclient
@@ -113,4 +116,56 @@ type SampleSubElem struct {
 type DeepOneStatus struct {
 	// actual_fish defines the number of fish caught by the DeepOne.
 	ActualFish int `json:"actual_fish,omitempty"`
+}
+
+var _ resource.Object = &DeepOne{}
+var _ resource.ObjectWithStatusSubResource = &DeepOne{}
+var _ resource.ObjectList = &DeepOneList{}
+
+func (in *DeepOne) GetObjectMeta() *metav1.ObjectMeta {
+	return &in.ObjectMeta
+}
+
+func (in *DeepOne) NamespaceScoped() bool {
+	return true
+}
+
+func (in *DeepOne) New() runtime.Object {
+	return &DeepOne{}
+}
+
+func (in *DeepOne) NewList() runtime.Object {
+	return &DeepOneList{}
+}
+
+func (in *DeepOne) GetGroupVersionResource() schema.GroupVersionResource {
+	return schema.GroupVersionResource{
+		Group:    "innsmouth.k8s.io",
+		Version:  "v1",
+		Resource: "deepones",
+	}
+}
+
+func (in *DeepOne) IsStorageVersion() bool {
+	return true
+}
+
+func (in *DeepOne) SetStatus(statusSubResource interface{}) {
+	in.Status = statusSubResource.(DeepOneStatus)
+}
+
+func (in *DeepOne) GetStatus() interface{} {
+	return in.Status
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type DeepOneList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+
+	Items []DeepOne `json:"items"`
+}
+
+func (in *DeepOneList) GetListMeta() *metav1.ListMeta {
+	return &in.ListMeta
 }
