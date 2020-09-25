@@ -18,9 +18,11 @@ package build
 
 import (
 	"bytes"
+	"crypto/x509"
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"os"
 	"path"
 	"path/filepath"
@@ -175,9 +177,12 @@ func createCerts() {
 	dir := filepath.Join(ResourceConfigDir, "certificates")
 	os.MkdirAll(dir, 0700)
 
+	svrName := fmt.Sprintf("%s.%s.svc", Name, Namespace)
+
 	if _, err := os.Stat(filepath.Join(dir, "apiserver_ca.crt")); os.IsNotExist(err) {
 		util.DoCmd("openssl", "req", "-x509",
 			"-newkey", "rsa:2048",
+			"-addext", "basicConstraints=critical,CA:TRUE,pathlen:1",
 			"-keyout", filepath.Join(dir, "apiserver_ca.key"),
 			"-out", filepath.Join(dir, "apiserver_ca.crt"),
 			"-days", "365",
@@ -188,31 +193,34 @@ func createCerts() {
 		klog.Infof("Skipping generate CA cert.  File already exists.")
 	}
 
-	if _, err := os.Stat(filepath.Join(dir, "apiserver.csr")); os.IsNotExist(err) {
-		// Use <service-Name>.<Namespace>.svc as the domain Name for the certificate
-		util.DoCmd("openssl", "req",
-			"-out", filepath.Join(dir, "apiserver.csr"),
-			"-new",
-			"-newkey", "rsa:2048",
-			"-nodes",
-			"-keyout", filepath.Join(dir, "apiserver.key"),
-			"-subj", fmt.Sprintf("/C=un/ST=st/L=l/O=o/OU=ou/CN=%s.%s.svc", Name, Namespace),
-		)
-	} else {
-		klog.Infof("Skipping generate apiserver csr.  File already exists.")
+	caCert, caKey, err := util.TryLoadCertAndKeyFromDisk(dir, "apiserver_ca")
+	if err != nil {
+		klog.Fatal(err)
 	}
 
-	if _, err := os.Stat(filepath.Join(dir, "apiserver.crt")); os.IsNotExist(err) {
-		util.DoCmd("openssl", "x509", "-req",
-			"-days", "365",
-			"-in", filepath.Join(dir, "apiserver.csr"),
-			"-CA", filepath.Join(dir, "apiserver_ca.crt"),
-			"-CAkey", filepath.Join(dir, "apiserver_ca.key"),
-			"-CAcreateserial",
-			"-out", filepath.Join(dir, "apiserver.crt"),
-		)
-	} else {
-		klog.Infof("Skipping signing apiserver crt.  File already exists.")
+	apiserverCert, apiserverKey, err := util.NewCertAndKey(caCert, caKey, util.Config{
+		CommonName:   svrName,
+		Organization: []string{},
+		AltNames: util.AltNames{
+			DNSNames: []string{svrName},
+			IPs: []net.IP{
+				net.ParseIP("127.0.0.1"),
+			},
+		},
+		Usages: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
+	})
+	if err != nil {
+		klog.Fatal(err)
+	}
+
+	apiserverCertData := util.EncodeCertPEM(apiserverCert)
+	apiserverKeyData := util.EncodePrivateKeyPEM(apiserverKey)
+
+	if err := ioutil.WriteFile(filepath.Join(dir, "apiserver.crt"), apiserverCertData, 0644); err != nil {
+		klog.Fatal(err)
+	}
+	if err := ioutil.WriteFile(filepath.Join(dir, "apiserver.key"), apiserverKeyData, 0644); err != nil {
+		klog.Fatal(err)
 	}
 }
 
@@ -244,7 +252,7 @@ func initVersionedApis() {
 	for _, a := range versionedAPIs {
 		u[path.Dir(a)] = true
 	}
-	for a, _ := range u {
+	for a := range u {
 		unversionedAPIs = append(unversionedAPIs, a)
 	}
 }

@@ -18,57 +18,23 @@ package festival
 
 import (
 	"context"
+	"github.com/go-logr/logr"
 
-	kingsportv1 "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/kingsport/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	kingsportv1 "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/kingsport/v1"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 )
-
-/**
-* USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
-* business logic.  Delete these comments after modifying this file.*
- */
-
-// Add creates a new Festival Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller
-// and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
-	return add(mgr, newReconciler(mgr))
-}
-
-// newReconciler returns a new reconcile.Reconciler
-func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileFestival{Client: mgr.GetClient(), scheme: mgr.GetScheme()}
-}
-
-// add adds a new Controller to mgr with r as the reconcile.Reconciler
-func add(mgr manager.Manager, r reconcile.Reconciler) error {
-	// Create a new controller
-	c, err := controller.New("festival-controller", mgr, controller.Options{Reconciler: r})
-	if err != nil {
-		return err
-	}
-
-	// Watch for changes to Festival
-	err = c.Watch(&source.Kind{Type: &kingsportv1.Festival{}}, &handler.EnqueueRequestForObject{})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 
 var _ reconcile.Reconciler = &ReconcileFestival{}
 
 // ReconcileFestival reconciles a Festival object
 type ReconcileFestival struct {
 	client.Client
-	scheme *runtime.Scheme
+	Log    logr.Logger
+	Scheme *runtime.Scheme
 }
 
 // Reconcile reads that state of the cluster for a Festival object and makes changes based on the state read
@@ -98,4 +64,10 @@ func (r *ReconcileFestival) Reconcile(request reconcile.Request) (reconcile.Resu
 	}
 
 	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileFestival) SetupWithManager(mgr ctrl.Manager) error {
+	return ctrl.NewControllerManagedBy(mgr).
+		For(&kingsportv1.Festival{}).
+		Complete(r)
 }

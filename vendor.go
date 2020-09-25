@@ -9,10 +9,11 @@ import (
 	_ "sigs.k8s.io/controller-runtime/pkg/client"
 	_ "sigs.k8s.io/controller-runtime/pkg/controller"
 	_ "sigs.k8s.io/controller-runtime/pkg/handler"
+	_ "sigs.k8s.io/controller-runtime/pkg/log"
+	_ "sigs.k8s.io/controller-runtime/pkg/log/zap"
 	_ "sigs.k8s.io/controller-runtime/pkg/manager"
+	_ "sigs.k8s.io/controller-runtime/pkg/manager/signals"
 	_ "sigs.k8s.io/controller-runtime/pkg/reconcile"
-	_ "sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	_ "sigs.k8s.io/controller-runtime/pkg/runtime/signals"
 	_ "sigs.k8s.io/controller-runtime/pkg/source"
 	_ "sigs.k8s.io/controller-tools/pkg/util"
 )

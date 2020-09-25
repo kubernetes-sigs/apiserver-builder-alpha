@@ -1,6 +1,8 @@
 package suite
 
-import "sigs.k8s.io/controller-runtime/pkg/reconcile"
+import (
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+)
 
 var _ reconcile.Reconciler = &ReconcilerInterceptor{}
 

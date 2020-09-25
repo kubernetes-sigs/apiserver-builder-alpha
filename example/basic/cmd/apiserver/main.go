@@ -17,8 +17,7 @@ limitations under the License.
 package main
 
 import (
-	"k8s.io/klog/v2"
-	"sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/openapi"
+	"k8s.io/klog"
 	"sigs.k8s.io/apiserver-runtime/pkg/builder"
 
 	innsmouthv1 "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/innsmouth/v1"
@@ -29,14 +28,12 @@ import (
 
 func main() {
 	err := builder.APIServer.
-		WithOpenAPIDefinitions("basic-sample", "v0.0.0", openapi.GetOpenAPIDefinitions).
-		WithResource(&innsmouthv1.DeepOne{}). // namespaced resource
-		WithResource(&kingsportv1.Festival{}). // cluster-scoped resource
-		// TODO(yue9944882): fix it, custom storage doesnt work for now
-		//WithResource(&miskatonicv1beta1.Student{}). // resource with arbitrary subresource and custom storage
+		WithResource(&innsmouthv1.DeepOne{}).          // namespaced resource
+		WithResource(&kingsportv1.Festival{}).         // cluster-scoped resource
+		WithResource(&miskatonicv1beta1.Student{}).    // resource with arbitrary subresource and custom storage
 		WithResource(&miskatonicv1beta1.University{}). // resource with arbitrary subresource
-		WithResource(&olympusv1beta1.Poseidon{}). // resource with custom storage indexers
-		DisableDelegateAuth().
+		WithResource(&olympusv1beta1.Poseidon{}).      // resource with custom storage indexers
+		SetDelegateAuthOptional().
 		WithOptionsFns(func(o *builder.ServerOptions) *builder.ServerOptions {
 			o.RecommendedOptions.Authorization = nil
 			o.RecommendedOptions.Admission = nil

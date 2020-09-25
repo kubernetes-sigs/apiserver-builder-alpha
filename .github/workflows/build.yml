@@ -14,7 +14,7 @@ jobs:
       - name: Set up Golang
         uses: actions/setup-go@v2.0.3
         with:
-          go-version: 1.13
+          go-version: 1.15
       - uses: actions/checkout@v2.3.1
         with:
           path: go/src/sigs.k8s.io/apiserver-builder-alpha/
@@ -51,36 +51,22 @@ jobs:
       - name: Set up Golang
         uses: actions/setup-go@v2.0.3
         with:
-          go-version: 1.13
+          go-version: 1.15
+      - run: |
+          go get sigs.k8s.io/controller-tools/cmd/controller-gen
+          go install sigs.k8s.io/controller-tools/cmd/controller-gen
       - uses: actions/checkout@v2.3.1
         with:
           path: go/src/sigs.k8s.io/apiserver-builder-alpha/
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ${{ github.workspace }}/go/pkg/mod
-            ${{ github.workspace }}/.cache/bazel
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-      - name: Workspace Preparing
-        env:
-          GOPATH: ${{ github.workspace }}/go
-        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
-        run: bash scripts/workspace-install.sh
-      - name: Install
-        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
-        env:
-          GOPATH: ${{ github.workspace }}/go
-        run: make install
       - name: Testing on examples
         working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/example/basic
         env:
           GOPATH: ${{ github.workspace }}/go
           GOBIN: ${{ github.workspace }}/go/bin
         run: |
+          controller-gen  +object +paths=./pkg/apis/...
           export PATH=${PATH}:${GOBIN}
-          make test
+          go test ./pkg/...
   basic-example-container:
     runs-on: ubuntu-latest
     name: Testing Basic Example Container Build
@@ -88,7 +74,7 @@ jobs:
       - name: Set up Golang
         uses: actions/setup-go@v2.0.3
         with:
-          go-version: 1.13
+          go-version: 1.15
       - uses: actions/checkout@v2.3.1
         with:
           path: go/src/sigs.k8s.io/apiserver-builder-alpha/
@@ -103,7 +89,12 @@ jobs:
         working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
         env:
           GOPATH: ${{ github.workspace }}/go
-        run: make install
+        run: |
+          make install
+      - name: Install controller-tools
+        run: |
+          go get sigs.k8s.io/controller-tools/cmd/controller-gen
+          go install sigs.k8s.io/controller-tools/cmd/controller-gen
       - name: Building and running container images
         working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/example/basic
         env:
@@ -111,19 +102,22 @@ jobs:
           GOBIN: ${{ github.workspace }}/go/bin
         run: |
           export PATH=${PATH}:${GOBIN}
+          controller-gen  +object +paths=./pkg/apis/...
+
           export IMAGE="example.io/basic"
-          apiserver-boot build container --image ${IMAGE}
+          apiserver-boot build container --image ${IMAGE} --generate=false
           kind load docker-image ${IMAGE} --name chart-testing
+
           kubectl create -f config/apiserver.yaml
 
           sleep 120 # Hold for 2 min
 
           kubectl api-resources \
-            || kubectl get pod -o name | grep basic-example | xargs -I {} kubectl logs {} -c apiserver
+            || kubectl get pod -o name | grep basic-example-apiserver | xargs -I {} kubectl logs {} -c apiserver
           kubectl create -f sample/festival.yaml
 
           sleep 5 # Hold for 1min
-          kubectl get fs festival-example -o jsonpath="{.spec.invited}" | grep 1 # successfully processed by controller
+          kubectl get festival festival-example -o jsonpath="{.spec.invited}" | grep 1 # successfully processed by controller
   kine-example-container:
     runs-on: ubuntu-latest
     name: Testing Kine Example Container Build
@@ -142,7 +136,7 @@ jobs:
       - name: Set up Golang
         uses: actions/setup-go@v2.0.3
         with:
-          go-version: 1.13
+          go-version: 1.15
       - uses: actions/checkout@v2.3.1
         with:
           path: go/src/sigs.k8s.io/apiserver-builder-alpha/
