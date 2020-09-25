@@ -306,7 +306,7 @@ for more information.
 
 - Objects have Metadata, Spec and Status fields
 - Storage operations may be rejected or transformed by the apiserver before the object is written.
-- `apiserver-boot create group version resource` will setup the basic scaffolding for a new resource type using sane overridable defaults.
+- `apiserver-boot create group --group {group} version --version v1 resource --kind {kind}` will setup the basic scaffolding for a new resource type using sane overridable defaults.
 
 
 ## Reconciliation
