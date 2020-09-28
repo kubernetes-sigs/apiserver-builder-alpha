@@ -125,6 +125,7 @@ func (b *versionedResourceBuilder) Build(
 			NewFunc:                  b.Unversioned.New,     // Use the unversioned type
 			NewListFunc:              b.Unversioned.NewList, // Use the unversioned type
 			DefaultQualifiedResource: b.getGroupResource(group),
+			TableConvertor:           rest.NewDefaultTableConvertor(b.getGroupResource(group)),
 		},
 	}
 	b.Storage = store

@@ -5,3 +5,5 @@ db/**
 test/bin/**
 vendor/**
 bin/**
+*.tar.gz
+release/**

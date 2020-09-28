@@ -133,7 +133,6 @@ func NewServerOptions(etcdPath, title, version string, b []*builders.APIGroupBui
 		RecommendedOptions: genericoptions.NewRecommendedOptions(
 			etcdPath,
 			builders.Codecs.LegacyCodec(versions...),
-			genericoptions.NewProcessInfo(title, version),
 		),
 		APIBuilders:      b,
 		RunDelegatedAuth: true,
@@ -266,10 +265,6 @@ func (o ServerOptions) Config(tweakConfigFuncs ...func(config *apiserver.Config)
 		func(cfg *genericapiserver.Config) error {
 			return o.RecommendedOptions.Audit.ApplyTo(
 				&serverConfig.Config,
-				loopbackKubeConfig,
-				kubeInformerFactory,
-				o.RecommendedOptions.ProcessInfo,
-				nil,
 			)
 		},
 		o.RecommendedOptions.Features.ApplyTo,

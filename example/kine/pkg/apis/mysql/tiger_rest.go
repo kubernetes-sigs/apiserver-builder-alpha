@@ -24,6 +24,7 @@ func NewTigerREST(getter generic.RESTOptionsGetter) rest.Storage {
 		NewFunc:                  func() runtime.Object { return &Tiger{} },
 		NewListFunc:              func() runtime.Object { return &TigerList{} },
 		DefaultQualifiedResource: groupResource,
+		TableConvertor:           rest.NewDefaultTableConvertor(groupResource),
 
 		CreateStrategy: strategy, // TODO: specify create strategy
 		UpdateStrategy: strategy, // TODO: specify update strategy
@@ -43,12 +44,12 @@ type TigerREST struct {
 
 func NewKineRESTOptionsGetter(getter generic.RESTOptionsGetter) generic.RESTOptionsGetter {
 	return &kineProxiedRESTOptionsGetter{
-		delegate:   getter,
+		delegate: getter,
 	}
 }
 
 type kineProxiedRESTOptionsGetter struct {
-	delegate   generic.RESTOptionsGetter
+	delegate generic.RESTOptionsGetter
 }
 
 func (g *kineProxiedRESTOptionsGetter) GetRESTOptions(resource schema.GroupResource) (generic.RESTOptions, error) {
