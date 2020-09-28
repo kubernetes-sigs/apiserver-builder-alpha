@@ -25,6 +25,8 @@ require (
 	sigs.k8s.io/controller-tools v0.1.12
 	sigs.k8s.io/kubebuilder v1.0.8
 	sigs.k8s.io/testing_frameworks v0.1.1
+	github.com/go-logr/logr v0.2.1
+	github.com/go-logr/zapr v0.2.0
 )
 
 replace sigs.k8s.io/apiserver-builder-alpha/test => ./test

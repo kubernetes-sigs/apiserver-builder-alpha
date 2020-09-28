@@ -20,10 +20,10 @@ import (
 	"context"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apiserver/pkg/registry/rest"
-	genericregistry "k8s.io/apiserver/pkg/registry/generic/registry"
-	"k8s.io/apiserver/pkg/registry/generic"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apiserver/pkg/registry/generic"
+	genericregistry "k8s.io/apiserver/pkg/registry/generic/registry"
+	"k8s.io/apiserver/pkg/registry/rest"
 	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
 )
 
@@ -82,6 +82,7 @@ func NewStudentREST(optsGetter generic.RESTOptionsGetter) rest.Storage {
 		NewFunc:                  func() runtime.Object { return &Student{} },
 		NewListFunc:              func() runtime.Object { return &StudentList{} },
 		DefaultQualifiedResource: groupResource,
+		TableConvertor:           rest.NewDefaultTableConvertor(groupResource),
 
 		CreateStrategy: strategy, // TODO: specify create strategy
 		UpdateStrategy: strategy, // TODO: specify update strategy
