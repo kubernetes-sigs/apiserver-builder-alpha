@@ -27,11 +27,9 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/klog"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
-	"sigs.k8s.io/kubebuilder/pkg/scaffold"
-	"sigs.k8s.io/kubebuilder/pkg/scaffold/controller"
-	"sigs.k8s.io/kubebuilder/pkg/scaffold/input"
-	"sigs.k8s.io/kubebuilder/pkg/scaffold/manager"
-	"sigs.k8s.io/kubebuilder/pkg/scaffold/resource"
+	"sigs.k8s.io/kubebuilder/pkg/model/config"
+	"sigs.k8s.io/kubebuilder/pkg/model/resource"
+	"sigs.k8s.io/kubebuilder/pkg/plugin/v3/scaffolds"
 )
 
 var kindName string
@@ -211,52 +209,28 @@ func createResource(boilerplate string) {
 	if !skipGenerateController {
 		// write controller-runtime scaffolding templates
 		r := &resource.Resource{
-			Namespaced: !nonNamespacedKind,
-			Group:      groupName,
-			Version:    versionName,
-			Kind:       kindName,
-			Resource:   resourceName,
+			Namespaced:  !nonNamespacedKind,
+			Group:       groupName,
+			Version:     versionName,
+			Kind:        kindName,
+			Plural:      resourceName,
+			Package:     filepath.Join(util.Repo, "pkg", "apis", groupName, versionName),
+			ImportAlias: resourceName,
 		}
-
-		err = (&scaffold.Scaffold{}).Execute(input.Options{
-			BoilerplatePath: "boilerplate.go.txt",
-		}, &Controller{
-			Resource: r,
-			Input: input.Input{
-				IfExistsAction: input.Skip,
+		scaffolder := scaffolds.NewAPIScaffolder(
+			&config.Config{
+				MultiGroup: true,
+				Domain:     util.Domain,
+				Repo:       util.Repo,
+				Version:    config.Version3Alpha,
 			},
-		})
-		if err != nil {
-			klog.Warningf("failed generating %v controller: %v", kindName, err)
-		}
-
-		err = (&scaffold.Scaffold{}).Execute(input.Options{
-			BoilerplatePath: "boilerplate.go.txt",
-		},
-			&manager.Controller{
-				Input: input.Input{
-					IfExistsAction: input.Skip,
-				},
-			},
-			&controller.AddController{
-				Resource: r,
-				Input: input.Input{
-					IfExistsAction: input.Skip,
-				},
-			},
-			&SuiteTest{
-				Resource: r,
-				Input: input.Input{
-					IfExistsAction: input.Skip,
-				},
-			},
-			&Test{
-				Resource: r,
-				Input: input.Input{
-					IfExistsAction: input.Skip,
-				},
-			},
+			boilerplate, // TODO
+			r,
+			false,
+			true,
+			nil,
 		)
+		err := scaffolder.Scaffold()
 		if err != nil {
 			klog.Warningf("failed generating controller basic packages: %v", err)
 		}

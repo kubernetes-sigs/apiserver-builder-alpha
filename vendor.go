@@ -5,6 +5,7 @@ import (
 	_ "github.com/go-openapi/loads"
 	_ "github.com/kubernetes-incubator/reference-docs/gen-apidocs/generators"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	_ "sigs.k8s.io/controller-runtime"
 	_ "sigs.k8s.io/controller-runtime/pkg/client"
 	_ "sigs.k8s.io/controller-runtime/pkg/controller"
 	_ "sigs.k8s.io/controller-runtime/pkg/handler"

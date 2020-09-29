@@ -26,9 +26,8 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/klog"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
-	"sigs.k8s.io/kubebuilder/pkg/scaffold"
-	"sigs.k8s.io/kubebuilder/pkg/scaffold/input"
-	"sigs.k8s.io/kubebuilder/pkg/scaffold/manager"
+	"sigs.k8s.io/kubebuilder/pkg/model/config"
+	"sigs.k8s.io/kubebuilder/pkg/plugin/v2/scaffolds"
 )
 
 var repoCmd = &cobra.Command{
@@ -135,22 +134,22 @@ func createBazelWorkspace() {
 }
 
 func createControllerManager(boilerplate string) {
-	err := (&scaffold.Scaffold{}).Execute(input.Options{
-		BoilerplatePath: "boilerplate.go.txt",
-	},
-		&manager.Cmd{
-			Input: input.Input{
-				Boilerplate: boilerplate,
-			},
+	scaffolder := scaffolds.NewInitScaffolder(
+		&config.Config{
+			MultiGroup: true,
+			Domain:     util.Domain,
+			Repo:       util.Repo,
+			Version:    config.Version3Alpha,
 		},
-		&manager.Webhook{
-			Input: input.Input{
-				Boilerplate: boilerplate,
-			},
-		})
-	if err != nil {
+		"",
+		"",
+	)
+	if err := scaffolder.Scaffold(); err != nil {
 		klog.Fatal(err)
 	}
+
+	os.MkdirAll(filepath.Join("cmd", "manager"), 0700)
+	os.Symlink(filepath.Join("..", "..", "main.go"), filepath.Join("cmd", "manager", "main.go"))
 }
 
 type apiserverTemplateArguments struct {
