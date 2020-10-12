@@ -27,6 +27,7 @@ check: build
 
 skeleton:
 	apiserver-boot init repo --domain sample.kubernetes.io
+	bash tweak-go-mod.sh
 	apiserver-boot create group version resource --group storage --version v1 --kind VolumeClaim $(NON_INTERACTIVE_FLAG)
 	apiserver-boot create group version resource --group storage --version v1 --kind SnapshotClaim $(NON_INTERACTIVE_FLAG)
 	apiserver-boot create group version resource --group storage --version v1 --kind Volume --non-namespaced $(NON_INTERACTIVE_FLAG)

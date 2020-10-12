@@ -43,7 +43,7 @@ jobs:
           GOBIN: ${{ github.workspace }}/go/bin
         run: |
           export PATH=${PATH}:${GOBIN}
-          make test
+          make test -f Makefile.test
   basic-example-build:
     runs-on: ubuntu-latest
     name: Testing Basic Example
