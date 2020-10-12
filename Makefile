@@ -20,8 +20,8 @@
 gazelle:
 	bazel run //:gazelle
 
-NAME=apiserver-builder
-VENDOR=kubernetes-incubator
+NAME=apiserver-builder-alpha
+VENDOR=kubernetes-sigs
 VERSION=$(shell cat VERSION)
 COMMIT=$(shell git rev-parse --verify HEAD)
 DESCRIPTION=apiserver-builder implements libraries and tools to quickly and easily build Kubernetes apiservers to support custom resource types.
