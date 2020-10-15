@@ -18,15 +18,15 @@ package main
 
 import (
 	"flag"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"os"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	v1 "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/kingsport/v1"
-	"sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/olympus/v1beta1"
+
+	kingsportv1 "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/kingsport/v1"
+	olympusv1beta1 "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/olympus/v1beta1"
+
 	"sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/controller/festival"
 	"sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/controller/poseidon"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -42,22 +42,8 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	// +kubebuilder:scaffold:scheme
-	metav1.AddToGroupVersion(scheme, schema.GroupVersion{
-		Group:   "kingsport.k8s.io",
-		Version: "v1",
-	})
-	scheme.AddKnownTypes(schema.GroupVersion{
-		Group:   "kingsport.k8s.io",
-		Version: "v1",
-	}, &v1.Festival{}, &v1.FestivalList{})
-	metav1.AddToGroupVersion(scheme, schema.GroupVersion{
-		Group:   "olympus.k8s.io",
-		Version: "v1beta1",
-	})
-	scheme.AddKnownTypes(schema.GroupVersion{
-		Group:   "olympus.k8s.io",
-		Version: "v1beta1",
-	}, &v1beta1.Poseidon{}, &v1beta1.PoseidonList{})
+	utilruntime.Must(kingsportv1.AddToScheme(scheme))
+	utilruntime.Must(olympusv1beta1.AddToScheme(scheme))
 }
 
 func main() {

@@ -1,5 +1,11 @@
 package v1beta1
 
+import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+)
+
 //import (
 //	"fmt"
 //	"sigs.k8s.io/apiserver-builder-alpha/pkg/builders"
@@ -22,3 +28,16 @@ package v1beta1
 //		return "", "", fmt.Errorf("%q is not a known field selector: only %q, %q, %q", label, "metadata.name", "metadata.namespace", "spec.deployment.name")
 //	}
 //}
+
+var AddToScheme = func(scheme *runtime.Scheme) error {
+	metav1.AddToGroupVersion(scheme, schema.GroupVersion{
+		Group:   "olympus.k8s.io",
+		Version: "v1beta1",
+	})
+	// +kubebuilder:scaffold:install
+	scheme.AddKnownTypes(schema.GroupVersion{
+		Group:   "olympus.k8s.io",
+		Version: "v1beta1",
+	}, &Poseidon{}, &PoseidonList{})
+	return nil
+}

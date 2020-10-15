@@ -19,9 +19,12 @@ package create
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
+	"os/exec"
 	"regexp"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/markbates/inflect"
 	"github.com/spf13/cobra"
 
@@ -101,4 +104,25 @@ func readstdin(reader *bufio.Reader) string {
 		klog.Fatalf("Error when reading input: %v", err)
 	}
 	return strings.TrimSpace(text)
+}
+
+func appendMixin(file, marker, newLine string) error {
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		return errors.Wrapf(err, "failed opening %s", file)
+	}
+	if !strings.Contains(string(content), marker) {
+		return fmt.Errorf("cannot find scaffolding marker %q in file %s, the main file can be corrupted", marker, file)
+	}
+
+	result := strings.Replace(string(content),
+		marker, marker+"\n"+newLine, 1)
+	if err := ioutil.WriteFile(file, []byte(result), 0644); err != nil {
+		return errors.Wrapf(err, "failed updating %s", file)
+	}
+	return err
+}
+
+func format(file string) error {
+	return exec.Command("go", "fmt", file).Run()
 }

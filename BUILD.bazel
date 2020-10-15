@@ -18,25 +18,6 @@ gazelle(
     ],
 )
 
-pkg_tar(
-    name = "mod",
-    srcs = glob([
-        "pkg/**",
-        "vendor/**",
-    ]) + [
-        "go.mod.new",
-        "go.sum",
-    ],
-    extension = "tar.gz",
-    remap_paths = {
-        "pkg": "vendor/sigs.k8s.io/apiserver-builder-alpha/pkg",
-        "go.mod.new": "go.mod",
-    },
-    mode = "0644",
-    strip_prefix = ".",
-    visibility = ["//visibility:public"],
-)
-
 go_library(
     name = "go_default_library",
     srcs = ["vendor.go"],

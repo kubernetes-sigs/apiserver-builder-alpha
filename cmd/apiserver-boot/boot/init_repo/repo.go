@@ -17,14 +17,10 @@ limitations under the License.
 package init_repo
 
 import (
-	"bytes"
-	"io"
-	"os"
-	"path/filepath"
-	"strings"
-
 	"github.com/spf13/cobra"
 	"k8s.io/klog"
+	"os"
+	"path/filepath"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 	"sigs.k8s.io/kubebuilder/pkg/model/config"
 	"sigs.k8s.io/kubebuilder/pkg/plugin/v2/scaffolds"
@@ -55,53 +51,24 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 	}
 	cr := util.GetCopyright(copyright)
 
+	createControllerManager(cr)
+	createGoMod()
 	createKubeBuilderProjectFile()
 	createBazelWorkspace()
 	createApiserver(cr)
-	createControllerManager(cr)
 	createAPIs(cr)
 
-	createPackage(cr, filepath.Join("pkg"), "")
-	createPackage(cr, filepath.Join("pkg", "controller"), "")
-	createPackage(cr, filepath.Join("pkg", "openapi"), "//go:generate "+
-		"openapi-gen"+
-		"-o . "+
-		"--output-package ../../pkg/openapi "+
-		"--report-filename violations.report "+
-		"-i ../../pkg/apis/...,../../vendor/k8s.io/api/core/v1,../../vendor/k8s.io/apimachinery/pkg/apis/meta/v1 "+
-		"-h ../../boilerplate.go.txt")
+	//createPackage(cr, filepath.Join("pkg"), "")
+	//createPackage(cr, filepath.Join("pkg", "controller"), "")
+	//createPackage(cr, filepath.Join("pkg", "openapi"), "//go:generate "+
+	//	"openapi-gen"+
+	//	"-o . "+
+	//	"--output-package ../../pkg/openapi "+
+	//	"--report-filename violations.report "+
+	//	"-i ../../pkg/apis/...,../../vendor/k8s.io/api/core/v1,../../vendor/k8s.io/apimachinery/pkg/apis/meta/v1 "+
+	//	"-h ../../boilerplate.go.txt")
 
 	os.MkdirAll("bin", 0700)
-
-	e, err := os.Executable()
-	if err != nil {
-		klog.Fatal("unable to get directory of apiserver-builder tools")
-	}
-
-	e = filepath.Dir(filepath.Dir(e))
-
-	// read the file
-	f := filepath.Join(e, "bin", "mod.tar.gz")
-	fr, err := os.Open(f)
-	if err != nil {
-		klog.Fatalf("failed to read go mod tar file %s %v", f, err)
-	}
-	defer fr.Close()
-
-	if err = util.Untar(fr, ".", map[string]func(reader io.Reader) io.Reader{
-		"go.mod": func(reader io.Reader) io.Reader {
-			klog.Info("rendering go mod file")
-			buf := new(bytes.Buffer)
-			if _, err := io.Copy(buf, reader); err != nil {
-				klog.Fatal("failed rendering mod file", err)
-				return nil
-			}
-			newModContent := strings.Replace(string(buf.Bytes()), "{{.Repo}}", util.Repo, 1)
-			return bytes.NewBufferString(newModContent)
-		},
-	}); err != nil {
-		klog.Fatalf("Could not untar from mod.tar.gz: %v", err)
-	}
 
 }
 
@@ -164,33 +131,18 @@ var apiserverTemplate = `
 package main
 
 import (
-	// Make sure dep tools picks up these dependencies
-	_ "k8s.io/apimachinery/pkg/apis/meta/v1"
-	_ "github.com/go-openapi/loads"
+	"k8s.io/klog"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder"
 
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/cmd/server"
-	_ "k8s.io/client-go/plugin/pkg/client/auth" // Enable cloud provider auth
-
-	"{{.Repo}}/pkg/apis"
-	"{{.Repo}}/pkg/openapi"
-	_ "{{.Repo}}/plugin/admission/install"
+	// +kubebuilder:scaffold:resource-imports
 )
 
 func main() {
-	version := "v0"
-
-	err := server.StartApiServerWithOptions(&server.StartOptions{
-		EtcdPath:         "/registry/{{ .Domain }}",
-		Apis:             apis.GetAllApiBuilders(),
-		Openapidefs:      openapi.GetOpenAPIDefinitions,
-		Title:            "Api",
-		Version:          version,
-
-		// TweakConfigFuncs []func(apiServer *apiserver.Config) error
-		// FlagConfigFuncs []func(*cobra.Command) error
-	})
+	err := builder.APIServer.
+		// +kubebuilder:scaffold:resource-register
+		Execute()
 	if err != nil {
-		panic(err)
+		klog.Fatal(err)
 	}
 }
 `
@@ -252,6 +204,18 @@ func createAPIs(boilerplate string) {
 		})
 }
 
+func createGoMod() {
+	dir, err := os.Getwd()
+	if err != nil {
+		klog.Fatal(err)
+	}
+	path := filepath.Join(dir, "go.mod")
+	util.Overwrite(path, "gomod-template", goModTemplate,
+		goModTemplateArguments{
+			util.Repo,
+		})
+}
+
 type apisDocTemplateArguments struct {
 	BoilerPlate string
 	Domain      string
@@ -309,5 +273,25 @@ load("@bazel_gazelle//:def.bzl", "gazelle")
 gazelle(
     name = "gazelle",
     command = "fix",
+)
+`
+
+type goModTemplateArguments struct {
+	Repo string
+}
+
+var goModTemplate = `
+module {{.Repo}}
+
+go 1.15
+
+require (
+	github.com/go-logr/logr v0.2.1 // indirect
+	github.com/go-logr/zapr v0.2.0 // indirect
+	k8s.io/apimachinery v0.19.2
+	k8s.io/client-go v0.19.2
+	k8s.io/klog v1.0.0
+	sigs.k8s.io/apiserver-runtime v0.0.0-20200925141712-5fcfc91568ad
+	sigs.k8s.io/controller-runtime v0.6.0
 )
 `

@@ -72,6 +72,35 @@ func WriteIfNotFound(path, templateName, templateValue string, data interface{})
 	return true
 }
 
+// Overwrite always updates the target file with the new content.
+func Overwrite(path, templateName, templateValue string, data interface{}) bool {
+	// Make sure the directory exists
+	os.MkdirAll(filepath.Dir(path), 0700)
+
+	create(path)
+	t := template.Must(template.New(templateName).Funcs(
+		template.FuncMap{
+			"title":  strings.Title,
+			"lower":  strings.ToLower,
+			"plural": inflect.NewDefaultRuleset().Pluralize,
+		},
+	).Parse(templateValue))
+
+	f, err := os.OpenFile(path, os.O_WRONLY, 0)
+	if err != nil {
+		klog.Fatalf("Failed to create %s: %v", path, err)
+	}
+	defer f.Close()
+
+	err = t.Execute(f, data)
+	if err != nil {
+		klog.Fatalf("Failed to create %s: %v", path, err)
+	}
+
+	return true
+}
+
+
 func GetCopyright(file string) string {
 	if len(file) == 0 {
 		file = "boilerplate.go.txt"
