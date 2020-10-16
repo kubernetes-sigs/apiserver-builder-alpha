@@ -33,7 +33,6 @@ import (
 )
 
 func main() {
-	util.CheckInstall()
 	gopath := os.Getenv("GOPATH")
 	if len(gopath) == 0 {
 		klog.Fatal("GOPATH not defined")

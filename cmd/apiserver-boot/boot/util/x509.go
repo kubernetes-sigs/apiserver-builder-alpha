@@ -25,18 +25,6 @@ const (
 	PrivateKeyBlockType = "PRIVATE KEY"
 	// CertificateBlockType is a possible value for pem.Block.Type.
 	CertificateBlockType = "CERTIFICATE"
-	// CACertAndKeyBaseName defines certificate authority base name
-	CACertAndKeyBaseName = "ca"
-	// CACertName defines certificate name
-	CACertName = "ca.crt"
-	// APIServerCertAndKeyBaseName defines API's server certificate and key base name
-	APIServerCertAndKeyBaseName = "apiserver"
-	// APIServerCertName defines API's server certificate name
-	APIServerCertName = "apiserver.crt"
-	// APIServerKeyName defines API's server key name
-	APIServerKeyName = "apiserver.key"
-	// APIServerCertCommonName defines API's server certificate common name (CN)
-	APIServerCertCommonName = "kube-apiserver"
 )
 
 // TryLoadCertAndKeyFromDisk tries to load a cert and a key from the disk and validates that they are valid

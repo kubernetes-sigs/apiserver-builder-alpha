@@ -8,7 +8,7 @@ go_library(
         "build_executables.go",
         "build_resource_config.go",
         "docs.go",
-        "generate.go",
+        "util.go",
     ],
     importpath = "sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/build",
     visibility = ["//visibility:public"],
@@ -16,7 +16,6 @@ go_library(
         "//cmd/apiserver-boot/boot/util:go_default_library",
         "@com_github_spf13_cobra//:go_default_library",
         "@io_k8s_apimachinery//pkg/runtime/schema:go_default_library",
-        "@io_k8s_apimachinery//pkg/util/sets:go_default_library",
         "@io_k8s_klog//:go_default_library",
     ],
 )
