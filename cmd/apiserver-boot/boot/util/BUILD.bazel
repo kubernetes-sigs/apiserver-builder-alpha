@@ -3,6 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = [
+        "repo.go",
         "untar.go",
         "util.go",
         "x509.go",
@@ -11,7 +12,9 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "@com_github_markbates_inflect//:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
         "@io_k8s_apiserver//pkg/server:go_default_library",
         "@io_k8s_klog//:go_default_library",
+        "@org_golang_x_mod//modfile:go_default_library",
     ],
 )

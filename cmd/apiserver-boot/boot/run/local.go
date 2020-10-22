@@ -95,7 +95,6 @@ func RunLocal(cmd *cobra.Command, args []string) {
 	if buildBin {
 		build.Bazel = bazel
 		build.Gazelle = gazelle
-		build.GenerateForBuild = generate
 		build.RunBuildExecutables(cmd, args)
 	}
 

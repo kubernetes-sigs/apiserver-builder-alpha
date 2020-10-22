@@ -37,11 +37,14 @@ jobs:
           GOPATH: ${{ github.workspace }}/go
         run: make install
       - name: Testing on new project
-        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/test
         env:
-          GOPATH: ${{ github.workspace }}/go
           GOBIN: ${{ github.workspace }}/go/bin
         run: |
+          mkdir -p test
+          cp ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/Makefile.test test/
+          cd test
+          touch boilerplate.go.txt
+
           export PATH=${PATH}:${GOBIN}
           make test -f Makefile.test
   basic-example-build:
@@ -105,7 +108,7 @@ jobs:
           controller-gen  +object +paths=./pkg/apis/...
 
           export IMAGE="example.io/basic"
-          apiserver-boot build container --image ${IMAGE} --generate=false
+          apiserver-boot build container --image ${IMAGE}
           kind load docker-image ${IMAGE} --name chart-testing
 
           kubectl create -f config/apiserver.yaml
@@ -170,7 +173,7 @@ jobs:
           controller-gen  +object +paths=./pkg/apis/...
 
           export IMAGE="example.io/kine"
-          apiserver-boot build container --image ${IMAGE} --generate=false
+          apiserver-boot build container --image ${IMAGE}
           kind load docker-image ${IMAGE} --name chart-testing
 
           kubectl create -f config/apiserver.yaml

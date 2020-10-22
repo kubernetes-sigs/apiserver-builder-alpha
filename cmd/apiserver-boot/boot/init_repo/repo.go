@@ -36,6 +36,7 @@ var repoCmd = &cobra.Command{
 
 var domain string
 var copyright string
+var moduleName string
 
 func AddInitRepo(cmd *cobra.Command) {
 	cmd.AddCommand(repoCmd)
@@ -43,6 +44,8 @@ func AddInitRepo(cmd *cobra.Command) {
 
 	// Hide this flag by default
 	repoCmd.Flags().StringVar(&copyright, "copyright", "boilerplate.go.txt", "Location of copyright boilerplate file.")
+	repoCmd.Flags().StringVar(&moduleName, "module-name", "",
+		"the module name of the go mod project, required if the project uses go module outside GOPATH")
 }
 
 func RunInitRepo(cmd *cobra.Command, args []string) {
@@ -50,6 +53,14 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 		klog.Fatal("Must specify --domain")
 	}
 	cr := util.GetCopyright(copyright)
+
+	if len(moduleName) == 0 {
+		if err := util.LoadRepoFromGoPath(); err != nil {
+			klog.Fatal(err)
+		}
+	} else {
+		util.SetRepo(moduleName)
+	}
 
 	createControllerManager(cr)
 	createGoMod()
@@ -79,7 +90,7 @@ func createKubeBuilderProjectFile() {
 	}
 	path := filepath.Join(dir, "PROJECT")
 	util.WriteIfNotFound(path, "project-template", projectFileTemplate,
-		buildTemplateArguments{domain, util.Repo})
+		buildTemplateArguments{domain, util.GetRepo()})
 }
 
 var projectFileTemplate = `
@@ -97,7 +108,7 @@ func createBazelWorkspace() {
 	util.WriteIfNotFound(path, "bazel-workspace-template", workspaceTemplate, nil)
 	path = filepath.Join(dir, "BUILD.bazel")
 	util.WriteIfNotFound(path, "bazel-build-template",
-		buildTemplate, buildTemplateArguments{domain, util.Repo})
+		buildTemplate, buildTemplateArguments{domain, util.GetRepo()})
 }
 
 func createControllerManager(boilerplate string) {
@@ -105,7 +116,7 @@ func createControllerManager(boilerplate string) {
 		&config.Config{
 			MultiGroup: true,
 			Domain:     util.Domain,
-			Repo:       util.Repo,
+			Repo:       util.GetRepo(),
 			Version:    config.Version3Alpha,
 		},
 		"",
@@ -157,7 +168,7 @@ func createApiserver(boilerplate string) {
 		apiserverTemplateArguments{
 			domain,
 			boilerplate,
-			util.Repo,
+			util.GetRepo(),
 		})
 
 }
@@ -212,7 +223,7 @@ func createGoMod() {
 	path := filepath.Join(dir, "go.mod")
 	util.Overwrite(path, "gomod-template", goModTemplate,
 		goModTemplateArguments{
-			util.Repo,
+			util.GetRepo(),
 		})
 }
 
@@ -255,7 +266,7 @@ load("@io_k8s_repo_infra//:repos.bzl", "configure")
 # use k8s.io/repo-infra to configure go and bazel
 # default minimum_bazel_version is 0.29.1
 configure(
-    go_version = "1.13",
+    go_version = "1.15",
     rbe_name = None,
 )
 `

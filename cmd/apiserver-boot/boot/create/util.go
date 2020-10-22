@@ -24,8 +24,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/markbates/inflect"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	utilvalidation "k8s.io/apimachinery/pkg/util/validation"
