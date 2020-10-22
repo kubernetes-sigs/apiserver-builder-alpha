@@ -27,7 +27,6 @@ import (
 	"k8s.io/klog"
 )
 
-var GenerateForBuild bool = true
 var goos string = "linux"
 var goarch string = "amd64"
 var outputdir string = "bin"
@@ -57,9 +56,6 @@ apiserver-boot build executables --bazel --gazelle
 
 # Run Bazel without generating BUILD files
 apiserver-boot build executables --bazel
-
-# Run Bazel without generating BUILD files or generated code
-apiserver-boot build executables --bazel --generate=false
 `,
 	Run: RunBuildExecutables,
 }
@@ -68,7 +64,6 @@ func AddBuildExecutables(cmd *cobra.Command) {
 	cmd.AddCommand(createBuildExecutablesCmd)
 
 	createBuildExecutablesCmd.Flags().StringVar(&vendorDir, "vendor-dir", "", "Location of directory containing vendor files.")
-	createBuildExecutablesCmd.Flags().BoolVar(&GenerateForBuild, "generate", true, "if true, generate code before building")
 	createBuildExecutablesCmd.Flags().StringVar(&goos, "goos", "", "if specified, set this GOOS")
 	createBuildExecutablesCmd.Flags().StringVar(&goarch, "goarch", "", "if specified, set this GOARCH")
 	createBuildExecutablesCmd.Flags().StringVar(&outputdir, "output", "bin", "if set, write the binaries to this directory")

@@ -39,6 +39,7 @@ var nonNamespacedKind bool
 var skipGenerateAdmissionController bool
 var skipGenerateResource bool
 var skipGenerateController bool
+var withStatusSubresource bool
 
 var createResourceCmd = &cobra.Command{
 	Use:   "resource",
@@ -59,6 +60,8 @@ func AddCreateResource(cmd *cobra.Command) {
 	createResourceCmd.Flags().BoolVar(&skipGenerateResource, "skip-resource", false, "if set, the resources will not be generated")
 	createResourceCmd.Flags().BoolVar(&skipGenerateController, "skip-controller", false, "if set, the controller will not be generated")
 	createResourceCmd.Flags().BoolVar(&skipGenerateAdmissionController, "skip-admission-controller", false, "if set, the admission controller will not be generated")
+	createResourceCmd.Flags().MarkDeprecated("skip-admission-controller", "")
+	createResourceCmd.Flags().BoolVar(&withStatusSubresource, "with-status-subresource", true, "if set, the status sub-resource will be generated")
 
 	cmd.AddCommand(createResourceCmd)
 }
@@ -114,10 +117,10 @@ func createResource(boilerplate string) {
 		kindName,
 		resourceName,
 		shortName,
-		util.Repo,
+		util.GetRepo(),
 		inflect.NewDefaultRuleset().Pluralize(kindName),
 		nonNamespacedKind,
-		false,
+		withStatusSubresource,
 	}
 
 	found := false
@@ -145,7 +148,7 @@ func createResource(boilerplate string) {
 				scaffoldRegister = "// +kubebuilder:scaffold:resource-register"
 			)
 			mainFile := filepath.Join("cmd", "apiserver", "main.go")
-			newImport := fmt.Sprintf(`%s%s "%s/pkg/apis/%s/%s"`, groupName, versionName, util.Repo, groupName, versionName)
+			newImport := fmt.Sprintf(`%s%s "%s/pkg/apis/%s/%s"`, groupName, versionName, util.GetRepo(), groupName, versionName)
 			if err := appendMixin(mainFile, scaffoldImports, newImport); err != nil {
 				klog.Fatal(err)
 			}
@@ -211,14 +214,14 @@ func createResource(boilerplate string) {
 			Version:     versionName,
 			Kind:        kindName,
 			Plural:      resourceName,
-			Package:     filepath.Join(util.Repo, "pkg", "apis", groupName, versionName),
+			Package:     filepath.Join(util.GetRepo(), "pkg", "apis", groupName, versionName),
 			ImportAlias: resourceName,
 		}
 		scaffolder := scaffolds.NewAPIScaffolder(
 			&config.Config{
 				MultiGroup: true,
 				Domain:     util.Domain,
-				Repo:       util.Repo,
+				Repo:       util.GetRepo(),
 				Version:    config.Version3Alpha,
 			},
 			boilerplate, // TODO
@@ -240,17 +243,16 @@ func createResource(boilerplate string) {
 }
 
 type resourceTemplateArgs struct {
-	BoilerPlate       string
-	Domain            string
-	Group             string
-	Version           string
-	Kind              string
-	Resource          string
-	ShortName         string
-	Repo              string
-	PluralizedKind    string
-	NonNamespacedKind bool
-
+	BoilerPlate           string
+	Domain                string
+	Group                 string
+	Version               string
+	Kind                  string
+	Resource              string
+	ShortName             string
+	Repo                  string
+	PluralizedKind        string
+	NonNamespacedKind     bool
 	WithStatusSubResource bool
 }
 
@@ -340,9 +342,6 @@ type {{.Kind}}Status struct {
 var _ resource.Object = &{{.Kind}}{}
 var _ resource.ObjectList = &{{.Kind}}List{}
 var _ resourcestrategy.Validater = &{{.Kind}}{}
-{{- if .WithStatusSubResource }}
-var _ resource.ObjectWithStatusSubResource = &{{.Kind}}{}
-{{- end }}
 
 
 func (in *{{.Kind}}) GetObjectMeta() *metav1.ObjectMeta {
@@ -380,6 +379,18 @@ func (in *{{.Kind}}) Validate(ctx context.Context) field.ErrorList {
 func (in *{{.Kind}}List) GetListMeta() *metav1.ListMeta {
 	return &in.ListMeta
 }
+
+{{- if .WithStatusSubResource }}
+var _ resource.ObjectWithStatusSubResource = &{{.Kind}}{}
+
+func (in *{{.Kind}}) SetStatus(statusSubResource interface{}) {
+	in.Status = statusSubResource.({{.Kind}}Status)
+}
+
+func (in *{{.Kind}}) GetStatus() (statusSubResource interface{}) {
+	return in.Status
+}
+{{- end }}
 `
 
 var resourceSuiteTestTemplate = `

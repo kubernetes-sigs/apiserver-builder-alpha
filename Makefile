@@ -22,8 +22,7 @@ gazelle:
 
 NAME=apiserver-builder-alpha
 VENDOR=kubernetes-sigs
-VERSION=$(shell cat VERSION)
-COMMIT=$(shell git rev-parse --verify HEAD)
+VERSION=$(shell git rev-parse --verify --short HEAD)
 DESCRIPTION=apiserver-builder implements libraries and tools to quickly and easily build Kubernetes apiservers to support custom resource types.
 MAINTAINER=The Kubernetes Authors
 URL=https://github.com/$(VENDOR)/$(NAME)
@@ -53,7 +52,6 @@ clean:
 
 .PHONY: build
 build: clean ## Create release artefacts for darwin:amd64, linux:amd64 and windows:amd64. Requires etcd, glide, hg.
-	go mod vendor
 	mkdir -p release/$(VERSION)/src
 	bazel build --platforms=@io_bazel_rules_go//go/toolchain:$(GOOS)_$(GOARCH) cmd:apiserver-builder
 	ls -lh bazel-bin/cmd

@@ -49,7 +49,6 @@ func AddBuildContainer(cmd *cobra.Command) {
 
 func AddBuildContainerFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&Image, "image", "", "name of the image with tag")
-	cmd.Flags().BoolVar(&GenerateForBuild, "generate", true, "if true, generate code before building")
 	cmd.Flags().StringArrayVar(&buildTargets, "targets", []string{apiserverTarget, controllerTarget}, "The target binaries to build")
 }
 

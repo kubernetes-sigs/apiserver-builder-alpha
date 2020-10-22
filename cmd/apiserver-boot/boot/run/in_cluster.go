@@ -53,7 +53,6 @@ func AddInCluster(cmd *cobra.Command) {
 	cmd.AddCommand(runInClusterCmd)
 
 	build.AddBuildResourceConfigFlags(runInClusterCmd)
-	runInClusterCmd.Flags().BoolVar(&build.GenerateForBuild, "generate", true, "if true, generate code before building the container image")
 	runInClusterCmd.Flags().BoolVar(&buildImage, "build-image", true, "if true, build the container image and push it to the image repo.")
 }
 

@@ -17,39 +17,16 @@ limitations under the License.
 package main
 
 import (
-	"os"
-	"path/filepath"
-	"strings"
-
 	"github.com/spf13/cobra"
-
 	"k8s.io/klog"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/build"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/create"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/init_repo"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/run"
-	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/version"
 )
 
 func main() {
-	gopath := os.Getenv("GOPATH")
-	if len(gopath) == 0 {
-		klog.Fatal("GOPATH not defined")
-	}
-	util.GoSrc = filepath.Join(gopath, "src")
-
-	wd, err := os.Getwd()
-	if err != nil {
-		klog.Fatal(err)
-	}
-
-	if !strings.HasPrefix(filepath.Dir(wd), util.GoSrc) {
-		klog.Fatalf("apiserver-boot must be run from the directory containing the go package to "+
-			"bootstrap. This must be under $GOPATH/src/<package>. "+
-			"\nCurrent GOPATH=%s.  \nCurrent directory=%s", gopath, wd)
-	}
-	util.Repo = strings.Replace(wd, util.GoSrc+string(filepath.Separator), "", 1)
 
 	init_repo.AddInit(cmd)
 	create.AddCreate(cmd)
@@ -66,7 +43,7 @@ var cmd = &cobra.Command{
 	Use:   "apiserver-boot",
 	Short: "apiserver-boot development kit for building Kubernetes extensions in go.",
 	Long:  `apiserver-boot development kit for building Kubernetes extensions in go.`,
-	Example: `# Initialize your repository with scaffolding directories and go files.
+	Example: `# Initialize your repository with scaffolding directories and go files. Specify --module-name if the project works outside GOPATH.
 apiserver-boot init repo --domain example.com
 
 # Create new resource "Bee" in the "insect" group with version "v1beta1"

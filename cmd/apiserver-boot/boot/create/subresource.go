@@ -84,7 +84,7 @@ func createSubresource(boilerplate string) {
 		boilerplate,
 		subresourceName,
 		strings.Title(kindName) + strings.Title(subresourceName),
-		util.Repo,
+		util.GetRepo(),
 		groupName,
 		versionName,
 		kindName,
