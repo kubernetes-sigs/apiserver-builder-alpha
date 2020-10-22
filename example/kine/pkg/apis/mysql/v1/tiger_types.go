@@ -1,4 +1,3 @@
-
 /*
 Copyright 2019 The Kubernetes Authors.
 
@@ -15,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
-
 package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource"
 )
 
 // +genclient
@@ -43,4 +43,57 @@ type TigerSpec struct {
 
 // TigerStatus defines the observed state of Tiger
 type TigerStatus struct {
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type TigerList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+
+	Items []Tiger `json:"items"`
+}
+
+func (in *TigerList) GetListMeta() *metav1.ListMeta {
+	return &in.ListMeta
+}
+
+var _ runtime.Object = &Tiger{}
+var _ resource.Object = &Tiger{}
+var _ resource.ObjectWithStatusSubResource = &Tiger{}
+var _ resource.ObjectList = &TigerList{}
+
+func (t *Tiger) GetObjectMeta() *metav1.ObjectMeta {
+	return &t.ObjectMeta
+}
+
+func (t *Tiger) NamespaceScoped() bool {
+	return true
+}
+
+func (t *Tiger) New() runtime.Object {
+	return &Tiger{}
+}
+
+func (t *Tiger) NewList() runtime.Object {
+	return &TigerList{}
+}
+
+func (t *Tiger) GetGroupVersionResource() schema.GroupVersionResource {
+	return schema.GroupVersionResource{
+		Group:    "mysql.example.com",
+		Version:  "v1",
+		Resource: "tigers",
+	}
+}
+
+func (t *Tiger) IsStorageVersion() bool {
+	return true
+}
+
+func (t *Tiger) SetStatus(statusSubResource interface{}) {
+	t.Status = statusSubResource.(TigerStatus)
+}
+
+func (t *Tiger) GetStatus() (statusSubResource interface{}) {
+	return t.Status
 }

@@ -14,4 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package pkg
+package v1
+
+import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+)
+
+var AddToScheme = func(scheme *runtime.Scheme) error {
+	metav1.AddToGroupVersion(scheme, schema.GroupVersion{
+		Group:   "kingsport.k8s.io",
+		Version: "v1",
+	})
+	// +kubebuilder:scaffold:install
+	scheme.AddKnownTypes(schema.GroupVersion{
+		Group:   "kingsport.k8s.io",
+		Version: "v1",
+	}, &Festival{}, &FestivalList{})
+	return nil
+}

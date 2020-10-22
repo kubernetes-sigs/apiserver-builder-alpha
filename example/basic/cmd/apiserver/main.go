@@ -17,27 +17,30 @@ limitations under the License.
 package main
 
 import (
-	"sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis"
-	"sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/openapi"
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/cmd/server"
+	"k8s.io/klog"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder"
 
-	// import the package to install custom admission controllers and custom admission initializers
-	_ "sigs.k8s.io/apiserver-builder-alpha/example/basic/plugin/admission/install"
+	innsmouthv1 "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/innsmouth/v1"
+	kingsportv1 "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/kingsport/v1"
+	miskatonicv1beta1 "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/miskatonic/v1beta1"
+	olympusv1beta1 "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/olympus/v1beta1"
 )
 
 func main() {
-	err := server.StartApiServerWithOptions(&server.StartOptions{
-		EtcdPath:    "/registry/sample.kubernetes.io",
-		Apis:        apis.GetAllApiBuilders(),
-		Openapidefs: openapi.GetOpenAPIDefinitions,
-		Title:       "Api",
-		Version:     "v0",
-
-		// TweakConfigFuncs []func(apiServer *apiserver.Config) error
-		// FlagConfigFuncs []func(*cobra.Command) error
-	})
-
+	err := builder.APIServer.
+		WithResource(&innsmouthv1.DeepOne{}).          // namespaced resource
+		WithResource(&kingsportv1.Festival{}).         // cluster-scoped resource
+		WithResource(&miskatonicv1beta1.Student{}).    // resource with arbitrary subresource and custom storage
+		WithResource(&miskatonicv1beta1.University{}). // resource with arbitrary subresource
+		WithResource(&olympusv1beta1.Poseidon{}).      // resource with custom storage indexers
+		SetDelegateAuthOptional().
+		WithOptionsFns(func(o *builder.ServerOptions) *builder.ServerOptions {
+			o.RecommendedOptions.Authorization = nil
+			o.RecommendedOptions.Admission = nil
+			return nil
+		}).
+		Execute()
 	if err != nil {
-		panic(err)
+		klog.Fatal(err)
 	}
 }

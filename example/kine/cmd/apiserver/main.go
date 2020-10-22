@@ -1,4 +1,3 @@
-
 /*
 Copyright 2019 The Kubernetes Authors.
 
@@ -15,36 +14,39 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
-
 package main
 
 import (
-	// Make sure dep tools picks up these dependencies
-	_ "k8s.io/apimachinery/pkg/apis/meta/v1"
-	_ "github.com/go-openapi/loads"
-
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/cmd/server"
-	_ "k8s.io/client-go/plugin/pkg/client/auth" // Enable cloud provider auth
-
-	"sigs.k8s.io/apiserver-builder-alpha/example/kine/pkg/apis"
-	"sigs.k8s.io/apiserver-builder-alpha/example/kine/pkg/openapi"
+	"k8s.io/klog/v2"
+	"os"
+	mysqlv1 "sigs.k8s.io/apiserver-builder-alpha/example/kine/pkg/apis/mysql/v1"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder"
+	"sigs.k8s.io/apiserver-runtime/pkg/experimental/storage/mysql"
+	"strconv"
 )
 
 func main() {
-	version := "v0"
-
-	err := server.StartApiServerWithOptions(&server.StartOptions{
-		EtcdPath:         "/registry/example.com",
-		Apis:             apis.GetAllApiBuilders(),
-		Openapidefs:      openapi.GetOpenAPIDefinitions,
-		Title:            "Api",
-		Version:          version,
-
-		// TweakConfigFuncs []func(apiServer *apiserver.Config) error
-		// FlagConfigFuncs []func(*cobra.Command) error
-	})
+	mysqlHost := os.Getenv("MYSQL_HOST")
+	mysqlPort, _ := strconv.Atoi(os.Getenv("MYSQL_PORT"))
+	mysqlUser := os.Getenv("MYSQL_USERNAME")
+	mysqlPasswd := os.Getenv("MYSQL_PASSWORD")
+	mysqlDatabase := os.Getenv("MYSQL_DATABASE")
+	err := builder.APIServer.
+		WithResourceAndStorage(&mysqlv1.Tiger{}, mysql.NewMysqlStorageProvider(
+			mysqlHost,
+			int32(mysqlPort),
+			mysqlUser,
+			mysqlPasswd,
+			mysqlDatabase,
+		)). // namespaced resource
+		SetDelegateAuthOptional().
+		WithOptionsFns(func(o *builder.ServerOptions) *builder.ServerOptions {
+			o.RecommendedOptions.Authorization = nil
+			o.RecommendedOptions.Admission = nil
+			return nil
+		}).
+		Execute()
 	if err != nil {
-		panic(err)
+		klog.Fatal(err)
 	}
 }

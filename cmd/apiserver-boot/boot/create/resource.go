@@ -83,10 +83,11 @@ func RunCreateResource(cmd *cobra.Command, args []string) {
 		skipGenerateController = !Yesno(reader)
 	}
 
-	if !cmd.Flag("skip-admission-controller").Changed {
-		fmt.Println("Create Admission Controller [y/n]")
-		skipGenerateAdmissionController = !Yesno(reader)
-	}
+	// TODO: admission controller scaffolding
+	//if !cmd.Flag("skip-admission-controller").Changed {
+	//	fmt.Println("Create Admission Controller [y/n]")
+	//	skipGenerateAdmissionController = !Yesno(reader)
+	//}
 
 	cr := util.GetCopyright(copyright)
 
@@ -116,71 +117,67 @@ func createResource(boilerplate string) {
 		util.Repo,
 		inflect.NewDefaultRuleset().Pluralize(kindName),
 		nonNamespacedKind,
+		false,
 	}
 
 	found := false
 
 	if !skipGenerateResource {
-		strategyFileName := fmt.Sprintf("%s_strategy.go", strings.ToLower(kindName))
-		unversionedPath := filepath.Join(dir, "pkg", "apis", groupName, strategyFileName)
-		created := util.WriteIfNotFound(unversionedPath, "unversioned-strategy-template", unversionedStrategyTemplate, a)
-		if !created {
-			if !found {
-				klog.Infof("API group version kind %s/%s/%s already exists.",
-					groupName, versionName, kindName)
-				found = true
-			}
-		}
 
-		typesFileName := fmt.Sprintf("%s_types.go", strings.ToLower(kindName))
-		path := filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
-		created = util.WriteIfNotFound(path, "versioned-resource-template", versionedResourceTemplate, a)
-		if !created {
-			if !found {
-				klog.Infof("API group version kind %s/%s/%s already exists.",
-					groupName, versionName, kindName)
-				found = true
+		func() {
+			// creates resource source file
+			typesFileName := fmt.Sprintf("%s_types.go", strings.ToLower(kindName))
+			path := filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
+			created := util.WriteIfNotFound(path, "versioned-resource-template", versionedResourceTemplate, a)
+			if !created {
+				if !found {
+					klog.Infof("API group version kind %s/%s/%s already exists.",
+						groupName, versionName, kindName)
+					found = true
+				}
 			}
-		}
+		}()
 
-		os.MkdirAll(filepath.Join("docs", "examples"), 0700)
-		docpath := filepath.Join("docs", "examples", strings.ToLower(kindName), fmt.Sprintf("%s.yaml", strings.ToLower(kindName)))
-		created = util.WriteIfNotFound(docpath, "example-template", exampleTemplate, a)
-		if !created {
-			if !found {
-				klog.Infof("Example %s already exists.", docpath)
-				found = true
+		func() {
+			// re-render cmd/apiserver/main.go
+			const (
+				scaffoldImports  = "// +kubebuilder:scaffold:resource-imports"
+				scaffoldRegister = "// +kubebuilder:scaffold:resource-register"
+			)
+			mainFile := filepath.Join("cmd", "apiserver", "main.go")
+			newImport := fmt.Sprintf(`%s%s "%s/pkg/apis/%s/%s"`, groupName, versionName, util.Repo, groupName, versionName)
+			if err := appendMixin(mainFile, scaffoldImports, newImport); err != nil {
+				klog.Fatal(err)
 			}
-		}
 
-		os.MkdirAll("sample", 0700)
-		samplepath := filepath.Join("sample", fmt.Sprintf("%s.yaml", strings.ToLower(kindName)))
-		created = util.WriteIfNotFound(samplepath, "sample-template", sampleTemplate, a)
-		if !created {
-			if !found {
-				klog.Infof("Sample %s already exists.", docpath)
-				found = true
+			newRegister := fmt.Sprintf("WithResource(&%s%s.%s{}).", groupName, versionName, kindName)
+			if err := appendMixin(mainFile, scaffoldRegister, newRegister); err != nil {
+				klog.Fatal(err)
 			}
-		}
+			format(mainFile)
+		}()
 
-		// write the suite if it is missing
-		typesFileName = fmt.Sprintf("%s_suite_test.go", strings.ToLower(versionName))
-		path = filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
-		util.WriteIfNotFound(path, "version-suite-test-template", resourceSuiteTestTemplate, a)
-
-		typesFileName = fmt.Sprintf("%s_types_test.go", strings.ToLower(kindName))
-		path = filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
-		created = util.WriteIfNotFound(path, "resource-test-template", resourceTestTemplate, a)
-		if !created {
-			if !found {
-				klog.Infof("API group version kind %s/%s/%s test already exists.",
-					groupName, versionName, kindName)
-				found = true
+		func() {
+			// re-render register.go
+			const (
+				scaffoldInstall = "// +kubebuilder:scaffold:install"
+			)
+			registerFile := filepath.Join("pkg", "apis", groupName, versionName, "register.go")
+			fullGroupName := groupName + "." + util.Domain
+			newRegister := fmt.Sprintf(`
+	scheme.AddKnownTypes(schema.GroupVersion{
+		Group:   "%s",
+		Version: "%s",
+	}, &%s{}, &%sList{})`,
+				fullGroupName, versionName, kindName, kindName)
+			if err := appendMixin(registerFile, scaffoldInstall, newRegister); err != nil {
+				klog.Fatal(err)
 			}
-		}
+			format(registerFile)
+		}()
 	}
 
-	if !skipGenerateAdmissionController {
+	if false && !skipGenerateAdmissionController {
 		// write the admission-controller initializer if it is missing
 		os.MkdirAll(filepath.Join("plugin", "admission"), 0700)
 		admissionInitializerFileName := "initializer.go"
@@ -234,6 +231,7 @@ func createResource(boilerplate string) {
 		if err != nil {
 			klog.Warningf("failed generating controller basic packages: %v", err)
 		}
+		os.Remove(filepath.Join("controllers", groupName, "suite_test.go"))
 	}
 
 	if found {
@@ -252,6 +250,8 @@ type resourceTemplateArgs struct {
 	Repo              string
 	PluralizedKind    string
 	NonNamespacedKind bool
+
+	WithStatusSubResource bool
 }
 
 var unversionedStrategyTemplate = `
@@ -290,7 +290,14 @@ var versionedResourceTemplate = `
 package {{.Version}}
 
 import (
+	"context"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+ 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/validation/field"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource/resourcestrategy"
 )
 
 // +genclient
@@ -301,21 +308,77 @@ import (
 
 // {{.Kind}}
 // +k8s:openapi-gen=true
-// +resource:path={{.Resource}},strategy={{.Kind}}Strategy{{ if .ShortName }},shortname={{.ShortName}}{{ end }}
 type {{.Kind}} struct {
 	metav1.TypeMeta   ` + "`" + `json:",inline"` + "`" + `
 	metav1.ObjectMeta ` + "`" + `json:"metadata,omitempty"` + "`" + `
 
 	Spec   {{.Kind}}Spec   ` + "`" + `json:"spec,omitempty"` + "`" + `
+{{- if .WithStatusSubResource }}
 	Status {{.Kind}}Status ` + "`" + `json:"status,omitempty"` + "`" + `
+{{- end }}
+}
+
+// {{.Kind}}List
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type {{.Kind}}List struct {
+	metav1.TypeMeta   ` + "`" + `json:",inline"` + "`" + `
+	metav1.ListMeta ` + "`" + `json:"metadata,omitempty"` + "`" + `
+
+	Items []{{.Kind}} ` + "`" + `json:"items"` + "`" + `
 }
 
 // {{.Kind}}Spec defines the desired state of {{.Kind}}
 type {{.Kind}}Spec struct {
 }
 
+{{- if .WithStatusSubResource }}
 // {{.Kind}}Status defines the observed state of {{.Kind}}
 type {{.Kind}}Status struct {
+}
+{{- end }}
+
+var _ resource.Object = &{{.Kind}}{}
+var _ resource.ObjectList = &{{.Kind}}List{}
+var _ resourcestrategy.Validater = &{{.Kind}}{}
+{{- if .WithStatusSubResource }}
+var _ resource.ObjectWithStatusSubResource = &{{.Kind}}{}
+{{- end }}
+
+
+func (in *{{.Kind}}) GetObjectMeta() *metav1.ObjectMeta {
+	return &in.ObjectMeta
+}
+
+func (in *{{.Kind}}) NamespaceScoped() bool {
+	return false
+}
+
+func (in *{{.Kind}}) New() runtime.Object {
+	return &{{.Kind}}{}
+}
+
+func (in *{{.Kind}}) NewList() runtime.Object {
+	return &{{.Kind}}List{}
+}
+
+func (in *{{.Kind}}) GetGroupVersionResource() schema.GroupVersionResource {
+	return schema.GroupVersionResource{
+		Group:    "{{.Group}}.{{.Domain}}",
+		Version:  "{{.Version}}",
+		Resource: "{{.Resource}}",
+	}
+}
+
+func (in *{{.Kind}}) IsStorageVersion() bool {
+	return true
+}
+
+func (in *{{.Kind}}) Validate(ctx context.Context) field.ErrorList {
+	return nil
+}
+
+func (in *{{.Kind}}List) GetListMeta() *metav1.ListMeta {
+	return &in.ListMeta
 }
 `
 
@@ -423,22 +486,6 @@ var _ = Describe("{{.Kind}}", func() {
 		})
 	})
 })
-`
-
-var exampleTemplate = `note: {{ .Kind }} Example
-sample: |
-  apiVersion: {{ .Group }}.{{ .Domain }}/{{ .Version }}
-  kind: {{ .Kind }}
-  metadata:
-    name: {{ lower .Kind }}-example
-  spec:
-`
-
-var sampleTemplate = `apiVersion: {{ .Group }}.{{ .Domain }}/{{ .Version }}
-kind: {{ .Kind }}
-metadata:
-  name: {{ lower .Kind }}-example
-spec:
 `
 
 var admissionControllerTemplate = `

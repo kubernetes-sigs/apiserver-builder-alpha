@@ -1,4 +1,3 @@
-
 /*
 Copyright 2017 The Kubernetes Authors.
 
@@ -15,21 +14,37 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
-
 package v1beta1
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource"
 )
 
-// +genclient
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+var _ resource.ObjectWithArbitrarySubResource = &University{}
 
-// +subresource-request
 type UniversityCampus struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-
 	Faculty int `json:"faculty,omitempty"`
+}
+
+func (in *University) SubResourceNames() []string {
+	return []string{"campus"}
+}
+
+func (in *University) SetSubResource(subResourceName string, subResource interface{}) {
+	switch subResourceName {
+	case "campus":
+		campus := subResource.(UniversityCampus)
+		in.Spec.FacultySize = campus.Faculty
+	}
+	panic("unknown subresource " + subResourceName)
+}
+
+func (in *University) GetSubResource(subResourceName string) (subResource interface{}) {
+	switch subResourceName {
+	case "campus":
+		return UniversityCampus{
+			Faculty: in.Spec.FacultySize,
+		}
+	}
+	panic("unknown subresource " + subResourceName)
 }

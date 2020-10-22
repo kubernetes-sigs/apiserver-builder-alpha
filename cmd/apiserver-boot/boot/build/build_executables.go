@@ -88,10 +88,7 @@ func RunBuildExecutables(cmd *cobra.Command, args []string) {
 }
 
 func BazelBuild(cmd *cobra.Command, args []string) {
-	if GenerateForBuild {
-		klog.Infof("regenerating generated code.  To disable regeneration, run with --generate=false.")
-		RunGenerate(cmd, args)
-	}
+	initApis()
 
 	if Gazelle {
 		c := exec.Command("bazel", "run", "//:gazelle")
@@ -152,10 +149,7 @@ func BazelBuild(cmd *cobra.Command, args []string) {
 }
 
 func GoBuild(cmd *cobra.Command, args []string) {
-	if GenerateForBuild {
-		klog.Infof("regenerating generated code.  To disable regeneration, run with --generate=false.")
-		RunGenerate(cmd, args)
-	}
+	initApis()
 
 	os.RemoveAll(filepath.Join("bin", "apiserver"))
 	os.RemoveAll(filepath.Join("bin", "controller-manager"))

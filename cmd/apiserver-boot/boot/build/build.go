@@ -27,9 +27,6 @@ var buildCmd = &cobra.Command{
 	Example: `# Generate code and build the apiserver and controller-manager binaries into bin/
 apiserver-boot build executables
 
-# Rebuild generated code
-apiserver-boot build generated
-
 # Build a container with the apiserver and controller-manager executables
 apiserver-boot build container --image gcr.io/myrepo/myimage:mytag
 
@@ -46,7 +43,6 @@ func AddBuild(cmd *cobra.Command) {
 	AddBuildContainer(buildCmd)
 	AddBuildResourceConfig(buildCmd)
 	AddDocs(buildCmd)
-	AddGenerate(buildCmd)
 }
 
 func RunBuild(cmd *cobra.Command, args []string) {

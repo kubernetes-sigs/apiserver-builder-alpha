@@ -15,6 +15,7 @@ limitations under the License.
 */
 
 //go:generate apiregister-gen --input-dirs ./... -h ../../boilerplate.go.txt
+//go:generate controller-gen  +object +paths=./pkg/apis/...
 
 // +domain=k8s.io
 

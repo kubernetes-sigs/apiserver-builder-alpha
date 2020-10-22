@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "untar.go",
         "util.go",
+        "x509.go",
     ],
     importpath = "sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util",
     visibility = ["//visibility:public"],

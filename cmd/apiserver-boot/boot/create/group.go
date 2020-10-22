@@ -75,8 +75,6 @@ func createGroup(boilerplate string) {
 	path := filepath.Join(dir, "pkg", "apis", groupName, "doc.go")
 	created := util.WriteIfNotFound(path, "group-template", groupTemplate, a)
 
-	path = filepath.Join(dir, "pkg", "apis", groupName, "install", "doc.go")
-	created = util.WriteIfNotFound(path, "install-template", installTemplate, a)
 	if !created && !ignoreGroupExists {
 		klog.Fatalf("API group %s already exists.", groupName)
 	}
@@ -106,6 +104,5 @@ package {{.Name}}
 var installTemplate = `
 {{.BoilerPlate}}
 
-package install
-
+package {{.Name}}
 `
