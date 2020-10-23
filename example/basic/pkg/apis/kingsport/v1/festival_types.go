@@ -20,7 +20,7 @@ import (
 	"context"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	runtime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/klog"
@@ -58,7 +58,6 @@ type FestivalStatus struct {
 }
 
 var _ resource.Object = &Festival{}
-var _ resource.ObjectWithStatusSubResource = &Festival{}
 var _ resourcestrategy.Validater = &Festival{}
 var _ resource.ObjectList = &FestivalList{}
 
@@ -103,14 +102,6 @@ func (in *Festival) Validate(ctx context.Context) field.ErrorList {
 	return errors
 }
 
-func (in *Festival) SetStatus(statusSubResource interface{}) {
-	in.Status = statusSubResource.(FestivalStatus)
-}
-
-func (in *Festival) GetStatus() interface{} {
-	return in.Status
-}
-
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type FestivalList struct {
 	metav1.TypeMeta `json:",inline"`
@@ -121,4 +112,15 @@ type FestivalList struct {
 
 func (in *FestivalList) GetListMeta() *metav1.ListMeta {
 	return &in.ListMeta
+}
+
+var _ resource.ObjectWithStatusSubResource = &Festival{}
+var _ resource.StatusSubResource = &FestivalStatus{}
+
+func (in *Festival) GetStatus() resource.StatusSubResource {
+	return in.Status
+}
+
+func (in FestivalStatus) CopyTo(parent resource.ObjectWithStatusSubResource) {
+	parent.(*Festival).Status = in
 }

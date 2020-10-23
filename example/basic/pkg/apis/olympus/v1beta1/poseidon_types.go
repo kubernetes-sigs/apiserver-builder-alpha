@@ -53,7 +53,6 @@ type PoseidonStatus struct {
 
 var _ resource.Object = &Poseidon{}
 var _ resourcerest.FieldsIndexer = &Poseidon{}
-var _ resource.ObjectWithStatusSubResource = &Poseidon{}
 var _ resource.ObjectList = &PoseidonList{}
 
 func (in *Poseidon) GetObjectMeta() *metav1.ObjectMeta {
@@ -82,14 +81,6 @@ func (in *Poseidon) GetGroupVersionResource() schema.GroupVersionResource {
 
 func (in *Poseidon) IsStorageVersion() bool {
 	return true
-}
-
-func (in *Poseidon) SetStatus(statusSubResource interface{}) {
-	in.Status = statusSubResource.(PoseidonStatus)
-}
-
-func (in *Poseidon) GetStatus() (statusSubResource interface{}) {
-	return in.Status
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -121,4 +112,16 @@ func (in *Poseidon) GetField(fieldName string) string {
 		return in.Spec.Deployment.Name
 	}
 	panic(fmt.Sprintf("getting field %v not supported", fieldName))
+}
+
+var _ resource.ObjectWithStatusSubResource = &Poseidon{}
+
+func (in *Poseidon) GetStatus() resource.StatusSubResource {
+	return in.Status
+}
+
+var _ resource.StatusSubResource = &PoseidonStatus{}
+
+func (in PoseidonStatus) CopyTo(parent resource.ObjectWithStatusSubResource) {
+	parent.(*Poseidon).Status = in
 }

@@ -150,14 +150,6 @@ func (in *DeepOne) IsStorageVersion() bool {
 	return true
 }
 
-func (in *DeepOne) SetStatus(statusSubResource interface{}) {
-	in.Status = statusSubResource.(DeepOneStatus)
-}
-
-func (in *DeepOne) GetStatus() interface{} {
-	return in.Status
-}
-
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type DeepOneList struct {
 	metav1.TypeMeta `json:",inline"`
@@ -168,4 +160,15 @@ type DeepOneList struct {
 
 func (in *DeepOneList) GetListMeta() *metav1.ListMeta {
 	return &in.ListMeta
+}
+
+var _ resource.ObjectWithStatusSubResource = &DeepOne{}
+var _ resource.StatusSubResource = &DeepOneStatus{}
+
+func (in *DeepOne) GetStatus() resource.StatusSubResource {
+	return in.Status
+}
+
+func (in DeepOneStatus) CopyTo(parent resource.ObjectWithStatusSubResource) {
+	parent.(*DeepOne).Status = in
 }

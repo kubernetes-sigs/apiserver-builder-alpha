@@ -18,6 +18,7 @@ package create
 
 import (
 	"github.com/spf13/cobra"
+	"path/filepath"
 )
 
 var createCmd = &cobra.Command{
@@ -41,7 +42,7 @@ var copyright string
 
 func AddCreate(cmd *cobra.Command) {
 	cmd.AddCommand(createCmd)
-	cmd.Flags().StringVar(&copyright, "copyright", "boilerplate.go.txt", "Location of copyright boilerplate file.")
+	cmd.Flags().StringVar(&copyright, "copyright", filepath.Join("hack", "boilerplate.go.txt"), "Location of copyright boilerplate file.")
 	AddCreateGroup(createCmd)
 	AddCreateResource(createCmd)
 	AddCreateSubresource(createCmd)
