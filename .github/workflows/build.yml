@@ -118,7 +118,7 @@ jobs:
           apiserver-boot build container --image ${IMAGE}
           kind load docker-image ${IMAGE} --name chart-testing
 
-          kubectl create -f config/apiserver.yaml
+          kubectl create -f config/
 
           sleep 120 # Hold for 2 min
 
@@ -182,7 +182,7 @@ jobs:
           apiserver-boot build container --image ${IMAGE}
           kind load docker-image ${IMAGE} --name chart-testing
 
-          kubectl create -f config/apiserver.yaml
+          kubectl create -f config/
 
           sleep 120 # Hold for 2 min
 

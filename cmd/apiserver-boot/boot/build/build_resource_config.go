@@ -465,22 +465,6 @@ type resourceConfigRBACYamlArgs struct {
 var resourceConfigRBACYaml = `---
 {{ $config := . -}}
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: extension-apiserver-authentication-reader
-  namespace: kube-system
-rules:
-  - apiGroups:
-      - ""
-    resourceNames:
-      - extension-apiserver-authentication
-    resources:
-      - configmaps
-    verbs:
-      - get
-      - list
----
-apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: {{.Name}}-apiserver-auth-reader
