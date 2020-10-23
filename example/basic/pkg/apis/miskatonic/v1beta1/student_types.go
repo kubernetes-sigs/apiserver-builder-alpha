@@ -18,8 +18,8 @@ package v1beta1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	runtime "k8s.io/apimachinery/pkg/runtime"
-	schema "k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource"
 	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource/resourcerest"
 )
@@ -60,7 +60,6 @@ type StudentList struct {
 }
 
 var _ resource.Object = &Student{}
-var _ resource.ObjectWithStatusSubResource = &Student{}
 var _ resource.ObjectList = &StudentList{}
 var _ resourcerest.ShortNamesProvider = &Student{}
 var _ resourcerest.CategoriesProvider = &Student{}
@@ -93,14 +92,6 @@ func (in *Student) IsStorageVersion() bool {
 	return true
 }
 
-func (in *Student) SetStatus(statusSubResource interface{}) {
-	in.Status = statusSubResource.(StudentStatus)
-}
-
-func (in *Student) GetStatus() (statusSubResource interface{}) {
-	return in.Status
-}
-
 func (in *Student) ShortNames() []string {
 	return []string{"st"}
 }
@@ -111,4 +102,16 @@ func (in *Student) Categories() []string {
 
 func (in *StudentList) GetListMeta() *metav1.ListMeta {
 	return &in.ListMeta
+}
+
+var _ resource.ObjectWithStatusSubResource = &Student{}
+
+func (in *Student) GetStatus() resource.StatusSubResource {
+	return in.Status
+}
+
+var _ resource.StatusSubResource = &StudentStatus{}
+
+func (in StudentStatus) CopyTo(parent resource.ObjectWithStatusSubResource) {
+	parent.(*Student).Status = in
 }

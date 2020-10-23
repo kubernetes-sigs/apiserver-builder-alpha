@@ -26,16 +26,12 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-      - name: Workspace Preparing
-        env:
-          GOPATH: ${{ github.workspace }}/go
-        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
-        run: bash scripts/workspace-install.sh
       - name: Install
         working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
         env:
           GOPATH: ${{ github.workspace }}/go
-        run: make install
+        run: |
+          go build -o ${GOPATH}/bin/apiserver-boot ./cmd/apiserver-boot/main.go
       - name: Testing on new project
         env:
           GOBIN: ${{ github.workspace }}/go/bin
@@ -83,17 +79,12 @@ jobs:
           path: go/src/sigs.k8s.io/apiserver-builder-alpha/
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.0.0
-      - name: Workspace Preparing
-        env:
-          GOPATH: ${{ github.workspace }}/go
-        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
-        run: bash scripts/workspace-install.sh
       - name: Install apiserver-boot
         working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
         env:
           GOPATH: ${{ github.workspace }}/go
         run: |
-          make install
+          go build -o ${GOPATH}/bin/apiserver-boot ./cmd/apiserver-boot/main.go
       - name: Install controller-tools
         run: |
           go get sigs.k8s.io/controller-tools/cmd/controller-gen
@@ -150,7 +141,6 @@ jobs:
           GOPATH: ${{ github.workspace }}/go
         working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
         run: |
-          bash scripts/workspace-install.sh
           sudo systemctl start mysql.service
       - name: Install apiserver-boot
         working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
@@ -158,7 +148,7 @@ jobs:
           GOPATH: ${{ github.workspace }}/go
         run: |
           mkdir -p bin
-          make install
+          go build -o ${GOPATH}/bin/apiserver-boot ./cmd/apiserver-boot/main.go
       - name: Install controller-tools
         run: |
           go get sigs.k8s.io/controller-tools/cmd/controller-gen

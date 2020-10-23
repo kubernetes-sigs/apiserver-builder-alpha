@@ -100,11 +100,15 @@ func Overwrite(path, templateName, templateValue string, data interface{}) bool 
 
 func GetCopyright(file string) string {
 	if len(file) == 0 {
-		file = "boilerplate.go.txt"
+		wd, err := os.Getwd()
+		if err != nil {
+			klog.Fatal(err)
+		}
+		file = filepath.Join(wd, "hack", "boilerplate.go.txt")
 	}
 	cr, err := ioutil.ReadFile(file)
 	if err != nil {
-		klog.Fatalf("Must create boilerplate.go.txt file with copyright and file headers")
+		klog.Fatalf("Must create boilerplate.go.txt file with copyright and file headers: %v", err)
 	}
 	return string(cr)
 }

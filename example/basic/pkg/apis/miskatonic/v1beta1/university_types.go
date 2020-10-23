@@ -148,14 +148,6 @@ func (in *University) Validate(ctx context.Context) field.ErrorList {
 	return errors
 }
 
-func (in *University) SetStatus(statusSubResource interface{}) {
-	in.Status = statusSubResource.(UniversityStatus)
-}
-
-func (in *University) GetStatus() (statusSubResource interface{}) {
-	return in.Status
-}
-
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type UniversityList struct {
 	metav1.TypeMeta `json:",inline"`
@@ -165,4 +157,16 @@ type UniversityList struct {
 
 func (in *UniversityList) GetListMeta() *metav1.ListMeta {
 	return &in.ListMeta
+}
+
+var _ resource.ObjectWithStatusSubResource = &University{}
+
+func (in *University) GetStatus() resource.StatusSubResource {
+	return in.Status
+}
+
+var _ resource.StatusSubResource = &UniversityStatus{}
+
+func (in UniversityStatus) CopyTo(parent resource.ObjectWithStatusSubResource) {
+	parent.(*University).Status = in
 }

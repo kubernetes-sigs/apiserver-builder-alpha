@@ -43,7 +43,7 @@ func AddInitRepo(cmd *cobra.Command) {
 	repoCmd.Flags().StringVar(&domain, "domain", "", "domain the api groups live under")
 
 	// Hide this flag by default
-	repoCmd.Flags().StringVar(&copyright, "copyright", "boilerplate.go.txt", "Location of copyright boilerplate file.")
+	repoCmd.Flags().StringVar(&copyright, "copyright", filepath.Join("hack", "boilerplate.go.txt"), "Location of copyright boilerplate file.")
 	repoCmd.Flags().StringVar(&moduleName, "module-name", "",
 		"the module name of the go mod project, required if the project uses go module outside GOPATH")
 }
@@ -52,7 +52,6 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 	if len(domain) == 0 {
 		klog.Fatal("Must specify --domain")
 	}
-	cr := util.GetCopyright(copyright)
 
 	if len(moduleName) == 0 {
 		if err := util.LoadRepoFromGoPath(); err != nil {
@@ -61,8 +60,9 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 	} else {
 		util.SetRepo(moduleName)
 	}
+	createControllerManager()
 
-	createControllerManager(cr)
+	cr := util.GetCopyright(copyright)
 	createGoMod()
 	createKubeBuilderProjectFile()
 	createBazelWorkspace()
@@ -111,7 +111,7 @@ func createBazelWorkspace() {
 		buildTemplate, buildTemplateArguments{domain, util.GetRepo()})
 }
 
-func createControllerManager(boilerplate string) {
+func createControllerManager() {
 	scaffolder := scaffolds.NewInitScaffolder(
 		&config.Config{
 			MultiGroup: true,
@@ -302,7 +302,7 @@ require (
 	k8s.io/apimachinery v0.19.2
 	k8s.io/client-go v0.19.2
 	k8s.io/klog v1.0.0
-	sigs.k8s.io/apiserver-runtime v0.0.0-20200925141712-5fcfc91568ad
+	sigs.k8s.io/apiserver-runtime v0.0.0-20201022123152-cced9f48a58c
 	sigs.k8s.io/controller-runtime v0.6.0
 )
 `

@@ -20,26 +20,18 @@ import (
 	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource"
 )
 
+var _ resource.ObjectWithArbitrarySubResource = &Student{}
+var _ resource.ArbitrarySubResource = &StudentComputer{}
+
+func (in *Student) ArbitrarySubResources() []resource.ArbitrarySubResource {
+	return []resource.ArbitrarySubResource{
+		&StudentComputer{},
+	}
+}
+
 type StudentComputer struct {
 }
 
-var _ resource.ObjectWithArbitrarySubResource = &Student{}
-
-func (in *Student) SubResourceNames() []string {
-	return []string{"computer"}
-}
-
-func (in *Student) SetSubResource(subResourceName string, subResource interface{}) {
-	switch subResourceName {
-	case "computer":
-	}
-	panic("unknown subresource " + subResourceName)
-}
-
-func (in *Student) GetSubResource(subResourceName string) (subResource interface{}) {
-	switch subResourceName {
-	case "computer":
-		return StudentComputer{}
-	}
-	panic("unknown subresource " + subResourceName)
+func (in *StudentComputer) Name() string {
+	return "computer"
 }

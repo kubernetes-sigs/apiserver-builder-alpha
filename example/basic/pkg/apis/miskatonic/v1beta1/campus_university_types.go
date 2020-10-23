@@ -21,30 +21,18 @@ import (
 )
 
 var _ resource.ObjectWithArbitrarySubResource = &University{}
+var _ resource.ArbitrarySubResource = &UniversityCampus{}
+
+func (in *University) ArbitrarySubResources() []resource.ArbitrarySubResource {
+	return []resource.ArbitrarySubResource{
+		&UniversityCampus{},
+	}
+}
 
 type UniversityCampus struct {
 	Faculty int `json:"faculty,omitempty"`
 }
 
-func (in *University) SubResourceNames() []string {
-	return []string{"campus"}
-}
-
-func (in *University) SetSubResource(subResourceName string, subResource interface{}) {
-	switch subResourceName {
-	case "campus":
-		campus := subResource.(UniversityCampus)
-		in.Spec.FacultySize = campus.Faculty
-	}
-	panic("unknown subresource " + subResourceName)
-}
-
-func (in *University) GetSubResource(subResourceName string) (subResource interface{}) {
-	switch subResourceName {
-	case "campus":
-		return UniversityCampus{
-			Faculty: in.Spec.FacultySize,
-		}
-	}
-	panic("unknown subresource " + subResourceName)
+func (in *UniversityCampus) Name() string {
+	return "campus"
 }

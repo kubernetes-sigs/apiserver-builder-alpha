@@ -631,6 +631,7 @@ github.com/vektah/gqlparser v1.1.2/go.mod h1:1ycwN7Ij5njmMkPPAOaRFY4rET2Enx7IkVv
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 h1:eY9dn8+vbi4tKz5Qo6v2eYzo7kUS51QINcR5jNpbZS8=
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
 github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:aYKd//L2LvnjZzWKhF00oedf4jCCReLcmhLdhm1A27Q=
+github.com/yue9944882/apiserver-runtime-1 v0.0.0-20201022123152-cced9f48a58c/go.mod h1:5ZzuVZKfRrHh9gY1a92lK44VCdKX05XPtDa3Q6xCd0A=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
@@ -1016,6 +1017,7 @@ mvdan.cc/interfacer v0.0.0-20180901003855-c20040233aed/go.mod h1:Xkxe497xwlCKkIa
 mvdan.cc/lint v0.0.0-20170908181259-adc824a0674b/go.mod h1:2odslEg/xrtNQqCYg2/jCoyKnw3vv5biOc3JnIcYfL4=
 mvdan.cc/unparam v0.0.0-20190720180237-d51796306d8f/go.mod h1:4G1h5nDURzA3bwVMZIVpwbkw+04kSxk3rAtzlimaUJw=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
+sigs.k8s.io/apiserver-builder-alpha v1.18.0 h1:Ws5qBIXclal72h8lZc2Vvv/yWhfyQQ6zWgOfg2FEeBo=
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.7 h1:uuHDyjllyzRyCIvvn0OBjiRB0SgBZGqHNYAmjR7fO50=
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.7/go.mod h1:PHgbrJT7lCHcxMU+mDHEm+nx46H4zuuHZkDP6icnhu0=
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.9 h1:rusRLrDhjBp6aYtl9sGEvQJr6faoHoDLd0YcUBTZguI=
@@ -1024,6 +1026,8 @@ sigs.k8s.io/apiserver-runtime v0.0.0-20200924152629-502e10502398 h1:Zdn3zA/4FWMw
 sigs.k8s.io/apiserver-runtime v0.0.0-20200924152629-502e10502398/go.mod h1:plUVMksMk6ZdLgjRl7osmXFcT+aj0ZirN3ttfucDCSg=
 sigs.k8s.io/apiserver-runtime v0.0.0-20200925141712-5fcfc91568ad h1:K++1BBgnBH4NGIV0OP09QgLij5KvF1WevuoltlBbQio=
 sigs.k8s.io/apiserver-runtime v0.0.0-20200925141712-5fcfc91568ad/go.mod h1:5ZzuVZKfRrHh9gY1a92lK44VCdKX05XPtDa3Q6xCd0A=
+sigs.k8s.io/apiserver-runtime v0.0.0-20201022123152-cced9f48a58c h1:/sDyOrTaZRf+GAmBOpQvvck8c3i6NvC27H6Z1J1HLzc=
+sigs.k8s.io/apiserver-runtime v0.0.0-20201022123152-cced9f48a58c/go.mod h1:5ZzuVZKfRrHh9gY1a92lK44VCdKX05XPtDa3Q6xCd0A=
 sigs.k8s.io/controller-runtime v0.6.0 h1:Fzna3DY7c4BIP6KwfSlrfnj20DJ+SeMBK8HSFvOk9NM=
 sigs.k8s.io/controller-runtime v0.6.0/go.mod h1:CpYf5pdNY/B352A1TFLAS2JVSlnGQ5O2cftPHndTroo=
 sigs.k8s.io/structured-merge-diff v0.0.0-20190525122527-15d366b2352e/go.mod h1:wWxsB5ozmmv/SG7nM11ayaAW51xMvak/t1r0CSlcokI=

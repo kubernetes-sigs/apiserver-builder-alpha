@@ -383,12 +383,14 @@ func (in *{{.Kind}}List) GetListMeta() *metav1.ListMeta {
 {{- if .WithStatusSubResource }}
 var _ resource.ObjectWithStatusSubResource = &{{.Kind}}{}
 
-func (in *{{.Kind}}) SetStatus(statusSubResource interface{}) {
-	in.Status = statusSubResource.({{.Kind}}Status)
+func (in *{{.Kind}}) GetStatus() resource.StatusSubResource {
+	return in.Status
 }
 
-func (in *{{.Kind}}) GetStatus() (statusSubResource interface{}) {
-	return in.Status
+var _ resource.StatusSubResource = &{{.Kind}}Status{}
+
+func (in {{.Kind}}Status) CopyTo(parent resource.ObjectWithStatusSubResource) {
+	parent.(*{{.Kind}}).Status = in
 }
 {{- end }}
 `
