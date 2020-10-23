@@ -120,7 +120,6 @@ type DeepOneStatus struct {
 
 var _ resource.Object = &DeepOne{}
 var _ resource.ObjectWithStatusSubResource = &DeepOne{}
-var _ resource.ObjectList = &DeepOneList{}
 
 func (in *DeepOne) GetObjectMeta() *metav1.ObjectMeta {
 	return &in.ObjectMeta
@@ -157,6 +156,8 @@ type DeepOneList struct {
 
 	Items []DeepOne `json:"items"`
 }
+
+var _ resource.ObjectList = &DeepOneList{}
 
 func (in *DeepOneList) GetListMeta() *metav1.ListMeta {
 	return &in.ListMeta
