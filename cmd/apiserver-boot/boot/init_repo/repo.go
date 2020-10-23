@@ -61,6 +61,7 @@ func RunInitRepo(cmd *cobra.Command, args []string) {
 		util.SetRepo(moduleName)
 	}
 	createControllerManager()
+	os.RemoveAll(filepath.Join("config")) // removes kubebuilder config scaffolding
 
 	cr := util.GetCopyright(copyright)
 	createGoMod()

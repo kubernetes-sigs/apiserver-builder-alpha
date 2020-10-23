@@ -333,16 +333,8 @@ type {{.Kind}}List struct {
 type {{.Kind}}Spec struct {
 }
 
-{{- if .WithStatusSubResource }}
-// {{.Kind}}Status defines the observed state of {{.Kind}}
-type {{.Kind}}Status struct {
-}
-{{- end }}
-
 var _ resource.Object = &{{.Kind}}{}
-var _ resource.ObjectList = &{{.Kind}}List{}
 var _ resourcestrategy.Validater = &{{.Kind}}{}
-
 
 func (in *{{.Kind}}) GetObjectMeta() *metav1.ObjectMeta {
 	return &in.ObjectMeta
@@ -373,20 +365,29 @@ func (in *{{.Kind}}) IsStorageVersion() bool {
 }
 
 func (in *{{.Kind}}) Validate(ctx context.Context) field.ErrorList {
+	// TODO(user): Modify it, adding your API validation here.
 	return nil
 }
+
+var _ resource.ObjectList = &{{.Kind}}List{}
 
 func (in *{{.Kind}}List) GetListMeta() *metav1.ListMeta {
 	return &in.ListMeta
 }
 
 {{- if .WithStatusSubResource }}
+// {{.Kind}}Status defines the observed state of {{.Kind}}
+type {{.Kind}}Status struct {
+}
+
+// {{.Kind}} implements ObjectWithStatusSubResource interface.
 var _ resource.ObjectWithStatusSubResource = &{{.Kind}}{}
 
 func (in *{{.Kind}}) GetStatus() resource.StatusSubResource {
 	return in.Status
 }
 
+// {{.Kind}}Status{} implements StatusSubResource interface.
 var _ resource.StatusSubResource = &{{.Kind}}Status{}
 
 func (in {{.Kind}}Status) CopyTo(parent resource.ObjectWithStatusSubResource) {
