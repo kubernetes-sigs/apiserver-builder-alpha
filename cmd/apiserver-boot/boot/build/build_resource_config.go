@@ -142,34 +142,73 @@ func buildResourceConfig() {
 	initVersionedApis()
 	dir := filepath.Join(ResourceConfigDir, "certificates")
 
-	a := resourceConfigTemplateArgs{
-		Name:                  Name,
-		Namespace:             Namespace,
-		Image:                 Image,
-		Domain:                util.Domain,
-		Versions:              Versions,
-		ClientKey:             getBase64(filepath.Join(dir, "apiserver.key")),
-		CACert:                getBase64(filepath.Join(dir, "apiserver_ca.crt")),
-		ClientCert:            getBase64(filepath.Join(dir, "apiserver.crt")),
-		ApiserverArgs:         ApiserverArgs,
-		ControllerArgs:        ControllerArgs,
-		ControllerSecretMount: ControllerSecretMount,
-		ControllerSecret:      ControllerSecret,
-		ControllerSecretEnv:   ControllerSecretEnv,
-		LocalIp:               LocalIp,
-		ImagePullSecrets:      ImagePullSecrets,
-		ServiceAccount:        ServiceAccount,
-		StorageClass:          StorageClass,
-	}
-	path := filepath.Join(ResourceConfigDir, "apiserver.yaml")
-
-	temp := resourceConfigTemplate
-	if LocalMinikube {
-		temp = localConfigTemplate
-	}
-	created := util.WriteIfNotFound(path, "config-template", temp, a)
+	created := util.WriteIfNotFound(
+		filepath.Join(ResourceConfigDir, "apiservice.yaml"),
+		"apiservice-config-template", apiserviceYamlTemplate, apiserviceYamlTemplateArgs{
+			Name:      Name,
+			Namespace: Namespace,
+			Domain:    util.Domain,
+			Versions:  Versions,
+			CACert:    getBase64(filepath.Join(dir, "apiserver_ca.crt")),
+		})
 	if !created {
 		klog.Fatalf("Resource config already exists.")
+	}
+
+	// build apiserver yaml config
+	created = util.WriteIfNotFound(
+		filepath.Join(ResourceConfigDir, "aggregated-apiserver.yaml"),
+		"apiserver-config-template", resourceConfigApiserverYaml, resourceConfigApiserverYamlArgs{
+			Name:             Name,
+			Namespace:        Namespace,
+			Image:            Image,
+			ApiserverArgs:    ApiserverArgs,
+			ImagePullSecrets: ImagePullSecrets,
+			ServiceAccount:   ServiceAccount,
+			ClientKey:        getBase64(filepath.Join(dir, "apiserver.key")),
+			ClientCert:       getBase64(filepath.Join(dir, "apiserver.crt")),
+		})
+	if !created {
+		klog.Fatalf("Aggregated Apiserver config already exists.")
+	}
+
+	// build controller yaml config
+	created = util.WriteIfNotFound(
+		filepath.Join(ResourceConfigDir, "controller-manager.yaml"),
+		"controller-config-template", resourceConfigControllerYaml, resourceConfigControllerYamlArgs{
+			Name:             Name,
+			Namespace:        Namespace,
+			Image:            Image,
+			ControllerArgs:   ControllerArgs,
+			ImagePullSecrets: ImagePullSecrets,
+			ServiceAccount:   ServiceAccount,
+		})
+	if !created {
+		klog.Fatalf("Controller-manager config already exists.")
+	}
+
+	// build RBAC yaml config
+	created = util.WriteIfNotFound(
+		filepath.Join(ResourceConfigDir, "rbac.yaml"),
+		"rbac-config-template", resourceConfigRBACYaml, resourceConfigRBACYamlArgs{
+			Name:      Name,
+			Namespace: Namespace,
+			Domain:    util.Domain,
+			Versions:  Versions,
+		})
+	if !created {
+		klog.Fatalf("RBAC config already exists.")
+	}
+
+	// build etcd yaml config
+	created = util.WriteIfNotFound(
+		filepath.Join(ResourceConfigDir, "etcd.yaml"),
+		"etcd-config-template", etcdYaml, etcdYamlArgs{
+			Namespace:    Namespace,
+			StorageClass: StorageClass,
+		})
+	if !created {
+		klog.Fatalf("ETCD config already exists.")
 	}
 }
 
@@ -258,70 +297,22 @@ func initVersionedApis() {
 }
 
 type resourceConfigApiserverYamlArgs struct {
+	Name      string
+	Namespace string
+
+	Image            string
+	ServiceAccount   string
+	ImagePullSecrets []string
+	ApiserverArgs    []string
+	ClientCert       string
+	ClientKey        string
 }
 
-type resourceConfigTemplateArgs struct {
-	Versions              []schema.GroupVersion
-	CACert                string
-	ClientCert            string
-	ClientKey             string
-	Domain                string
-	Name                  string
-	Namespace             string
-	Image                 string
-	ApiserverArgs         []string
-	ControllerArgs        []string
-	ControllerSecret      string
-	ControllerSecretMount string
-	ControllerSecretEnv   []string
-	LocalIp               string
-	ServiceAccount        string
-	StorageClass          string
-	ImagePullSecrets      []string
-}
-
-var resourceConfigTemplate = `
-{{ $config := . -}}
-{{ range $api := .Versions -}}
-apiVersion: apiregistration.k8s.io/v1
-kind: APIService
-metadata:
-  name: {{ $api.Version }}.{{ $api.Group }}.{{ $config.Domain }}
-  labels:
-    api: {{ $config.Name }}
-    apiserver: "true"
-spec:
-  version: {{ $api.Version }}
-  group: {{ $api.Group }}.{{ $config.Domain }}
-  groupPriorityMinimum: 2000
-  service:
-    name: {{ $config.Name }}
-    namespace: {{ $config.Namespace }}
-  versionPriority: 10
-  caBundle: "{{ $config.CACert }}"
----
-{{ end -}}
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{.Name}}
-  namespace: {{.Namespace}}
-  labels:
-    api: {{.Name}}
-    apiserver: "true"
-spec:
-  ports:
-  - port: 443
-    protocol: TCP
-    targetPort: 443
-  selector:
-    api: {{ .Name }}
-    apiserver: "true"
----
+var resourceConfigApiserverYaml = `---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{.Name}}
+  name: {{.Name}}-apiserver
   namespace: {{.Namespace}}
   labels:
     api: {{.Name}}
@@ -370,6 +361,81 @@ spec:
           limits:
             cpu: 100m
             memory: 30Mi
+      volumes:
+      - name: apiserver-certs
+        secret:
+          secretName: {{ .Name }}
+---
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/tls
+metadata:
+  name: {{.Name}}
+  namespace: {{.Namespace}}
+  labels:
+    api: {{.Name}}
+    apiserver: "true"
+data:
+  tls.crt: {{ .ClientCert }}
+  tls.key: {{ .ClientKey }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{.Name}}
+  namespace: {{.Namespace}}
+  labels:
+    api: {{.Name}}
+    apiserver: "true"
+spec:
+  ports:
+  - port: 443
+    protocol: TCP
+    targetPort: 443
+  selector:
+    api: {{ .Name }}
+`
+
+type resourceConfigControllerYamlArgs struct {
+	Name      string
+	Namespace string
+
+	Image            string
+	ServiceAccount   string
+	ImagePullSecrets []string
+	ControllerArgs   []string
+}
+
+var resourceConfigControllerYaml = `---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Name}}-controller
+  namespace: {{.Namespace}}
+  labels:
+    api: {{.Name}}
+    controller: "true"
+spec:
+  selector:
+    matchLabels:
+      api: {{.Name}}
+      controller: "true"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        api: {{.Name}}
+        controller: "true"
+    spec:
+      {{- if .ImagePullSecrets }}
+      imagePullSecrets:
+      {{range .ImagePullSecrets }}- name: {{.}}
+      {{ end }}
+      {{- end -}}
+      {{- if .ServiceAccount }}
+      serviceAccount: {{.ServiceAccount}}
+      {{- end }}
+      containers:
       - name: controller
         image: {{.Image}}
         command:
@@ -387,7 +453,132 @@ spec:
       - name: apiserver-certs
         secret:
           secretName: {{ .Name }}
+`
+
+type resourceConfigRBACYamlArgs struct {
+	Name      string
+	Namespace string
+	Domain    string
+	Versions  []schema.GroupVersion
+}
+
+var resourceConfigRBACYaml = `---
+{{ $config := . -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: extension-apiserver-authentication-reader
+  namespace: kube-system
+rules:
+  - apiGroups:
+      - ""
+    resourceNames:
+      - extension-apiserver-authentication
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{.Name}}-apiserver-auth-reader
+rules:
+  - apiGroups:
+      - ""
+    resourceNames:
+      - extension-apiserver-authentication
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{.Name}}-apiserver-auth-reader
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{.Name}}-apiserver-auth-reader
+subjects:
+  - kind: ServiceAccount
+    namespace: default
+    name: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{.Name}}-apiserver-auth-delegator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+  - kind: ServiceAccount
+    namespace: default
+    name: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{.Name}}-controller
+  namespace: default
+rules:
+  - apiGroups:
+{{- range $api := .Versions }}
+      - '{{ $api.Group }}.{{ $config.Domain }}'
+{{- end }}
+    resources:
+      - '*'
+    verbs:
+      - '*'
+  - apiGroups:
+      - ''
+    resources:
+      - 'configmaps'
+      - 'namespaces'
+    verbs:
+      - 'get'
+      - 'list'
+      - 'watch'
+  - apiGroups:
+      - 'admissionregistration.k8s.io'
+    resources:
+      - '*'
+    verbs:
+      - 'list'
+      - 'watch'
+  - nonResourceURLs:
+      - '*'
+    verbs:
+      - '*'
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{.Name}}-controller
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{.Name}}-controller
+subjects:
+  - kind: ServiceAccount
+    namespace: default
+    name: default
+`
+
+type etcdYamlArgs struct {
+	Namespace    string
+	StorageClass string
+}
+
+var etcdYaml = `---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -473,129 +664,37 @@ spec:
     targetPort: 2379
   selector:
     app: etcd
----
-apiVersion: v1
-kind: Secret
-type: kubernetes.io/tls
+`
+
+type apiserviceYamlTemplateArgs struct {
+	Versions  []schema.GroupVersion
+	CACert    string
+	Domain    string
+	Name      string
+	Namespace string
+}
+
+var apiserviceYamlTemplate = `
+{{ $config := . -}}
+{{ range $api := .Versions -}}
+apiVersion: apiregistration.k8s.io/v1
+kind: APIService
 metadata:
-  name: {{.Name}}
-  namespace: {{.Namespace}}
+  name: {{ $api.Version }}.{{ $api.Group }}.{{ $config.Domain }}
   labels:
-    api: {{.Name}}
+    api: {{ $config.Name }}
     apiserver: "true"
-data:
-  tls.crt: {{ .ClientCert }}
-  tls.key: {{ .ClientKey }}
-
+spec:
+  version: {{ $api.Version }}
+  group: {{ $api.Group }}.{{ $config.Domain }}
+  groupPriorityMinimum: 2000
+  service:
+    name: {{ $config.Name }}
+    namespace: {{ $config.Namespace }}
+  versionPriority: 10
+  caBundle: "{{ $config.CACert }}"
 ---
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: extension-apiserver-authentication-reader
-rules:
-  - apiGroups:
-      - ""
-    resourceNames:
-      - extension-apiserver-authentication
-    resources:
-      - configmaps
-    verbs:
-      - get
-      - list
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: basic-example-apiserver-auth-reader
-  namespace: kube-system
-rules:
-  - apiGroups:
-      - ""
-    resourceNames:
-      - extension-apiserver-authentication
-    resources:
-      - configmaps
-    verbs:
-      - get
-      - list
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: basic-example-apiserver-auth-reader
-  namespace: kube-system
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: basic-example-apiserver-auth-reader
-subjects:
-  - kind: ServiceAccount
-    namespace: default
-    name: default
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: basic-example-apiserver-auth-delegator
-  namespace: kube-system
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: system:auth-delegator
-subjects:
-  - kind: ServiceAccount
-    namespace: default
-    name: default
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: basic-example-controller
-  namespace: default
-rules:
-  - apiGroups:
-{{- range $api := .Versions }}
-      - '{{ $api.Group }}.{{ $config.Domain }}'
-{{- end }}
-    resources:
-      - '*'
-    verbs:
-      - '*'
-  - apiGroups:
-      - ''
-    resources:
-      - 'configmaps'
-      - 'namespaces'
-    verbs:
-      - 'get'
-      - 'list'
-      - 'watch'
-  - apiGroups:
-      - 'admissionregistration.k8s.io'
-    resources:
-      - '*'
-    verbs:
-      - 'list'
-      - 'watch'
-  - nonResourceURLs:
-      - '*'
-    verbs:
-      - '*'
-
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: basic-example-controller
-  namespace: default
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: basic-example-controller
-subjects:
-  - kind: ServiceAccount
-    namespace: default
-    name: default
+{{ end -}}
 `
 
 var localConfigTemplate = `
