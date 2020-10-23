@@ -36,7 +36,6 @@ var kindName string
 var resourceName string
 var shortName string
 var nonNamespacedKind bool
-var skipGenerateAdmissionController bool
 var skipGenerateResource bool
 var skipGenerateController bool
 var withStatusSubresource bool
@@ -59,8 +58,6 @@ func AddCreateResource(cmd *cobra.Command) {
 
 	createResourceCmd.Flags().BoolVar(&skipGenerateResource, "skip-resource", false, "if set, the resources will not be generated")
 	createResourceCmd.Flags().BoolVar(&skipGenerateController, "skip-controller", false, "if set, the controller will not be generated")
-	createResourceCmd.Flags().BoolVar(&skipGenerateAdmissionController, "skip-admission-controller", false, "if set, the admission controller will not be generated")
-	createResourceCmd.Flags().MarkDeprecated("skip-admission-controller", "")
 	createResourceCmd.Flags().BoolVar(&withStatusSubresource, "with-status-subresource", true, "if set, the status sub-resource will be generated")
 
 	cmd.AddCommand(createResourceCmd)
@@ -85,12 +82,6 @@ func RunCreateResource(cmd *cobra.Command, args []string) {
 		fmt.Println("Create Controller [y/n]")
 		skipGenerateController = !Yesno(reader)
 	}
-
-	// TODO: admission controller scaffolding
-	//if !cmd.Flag("skip-admission-controller").Changed {
-	//	fmt.Println("Create Admission Controller [y/n]")
-	//	skipGenerateAdmissionController = !Yesno(reader)
-	//}
 
 	cr := util.GetCopyright(copyright)
 
@@ -180,32 +171,6 @@ func createResource(boilerplate string) {
 		}()
 	}
 
-	if false && !skipGenerateAdmissionController {
-		// write the admission-controller initializer if it is missing
-		os.MkdirAll(filepath.Join("plugin", "admission"), 0700)
-		admissionInitializerFileName := "initializer.go"
-		path := filepath.Join(dir, "plugin", "admission", admissionInitializerFileName)
-		created := util.WriteIfNotFound(path, "admission-initializer-template", admissionControllerInitializerTemplate, a)
-		if !created {
-			if !found {
-				klog.Infof("admission initializer already exists.")
-				// found = true
-			}
-		}
-
-		// write the admission controller if it is missing
-		os.MkdirAll(filepath.Join("plugin", "admission", strings.ToLower(kindName)), 0700)
-		admissionControllerFileName := "admission.go"
-		path = filepath.Join(dir, "plugin", "admission", strings.ToLower(kindName), admissionControllerFileName)
-		created = util.WriteIfNotFound(path, "admission-controller-template", admissionControllerTemplate, a)
-		if !created {
-			if !found {
-				klog.Infof("admission controller for kind %s test already exists.", kindName)
-				found = true
-			}
-		}
-	}
-
 	if !skipGenerateController {
 		// write controller-runtime scaffolding templates
 		r := &resource.Resource{
@@ -255,36 +220,6 @@ type resourceTemplateArgs struct {
 	NonNamespacedKind     bool
 	WithStatusSubResource bool
 }
-
-var unversionedStrategyTemplate = `
-{{.BoilerPlate}}
-
-package {{.Group}}
-
-import (
-	"context"
-
-	"k8s.io/klog"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/util/validation/field"
-)
-
-// Validate checks that an instance of {{.Kind}} is well formed
-func ({{.Kind}}Strategy) Validate(ctx context.Context, obj runtime.Object) field.ErrorList {
-	o := obj.(*{{.Kind}})
-	klog.V(5).Infof("Validating fields for {{.Kind}} %s", o.Name)
-	errors := field.ErrorList{}
-	// perform validation here and add to errors using field.Invalid
-	return errors
-}
-
-{{- if .NonNamespacedKind }}
-
-func ({{.Kind}}Strategy) NamespaceScoped() bool { return false }
-
-func ({{.Kind}}StatusStrategy) NamespaceScoped() bool { return false }
-{{- end }}
-`
 
 var versionedResourceTemplate = `
 {{.BoilerPlate}}
@@ -394,215 +329,4 @@ func (in {{.Kind}}Status) CopyTo(parent resource.ObjectWithStatusSubResource) {
 	parent.(*{{.Kind}}).Status = in
 }
 {{- end }}
-`
-
-var resourceSuiteTestTemplate = `
-{{.BoilerPlate}}
-
-package {{.Version}}_test
-
-import (
-	"testing"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/test"
-	"k8s.io/client-go/rest"
-
-	"{{ .Repo }}/pkg/apis"
-	"{{ .Repo }}/pkg/client/clientset_generated/clientset"
-	"{{ .Repo }}/pkg/openapi"
-)
-
-var testenv *test.TestEnvironment
-var config *rest.Config
-var cs *clientset.Clientset
-
-func Test{{title .Version}}(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecsWithDefaultAndCustomReporters(t, "v1 Suite", []Reporter{test.NewlineReporter{}})
-}
-
-var _ = BeforeSuite(func() {
-	testenv = test.NewTestEnvironment(apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions)
-	config = testenv.Start()
-	cs = clientset.NewForConfigOrDie(config)
-})
-
-var _ = AfterSuite(func() {
-	testenv.Stop()
-})
-`
-
-var resourceTestTemplate = `
-{{.BoilerPlate}}
-
-package {{.Version}}_test
-
-import (
-	"context"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	. "{{.Repo}}/pkg/apis/{{.Group}}/{{.Version}}"
-	. "{{.Repo}}/pkg/client/clientset_generated/clientset/typed/{{.Group}}/{{.Version}}"
-)
-
-var _ = Describe("{{.Kind}}", func() {
-	var instance {{ .Kind}}
-	var expected {{ .Kind}}
-	var client {{ .Kind}}Interface
-
-	BeforeEach(func() {
-		instance = {{ .Kind}}{}
-		instance.Name = "instance-1"
-
-		expected = instance
-	})
-
-	AfterEach(func() {
-		client.Delete(context.TODO(), instance.Name, metav1.DeleteOptions{})
-	})
-
-	Describe("when sending a storage request", func() {
-		Context("for a valid config", func() {
-			It("should provide CRUD access to the object", func() {
-				client = cs.{{ title .Group}}{{title .Version}}().{{plural .Kind}}({{ if not .NonNamespacedKind }}"{{lower .Kind}}-test-valid"{{ end }})
-
-				By("returning success from the create request")
-				actual, err := client.Create(context.TODO(), &instance, metav1.CreateOptions{})
-				Expect(err).ShouldNot(HaveOccurred())
-
-				By("defaulting the expected fields")
-				Expect(actual.Spec).To(Equal(expected.Spec))
-
-				By("returning the item for list requests")
-				result, err := client.List(context.TODO(), metav1.ListOptions{})
-				Expect(err).ShouldNot(HaveOccurred())
-				Expect(result.Items).To(HaveLen(1))
-				Expect(result.Items[0].Spec).To(Equal(expected.Spec))
-
-				By("returning the item for get requests")
-				actual, err = client.Get(context.TODO(), instance.Name, metav1.GetOptions{})
-				Expect(err).ShouldNot(HaveOccurred())
-				Expect(actual.Spec).To(Equal(expected.Spec))
-
-				By("deleting the item for delete requests")
-				err = client.Delete(context.TODO(), instance.Name, metav1.DeleteOptions{})
-				Expect(err).ShouldNot(HaveOccurred())
-				result, err = client.List(context.TODO(), metav1.ListOptions{})
-				Expect(err).ShouldNot(HaveOccurred())
-				Expect(result.Items).To(HaveLen(0))
-			})
-		})
-	})
-})
-`
-
-var admissionControllerTemplate = `
-{{.BoilerPlate}}
-
-package {{ lower .Kind }}admission
-
-import (
-	"context"
-	aggregatedadmission "{{.Repo}}/plugin/admission"
-	aggregatedinformerfactory "{{.Repo}}/pkg/client/informers_generated/externalversions"
-	aggregatedclientset "{{.Repo}}/pkg/client/clientset_generated/clientset"
-	genericadmissioninitializer "k8s.io/apiserver/pkg/admission/initializer"
-	"k8s.io/client-go/informers"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/apiserver/pkg/admission"
-)
-
-var _ admission.Interface 											= &{{ lower .Kind }}Plugin{}
-var _ admission.MutationInterface 									= &{{ lower .Kind }}Plugin{}
-var _ admission.ValidationInterface 								= &{{ lower .Kind }}Plugin{}
-var _ genericadmissioninitializer.WantsExternalKubeInformerFactory 	= &{{ lower .Kind }}Plugin{}
-var _ genericadmissioninitializer.WantsExternalKubeClientSet 		= &{{ lower .Kind }}Plugin{}
-var _ aggregatedadmission.WantsAggregatedResourceInformerFactory 	= &{{ lower .Kind }}Plugin{}
-var _ aggregatedadmission.WantsAggregatedResourceClientSet 			= &{{ lower .Kind }}Plugin{}
-
-func New{{ .Kind }}Plugin() *{{ lower .Kind }}Plugin {
-	return &{{ lower .Kind }}Plugin{
-		Handler: admission.NewHandler(admission.Create, admission.Update),
-	}
-}
-
-type {{ lower .Kind }}Plugin struct {
-	*admission.Handler
-}
-
-func (p *{{ lower .Kind }}Plugin) ValidateInitialization() error {
-	return nil
-}
-
-func (p *{{ lower .Kind }}Plugin) Admit(ctx context.Context, a admission.Attributes, o admission.ObjectInterfaces) error {
-	return nil
-}
-
-func (p *{{ lower .Kind }}Plugin) Validate(ctx context.Context, a admission.Attributes, o admission.ObjectInterfaces) error {
-	return nil
-}
-
-func (p *{{ lower .Kind }}Plugin) SetAggregatedResourceInformerFactory(aggregatedinformerfactory.SharedInformerFactory) {}
-
-func (p *{{ lower .Kind }}Plugin) SetAggregatedResourceClientSet(aggregatedclientset.Interface) {}
-
-func (p *{{ lower .Kind }}Plugin) SetExternalKubeInformerFactory(informers.SharedInformerFactory) {}
-
-func (p *{{ lower .Kind }}Plugin) SetExternalKubeClientSet(kubernetes.Interface) {}
-`
-
-var admissionControllerInitializerTemplate = `
-{{.BoilerPlate}}
-
-package admission
-
-import (
-	aggregatedclientset "{{.Repo}}/pkg/client/clientset_generated/clientset"
-	aggregatedinformerfactory "{{.Repo}}/pkg/client/informers_generated/externalversions"
-	"k8s.io/apiserver/pkg/admission"
-)
-
-// WantsAggregatedResourceClientSet defines a function which sets external ClientSet for admission plugins that need it
-type WantsAggregatedResourceClientSet interface {
-	SetAggregatedResourceClientSet(aggregatedclientset.Interface)
-	admission.InitializationValidator
-}
-
-// WantsAggregatedResourceInformerFactory defines a function which sets InformerFactory for admission plugins that need it
-type WantsAggregatedResourceInformerFactory interface {
-	SetAggregatedResourceInformerFactory(aggregatedinformerfactory.SharedInformerFactory)
-	admission.InitializationValidator
-}
-
-// New creates an instance of admission plugins initializer.
-func New(
-	clientset aggregatedclientset.Interface,
-	informers aggregatedinformerfactory.SharedInformerFactory,
-) pluginInitializer {
-	return pluginInitializer{
-		aggregatedResourceClient:    clientset,
-		aggregatedResourceInformers: informers,
-	}
-}
-
-type pluginInitializer struct {
-	aggregatedResourceClient    aggregatedclientset.Interface
-	aggregatedResourceInformers aggregatedinformerfactory.SharedInformerFactory
-}
-
-func (i pluginInitializer) Initialize(plugin admission.Interface) {
-	if wants, ok := plugin.(WantsAggregatedResourceClientSet); ok {
-		wants.SetAggregatedResourceClientSet(i.aggregatedResourceClient)
-	}
-	if wants, ok := plugin.(WantsAggregatedResourceInformerFactory); ok {
-		wants.SetAggregatedResourceInformerFactory(i.aggregatedResourceInformers)
-	}
-}
-
 `

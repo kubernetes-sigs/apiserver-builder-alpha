@@ -258,7 +258,6 @@ func initVersionedApis() {
 }
 
 type resourceConfigApiserverYamlArgs struct {
-
 }
 
 type resourceConfigTemplateArgs struct {
