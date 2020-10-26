@@ -1,0 +1,78 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: basic-example-apiserver
+  namespace: default
+  labels:
+    api: basic-example
+    apiserver: "true"
+spec:
+  selector:
+    matchLabels:
+      api: basic-example
+      apiserver: "true"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        api: basic-example
+        apiserver: "true"
+    spec:
+      containers:
+      - name: apiserver
+        image: example.io/basic
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: apiserver-certs
+          mountPath: /apiserver.local.config/certificates
+          readOnly: true
+        command:
+        - "./apiserver"
+        args:
+        - "--etcd-servers=http://etcd-svc:2379"
+        - "--tls-cert-file=/apiserver.local.config/certificates/tls.crt"
+        - "--tls-private-key-file=/apiserver.local.config/certificates/tls.key"
+        - "--audit-log-path=-"
+        - "--audit-log-maxage=0"
+        - "--audit-log-maxbackup=0"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 20Mi
+          limits:
+            cpu: 100m
+            memory: 30Mi
+      volumes:
+      - name: apiserver-certs
+        secret:
+          secretName: basic-example
+---
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/tls
+metadata:
+  name: basic-example
+  namespace: default
+  labels:
+    api: basic-example
+    apiserver: "true"
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURjRENDQWxpZ0F3SUJBZ0lJVVkxNFlMVEtpMEF3RFFZSktvWklodmNOQVFFTEJRQXdiVEVMTUFrR0ExVUUKQmhNQ2RXNHhDekFKQmdOVkJBZ01Bbk4wTVFvd0NBWURWUVFIREFGc01Rb3dDQVlEVlFRS0RBRnZNUXN3Q1FZRApWUVFMREFKdmRURXNNQ29HQTFVRUF3d2pZbUZ6YVdNdFpYaGhiWEJzWlMxalpYSjBhV1pwWTJGMFpTMWhkWFJvCmIzSnBkSGt3SGhjTk1qQXhNREl6TVRFeU1ETXlXaGNOTXpBeE1ESXhNVEV5TURNeVdqQWtNU0l3SUFZRFZRUUQKRXhsaVlYTnBZeTFsZUdGdGNHeGxMbVJsWm1GMWJIUXVjM1pqTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQwpBUThBTUlJQkNnS0NBUUVBdXpHcSttRXc0Vk1pckhyTEhrQTZ5cS9YVkJlcWN5UGpxQS9BazBJQVlXcjVrNXpkCitwdm5HU1dIYmJuRFRMTGRFMnExN3RHZEowczNMdllQdzFhak0xNGtaSm93bzRTUk5LTUxrcGRxWktmZVdWTHEKUHJNRDJ2VzVWRGM3U3hiU253RnU2UjNDMUs5REFlL2ZOWWd3RGNUWWJwMnRRb3BoRElyT1ZBc2RFTnM0Yms0SApBd0JYemFuaEtFTDJMV2JlTFdFQW04TUExSWtDUk0wVjhhbEQ0V2h5RjVzSWw0bDdFYWhSZzU0WDRtWGRmcGIwCkhPcDBqYk1wdU9JQndneFluM3dEeUFnQVh1WUZkYThOcFVhMkVxaHBDNk0zSTJJUE5OSitzU2pESWp1Z2NJazUKdlVwTVNGdlJ3WjBnc2ErN2FDeDYzemd0T25aajRlTmI5R0NsZXdJREFRQUJvMTB3V3pBT0JnTlZIUThCQWY4RQpCQU1DQmFBd0hRWURWUjBsQkJZd0ZBWUlLd1lCQlFVSEF3RUdDQ3NHQVFVRkJ3TUNNQ29HQTFVZEVRUWpNQ0dDCkdXSmhjMmxqTFdWNFlXMXdiR1V1WkdWbVlYVnNkQzV6ZG1PSEJIOEFBQUV3RFFZSktvWklodmNOQVFFTEJRQUQKZ2dFQkFLSDNrKzAyN2xRQWZKYjB2NmJldVI2VjRkRDVvSzFVcDc2VUxGZG1PdDY0TFZuWEY3T25BNUpsYitzSApHTU1idytzOHNRMVN3MXBZTWlOd0l3SHk2VU5MZXI5VU5nV0EwVm4vaHN6Y0NmRnZRcW9kbGw1bzk1dUdmL2hLCnN1NFRDN0ZNSUxMeTZ5aFV5ZHRmSStRQndpWm84NEpyU202YlpEV0Q3TDEybm9uQXpDM0Q3RWlJdDdJVnNDMWIKTHBqYTdvNW5wNENJUTNaVWU4M2RUMmtlUUhjdlFqcDBqTWl0YlRKYWdWRzcxK0xyRHNHSk5OYXhlNllheE5POQpDVURNYkhETXhqS2JlajJWSWZjZ0h5SnJ2TC80WEtXdUtXd3k3aDNVemM4SXBZR0lpQkJUUjltRVV0SUZFcm5HCk40aUlac0djUEZhQTRqQ0Q2ZUgvWng5S3FEVT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+  tls.key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcEFJQkFBS0NBUUVBdXpHcSttRXc0Vk1pckhyTEhrQTZ5cS9YVkJlcWN5UGpxQS9BazBJQVlXcjVrNXpkCitwdm5HU1dIYmJuRFRMTGRFMnExN3RHZEowczNMdllQdzFhak0xNGtaSm93bzRTUk5LTUxrcGRxWktmZVdWTHEKUHJNRDJ2VzVWRGM3U3hiU253RnU2UjNDMUs5REFlL2ZOWWd3RGNUWWJwMnRRb3BoRElyT1ZBc2RFTnM0Yms0SApBd0JYemFuaEtFTDJMV2JlTFdFQW04TUExSWtDUk0wVjhhbEQ0V2h5RjVzSWw0bDdFYWhSZzU0WDRtWGRmcGIwCkhPcDBqYk1wdU9JQndneFluM3dEeUFnQVh1WUZkYThOcFVhMkVxaHBDNk0zSTJJUE5OSitzU2pESWp1Z2NJazUKdlVwTVNGdlJ3WjBnc2ErN2FDeDYzemd0T25aajRlTmI5R0NsZXdJREFRQUJBb0lCQVFDbHB0ZENDSDNqOTlqSQpQMFc5dUdNT2VEc1o3SE5tdnN5NExYQmlIOWNNWGtrTGlwYVpMaHQ4a2t4ZEdqVXNpMSs5emdHL20vanhDOHVDCm9EYmt5cWRUVHF6djVjN0M5UTQyUVU1OVk4YS8yaG1XZkJ4VWJjQXNwS1JqVlJrQVl1cngwS2ZnWFBqTGsyaTkKcnhLY1lhNzhrRVJpNXQrcThaL2VKSHRmdmhIemxqWUc0VEhldWwvMFVlRHI2RjBrSDB2a1B1TDRvY2duZmpNVQo5QmU5MExaU2poeU1UUTgwdWhQY2k1Tk8wZEh0NEVQZW1Wa3pZN0EwU0lvcjFEOTlUMS9Mbm1pN2xuSDFLdTdKCjZTbEtLdUFZOTRITzRsK0FydjdlNTlWU0NkMHl4Ri9uS0FKV2toMEhDNEFWZkdxbnFtbTdRSGVOd0RFaFNrcHgKTHR1OXhBUUJBb0dCQVBFQXZSbCs1a3M3NFFEM2ZCWWd0R1pjOHF0dy9oWmxLb1JRalp6czAzeW1QSUROYTk2awp5YUlmRnRlbXRlZHVSL3FoTTdQUmFBTG1lSVVUNTBoemRUWXFjc25qdDE5V0RYeHZ4MlV4NXZGWnhLcU1yN2pMClBIbjByMG5JaWFTRlJkcEltdjZTMDZ4VE9mdmk3VkRmbjNQa0RhQ3IyYXhkckRLMmRYUlo1ajRCQW9HQkFNYlgKdkI4Z2xDYWxOVENPVVB4VEhDLzYzWXY5SXZYdXlGMEpjKzZmS0RDMDVqOG5hNERkUUVuWnUzRTFtdFllYlkzbgo0alptU0RFZ2dWV0pVcDgwR2Z6bXd3eE5ZbjdHQUtOaGUwamxSdFlGcGtGME1XalE3eDVWU0dDZmNDdGM1aWRiCnIrbisyRTJ1V2x6ZVhNRUx3Kzg1cTVGM3BQRGNkUGJoLzRxM3R0dDdBb0dCQU1TOUVhSEtrajFBZUlITmhxS1oKdUNzSUhhSU83NTFnb01DNjhaLzFSUUF3eEp0eEZtbitwQXVRelpqbUl3RDJhaFFUbkoxaWlVSTAycFhvbFpuegpodS9jM3pBb2tQMW14a09iREc5enVVKzFOSEwxdmsxZ3U5SGpDV1YySzhiK2RQT282YjZBSmdRN1BNNS9oYlBMCm1lT0ZmQXA1djR5U080eDZubytKQkFnQkFvR0FjN2M2a0RiS1lNOEY3REwyS0ZGSmR4YWI5WXFqM05GUUl1eU0KWGhLYk5mVWdoU0l3cXJhWFlpTG10VlJIdmxISTJhdFhkdWNCSGkzWGRtcksvVUU1Mm5hRWpkVSsrNTNJNDB1bwpqbHgzWTdlMzhDRnBXNkV6ZHNpVXJUNDc3ZEJMVkI1RWVuMUhiYldJZXNFZzQyc3daRGlBZ3RCSTJhN0NGcWFnCnF4Nk11SjhDZ1lBclZiaVR6VUU3Q3N5WkNMRVR2Z1RPVCt5TlpvdTIvZktlY1hvVjd3OXBHS05USXNjWmpIMjEKK0lubStTa0Q5aExrQVNhSnZUNG5HMDFRNVFibDcybUhTd0dhc1hPaDUwSXJ4VEQzV2NUUUpDQXVlU2pTYzAySApuTzV5N2NWbDhkc2pXZ21aRmNIVTB4OFViMlN0clJTYy9pajFFT0VaMWVtcGczc2sxK3FyV2c9PQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: basic-example
+  namespace: default
+  labels:
+    api: basic-example
+    apiserver: "true"
+spec:
+  ports:
+  - port: 443
+    protocol: TCP
+    targetPort: 443
+  selector:
+    api: basic-example
