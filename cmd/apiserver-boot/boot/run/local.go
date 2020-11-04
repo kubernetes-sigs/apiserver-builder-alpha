@@ -62,13 +62,15 @@ var buildBin bool
 var server string
 var controllermanager string
 var toRun []string
-var disableDelegatedAuth bool
+var disableMTLS bool
+var certDir string
 var securePort int32
-var insecurePort int32
 
 func AddLocal(cmd *cobra.Command) {
 	localCmd.Flags().StringSliceVar(&toRun, "run", []string{"etcd", "apiserver", "controller-manager"}, "path to apiserver binary to run")
-	localCmd.Flags().BoolVar(&disableDelegatedAuth, "disable-delegated-auth", true, "If true, disable delegated auth in the apiserver with --delegated-auth=false.")
+	localCmd.Flags().BoolVar(&disableMTLS, "disable-mtls", true,
+		`If true, disable mTLS serving in the apiserver with --standalone-debug-mode. `+
+			`This optional requries the apiserver to build with "WithLocalDebugExtension" from apiserver-runtime.`)
 
 	localCmd.Flags().StringVar(&server, "apiserver", "", "path to apiserver binary to run")
 	localCmd.Flags().StringVar(&controllermanager, "controller-manager", "", "path to controller-manager binary to run")
@@ -82,19 +84,13 @@ func AddLocal(cmd *cobra.Command) {
 	localCmd.Flags().BoolVar(&buildBin, "build", true, "if true, build the binaries before running")
 
 	localCmd.Flags().Int32Var(&securePort, "secure-port", 9443, "Secure port from apiserver to serve requests")
-	localCmd.Flags().Int32Var(&insecurePort, "insecure-port", 8080, "Insecure port from apiserver to serve requests")
-
-	localCmd.Flags().BoolVar(&bazel, "bazel", false, "if true, use bazel to build.  May require updating build rules with gazelle.")
-	localCmd.Flags().BoolVar(&gazelle, "gazelle", false, "if true, run gazelle before running bazel.")
-	localCmd.Flags().BoolVar(&generate, "generate", true, "if true, generate code before building")
+	localCmd.Flags().StringVar(&certDir, "cert-dir", filepath.Join("config", "certificates"), "directory containing apiserver certificates")
 
 	cmd.AddCommand(localCmd)
 }
 
 func RunLocal(cmd *cobra.Command, args []string) {
 	if buildBin {
-		build.Bazel = bazel
-		build.Gazelle = gazelle
 		build.RunBuildExecutables(cmd, args)
 	}
 
@@ -151,12 +147,16 @@ func RunApiserver(ctx context.Context, cancel context.CancelFunc) *exec.Cmd {
 	flags := []string{
 		fmt.Sprintf("--etcd-servers=%s", etcd),
 		fmt.Sprintf("--secure-port=%v", securePort),
-		fmt.Sprintf("--insecure-port=%v", insecurePort),
-		fmt.Sprintf("--insecure-bind-address=127.0.0.1"),
 	}
 
-	if disableDelegatedAuth {
-		flags = append(flags, "--delegated-auth=false")
+	if disableMTLS {
+		flags = append(flags, "--standalone-debug-mode")
+		flags = append(flags, "--bind-address=127.0.0.1")
+	} else {
+		flags = append(flags,
+			fmt.Sprintf("--cert-dir=%s", certDir),
+			fmt.Sprintf("--client-ca-file=%s/apiserver_ca.crt", certDir),
+		)
 	}
 
 	apiserverCmd := exec.Command(server,
