@@ -219,26 +219,37 @@ func runCommon(cmd *exec.Cmd, ctx context.Context, cancel context.CancelFunc) {
 }
 
 func WriteKubeConfig() {
+	klog.Infof("Writing kubeconfig to %s", config)
 	// Write a kubeconfig
 	dir, err := os.Getwd()
 	if err != nil {
 		klog.Fatalf("Cannot get working directory %v", err)
 		os.Exit(-1)
 	}
-	path := filepath.Join(dir, "apiserver.local.config", "certificates", "apiserver")
-	util.WriteIfNotFound(config, "kubeconfig-template", configTemplate, ConfigArgs{Path: path, Port: fmt.Sprintf("%v", securePort)})
+	path := filepath.Join(dir, certDir)
+	util.WriteIfNotFound(config, "kubeconfig-template", configTemplate,
+		ConfigArgs{
+			DisabltMTLS: disableMTLS,
+			Path:        path,
+			Port:        fmt.Sprintf("%v", securePort),
+		})
 }
 
 type ConfigArgs struct {
-	Path string
-	Port string
+	DisabltMTLS bool
+	Path        string
+	Port        string
 }
 
 var configTemplate = `
 apiVersion: v1
 clusters:
 - cluster:
-    certificate-authority: {{ .Path }}.crt
+{{- if .DisabltMTLS }}
+    insecure-skip-tls-verify: true
+{{- else }}
+    certificate-authority: {{ .Path }}/apiserver_ca.crt
+{{- end }}
     server: https://localhost:{{ .Port }}
   name: apiserver
 contexts:
@@ -252,6 +263,8 @@ preferences: {}
 users:
 - name: apiserver
   user:
-    client-certificate: {{ .Path }}.crt
-    client-key: {{ .Path }}.key
+{{- if not .DisabltMTLS }}
+    client-certificate: {{ .Path }}/apiserver.crt
+    client-key: {{ .Path }}/apiserver.key
+{{- end }}
 `

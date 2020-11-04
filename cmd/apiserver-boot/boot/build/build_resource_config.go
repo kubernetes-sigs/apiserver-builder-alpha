@@ -241,7 +241,10 @@ func createCerts() {
 		CommonName:   svrName,
 		Organization: []string{},
 		AltNames: util.AltNames{
-			DNSNames: []string{svrName},
+			DNSNames: []string{
+				"localhost",
+				svrName,
+			},
 			IPs: []net.IP{
 				net.ParseIP("127.0.0.1"),
 			},
