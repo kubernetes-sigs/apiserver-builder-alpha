@@ -1,4 +1,3 @@
-
 /*
 Copyright 2020 The Kubernetes Authors.
 
@@ -15,37 +14,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
-
 package main
 
 import (
-	// Make sure dep tools picks up these dependencies
-	_ "k8s.io/apimachinery/pkg/apis/meta/v1"
-	_ "github.com/go-openapi/loads"
+	"k8s.io/klog"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder"
+	"sigs.k8s.io/apiserver-runtime/pkg/experimental/storage/filepath"
 
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/cmd/server"
-	_ "k8s.io/client-go/plugin/pkg/client/auth" // Enable cloud provider auth
-
-	"sigs.k8s.io/apiserver-builder-alpha/example/non-etcd/pkg/apis"
-	"sigs.k8s.io/apiserver-builder-alpha/example/non-etcd/pkg/openapi"
-	_ "sigs.k8s.io/apiserver-builder-alpha/example/non-etcd/plugin/admission/install"
+	filepathv1 "sigs.k8s.io/apiserver-builder-alpha/example/non-etcd/pkg/apis/filepath/v1"
 )
 
 func main() {
-	version := "v0"
-
-	err := server.StartApiServerWithOptions(&server.StartOptions{
-		EtcdPath:         "/registry/example.com",
-		Apis:             apis.GetAllApiBuilders(),
-		Openapidefs:      openapi.GetOpenAPIDefinitions,
-		Title:            "Api",
-		Version:          version,
-
-		// TweakConfigFuncs []func(apiServer *apiserver.Config) error
-		// FlagConfigFuncs []func(*cobra.Command) error
-	})
+	err := builder.APIServer.
+		// writes burger resources as static files under the "data" folder in the working directory.
+		WithResourceAndHandler(&filepathv1.Burger{}, filepath.NewJsonFilepathStorageProvider(&filepathv1.Burger{}, "data")).
+		WithOptionsFns(func(o *builder.ServerOptions) *builder.ServerOptions {
+			o.RecommendedOptions.Authorization = nil
+			o.RecommendedOptions.Admission = nil
+			return nil
+		}).
+		Execute()
 	if err != nil {
-		panic(err)
+		klog.Fatal(err)
 	}
 }

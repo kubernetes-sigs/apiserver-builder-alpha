@@ -40,6 +40,7 @@ func main() {
 			return nil
 		}).
 		Execute()
+
 	if err != nil {
 		klog.Fatal(err)
 	}
