@@ -53,6 +53,14 @@ same capabilities when building from scratch.
 
 #### Installation guide
 
+##### Install by Go Get
+
+```bash
+GO111MODULE=on go get sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot
+```
+
+##### Manual Download
+
 Download the latest release and install on your PATH.
 
 [installation guide](docs/installing.md)
