@@ -6,9 +6,9 @@ set -o pipefail
 
 SCRIPT_ROOT=$(dirname "${BASH_SOURCE[0]}")/..
 
-apiserver_builder_version=$(git rev-parse --verify --short HEAD)
+apiserver_builder_version=$(git describe --tags HEAD)
 k8s_vendor=kubernetes-1.19.2
-git_commit="$(git rev-parse HEAD)"
+git_commit="$(git describe --tags HEAD)"
 build_date="$(date +%Y-%m-%d-%H:%M:%S)"
 
 cat <<EOF

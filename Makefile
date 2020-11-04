@@ -22,7 +22,7 @@ gazelle:
 
 NAME=apiserver-builder-alpha
 VENDOR=kubernetes-sigs
-VERSION=$(shell git rev-parse --verify --short HEAD)
+VERSION=$(shell git describe --tags HEAD)
 DESCRIPTION=apiserver-builder implements libraries and tools to quickly and easily build Kubernetes apiservers to support custom resource types.
 MAINTAINER=The Kubernetes Authors
 URL=https://github.com/$(VENDOR)/$(NAME)
