@@ -59,7 +59,6 @@ func (in *TigerList) GetListMeta() *metav1.ListMeta {
 
 var _ runtime.Object = &Tiger{}
 var _ resource.Object = &Tiger{}
-var _ resource.ObjectWithStatusSubResource = &Tiger{}
 var _ resource.ObjectList = &TigerList{}
 
 func (t *Tiger) GetObjectMeta() *metav1.ObjectMeta {
@@ -90,10 +89,13 @@ func (t *Tiger) IsStorageVersion() bool {
 	return true
 }
 
-func (t *Tiger) SetStatus(statusSubResource interface{}) {
-	t.Status = statusSubResource.(TigerStatus)
+var _ resource.ObjectWithStatusSubResource = &Tiger{}
+var _ resource.StatusSubResource = &TigerStatus{}
+
+func (t *Tiger) GetStatus() (statusSubResource resource.StatusSubResource) {
+	return t.Status
 }
 
-func (t *Tiger) GetStatus() (statusSubResource interface{}) {
-	return t.Status
+func (in TigerStatus) CopyTo(parent resource.ObjectWithStatusSubResource) {
+	parent.(*Tiger).Status = in
 }

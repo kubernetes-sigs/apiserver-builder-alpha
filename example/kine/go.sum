@@ -986,6 +986,8 @@ sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.9 h1:rusRLrDhjBp6aY
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.9/go.mod h1:dzAXnQbTRyDlZPJX2SUPEqvnB+j7AJjtlox7PEwigU0=
 sigs.k8s.io/apiserver-runtime v0.0.0-20200925141712-5fcfc91568ad h1:K++1BBgnBH4NGIV0OP09QgLij5KvF1WevuoltlBbQio=
 sigs.k8s.io/apiserver-runtime v0.0.0-20200925141712-5fcfc91568ad/go.mod h1:5ZzuVZKfRrHh9gY1a92lK44VCdKX05XPtDa3Q6xCd0A=
+sigs.k8s.io/apiserver-runtime v0.0.0-20201103144618-b52895ea8337 h1:O7qUE0IVnXp4owkOWDqXQGmAjUOfSex29FK0fwbAql0=
+sigs.k8s.io/apiserver-runtime v0.0.0-20201103144618-b52895ea8337/go.mod h1:3rGq//+hmiYjAge23vGPDHClAPKIUUgTn1HW58pVHiE=
 sigs.k8s.io/controller-runtime v0.6.0 h1:Fzna3DY7c4BIP6KwfSlrfnj20DJ+SeMBK8HSFvOk9NM=
 sigs.k8s.io/controller-runtime v0.6.0/go.mod h1:CpYf5pdNY/B352A1TFLAS2JVSlnGQ5O2cftPHndTroo=
 sigs.k8s.io/structured-merge-diff v0.0.0-20190525122527-15d366b2352e/go.mod h1:wWxsB5ozmmv/SG7nM11ayaAW51xMvak/t1r0CSlcokI=

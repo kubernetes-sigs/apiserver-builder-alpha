@@ -40,11 +40,7 @@ func main() {
 			mysqlDatabase,
 		)). // namespaced resource
 		SetDelegateAuthOptional().
-		WithOptionsFns(func(o *builder.ServerOptions) *builder.ServerOptions {
-			o.RecommendedOptions.Authorization = nil
-			o.RecommendedOptions.Admission = nil
-			return nil
-		}).
+		WithLocalDebugExtension().
 		Execute()
 	if err != nil {
 		klog.Fatal(err)
