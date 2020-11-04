@@ -17,7 +17,6 @@ limitations under the License.
 package run
 
 import (
-	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
@@ -70,7 +69,6 @@ func RunInCluster(cmd *cobra.Command, args []string) {
 	}
 
 	// Build the resource config
-	os.Remove(filepath.Join(build.ResourceConfigDir, "apiserver.yaml"))
 	build.RunBuildResourceConfig(cmd, args)
 
 	// Apply the new config
