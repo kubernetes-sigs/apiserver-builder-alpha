@@ -28,13 +28,18 @@ import (
 
 func main() {
 	err := builder.APIServer.
-		WithResource(&innsmouthv1.DeepOne{}).          // namespaced resource
-		WithResource(&kingsportv1.Festival{}).         // cluster-scoped resource
-		WithResource(&miskatonicv1beta1.Student{}).    // resource with arbitrary subresource and custom storage
+		WithResource(&innsmouthv1.DeepOne{}). // namespaced resource
+		WithResource(&kingsportv1.Festival{}). // cluster-scoped resource
+		WithResource(&miskatonicv1beta1.Student{}). // resource with arbitrary subresource and custom storage
 		WithResource(&miskatonicv1beta1.University{}). // resource with arbitrary subresource
-		WithResource(&olympusv1beta1.Poseidon{}).      // resource with custom storage indexers
+		WithResource(&olympusv1beta1.Poseidon{}). // resource with custom storage indexers
 		SetDelegateAuthOptional().
 		WithLocalDebugExtension().
+		WithOptionsFns(func(options *builder.ServerOptions) *builder.ServerOptions {
+			options.RecommendedOptions.CoreAPI = nil
+			options.RecommendedOptions.Admission = nil
+			return options
+		}).
 		Execute()
 
 	if err != nil {

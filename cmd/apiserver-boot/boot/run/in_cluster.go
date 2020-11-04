@@ -48,12 +48,14 @@ kubectl get <type>`,
 }
 
 var buildImage bool
+var pushImage bool
 
 func AddInCluster(cmd *cobra.Command) {
 	cmd.AddCommand(runInClusterCmd)
 
 	build.AddBuildResourceConfigFlags(runInClusterCmd)
-	runInClusterCmd.Flags().BoolVar(&buildImage, "build-image", true, "if true, build the container image and push it to the image repo.")
+	runInClusterCmd.Flags().BoolVar(&buildImage, "build-image", true, "if true, build the container image.")
+	runInClusterCmd.Flags().BoolVar(&buildImage, "push-image", true, "if true, push it to the image repo.")
 }
 
 func RunInCluster(cmd *cobra.Command, args []string) {
@@ -62,7 +64,9 @@ func RunInCluster(cmd *cobra.Command, args []string) {
 		build.RunBuildContainer(cmd, args)
 
 		// Push the image
-		util.DoCmd("docker", "push", build.Image)
+		if pushImage {
+			util.DoCmd("docker", "push", build.Image)
+		}
 	}
 
 	// Build the resource config
@@ -70,5 +74,5 @@ func RunInCluster(cmd *cobra.Command, args []string) {
 	build.RunBuildResourceConfig(cmd, args)
 
 	// Apply the new config
-	util.DoCmd("kubectl", "apply", "-f", filepath.Join(build.ResourceConfigDir, "apiserver.yaml"))
+	util.DoCmd("kubectl", "apply", "-f", filepath.Join(build.ResourceConfigDir))
 }

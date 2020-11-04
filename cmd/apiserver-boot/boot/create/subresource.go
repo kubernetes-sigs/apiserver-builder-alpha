@@ -50,6 +50,10 @@ func AddCreateSubresource(cmd *cobra.Command) {
 }
 
 func RunCreateSubresource(cmd *cobra.Command, args []string) {
+
+	// TODO: implement it
+	klog.Fatal("adding subresource is not yet supported")
+
 	if _, err := os.Stat("pkg"); err != nil {
 		klog.Fatalf("could not find 'pkg' directory.  must run apiserver-boot init before creating resources")
 	}

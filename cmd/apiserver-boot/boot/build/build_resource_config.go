@@ -152,7 +152,7 @@ func buildResourceConfig() {
 			CACert:    getBase64(filepath.Join(dir, "apiserver_ca.crt")),
 		})
 	if !created {
-		klog.Fatalf("Resource config already exists.")
+		klog.Warningf("Resource config already exists.")
 	}
 
 	// build apiserver yaml config
@@ -169,7 +169,7 @@ func buildResourceConfig() {
 			ClientCert:       getBase64(filepath.Join(dir, "apiserver.crt")),
 		})
 	if !created {
-		klog.Fatalf("Aggregated Apiserver config already exists.")
+		klog.Warningf("Aggregated Apiserver config already exists.")
 	}
 
 	// build controller yaml config
@@ -184,7 +184,7 @@ func buildResourceConfig() {
 			ServiceAccount:   ServiceAccount,
 		})
 	if !created {
-		klog.Fatalf("Controller-manager config already exists.")
+		klog.Warningf("Controller-manager config already exists.")
 	}
 
 	// build RBAC yaml config
@@ -197,7 +197,7 @@ func buildResourceConfig() {
 			Versions:  Versions,
 		})
 	if !created {
-		klog.Fatalf("RBAC config already exists.")
+		klog.Warningf("RBAC config already exists.")
 	}
 
 	// build etcd yaml config
@@ -208,7 +208,7 @@ func buildResourceConfig() {
 			StorageClass: StorageClass,
 		})
 	if !created {
-		klog.Fatalf("ETCD config already exists.")
+		klog.Warningf("ETCD config already exists.")
 	}
 }
 

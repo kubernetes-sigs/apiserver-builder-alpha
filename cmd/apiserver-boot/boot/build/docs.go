@@ -111,6 +111,7 @@ func RunCleanDocs(cmd *cobra.Command, args []string) {
 }
 
 func RunDocs(cmd *cobra.Command, args []string) {
+	klog.Fatal("Docs is not yet supported")
 	if len(server) == 0 && buildOpenapi {
 		klog.Fatal("Must specifiy --server or --build-openapi=false")
 	}
