@@ -251,10 +251,10 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "io_k8s_repo_infra",
-    sha256 = "5ee2a8e306af0aaf2844b5e2c79b5f3f53fc9ce3532233f0615b8d0265902b2a",
-    strip_prefix = "repo-infra-0.0.1-alpha.1",
+    sha256 = "5ff82744aad79b92b3963a26d779164d26b906aee0b177d66658be2c7a83617f",
+    strip_prefix = "repo-infra-0.1.2",
     urls = [
-        "https://github.com/kubernetes/repo-infra/archive/v0.0.1-alpha.1.tar.gz",
+        "https://github.com/kubernetes/repo-infra/archive/v0.1.2.tar.gz",
     ],
 )
 

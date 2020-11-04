@@ -27,9 +27,9 @@ import (
 	"k8s.io/klog"
 )
 
-var goos string = "linux"
-var goarch string = "amd64"
-var outputdir string = "bin"
+var goos = "linux"
+var goarch = "amd64"
+var outputdir = "bin"
 var Bazel bool
 var Gazelle bool
 var buildTargets []string
@@ -86,6 +86,28 @@ func BazelBuild(cmd *cobra.Command, args []string) {
 	initApis()
 
 	if Gazelle {
+		if _, err := os.Stat("go.mod"); err == nil { // go mod exists
+			// bazel - gomod integration
+			c := exec.Command("bazel",
+				"run",
+				"//:gazelle",
+				"--",
+				"update-repos",
+				"--from_file=go.mod",
+				"--to_macro=repos.bzl%go_repositories",
+				"--build_file_generation=on",
+				"--build_file_proto_mode=disable",
+				"--prune",
+			)
+			klog.Infof("%s", strings.Join(c.Args, " "))
+			c.Stderr = os.Stderr
+			c.Stdout = os.Stdout
+			err := c.Run()
+			if err != nil {
+				klog.Fatal(err)
+			}
+		}
+
 		c := exec.Command("bazel", "run", "//:gazelle")
 		klog.Infof("%s", strings.Join(c.Args, " "))
 
@@ -102,7 +124,7 @@ func BazelBuild(cmd *cobra.Command, args []string) {
 		targetDirs = append(targetDirs, filepath.Join("cmd", "apiserver"))
 	}
 	if buildController() {
-		targetDirs = append(targetDirs, filepath.Join("cmd", "controller-manager"))
+		targetDirs = append(targetDirs, filepath.Join("cmd", "manager"))
 	}
 	c := exec.Command("bazel", append([]string{"build"}, targetDirs...)...)
 	klog.Infof("%s", strings.Join(c.Args, " "))
@@ -118,7 +140,7 @@ func BazelBuild(cmd *cobra.Command, args []string) {
 
 	if buildApiserver() {
 		c := exec.Command("cp",
-			filepath.Join("bazel-bin", "cmd", "apiserver", "apiserver"),
+			filepath.Join("bazel-bin", "cmd", "apiserver", "apiserver_", "apiserver"),
 			filepath.Join("bin", "apiserver"))
 		klog.Infof("%s", strings.Join(c.Args, " "))
 		c.Stderr = os.Stderr
@@ -131,8 +153,8 @@ func BazelBuild(cmd *cobra.Command, args []string) {
 
 	if buildController() {
 		c := exec.Command("cp",
-			filepath.Join("bazel-bin", "cmd", "controller-manager", "controller-manager"),
-			filepath.Join("bin", "controller-manager"))
+			filepath.Join("bazel-bin", "cmd", "manager", "manager_", "manager"),
+			filepath.Join("bin", "manager"))
 		klog.Infof("%s", strings.Join(c.Args, " "))
 		c.Stderr = os.Stderr
 		c.Stdout = os.Stdout
