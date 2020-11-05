@@ -40,7 +40,7 @@ This will perform the following:
   - under config/certificates
 - locate each API group/version based on the directory structure
 - create config for the APIServices, Deployment, Service, and Secret
-  - in config/apiserver.yaml
+  - in config/*.yaml
 
 **Note:** This relies on the container have the binaries `apiserver` and `controller-manager`
 present and runnable from "./".  You may need to manually edit the config if your
@@ -52,7 +52,7 @@ You can also provide optional flags:
 
 ### Run the apiserver
 
-`kubectl apply -f config/apiserver.yaml`
+`kubectl apply -f config/`
 
 Clear the discovery cache:
 

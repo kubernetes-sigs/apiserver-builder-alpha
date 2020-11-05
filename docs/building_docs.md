@@ -1,4 +1,4 @@
-# Creating reference documentation
+# (DEPRECATED) Creating reference documentation
 
 This document describes how to build reference documentation for
 a Kubernetes apiserver.

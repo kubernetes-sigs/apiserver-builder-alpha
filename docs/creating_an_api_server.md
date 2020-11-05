@@ -2,34 +2,45 @@
 
 **Note:** This document explains how to manually create the files generated
 by `apiserver-boot`.  It is recommended to automatically create these files
-instead.  See [getting started](https://sigs.k8s.io/apiserver-builder-alpha/blob/master/docs/getting_started.md)
-for more details.
+instead.
 
 ## Create the apiserver command
 
-Create a file called `main.go` at the root of your project.  This
+Create a file called `main.go` under `cmd/apiserver` in your project. This
 file bootstraps the apiserver by invoking the apiserver start function
 with the generated API code.
 
-*Location:* `GOPATH/src/YOUR/GO/PACKAGE/main.go`
-
 ```go
+
 package main
 
 import (
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/cmd/server"
-	_ "k8s.io/client-go/plugin/pkg/client/auth" // Enable cloud provider auth
+	"k8s.io/klog"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder"
 
-	"YOUR/GO/PACKAGE/pkg/apis" // Change this
-	"YOUR/GO/PACKAGE/pkg/openapi" // Change this
+	// +kubebuilder:scaffold:resource-imports
+	storagev1 "example.io/kimmin/pkg/apis/storage/v1"
 )
 
 const storagePath = "/registry/YOUR.DOMAIN" // Change this
 
 func main() {
-	server.StartApiServer(storagePath, apis.GetAllApiBuilders(), openapi.GetOpenAPIDefinitions)
+	err := builder.APIServer.
+		// +kubebuilder:scaffold:resource-register
+		WithResource(&storagev1.VolumeClaim{}).
+		SetDelegateAuthOptional().
+		WithLocalDebugExtension().
+		WithOptionsFns(func(options *builder.ServerOptions) *builder.ServerOptions {
+			options.RecommendedOptions.CoreAPI = nil
+			options.RecommendedOptions.Admission = nil
+			options.RecommendedOptions.Authorization = nil
+			return options
+		}).
+		Execute()
+	if err != nil {
+		klog.Fatal(err)
+	}
 }
-
 ```
 
 ## Create the API root package
