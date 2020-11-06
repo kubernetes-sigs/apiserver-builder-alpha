@@ -11,6 +11,8 @@ The resource name will be the pluralized lowercased kind.
 
 `apiserver-boot create group version resource --group <group> --version <version> --kind <Kind>`
 
+Add `--with-status-subresource=false` option, if your resource is stateless.
+
 ## Anatomy of a resource
 
 A resource has a go struct which defines the *Kind* schema, and is
@@ -20,10 +22,12 @@ wire the storage and REST endpoints.
 Example:
 
 ```go
+var _ resource.Object = &Foo{}
+var _ resourcestrategy.Validater = &Foo{}
+
 // +genclient=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// +resource:path=foos
 // +k8s:openapi-gen=true
 // Foo defines some thing
 type Foo struct {
@@ -43,6 +47,9 @@ type FooSpec struct {
 	SomeSpecField int `json:"some_spec_field,omitempty"`
 }
 
+var _ resource.ObjectWithStatusSubResource = &Foo{}
+var _ resource.StatusSubResource = &FooStatus{}
+
 // FooStatus records the observed state of Foo
 type FooStatus struct {
 	// some_status_field records some observed state about Foo
@@ -53,25 +60,18 @@ type FooStatus struct {
 ### Breakdown of example
 
 ```go
-// +resource:path=foos
+var _ resource.Object = &Foo{}
 ```
 
-This tells the code generator to generate the REST
-storage endpoints for this resource.
+This line ensures the resource implements `resource.Object` from apiserver-runtime
+so that it can be served in the apiserver.
 
 ```go
-// +k8s:openapi-gen=true
+var _ resourcestrategy.Validater = &Foo{}
 ```
 
-This tells the code generator to include this
-resource in the openapi spec published by the apiserver
-
-```go
-// Foo defines some thing
-```
-
-This will appear in the openapi spec and the
-generated reference docs as the description of the resource.
+This tells the apiserver-runtime the resource has a custom validation function
+which is called before we writing the resource into storage.
 
 ```go
 type Foo struct {...}
@@ -120,118 +120,15 @@ type FooStatus struct {
 These structures define the schema for the desired and observed
 state.
 
+```go
+var _ resource.ObjectWithStatusSubResource = &Foo{}
+var _ resource.StatusSubResource = &FooStatus{}
+```
+
+These lines ensure that the resource its status subresource, and defines the
+behaviod of the status subresource.
+
 ## Controller
 
-By default, a controller for your resource will also be created under
-`pkg/controller/<kind>/controller.go`.  This will listen for creates
-or updates to your resource and execute code in response.  You can modify
-the code to also listen for changes to other resource types that your
-kind manages.
-
-```go
-// +controller:group=bar,version=v1beta1,kind=Foo,resource=foos
-type FooControllerImpl struct {
-	// informer listens for events about Foos
-	informer cache.SharedIndexInformer
-
-	// lister indexes properties about Foos
-	ulister listers.FooLister
-}
-
-// Init initializes the controller and is called by the generated code
-// config - client configuration for talking to the apiserver
-// si - informer factory shared across all controllers for listening to events and indexing resource properties
-// queue - message queue for handling new events.  unique to this controller.
-func (c *FooControllerImpl) Init(
-	config *rest.Config,
-	si *sharedinformers.SharedInformers,
-	queue workqueue.RateLimitingInterface) {
-
-	// Get the informer and lister for subscribing to foo events and querying foos from
-	// the lister cache
-	i := si.Factory.Bar().V1beta1().Foo()
-	c.informer = i.Informer()
-	c.lister = i.Lister()
-
-	// Add an event handler to enqueue a message for foo adds / updates
-	c.informer.AddEventHandler(&controller.QueueingEventHandler{queue})
-}
-
-// Reconcile handles enqueued messages
-func (c *UniversityControllerImpl) Reconcile(u *v1beta1.Foo) error {
-    // Put your event handling code here
-	fmt.Printf("Running reconcile Foo for %s\n", u.Name)
-	return nil
-}
-
-func (c *FooControllerImpl) Get(namespace, name string) (*v1beta1.Foo, error) {
-	return c.lister.Foos(namespace).Get(name)
-}
-```
-
-### Breakdown of example
-
-```go
-// +controller:group=bar,version=v1beta1,kind=Foo,resource=foos
-type FooControllerImpl struct {
-	// informer listens for events about Foos
-	informer cache.SharedIndexInformer
-
-	// lister indexes properties about Foos
-	ulister listers.FooLister
-}
-```
-
-This declares a new controller that responds to events on Foo resources
-
-```go
-// Init initializes the controller and is called by the generated code
-// config - client configuration for talking to the apiserver
-// si - informer factory shared across all controllers for listening to events and indexing resource properties
-// queue - message queue for handling new events.  unique to this controller.
-func (c *FooControllerImpl) Init(
-	config *rest.Config,
-	si *sharedinformers.SharedInformers,
-	queue workqueue.RateLimitingInterface) {
-
-	// Get the informer and lister for subscribing to foo events and querying foos from
-	// the lister cache
-	i := si.Factory.Bar().V1beta1().Foo()
-	c.informer = i.Informer()
-	c.lister = i.Lister()
-
-	// Add an event handler to enqueue a message for foo adds / updates
-	c.informer.AddEventHandler(&controller.QueueingEventHandler{queue})
-}
-```
-
-This registers a new EventHandler for Add and Update events to Foo resources
-and queues messages in response.
-
-```go
-// Reconcile handles enqueued messages
-func (c *UniversityControllerImpl) Reconcile(u *v1beta1.Foo) error {
-    // Put your event handling code here
-	fmt.Printf("Running reconcile Foo for %s\n", u.Name)
-	return nil
-}
-```
-
-This function is called when messages are dequeued.  It should read the
-actual state and reconcile it with the desired state.
-
-```go
-func (c *FooControllerImpl) Get(namespace, name string) (*v1beta1.Foo, error) {
-	return c.lister.Foos(namespace).Get(name)
-}
-```
-
-This function looks up a Foo object for a namespace + name.  It is executed
-just before the Reconcile method to lookup the Foo object.
-
-## Generating the wiring
-
-To generate the REST endpoint and storage wiring for your resource,
-run `apiserver-boot build generated` from the go package root directory.
-
-This will also generate go client code to read and write your resources under `pkg/client`.
+The controller reuses the kubebuilder's scaffolding, read [this doc](https://book.kubebuilder.io/cronjob-tutorial/controller-overview.html)
+for more detailed information.

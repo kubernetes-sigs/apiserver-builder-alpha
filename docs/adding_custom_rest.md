@@ -1,17 +1,14 @@
 # Adding resources
 
 **Important:** Read [this doc](https://sigs.k8s.io/apiserver-builder-alpha/docs/adding_resources.md)
-first to understand how resources are added
+first to understand how resources are added.
 
 ## Create a resource with custom rest
 
 You can implement your own REST implementation instead of using the
-standard storage by providing the `rest=KindREST` parameter
-and providing a `newKindREST(generic.RESTOptionsGetter) rest.Storage {}` function to return the
-storage.
-
-For more information on custom REST implementations, see the
-[subresources doc](https://sigs.k8s.io/apiserver-builder-alpha/docs/adding_subresources.md)
+standard storage by any one of `Getter`, `Lister`, `Creator`, `Updater`
+from `sigs.k8s.io/apiserver-runtime/pkg/builder/resource/resourcerest`
+package.
 
 ```go
 // +genclient=true
@@ -24,15 +21,12 @@ type Foo struct {
     // Your resource definition here
 }
 
-// Initialize custom REST storage
-func NewFooREST(restOptionsGetter generic.RESTOptionsGetter) rest.Storage {
-    // Initialize fields of custom REST implementation
-}
+// Foo resource supports "get", "create", "update" verbs. Hence you can't invoke 
+// "list" upon Foo resource.
+var _ resourcerest.Getter = &Foo{}
+var _ resourcerest.Creator = &Foo{}
+var _ resourcerest.Updater = &Foo{}
 
 // Your rest.Storage implementation below
 // ...
 ```
-
-**Warning:** NewFooREST() should not contain any non-trivial logic, besides
-simply initializing the fields of the struct, that represents the custom REST.
-See [this issue](https://sigs.k8s.io/apiserver-builder-alpha/issues/92) for details.

@@ -1,4 +1,4 @@
-# Running an apiserver and controller-manager in-cluster
+# (DEPRECATED) Running an apiserver and controller-manager in-cluster
 
 This document describes how to run an apiserver and controller-manager
 in locally but using API aggregation with a local minikube cluster.

@@ -1,43 +1,37 @@
 # Adding a value defaulting to a resources schema
 
-To add server side field value defaulting for your resource override
-the function `func SetDefaults_<Kind>(obj <Kind>)`
-in the group package. And the defaulter-gen will do all the rest for you.
-
-**Important:** The validation logic lives in the unversioned package *not* the group package.
+To add server side field value defaulting for your resource implement 
+the interface `var _ resourcestrategy.Defaulter = &<Kind>{}`
+in the type definition file. Specifically the defaulter interface lies
+in the package `sigs.k8s.io/apiserver-runtime/pkg/builder/resource/resourcestrategy`.
 
 Example:
 
-File: `pkg/apis/<group>/<version>/defaults.go`
+File: `pkg/apis/<group>/<version>/<kind>_types.go`
 
 ```go
-func SetDefaults_<Kind>(o <Kind>) {
-	obj := o.(*<Kind>)
-	if obj.Spec.Field == nil {
+var _ resourcestrategy.Defaulter = &Foo{}
+
+func (in *Foo) Default() {
+	if in.Spec.Field == nil {
 		f := "value"
-		obj.Spec.Field = &f
+		in.Spec.Field = &f
 	}
 }
 ```
 
 ## Anatomy of defaulting
 
-You're supposed to create your own "defaults.go" and do the coding. To specify custom defaulting logic,
-override the embedded implementation.
-
-Cast the object type to your resource Kind
-
-```go
-bar := obj.(*Bar)
-```
+By default, the apiserver-boot won't generate defaulter related codes for 
+you. You're supposed to manually add the interface assertion and implementation.
 
 ---
 
 Update set values for fields with nil values.
 
 ```go
-	if obj.Spec.Field == nil {
+	if in.Spec.Field == nil {
 		f := "value"
-		obj.Spec.Field = &f
+		in.Spec.Field = &f
 	}
 ```
