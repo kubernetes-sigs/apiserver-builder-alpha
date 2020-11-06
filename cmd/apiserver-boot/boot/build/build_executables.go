@@ -32,7 +32,7 @@ var goarch = "amd64"
 var outputdir = "bin"
 var Bazel bool
 var Gazelle bool
-var buildTargets []string
+var BuildTargets []string
 
 const (
 	apiserverTarget  = "apiserver"
@@ -69,12 +69,13 @@ func AddBuildExecutables(cmd *cobra.Command) {
 	createBuildExecutablesCmd.Flags().StringVar(&outputdir, "output", "bin", "if set, write the binaries to this directory")
 	createBuildExecutablesCmd.Flags().BoolVar(&Bazel, "bazel", false, "if true, use bazel to build.  May require updating build rules with gazelle.")
 	createBuildExecutablesCmd.Flags().BoolVar(&Gazelle, "gazelle", false, "if true, run gazelle before running bazel.")
-	createBuildExecutablesCmd.Flags().StringArrayVar(&buildTargets, "targets", []string{apiserverTarget, controllerTarget}, "The target binaries to build")
-
-	createBuildExecutablesCmd.Flags().MarkDeprecated("gen-unversioned-client", "using internal clients in external systems is strongly not recommended")
+	createBuildExecutablesCmd.Flags().StringArrayVar(&BuildTargets, "targets", []string{apiserverTarget, controllerTarget}, "The target binaries to build")
 }
 
 func RunBuildExecutables(cmd *cobra.Command, args []string) {
+	if err := cmd.Flags().Parse(args); err != nil {
+		klog.Fatal(err)
+	}
 	if Bazel {
 		BazelBuild(cmd, args)
 	} else {
@@ -220,7 +221,7 @@ func GoBuild(cmd *cobra.Command, args []string) {
 }
 
 func buildApiserver() bool {
-	for _, t := range buildTargets {
+	for _, t := range BuildTargets {
 		if t == apiserverTarget {
 			return true
 		}
@@ -229,7 +230,7 @@ func buildApiserver() bool {
 }
 
 func buildController() bool {
-	for _, t := range buildTargets {
+	for _, t := range BuildTargets {
 		if t == controllerTarget {
 			return true
 		}

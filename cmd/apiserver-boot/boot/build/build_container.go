@@ -49,7 +49,7 @@ func AddBuildContainer(cmd *cobra.Command) {
 
 func AddBuildContainerFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&Image, "image", "", "name of the image with tag")
-	cmd.Flags().StringArrayVar(&buildTargets, "targets", []string{apiserverTarget, controllerTarget}, "The target binaries to build")
+	cmd.Flags().StringArrayVar(&BuildTargets, "targets", []string{apiserverTarget, controllerTarget}, "The target binaries to build")
 }
 
 func RunBuildContainer(cmd *cobra.Command, args []string) {

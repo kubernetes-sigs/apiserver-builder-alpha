@@ -34,8 +34,8 @@ import (
 
 var localCmd = &cobra.Command{
 	Use:   "local",
-	Short: "run the etcd, apiserver and controller-manager",
-	Long:  `run the etcd, apiserver and controller-manager`,
+	Short: "run the etcd, apiserver and controller",
+	Long:  `run the etcd, apiserver and controller`,
 	Example: `# Regenerate code and build binaries.  Then run them locally.
 apiserver-boot run local
 
@@ -67,7 +67,7 @@ var certDir string
 var securePort int32
 
 func AddLocal(cmd *cobra.Command) {
-	localCmd.Flags().StringSliceVar(&toRun, "run", []string{"etcd", "apiserver", "controller-manager"}, "path to apiserver binary to run")
+	localCmd.Flags().StringSliceVar(&toRun, "run", []string{"etcd", "apiserver", "controller"}, "path to apiserver binary to run")
 	localCmd.Flags().BoolVar(&disableMTLS, "disable-mtls", true,
 		`If true, disable mTLS serving in the apiserver with --standalone-debug-mode. `+
 			`This optional requries the apiserver to build with "WithLocalDebugExtension" from apiserver-runtime.`)
@@ -91,6 +91,7 @@ func AddLocal(cmd *cobra.Command) {
 
 func RunLocal(cmd *cobra.Command, args []string) {
 	if buildBin {
+		build.BuildTargets = toRun
 		build.RunBuildExecutables(cmd, args)
 	}
 
@@ -119,7 +120,7 @@ func RunLocal(cmd *cobra.Command, args []string) {
 	}
 
 	// Start controller manager
-	if _, f := r["controller-manager"]; f {
+	if _, f := r["controller"]; f {
 		RunControllerManager(ctx, cancel)
 	}
 
@@ -266,5 +267,7 @@ users:
 {{- if not .DisabltMTLS }}
     client-certificate: {{ .Path }}/apiserver.crt
     client-key: {{ .Path }}/apiserver.key
+{{- else }}
+    username: apiserver
 {{- end }}
 `
