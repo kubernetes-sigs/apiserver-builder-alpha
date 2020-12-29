@@ -200,9 +200,9 @@ func runCommon(cmd *exec.Cmd, ctx context.Context, cancel context.CancelFunc) {
 	go func() {
 		err := cmd.Run()
 		if err != nil {
-			klog.Infof("Failed to run %s, error: %v", cmdName, err)
+			klog.InfoS("Failed to run", cmdName , ", error",  err)
 		} else {
-			klog.Infof("Command %s quitted normally", cmdName)
+			klog.InfoS("Command", cmdName,"quitted normally")
 		}
 		stopCh <- err
 	}()
@@ -220,7 +220,7 @@ func runCommon(cmd *exec.Cmd, ctx context.Context, cancel context.CancelFunc) {
 }
 
 func WriteKubeConfig() {
-	klog.Infof("Writing kubeconfig to %s", config)
+	klog.InfoS("Writing kubeconfig to", config)
 	// Write a kubeconfig
 	dir, err := os.Getwd()
 	if err != nil {

@@ -129,7 +129,7 @@ func (in *University) IsStorageVersion() bool {
 }
 
 func (in *University) Default() {
-	klog.Infof("Defaulting University %s", in.Name)
+	klog.InfoS("Defaulting University", in.Name)
 	if in.Spec.MaxStudents == nil {
 		n := 15
 		in.Spec.MaxStudents = &n
@@ -137,7 +137,7 @@ func (in *University) Default() {
 }
 
 func (in *University) Validate(ctx context.Context) field.ErrorList {
-	klog.Infof("Validating University %s\n", in.Name)
+	klog.InfoS("Validating University", in.Name)
 	errors := field.ErrorList{}
 	if in.Spec.MaxStudents == nil || *in.Spec.MaxStudents < 1 || *in.Spec.MaxStudents > 150 {
 		errors = append(errors, field.Invalid(

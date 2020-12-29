@@ -61,7 +61,7 @@ func RunBuildContainer(cmd *cobra.Command, args []string) {
 	if err != nil {
 		klog.Fatalf("failed to create temp directory %s %v", dir, err)
 	}
-	klog.Infof("Will build docker Image from directory %s", dir)
+	klog.InfoS("Will build docker Image from directory", dir ,".")
 
 	klog.Infof("Writing the Dockerfile.")
 
@@ -79,7 +79,7 @@ func RunBuildContainer(cmd *cobra.Command, args []string) {
 	outputdir = dir
 	RunBuildExecutables(cmd, args)
 
-	klog.Infof("Building the docker Image using %s.", path)
+	klog.InfoS("Building the docker Image using", path ,".")
 
 	util.DoCmd("docker", "build", "-t", Image, dir)
 }
