@@ -59,11 +59,11 @@ func RunBuildContainer(cmd *cobra.Command, args []string) {
 
 	dir, err := ioutil.TempDir(os.TempDir(), "apiserver-boot-build-container")
 	if err != nil {
-		klog.Fatalf("failed to create temp directory %s %v", dir, err)
+		klog.ErrorS(err,"failed to create temp directory", "directory", dir)
 	}
-	klog.Infof("Will build docker Image from directory %s", dir)
+	klog.InfoS("Will build docker Image from directory", "directory", dir)
 
-	klog.Infof("Writing the Dockerfile.")
+	klog.InfoS("Writing the Dockerfile.")
 
 	path := filepath.Join(dir, "Dockerfile")
 	util.WriteIfNotFound(path, "dockerfile-template", dockerfileTemplate, dockerfileTemplateArguments{
@@ -71,7 +71,7 @@ func RunBuildContainer(cmd *cobra.Command, args []string) {
 		BuildController: buildController(),
 	})
 
-	klog.Infof("Building binaries for linux amd64.")
+	klog.InfoS("Building binaries for linux amd64.")
 
 	// Set the goos and goarch
 	goos = "linux"
@@ -79,7 +79,7 @@ func RunBuildContainer(cmd *cobra.Command, args []string) {
 	outputdir = dir
 	RunBuildExecutables(cmd, args)
 
-	klog.Infof("Building the docker Image using %s.", path)
+	klog.InfoS("Building the docker Image using.", "path", path)
 
 	util.DoCmd("docker", "build", "-t", Image, dir)
 }

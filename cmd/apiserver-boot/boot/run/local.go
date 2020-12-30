@@ -124,7 +124,7 @@ func RunLocal(cmd *cobra.Command, args []string) {
 		RunControllerManager(ctx, cancel)
 	}
 
-	klog.Infof("to test the server run `kubectl --kubeconfig %s api-versions`", config)
+	klog.InfoS("to test the server run `kubectl --kubeconfig [config] api-versions`", "config", config)
 	<-ctx.Done() // wait forever
 }
 
@@ -200,9 +200,9 @@ func runCommon(cmd *exec.Cmd, ctx context.Context, cancel context.CancelFunc) {
 	go func() {
 		err := cmd.Run()
 		if err != nil {
-			klog.Infof("Failed to run %s, error: %v", cmdName, err)
+			klog.InfoS("Failed to run", "cmdName", cmdName, "error", err)
 		} else {
-			klog.Infof("Command %s quitted normally", cmdName)
+			klog.InfoS("Command quitted normally", "cmdName", cmdName)
 		}
 		stopCh <- err
 	}()
@@ -220,11 +220,11 @@ func runCommon(cmd *exec.Cmd, ctx context.Context, cancel context.CancelFunc) {
 }
 
 func WriteKubeConfig() {
-	klog.Infof("Writing kubeconfig to %s", config)
+	klog.InfoS("Writing kubeconfig", "config", config)
 	// Write a kubeconfig
 	dir, err := os.Getwd()
 	if err != nil {
-		klog.Fatalf("Cannot get working directory %v", err)
+		klog.ErrorS(err, "Cannot get working directory")
 		os.Exit(-1)
 	}
 	path := filepath.Join(dir, certDir)
