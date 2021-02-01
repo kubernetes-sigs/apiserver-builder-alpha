@@ -64,7 +64,7 @@ func RunBuildContainer(cmd *cobra.Command, args []string) {
 	}
 	klog.InfoS("Will build docker Image from directory", "directory", dir)
 
-	klog.Infof("Writing the Dockerfile.")
+	klog.InfoS("Writing the Dockerfile.")
 
 	path := filepath.Join(dir, "Dockerfile")
 	util.WriteIfNotFound(path, "dockerfile-template", dockerfileTemplate, dockerfileTemplateArguments{
