@@ -185,7 +185,7 @@ func createCerts() {
 			"-subj", fmt.Sprintf("/C=un/ST=st/L=l/O=o/OU=ou/CN=%s-certificate-authority", Name),
 		)
 	} else {
-		klog.Infof("Skipping generate CA cert.  File already exists.")
+		klog.InfoS("Skipping generate CA cert.  File already exists.")
 	}
 
 	if _, err := os.Stat(filepath.Join(dir, "apiserver.csr")); os.IsNotExist(err) {
