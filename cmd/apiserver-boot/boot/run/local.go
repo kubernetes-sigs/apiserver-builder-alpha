@@ -28,6 +28,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/build"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 )
@@ -35,8 +36,12 @@ import (
 var localCmd = &cobra.Command{
 	Use:   "local",
 	Short: "run the etcd, apiserver and controller",
-	Long:  `run the etcd, apiserver and controller`,
-	Example: `# Regenerate code and build binaries.  Then run them locally.
+	Long: `run the etcd, apiserver and controller, Note that the aggregated apiserver in the local mode 
+will not be attempting to delegate any requests to an acutal kube-apiserver, hence neither authentication 
+nor authorization will be performed.`,
+	Example: `
+# Regenerate code and build binaries then run them. 
+
 apiserver-boot run local
 
 # Check the api versions of the locally running server
@@ -106,25 +111,42 @@ func RunLocal(cmd *cobra.Command, args []string) {
 		r[s] = nil
 	}
 
+	startedCommands := map[string]*exec.Cmd{}
+	defer func() {
+		klog.Info("Cleaning up processes")
+		for _, cmd := range startedCommands {
+			WaitUntilCommandCompleted(cmd)
+		}
+	}()
 	// Start etcd
 	if _, f := r["etcd"]; f {
 		etcd = "http://localhost:2379"
-		RunEtcd(ctx, cancel)
+		startedCommands["etcd"] = RunEtcd(ctx, cancel)
 		time.Sleep(time.Second * 2)
 	}
 
 	// Start apiserver
 	if _, f := r["apiserver"]; f {
-		RunApiserver(ctx, cancel)
+		startedCommands["apiserver"] = RunApiserver(ctx, cancel)
 		time.Sleep(time.Second * 2)
+		klog.Info("Aggregated apiserver successfully started")
 	}
 
 	// Start controller manager
 	if _, f := r["controller"]; f {
-		RunControllerManager(ctx, cancel)
+		startedCommands["controller"] = RunControllerManager(ctx, cancel)
+		klog.Info("Controller manager successfully started")
 	}
 
-	klog.Infof("to test the server run `kubectl --kubeconfig %s api-versions`", config)
+	klog.Infof(`
+==================================================
+| Now you're all set!
+| To test the server, try the following commands:
+|
+| >> "kubectl --kubeconfig %s api-versions" or "KUBECONFIG=%s kubectl api-resources"
+|
+==================================================`,
+		config, config)
 	<-ctx.Done() // wait forever
 }
 
@@ -148,6 +170,7 @@ func RunApiserver(ctx context.Context, cancel context.CancelFunc) *exec.Cmd {
 	flags := []string{
 		fmt.Sprintf("--etcd-servers=%s", etcd),
 		fmt.Sprintf("--secure-port=%v", securePort),
+		fmt.Sprintf("--feature-gates=APIPriorityAndFairness=false"), // TODO: remove this line after https://github.com/kubernetes/kubernetes/pull/97957 merged
 	}
 
 	if disableMTLS {
@@ -196,7 +219,7 @@ func runCommon(cmd *exec.Cmd, ctx context.Context, cancel context.CancelFunc) {
 	stopCh := make(chan error)
 	cmdName := cmd.Args[0]
 
-	klog.Infof("%s", strings.Join(cmd.Args, " "))
+	klog.Infof("Starting local component: %s", strings.Join(cmd.Args, " "))
 	go func() {
 		err := cmd.Run()
 		if err != nil {
@@ -234,6 +257,18 @@ func WriteKubeConfig() {
 			Path:        path,
 			Port:        fmt.Sprintf("%v", securePort),
 		})
+}
+
+func WaitUntilCommandCompleted(cmd *exec.Cmd) {
+	cmdName := cmd.Args[0]
+	wait.PollImmediate(time.Millisecond*100, time.Second, func() (bool, error) {
+		if cmd.ProcessState != nil {
+			klog.Infof("Waiting for process of %s (pid=%v) to be completed", cmdName, cmd.ProcessState.Pid())
+			return cmd.ProcessState.Exited(), nil
+		}
+		return true, nil
+	})
+	klog.Infof("Completed %s", cmdName)
 }
 
 type ConfigArgs struct {
