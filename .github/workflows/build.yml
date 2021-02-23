@@ -12,7 +12,7 @@ jobs:
     name: Bazel Build
     steps:
       - name: Set up Golang
-        uses: actions/setup-go@v2.0.3
+        uses: actions/setup-go@v2.1.3
         with:
           go-version: 1.15
       - uses: actions/checkout@v2.3.1
@@ -36,7 +36,7 @@ jobs:
     name: Testing New Projects
     steps:
       - name: Set up Golang
-        uses: actions/setup-go@v2.0.3
+        uses: actions/setup-go@v2.1.3
         with:
           go-version: 1.15
       - uses: actions/checkout@v2.3.1
@@ -64,7 +64,7 @@ jobs:
     name: Testing Basic Example
     steps:
       - name: Set up Golang
-        uses: actions/setup-go@v2.0.3
+        uses: actions/setup-go@v2.1.3
         with:
           go-version: 1.15
       - run: |
@@ -87,7 +87,7 @@ jobs:
     name: Testing Basic Example Container Build
     steps:
       - name: Set up Golang
-        uses: actions/setup-go@v2.0.3
+        uses: actions/setup-go@v2.1.3
         with:
           go-version: 1.15
       - uses: actions/checkout@v2.3.1
@@ -144,7 +144,7 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
     steps:
       - name: Set up Golang
-        uses: actions/setup-go@v2.0.3
+        uses: actions/setup-go@v2.1.3
         with:
           go-version: 1.15
       - uses: actions/checkout@v2.3.1
