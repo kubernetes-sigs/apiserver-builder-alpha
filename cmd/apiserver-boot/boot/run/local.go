@@ -17,6 +17,7 @@ limitations under the License.
 package run
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"k8s.io/klog"
@@ -167,6 +168,19 @@ func RunApiserver(ctx context.Context, cancel context.CancelFunc) *exec.Cmd {
 		server = "bin/apiserver"
 	}
 
+	// checking if apiserver supports local running
+	apiserverTestLocalCmd := exec.Command(server, "-h")
+	buf := &bytes.Buffer{}
+	apiserverTestLocalCmd.Stderr = buf
+	runCommon(apiserverTestLocalCmd, ctx, cancel)
+	if !strings.Contains(string(buf.Bytes()), "--standalone-debug-mode") {
+		klog.Fatalf(`
+The apiserver binary doesn't seem to support --standalone-debug-mode, 
+did you have WithLocalDebugExtension() in your apiserver? (if you're using kuberentes-sigs/apiserver-runtime')`)
+	}
+	klog.Info("The apiserver binary seems to support local-running, proceeding..")
+
+	// starting apiserver process
 	flags := []string{
 		fmt.Sprintf("--etcd-servers=%s", etcd),
 		fmt.Sprintf("--secure-port=%v", securePort),
