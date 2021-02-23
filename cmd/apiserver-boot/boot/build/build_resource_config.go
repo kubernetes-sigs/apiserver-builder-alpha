@@ -46,9 +46,6 @@ var ImagePullSecrets []string
 var ServiceAccount string
 var StorageClass string
 
-var LocalMinikube bool
-var LocalIp string
-
 var buildResourceConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Create kubernetes resource config files to launch the apiserver.",
@@ -85,9 +82,6 @@ func AddBuildResourceConfigFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&Image, "image", "", "name of the apiserver Image with tag")
 	cmd.Flags().StringVar(&ResourceConfigDir, "output", "config", "directory to output resourceconfig")
 	cmd.Flags().StringVar(&StorageClass, "storage-class", "standard", "storageclass of which etcd is using to store data")
-
-	cmd.Flags().BoolVar(&LocalMinikube, "local-minikube", false, "if true, generate config to run locally but aggregate through minikube.")
-	cmd.Flags().StringVar(&LocalIp, "local-ip", "10.0.2.2", "if using --local-minikube, this is the ip address minikube will look for the aggregated server at.")
 }
 
 func RunBuildResourceConfig(cmd *cobra.Command, args []string) {
@@ -97,7 +91,7 @@ func RunBuildResourceConfig(cmd *cobra.Command, args []string) {
 	if len(Namespace) == 0 {
 		klog.Fatalf("must specify --namespace")
 	}
-	if len(Image) == 0 && !LocalMinikube {
+	if len(Image) == 0 {
 		klog.Fatalf("Must specify --image")
 	}
 	util.GetDomain()
