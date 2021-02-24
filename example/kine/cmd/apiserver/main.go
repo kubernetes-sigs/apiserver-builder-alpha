@@ -39,7 +39,6 @@ func main() {
 			mysqlPasswd,
 			mysqlDatabase,
 		)). // namespaced resource
-		SetDelegateAuthOptional().
 		WithLocalDebugExtension().
 		Execute()
 	if err != nil {

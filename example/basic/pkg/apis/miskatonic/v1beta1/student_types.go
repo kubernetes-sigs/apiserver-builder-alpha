@@ -110,6 +110,10 @@ func (in *Student) GetStatus() resource.StatusSubResource {
 	return in.Status
 }
 
+func (in StudentStatus) SubResourceName() string {
+	return "status"
+}
+
 var _ resource.StatusSubResource = &StudentStatus{}
 
 func (in StudentStatus) CopyTo(parent resource.ObjectWithStatusSubResource) {

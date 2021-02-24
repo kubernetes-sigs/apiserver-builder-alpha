@@ -17,10 +17,11 @@ limitations under the License.
 package init_repo
 
 import (
-	"github.com/spf13/cobra"
-	"k8s.io/klog"
 	"os"
 	"path/filepath"
+
+	"github.com/spf13/cobra"
+	"k8s.io/klog"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 	"sigs.k8s.io/kubebuilder/pkg/model/config"
 	"sigs.k8s.io/kubebuilder/pkg/plugin/v2/scaffolds"
@@ -303,7 +304,7 @@ require (
 	k8s.io/apimachinery v0.19.2
 	k8s.io/client-go v0.19.2
 	k8s.io/klog v1.0.0
-	sigs.k8s.io/apiserver-runtime v0.0.0-20201103144618-b52895ea8337
+	sigs.k8s.io/apiserver-runtime v1.0.0
 	sigs.k8s.io/controller-runtime v0.6.0
 )
 `

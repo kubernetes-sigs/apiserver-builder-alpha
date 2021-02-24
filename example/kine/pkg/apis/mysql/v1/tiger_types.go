@@ -92,6 +92,10 @@ func (t *Tiger) IsStorageVersion() bool {
 var _ resource.ObjectWithStatusSubResource = &Tiger{}
 var _ resource.StatusSubResource = &TigerStatus{}
 
+func (in TigerStatus) SubResourceName() string {
+	return "status"
+}
+
 func (t *Tiger) GetStatus() (statusSubResource resource.StatusSubResource) {
 	return t.Status
 }

@@ -315,6 +315,10 @@ func (in *{{.Kind}}List) GetListMeta() *metav1.ListMeta {
 type {{.Kind}}Status struct {
 }
 
+func (in {{.Kind}}Status) SubResourceName() string {
+	return "status"
+}
+
 // {{.Kind}} implements ObjectWithStatusSubResource interface.
 var _ resource.ObjectWithStatusSubResource = &{{.Kind}}{}
 

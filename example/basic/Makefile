@@ -39,3 +39,6 @@ cleangenerated: cmds
 
 cleandocs: cmds
 	apiserver-boot build docs clean
+
+generate:
+	controller-tools

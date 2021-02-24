@@ -161,6 +161,10 @@ func (in *UniversityList) GetListMeta() *metav1.ListMeta {
 
 var _ resource.ObjectWithStatusSubResource = &University{}
 
+func (in UniversityStatus) SubResourceName() string {
+	return "status"
+}
+
 func (in *University) GetStatus() resource.StatusSubResource {
 	return in.Status
 }
