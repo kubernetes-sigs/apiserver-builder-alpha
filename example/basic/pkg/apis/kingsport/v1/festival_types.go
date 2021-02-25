@@ -117,6 +117,10 @@ func (in *FestivalList) GetListMeta() *metav1.ListMeta {
 var _ resource.ObjectWithStatusSubResource = &Festival{}
 var _ resource.StatusSubResource = &FestivalStatus{}
 
+func (in FestivalStatus) SubResourceName() string {
+	return "status"
+}
+
 func (in *Festival) GetStatus() resource.StatusSubResource {
 	return in.Status
 }

@@ -16,23 +16,19 @@ limitations under the License.
 
 package v1beta1
 
-import (
-	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource"
-)
+//var _ resource.ObjectWithArbitrarySubResource = &University{}
+//var _ resource.ArbitrarySubResource = &UniversityCampus{}
+//
+//func (in *University) ArbitrarySubResources() []resource.ArbitrarySubResource {
+//	return []resource.ArbitrarySubResource{
+//		&UniversityCampus{},
+//	}
+//}
 
-var _ resource.ObjectWithArbitrarySubResource = &University{}
-var _ resource.ArbitrarySubResource = &UniversityCampus{}
-
-func (in *University) ArbitrarySubResources() []resource.ArbitrarySubResource {
-	return []resource.ArbitrarySubResource{
-		&UniversityCampus{},
-	}
-}
-
-type UniversityCampus struct {
-	Faculty int `json:"faculty,omitempty"`
-}
-
-func (in *UniversityCampus) Name() string {
-	return "campus"
-}
+//type UniversityCampus struct {
+//	Faculty int `json:"faculty,omitempty"`
+//}
+//
+//func (in *UniversityCampus) Name() string {
+//	return "campus"
+//}

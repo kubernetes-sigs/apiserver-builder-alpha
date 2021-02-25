@@ -9,9 +9,9 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190723091251-e0797f438f94 // indirect
 	github.com/onsi/ginkgo v1.14.1 // indirect
 	github.com/onsi/gomega v1.10.2 // indirect
-	k8s.io/apimachinery v0.19.2
-	k8s.io/client-go v0.19.2
-	k8s.io/klog/v2 v2.2.0
-	sigs.k8s.io/apiserver-runtime v0.0.0-20201103144618-b52895ea8337
+	k8s.io/apimachinery v0.20.1
+	k8s.io/client-go v0.20.1
+	k8s.io/klog/v2 v2.4.0
+	sigs.k8s.io/apiserver-runtime v1.0.0
 	sigs.k8s.io/controller-runtime v0.6.0
 )

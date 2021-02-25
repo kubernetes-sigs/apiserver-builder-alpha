@@ -348,6 +348,7 @@ spec:
         - "--tls-cert-file=/apiserver.local.config/certificates/tls.crt"
         - "--tls-private-key-file=/apiserver.local.config/certificates/tls.key"
         - "--audit-log-path=-"
+        - "--feature-gates=APIPriorityAndFairness=false"
         - "--audit-log-maxage=0"
         - "--audit-log-maxbackup=0"{{ range $arg := .ApiserverArgs }}
         - "{{ $arg }}"{{ end }}

@@ -16,22 +16,18 @@ limitations under the License.
 
 package v1beta1
 
-import (
-	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource"
-)
+//var _ resource.Object = &Student{}
+//var _ resource.SubResource = &StudentComputer{}
 
-var _ resource.ObjectWithArbitrarySubResource = &Student{}
-var _ resource.ArbitrarySubResource = &StudentComputer{}
-
-func (in *Student) ArbitrarySubResources() []resource.ArbitrarySubResource {
-	return []resource.ArbitrarySubResource{
-		&StudentComputer{},
-	}
-}
-
-type StudentComputer struct {
-}
-
-func (in *StudentComputer) Name() string {
-	return "computer"
-}
+//func (in *Student) ArbitrarySubResources() []resource.ArbitrarySubResource {
+//	return []resource.ArbitrarySubResource{
+//		&StudentComputer{},
+//	}
+//}
+//
+//type StudentComputer struct {
+//}
+//
+//func (in StudentComputer) SubResourceName() string {
+//	return "computer"
+//}

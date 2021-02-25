@@ -166,6 +166,10 @@ func (in *DeepOneList) GetListMeta() *metav1.ListMeta {
 var _ resource.ObjectWithStatusSubResource = &DeepOne{}
 var _ resource.StatusSubResource = &DeepOneStatus{}
 
+func (in DeepOneStatus) SubResourceName() string {
+	return "status"
+}
+
 func (in *DeepOne) GetStatus() resource.StatusSubResource {
 	return in.Status
 }

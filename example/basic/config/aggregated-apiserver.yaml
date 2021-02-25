@@ -33,6 +33,7 @@ spec:
         - "--etcd-servers=http://etcd-svc:2379"
         - "--tls-cert-file=/apiserver.local.config/certificates/tls.crt"
         - "--tls-private-key-file=/apiserver.local.config/certificates/tls.key"
+        - "--feature-gates=APIPriorityAndFairness=false"
         - "--audit-log-path=-"
         - "--audit-log-maxage=0"
         - "--audit-log-maxbackup=0"

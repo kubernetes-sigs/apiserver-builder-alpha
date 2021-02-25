@@ -24,13 +24,13 @@ import (
 
 var AddToScheme = func(scheme *runtime.Scheme) error {
 	metav1.AddToGroupVersion(scheme, schema.GroupVersion{
-		Group:    "innsmouth.k8s.io",
-		Version:  "v1",
+		Group:   "innsmouth.k8s.io",
+		Version: "v1",
 	})
 	// +kubebuilder:scaffold:install
 	scheme.AddKnownTypes(schema.GroupVersion{
-		Group:    "innsmouth.k8s.io",
-		Version:  "v1",
+		Group:   "innsmouth.k8s.io",
+		Version: "v1",
 	}, &DeepOne{}, &DeepOneList{})
 	return nil
 }

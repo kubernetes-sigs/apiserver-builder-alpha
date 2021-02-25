@@ -116,6 +116,10 @@ func (in *Poseidon) GetField(fieldName string) string {
 
 var _ resource.ObjectWithStatusSubResource = &Poseidon{}
 
+func (in PoseidonStatus) SubResourceName() string {
+	return "status"
+}
+
 func (in *Poseidon) GetStatus() resource.StatusSubResource {
 	return in.Status
 }
