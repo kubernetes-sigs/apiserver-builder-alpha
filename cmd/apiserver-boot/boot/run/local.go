@@ -171,7 +171,7 @@ func RunApiserver(ctx context.Context, cancel context.CancelFunc) *exec.Cmd {
 	// checking if apiserver supports local running
 	apiserverTestLocalCmd := exec.Command(server, "-h")
 	buf := &bytes.Buffer{}
-	apiserverTestLocalCmd.Stderr = buf
+	apiserverTestLocalCmd.Stdout = buf
 	runCommon(apiserverTestLocalCmd, ctx, cancel)
 	if !strings.Contains(string(buf.Bytes()), "--standalone-debug-mode") {
 		klog.Fatalf(`
