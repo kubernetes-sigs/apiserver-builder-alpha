@@ -7,3 +7,4 @@ vendor/**
 bin/**
 *.tar.gz
 release/**
+default.etcd/**
