@@ -171,14 +171,14 @@ func RunApiserver(ctx context.Context, cancel context.CancelFunc) *exec.Cmd {
 	// checking if apiserver supports local running
 	apiserverTestLocalCmd := exec.Command(server, "-h")
 	buf := &bytes.Buffer{}
-	apiserverTestLocalCmd.Stderr = buf
-	runCommon(apiserverTestLocalCmd, ctx, cancel)
+	apiserverTestLocalCmd.Stdout = buf
+	runCommon(apiserverTestLocalCmd, ctx, nil)
 	if !strings.Contains(string(buf.Bytes()), "--standalone-debug-mode") {
 		klog.Fatalf(`
 The apiserver binary doesn't seem to support --standalone-debug-mode, 
 did you have WithLocalDebugExtension() in your apiserver? (if you're using kuberentes-sigs/apiserver-runtime')`)
 	}
-	klog.Info("The apiserver binary seems to support local-running, proceeding..")
+	klog.Info("The apiserver binary supports local-running, proceeding..")
 
 	// starting apiserver process
 	flags := []string{
@@ -247,7 +247,9 @@ func runCommon(cmd *exec.Cmd, ctx context.Context, cancel context.CancelFunc) {
 	select {
 	case <-stopCh:
 		// my command quited
-		cancel()
+		if cancel != nil {
+			cancel()
+		}
 	case <-ctx.Done():
 		// other commands quited
 		if cmd.Process != nil {
