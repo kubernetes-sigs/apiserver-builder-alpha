@@ -150,25 +150,6 @@ func createResource(boilerplate string) {
 			}
 			format(mainFile)
 		}()
-
-		func() {
-			// re-render register.go
-			const (
-				scaffoldInstall = "// +kubebuilder:scaffold:install"
-			)
-			registerFile := filepath.Join("pkg", "apis", groupName, versionName, "register.go")
-			fullGroupName := groupName + "." + util.Domain
-			newRegister := fmt.Sprintf(`
-	scheme.AddKnownTypes(schema.GroupVersion{
-		Group:   "%s",
-		Version: "%s",
-	}, &%s{}, &%sList{})`,
-				fullGroupName, versionName, kindName, kindName)
-			if err := appendMixin(registerFile, scaffoldInstall, newRegister); err != nil {
-				klog.Fatal(err)
-			}
-			format(registerFile)
-		}()
 	}
 
 	if !skipGenerateController {

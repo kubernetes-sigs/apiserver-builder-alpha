@@ -90,14 +90,6 @@ func createVersion(boilerplate string) {
 		util.GetRepo(),
 	})
 
-	path = filepath.Join(dir, "pkg", "apis", groupName, versionName, "register.go")
-	created = util.WriteIfNotFound(path, "register-template", registerTemplate, registerTemplateArgs{
-		boilerplate,
-		util.Domain,
-		groupName,
-		versionName,
-	})
-
 	if !created && !ignoreVersionExists {
 		klog.Fatalf("API group version %s/%s already exists.", groupName, versionName)
 	}
@@ -125,33 +117,4 @@ var versionTemplate = `
 // +groupName={{.Group}}.{{.Domain}}
 package {{.Version}} // import "{{.Repo}}/pkg/apis/{{.Group}}/{{.Version}}"
 
-`
-
-type registerTemplateArgs struct {
-	BoilerPlate string
-	Domain      string
-	Group       string
-	Version     string
-}
-
-var registerTemplate = `
-{{.BoilerPlate}}
-
-package {{.Version}}
-
-import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-)
-
-
-var AddToScheme = func(scheme *runtime.Scheme) error {
-	metav1.AddToGroupVersion(scheme, schema.GroupVersion{
-		Group:   "{{.Group}}.{{.Domain}}",
-		Version: "{{.Version}}",
-	})
-	// +kubebuilder:scaffold:install
-	return nil
-}
 `
