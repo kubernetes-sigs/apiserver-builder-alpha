@@ -1,4 +1,3 @@
-
 /*
 Copyright 2019 The Kubernetes Authors.
 
@@ -15,36 +14,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
-
 package main
 
 import (
-	// Make sure dep tools picks up these dependencies
-	_ "k8s.io/apimachinery/pkg/apis/meta/v1"
-	_ "github.com/go-openapi/loads"
-
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/cmd/server"
-	_ "k8s.io/client-go/plugin/pkg/client/auth" // Enable cloud provider auth
-
-	"sigs.k8s.io/apiserver-builder-alpha/example/podexec/pkg/apis"
-	"sigs.k8s.io/apiserver-builder-alpha/example/podexec/pkg/openapi"
+	"k8s.io/klog/v2"
+	v1 "sigs.k8s.io/apiserver-builder-alpha/example/podexec/pkg/apis/podexec/v1"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder"
 )
 
 func main() {
-	version := "v0"
+	err := builder.APIServer.
+		WithResource(&v1.Pod{}). // namespaced resource
+		WithLocalDebugExtension().
+		ExposeLoopbackClientConfig().
+		WithOptionsFns(func(options *builder.ServerOptions) *builder.ServerOptions {
+			options.RecommendedOptions.CoreAPI = nil
+			options.RecommendedOptions.Admission = nil
+			return options
+		}).
+		Execute()
 
-	err := server.StartApiServerWithOptions(&server.StartOptions{
-		EtcdPath:         "/registry/example.com",
-		Apis:             apis.GetAllApiBuilders(),
-		Openapidefs:      openapi.GetOpenAPIDefinitions,
-		Title:            "Api",
-		Version:          version,
-
-		// TweakConfigFuncs []func(apiServer *apiserver.Config) error
-		// FlagConfigFuncs []func(*cobra.Command) error
-	})
 	if err != nil {
-		panic(err)
+		klog.Fatal(err)
 	}
+
 }
