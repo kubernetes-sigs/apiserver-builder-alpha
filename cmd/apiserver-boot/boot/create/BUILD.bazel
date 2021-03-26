@@ -17,6 +17,7 @@ go_library(
         "@com_github_markbates_inflect//:go_default_library",
         "@com_github_pkg_errors//:go_default_library",
         "@com_github_spf13_cobra//:go_default_library",
+        "@io_k8s_apimachinery//pkg/util/sets:go_default_library",
         "@io_k8s_apimachinery//pkg/util/validation:go_default_library",
         "@io_k8s_klog//:go_default_library",
         "@io_k8s_sigs_kubebuilder//pkg/model/config:go_default_library",
