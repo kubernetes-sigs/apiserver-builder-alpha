@@ -1,0 +1,6 @@
+apiVersion: miskatonic.k8s.io/v1beta1
+kind: University
+metadata:
+  name: university-example
+spec:
+  facultySize: 1

@@ -1,0 +1,10 @@
+{
+  "apiVersion":"autoscaling\/v1",
+  "kind":"Scale",
+  "metadata":{
+    "name":"university-example"
+  },
+  "spec":{
+    "replicas":2
+  }
+}

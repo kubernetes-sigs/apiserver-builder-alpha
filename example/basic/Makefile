@@ -41,4 +41,4 @@ cleandocs: cmds
 	apiserver-boot build docs clean
 
 generate:
-	controller-tools
+	controller-gen object:headerFile="boilerplate.go.txt" paths="./..."

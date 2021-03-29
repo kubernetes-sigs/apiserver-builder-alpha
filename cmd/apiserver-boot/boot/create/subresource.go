@@ -236,7 +236,7 @@ import (
 	"k8s.io/apiserver/pkg/registry/rest"
 )
 
-var _ resource.SubResource = &{{.SubresourceKind}}{}
+var _ resource.GetterUpdaterSubResource = &{{.SubresourceKind}}{}
 var _ resourcerest.Getter = &{{.SubresourceKind}}{}
 var _ resourcerest.Updater = &{{.SubresourceKind}}{}
 

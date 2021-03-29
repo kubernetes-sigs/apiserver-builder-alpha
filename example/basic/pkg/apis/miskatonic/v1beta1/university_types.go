@@ -18,6 +18,7 @@ package v1beta1
 
 import (
 	"context"
+
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -48,41 +49,18 @@ type University struct {
 
 // UniversitySpec defines the desired state of University
 type UniversitySpec struct {
-	// faculty_size defines the desired faculty size of the university.  Defaults to 15.
-	FacultySize int `json:"faculty_size,omitempty"`
+	// facultySize defines the desired faculty size of the university.  Defaults to 15.
+	FacultySize int `json:"facultySize,omitempty"`
 
-	// max_students defines the maximum number of enrolled students.  Defaults to 300.
+	// maxStudents defines the maximum number of enrolled students.  Defaults to 300.
 	// +optional
-	MaxStudents *int `json:"max_students,omitempty"`
-
-	// The unversioned struct definition for this field must be manually defined in the group package
-	Manual ManualCreateUnversionedType
-
-	// The unversioned struct definition for this field is automatically generated in the group package
-	Automatic AutomaticCreateUnversionedType
+	MaxStudents *int `json:"maxStudents,omitempty"`
 
 	Template *corev1.PodSpec `json:"template,omitempty"`
 
-	ServiceSpec corev1.ServiceSpec `json:"service_spec,omitempty"`
+	ServiceSpec corev1.ServiceSpec `json:"serviceSpec,omitempty"`
 
 	Rollout []appsv1.Deployment `json:"rollout,omitempty"`
-}
-
-// Require that the unversioned struct is manually created.  This is *NOT* the default behavior for
-// structs appearing as fields in a resource that are defined in the same package as that resource,
-// but is explicitly configured through the +genregister comment.
-// +genregister:unversioned=false
-type ManualCreateUnversionedType struct {
-	A string
-	B bool
-}
-
-// Automatically create an unversioned copy of this struct by copying its definition
-// This is the default behavior for structs appearing as fields in a resource and that are defined in the
-// same package as that resource.
-type AutomaticCreateUnversionedType struct {
-	A string
-	B bool
 }
 
 // UniversityStatus defines the observed state of University

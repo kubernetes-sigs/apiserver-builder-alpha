@@ -232,6 +232,11 @@ func RunControllerManager(ctx context.Context, cancel context.CancelFunc) *exec.
 func runCommon(cmd *exec.Cmd, ctx context.Context, cancel context.CancelFunc) {
 	stopCh := make(chan error)
 	cmdName := cmd.Args[0]
+	if cancel == nil {
+		// run foreground
+		cmd.Run()
+		return
+	}
 
 	klog.Infof("Starting local component: %s", strings.Join(cmd.Args, " "))
 	go func() {
@@ -247,9 +252,7 @@ func runCommon(cmd *exec.Cmd, ctx context.Context, cancel context.CancelFunc) {
 	select {
 	case <-stopCh:
 		// my command quited
-		if cancel != nil {
-			cancel()
-		}
+		cancel()
 	case <-ctx.Done():
 		// other commands quited
 		if cmd.Process != nil {
