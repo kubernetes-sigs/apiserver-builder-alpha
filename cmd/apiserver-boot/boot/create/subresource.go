@@ -19,7 +19,6 @@ package create
 import (
 	"fmt"
 	"io/ioutil"
-	"k8s.io/klog"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -27,10 +26,29 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/klog"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
 )
 
 var subresourceName string
+var targetSubresourceType string
+
+type subresourceType string
+
+var (
+	subresourceTypeArbitrary subresourceType = "arbitrary"
+	subresourceTypeScale     subresourceType = "scale"
+	subresourceTypeConnector subresourceType = "connector"
+)
+
+var (
+	supportedSubresourceTypes = []string{
+		string(subresourceTypeArbitrary),
+		string(subresourceTypeScale),
+		string(subresourceTypeConnector),
+	}
+)
 
 var createSubresourceCmd = &cobra.Command{
 	Use:   "subresource",
@@ -44,38 +62,22 @@ apiserver-boot create subresource --subresource pollinate --group insect --versi
 func AddCreateSubresource(cmd *cobra.Command) {
 	RegisterResourceFlags(createSubresourceCmd)
 
-	createSubresourceCmd.Flags().StringVar(&subresourceName, "subresource", "", "name of the subresource.  **Must be single lowercase word**")
+	createSubresourceCmd.Flags().StringVar(&subresourceName, "subresource", "", "name of the subresource, must be singular lowercase")
+	createSubresourceCmd.Flags().StringVar(&targetSubresourceType, "type", string(subresourceTypeArbitrary),
+		fmt.Sprintf("type of the subresource, supported values: %v", supportedSubresourceTypes))
 
 	cmd.AddCommand(createSubresourceCmd)
 }
 
 func RunCreateSubresource(cmd *cobra.Command, args []string) {
-
-	// TODO: implement it
-	klog.Fatal("adding subresource is not yet supported")
+	ValidateSubresourceFlags()
+	ValidateResourceFlags()
 
 	if _, err := os.Stat("pkg"); err != nil {
 		klog.Fatalf("could not find 'pkg' directory.  must run apiserver-boot init before creating resources")
 	}
 
-	util.GetDomain()
-	if len(subresourceName) == 0 {
-		klog.Fatalf("Must specify --subresource")
-	}
-	ValidateResourceFlags()
-
-	subresourceMatch := regexp.MustCompile("^[a-z]+$")
-	if !subresourceMatch.MatchString(subresourceName) {
-		klog.Fatalf("--subresource must match regex ^[a-z]+$ but was (%s)", subresourceName)
-	}
-
 	cr := util.GetCopyright(copyright)
-
-	ignoreGroupExists = true
-	createGroup(cr)
-	ignoreVersionExists = true
-	createVersion(cr)
-
 	createSubresource(cr)
 }
 
@@ -95,55 +97,91 @@ func createSubresource(boilerplate string) {
 		resourceName,
 	}
 
-	found := false
+	created := false
 
-	restFileName := fmt.Sprintf("%s_%s_rest.go", strings.ToLower(subresourceName), strings.ToLower(kindName))
-	path := filepath.Join(dir, "pkg", "apis", groupName, restFileName)
-	created := util.WriteIfNotFound(path, "sub-resource-rest-template", unversionedSubresourceRESTTemplate, a)
-
-	typesFileName := fmt.Sprintf("%s_%s_types.go", strings.ToLower(subresourceName), strings.ToLower(kindName))
-	path = filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
-	created = util.WriteIfNotFound(path, "sub-resource-template", versionedSubresourceTemplate, a)
-	if !created {
-		if !found {
-			klog.Infof("API subresourceName %s for group version kind %s/%s/%s already exists.",
-				subresourceName, groupName, versionName, kindName)
-			found = true
-		}
+	subResourceFileName := fmt.Sprintf("%s_%s.go", strings.ToLower(kindName), strings.ToLower(subresourceName))
+	switch targetSubresourceType {
+	case string(subresourceTypeArbitrary):
+		path := filepath.Join(dir, "pkg", "apis", groupName, versionName, subResourceFileName)
+		created = util.WriteIfNotFound(
+			path,
+			"subresource-arbitrary-template",
+			subresourceArbitraryTemplate, a)
+	case string(subresourceTypeScale):
+		path := filepath.Join(dir, "pkg", "apis", groupName, versionName, subResourceFileName)
+		created = util.WriteIfNotFound(
+			path,
+			"subresource-scale-template",
+			subresourceScaleTemplate, a)
+	case string(subresourceTypeConnector):
+		path := filepath.Join(dir, "pkg", "apis", groupName, versionName, subResourceFileName)
+		created = util.WriteIfNotFound(
+			path,
+			"subresource-connector-template",
+			subresourceConnectorTemplate, a)
 	}
 
-	typesFileName = fmt.Sprintf("%s_%s_types_test.go", strings.ToLower(subresourceName), strings.ToLower(kindName))
-	path = filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
-	created = util.WriteIfNotFound(path, "sub-resource-test-template", subresourceTestTemplate, a)
 	if !created {
-		if !found {
-			klog.Infof("API subresourceName %s for group version kind %s/%s/%s already exists.",
-				subresourceName, groupName, versionName, kindName)
-			found = true
-		}
+		klog.Warningf("File %v already exists", subResourceFileName)
+		os.Exit(-1)
 	}
 
-	if !found {
-		typesFileName = fmt.Sprintf("%s_types.go", strings.ToLower(kindName))
-		path = filepath.Join(dir, "pkg", "apis", groupName, versionName, typesFileName)
-		types, err := ioutil.ReadFile(path)
+	func() {
+		const (
+			scaffoldSubresource = "// +kubebuilder:scaffold:subresource"
+		)
+		typeFile := filepath.Join("pkg", "apis", groupName, versionName, strings.ToLower(kindName)+"_types.go")
+		typeFileData, err := ioutil.ReadFile(typeFile)
 		if err != nil {
+			klog.Fatalf("Failed reading file %v: %v", typeFile, err)
+		}
+		if !strings.Contains(string(typeFileData), scaffoldSubresource) {
+			subresourceAppending := fmt.Sprintf(`
+var _ resource.ObjectWithArbitrarySubResource = &%s{}
+
+func (in *%s) GetArbitrarySubResources() []resource.ArbitrarySubResource {
+	return []resource.ArbitrarySubResource{
+		%s
+	}
+}
+`, kindName, kindName, scaffoldSubresource)
+			appendedTypeFileData := string(typeFileData) + subresourceAppending
+			if err := ioutil.WriteFile(typeFile, []byte(appendedTypeFileData), 0644); err != nil {
+				klog.Fatalf("Failed writing file %v: %v", typeFile, err)
+			}
+		}
+		newRegister := fmt.Sprintf(`&%s{},`, strings.Title(kindName)+strings.Title(subresourceName))
+		if err := appendMixin(typeFile, scaffoldSubresource, newRegister); err != nil {
 			klog.Fatal(err)
 		}
-		structName := fmt.Sprintf("type %s struct {", kindName)
-		sub := fmt.Sprintf("// +subresource:request=%s,path=%s,kind=%s",
-			strings.Title(a.SubresourceKind),
-			strings.ToLower(subresourceName),
-			strings.Title(kindName)+strings.Title(subresourceName),
-		)
-		result := strings.Replace(string(types),
-			structName,
-			sub+"\n"+structName, 1)
-		ioutil.WriteFile(path, []byte(result), 0644)
-	}
+		format(typeFile)
+	}()
+}
 
-	if found {
-		os.Exit(-1)
+func ValidateSubresourceFlags() {
+	switch targetSubresourceType {
+	case string(subresourceTypeArbitrary):
+	case string(subresourceTypeScale):
+		if subresourceName != "scale" {
+			klog.Infof(`Overriding subresource name to "scale" because the type is set to "scale"`)
+			subresourceName = "scale"
+		}
+	case string(subresourceTypeConnector):
+	}
+	if len(subresourceName) == 0 {
+		klog.Fatalf("Must specify --subresource")
+	} else {
+		if strings.ToLower(subresourceName) != subresourceName {
+			klog.Fatalf("Subresource name %v must be lowercased", subresourceName)
+		}
+	}
+	if !sets.NewString(supportedSubresourceTypes...).Has(targetSubresourceType) {
+		klog.Fatalf("Subresource type %v not supported", targetSubresourceType)
+	} else {
+		subresourceMatch := regexp.MustCompile("^[a-z]+$")
+		if !subresourceMatch.MatchString(subresourceName) {
+			klog.Fatalf("--subresource must match regex ^[a-z]+$ but was (%s)", subresourceName)
+		}
 	}
 }
 
@@ -158,122 +196,160 @@ type subresourceTemplateArgs struct {
 	Resource        string
 }
 
-var unversionedSubresourceRESTTemplate = `
-{{.BoilerPlate}}
-
-package {{.Group}}
-
-import (
-	"context"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apiserver/pkg/registry/rest"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
-
-var _ rest.CreaterUpdater = &{{ .SubresourceKind }}REST{}
-var _ rest.Patcher = &{{ .SubresourceKind }}REST{}
-
-// +k8s:deepcopy-gen=false
-type {{ .SubresourceKind }}REST struct {
-	Registry {{ .Kind }}Registry
-}
-
-func (r *{{ .SubresourceKind }}REST) Create(ctx context.Context, obj runtime.Object, createValidation rest.ValidateObjectFunc, options *metav1.CreateOptions) (runtime.Object, error) {
-	sub := obj.(*{{ title .SubresourceKind }})
-	rec, err := r.Registry.Get{{ title .Kind }}(ctx, sub.Name, &metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-	// Modify rec in someway before writing it back to storage
-
-	r.Registry.Update{{ title .Kind }}(ctx, rec)
-	return rec, nil
-}
-
-// Get retrieves the object from the storage. It is required to support Patch.
-func (r *{{ .SubresourceKind }}REST) Get(ctx context.Context, name string, options *metav1.GetOptions) (runtime.Object, error) {
-	return nil, nil
-}
-
-// Update alters the status subset of an object.
-func (r *{{ .SubresourceKind }}REST) Update(ctx context.Context, name string, objInfo rest.UpdatedObjectInfo, createValidation rest.ValidateObjectFunc, updateValidation rest.ValidateObjectUpdateFunc, forceAllowCreate bool, options *metav1.UpdateOptions) (runtime.Object, bool, error) {
-	return nil, false, nil
-}
-
-func (r *{{ .SubresourceKind }}REST) New() runtime.Object {
-	return &{{ title .SubresourceKind }}{}
-}
-`
-
-var versionedSubresourceTemplate = `
+var subresourceScaleTemplate = `
 {{.BoilerPlate}}
 
 package {{.Version}}
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/api/autoscaling/v1"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource"
 )
 
-// +genclient
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+var _ resource.ObjectWithScaleSubResource = &{{.Kind}}{}
 
-// +subresource-request
-type {{title .SubresourceKind}} struct {
-	metav1.TypeMeta   ` + "`" + `json:",inline"` + "`" + `
-	metav1.ObjectMeta ` + "`" + `json:"metadata,omitempty"` + "`" + `
+func (in *{{.Kind}}) SetScale(scaleSubResource *v1.Scale) {
+	// EDIT IT
+}
+
+func (in *{{.Kind}}) GetScale() (scaleSubResource *v1.Scale) {
+	// EDIT IT
+	return &v1.Scale{}
 }
 `
 
-var subresourceTestTemplate = `
+var subresourceArbitraryTemplate = `
 {{.BoilerPlate}}
 
-package {{.Version}}_test
+package {{.Version}}
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"context"
+	"fmt"
+
+	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource/resourcerest"
+	contextutil "sigs.k8s.io/apiserver-runtime/pkg/util/context"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	. "{{.Repo}}/pkg/apis/{{.Group}}/{{.Version}}"
-	. "{{.Repo}}/pkg/client/clientset_generated/clientset/typed/{{.Group}}/{{.Version}}"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apiserver/pkg/registry/rest"
 )
 
-var _ = Describe("{{.Kind}}", func() {
-	var instance {{ .Kind}}
-	var expected {{ .Kind}}
-	var client {{ .Kind}}Interface
+var _ resource.GetterUpdaterSubResource = &{{.SubresourceKind}}{}
+var _ resourcerest.Getter = &{{.SubresourceKind}}{}
+var _ resourcerest.Updater = &{{.SubresourceKind}}{}
 
-	BeforeEach(func() {
-		instance = {{ .Kind}}{}
-		instance.Name = "instance-1"
+// {{.Kind}}{{.SubresourceKind}}
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type {{.SubresourceKind}} struct {
+	metav1.TypeMeta ` + "`" + `json:",inline" ` + "`" + `
+}
 
-		expected = instance
-	})
+func (c *{{.SubresourceKind}}) SubResourceName() string {
+	return "{{.Subresource}}"
+}
 
-	AfterEach(func() {
-		client.Delete(context.TODO(), instance.Name, metav1.DeleteOptions{})
-	})
+func (c *{{.SubresourceKind}}) New() runtime.Object {
+	return &{{.SubresourceKind}}{}
+}
 
-	Describe("when sending a {{ .Subresource }} request", func() {
-		It("should return success", func() {
-			client = cs.{{ title .Group }}{{ title .Version }}().{{ title .Resource }}("{{ lower .Kind }}-test-{{ lower .Subresource }}")
-			_, err := client.Create(&instance)
-			Expect(err).ShouldNot(HaveOccurred())
+func (c *{{.SubresourceKind}}) Get(ctx context.Context, name string, options *metav1.GetOptions) (runtime.Object, error) {
+    // EDIT IT
+	parentStorage, ok := contextutil.GetParentStorage(ctx)
+	if !ok {
+		return nil, fmt.Errorf("no parent storage found in the context")
+	}
+	return parentStorage.Get(ctx, name, options)
+}
 
-			{{ lower .Subresource }} := &{{ title .SubresourceKind}}{}
-			{{ lower .Subresource }}.Name = instance.Name
-			restClient := cs.{{ title .Group }}{{ title .Version }}().RESTClient()
-			err = restClient.Post().Namespace("{{ lower .Kind }}-test-{{ lower .Subresource}}").
-				Name(instance.Name).
-				Resource("{{ lower .Resource }}").
-				SubResource("{{ lower .Subresource }}").
-				Body({{ lower .Subresource }}).
-				Do(context.TODO()).
-				Error()
-			Expect(err).ShouldNot(HaveOccurred())
-		})
-	})
-})
+func (c *{{.SubresourceKind}}) Update(
+	ctx context.Context,
+	name string,
+	objInfo rest.UpdatedObjectInfo,
+	createValidation rest.ValidateObjectFunc,
+	updateValidation rest.ValidateObjectUpdateFunc,
+	forceAllowCreate bool,
+	options *metav1.UpdateOptions) (runtime.Object, bool, error) {
+    // EDIT IT
+	parentStorage, ok := contextutil.GetParentStorage(ctx)
+	if !ok {
+		return nil, false, fmt.Errorf("no parent storage found in the context")
+	}
+	return parentStorage.Update(ctx, name, objInfo, createValidation, updateValidation, forceAllowCreate, options)
+}
+`
+
+var subresourceConnectorTemplate = `
+{{.BoilerPlate}}
+
+package {{.Version}}
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"net/url"
+	
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apiserver/pkg/registry/rest"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource/resourcerest"
+	contextutil "sigs.k8s.io/apiserver-runtime/pkg/util/context"
+)
+
+var _ resource.SubResource = &{{.SubresourceKind}}{}
+var _ rest.Storage = &{{.SubresourceKind}}{}
+var _ resourcerest.Connecter = &{{.SubresourceKind}}{}
+
+var {{.Subresource}}ProxyMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
+
+// {{.SubresourceKind}}
+type {{.SubresourceKind}} struct {
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type {{.SubresourceKind}}Options struct {
+	metav1.TypeMeta
+
+	// Path is the target api path of the proxy request.
+	Path string ` + "`" + `json:"path"` + "`" + `
+}
+
+func (c *{{.SubresourceKind}}) SubResourceName() string {
+	return "proxy"
+}
+
+func (c *{{.SubresourceKind}}) New() runtime.Object {
+	return &{{.SubresourceKind}}Options{}
+}
+
+func (c *{{.SubresourceKind}}) Connect(ctx context.Context, id string, options runtime.Object, r rest.Responder) (http.Handler, error) {
+	// EDIT IT
+	parentStorage, ok := contextutil.GetParentStorage(ctx)
+	if !ok {
+		return nil, fmt.Errorf("no parent storage found")
+	}
+	_, err := parentStorage.Get(ctx, id, &metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return http.Handler(nil), nil
+}
+
+func (c *{{.SubresourceKind}}) NewConnectOptions() (runtime.Object, bool, string) {
+	return &{{.SubresourceKind}}Options{}, false, "path"
+}
+
+func (c *{{.SubresourceKind}}) ConnectMethods() []string {
+	return {{.Subresource}}ProxyMethods
+}
+
+var _ resource.QueryParameterObject = &{{.SubresourceKind}}Options{}
+
+func (in *{{.SubresourceKind}}Options) ConvertFromUrlValues(values *url.Values) error {
+	in.Path = values.Get("path")
+	return nil
+}
 `

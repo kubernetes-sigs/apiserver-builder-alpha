@@ -124,10 +124,15 @@ jobs:
 
           kubectl api-resources \
             || kubectl get pod -o name | grep basic-example-apiserver | xargs -I {} kubectl logs {} -c apiserver
-          kubectl create -f sample/festival.yaml
 
+          kubectl create -f sample/festival.yaml
           sleep 5 # Hold for 1min
           kubectl get festival festival-example -o jsonpath="{.spec.invited}" | grep 1 # successfully processed by controller
+
+          kubectl create -f sample/university.yaml
+          kubectl get university university-example -o jsonpath="{.spec.facultySize}" | grep 1
+          kubectl replace --raw="/apis/miskatonic.k8s.io/v1beta1/namespaces/default/universities/university-example/scale" -f sample/university_scale.json  # scale subresource
+          kubectl get university university-example -o jsonpath="{.spec.facultySize}" | grep 2
   kine-example-container:
     runs-on: ubuntu-latest
     name: Testing Kine Example Container Build

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package podexec
+package v1
 
 import (
 	"context"
@@ -32,29 +32,60 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/proxy"
 	"k8s.io/apiserver/pkg/endpoints/request"
-	genericfeatures "k8s.io/apiserver/pkg/features"
-	"k8s.io/apiserver/pkg/registry/generic"
+	"k8s.io/apiserver/pkg/features"
 	"k8s.io/apiserver/pkg/registry/rest"
-	utilfeature "k8s.io/apiserver/pkg/util/feature"
+	"k8s.io/apiserver/pkg/util/feature"
 	"k8s.io/client-go/kubernetes"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
-	restclient "k8s.io/client-go/rest"
 	"sigs.k8s.io/apiserver-builder-alpha/example/podexec/pkg/kubelet"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource"
+	"sigs.k8s.io/apiserver-runtime/pkg/util/loopback"
 )
 
-var _ rest.Connecter = &PodExecREST{}
+var _ resource.ConnectorSubResource = &PodExec{}
 
-func NewPodExecREST(getter generic.RESTOptionsGetter) rest.Storage {
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type PodExec struct {
+	metav1.TypeMeta `json:",inline"`
 
-	inClusterClientConfig, err := restclient.InClusterConfig()
-	if err != nil {
-		panic(err)
+	// Stdin if true indicates that stdin is to be redirected for the exec call
+	Stdin bool
+
+	// Stdout if true indicates that stdout is to be redirected for the exec call
+	Stdout bool
+
+	// Stderr if true indicates that stderr is to be redirected for the exec call
+	Stderr bool
+
+	// TTY if true indicates that a tty will be allocated for the exec call
+	TTY bool
+
+	// Container in which to execute the command.
+	Container string
+
+	// Command is the remote command to execute; argv array; not executed within a shell.
+	Command []string
+}
+
+func (p *PodExec) SubResourceName() string {
+	return "exec"
+}
+
+func (p PodExec) New() runtime.Object {
+	return &PodExec{}
+}
+
+func (p *PodExec) Connect(ctx context.Context, id string, options runtime.Object, responder rest.Responder) (http.Handler, error) {
+	execOpts, ok := options.(*PodExec)
+	if !ok {
+		return nil, fmt.Errorf("invalid options object: %#v", options)
 	}
-
-	client := kubernetes.NewForConfigOrDie(inClusterClientConfig)
+	clientConfig := loopback.GetLoopbackClientConfig()
+	client, err := kubernetes.NewForConfig(clientConfig)
 	nodeConnGetter, err := kubelet.NewNodeConnectionInfoGetter(
 		func(name string) (*corev1.Node, error) {
-			return client.CoreV1().Nodes().Get(name, metav1.GetOptions{})
+			return client.CoreV1().Nodes().Get(ctx, name, metav1.GetOptions{})
 		},
 		kubelet.KubeletClientConfig{
 			Port:         10250,
@@ -74,47 +105,25 @@ func NewPodExecREST(getter generic.RESTOptionsGetter) rest.Storage {
 			EnableHTTPS: true,
 			HTTPTimeout: time.Duration(5) * time.Second,
 		})
-
-	return &PodExecREST{
-		podClient:   client.CoreV1(),
-		KubeletConn: nodeConnGetter,
-	}
-}
-
-// +k8s:deepcopy-gen=false
-type PodExecREST struct {
-	podClient   corev1client.CoreV1Interface
-	KubeletConn kubelet.ConnectionInfoGetter
-}
-
-func (r *PodExecREST) Connect(ctx context.Context, name string, opts runtime.Object, responder rest.Responder) (http.Handler, error) {
-	execOpts, ok := opts.(*PodExec)
-	if !ok {
-		return nil, fmt.Errorf("invalid options object: %#v", opts)
-	}
-	location, transport, err := ExecLocation(r.podClient, r.KubeletConn, ctx, name, execOpts)
+	location, transport, err := ExecLocation(client.CoreV1(), nodeConnGetter, ctx, id, execOpts)
 	if err != nil {
 		return nil, err
 	}
 	return newThrottledUpgradeAwareProxyHandler(location, transport, false, true, true, responder), nil
 }
 
-func (r *PodExecREST) NewConnectOptions() (runtime.Object, bool, string) {
+func (p *PodExec) NewConnectOptions() (runtime.Object, bool, string) {
 	return &PodExec{}, false, ""
 }
 
-func (r *PodExecREST) ConnectMethods() []string {
+func (p *PodExec) ConnectMethods() []string {
 	return []string{"GET", "POST"}
-}
-
-func (r *PodExecREST) New() runtime.Object {
-	return &PodExec{}
 }
 
 func newThrottledUpgradeAwareProxyHandler(location *url.URL, transport http.RoundTripper, wrapTransport, upgradeRequired, interceptRedirects bool, responder rest.Responder) *proxy.UpgradeAwareHandler {
 	handler := proxy.NewUpgradeAwareHandler(location, transport, wrapTransport, upgradeRequired, proxy.NewErrorResponder(responder))
-	handler.InterceptRedirects = interceptRedirects && utilfeature.DefaultFeatureGate.Enabled(genericfeatures.StreamingProxyRedirects)
-	handler.RequireSameHostRedirects = utilfeature.DefaultFeatureGate.Enabled(genericfeatures.ValidateProxyRedirects)
+	handler.InterceptRedirects = interceptRedirects && feature.DefaultFeatureGate.Enabled(features.StreamingProxyRedirects)
+	handler.RequireSameHostRedirects = feature.DefaultFeatureGate.Enabled(features.ValidateProxyRedirects)
 	handler.MaxBytesPerSec = 0
 	return handler
 }
@@ -141,7 +150,7 @@ func streamLocation(
 	path string,
 ) (*url.URL, http.RoundTripper, error) {
 	ns, _ := request.NamespaceFrom(ctx)
-	pod, err := getter.Pods(ns).Get(name, metav1.GetOptions{})
+	pod, err := getter.Pods(ns).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -200,7 +209,7 @@ func getContainerNames(containers []corev1.Container) string {
 }
 
 func podHasContainerWithName(pod *corev1.Pod, containerName string) bool {
-	var hasContainer bool = false
+	var hasContainer = false
 	for _, c := range pod.Spec.Containers {
 		if c.Name == containerName {
 			hasContainer = true

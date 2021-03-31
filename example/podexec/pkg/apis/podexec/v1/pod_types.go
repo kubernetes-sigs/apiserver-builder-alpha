@@ -1,4 +1,3 @@
-
 /*
 Copyright 2019 The Kubernetes Authors.
 
@@ -15,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
-
 package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/apiserver-runtime/pkg/builder/resource"
 )
 
 // +genclient
@@ -28,8 +28,6 @@ import (
 
 // Pod
 // +k8s:openapi-gen=true
-// +resource:path=pods,strategy=PodStrategy
-// +subresource:request=PodExec,path=exec,kind=PodExec,rest=PodExecREST
 type Pod struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -38,10 +36,56 @@ type Pod struct {
 	Status PodStatus `json:"status,omitempty"`
 }
 
+var _ resource.Object = &Pod{}
+
+func (in *Pod) GetObjectMeta() *metav1.ObjectMeta {
+	return &in.ObjectMeta
+}
+
+func (in *Pod) NamespaceScoped() bool {
+	return true
+}
+
+func (in *Pod) New() runtime.Object {
+	return &Pod{}
+}
+
+func (in *Pod) NewList() runtime.Object {
+	return &PodList{}
+}
+
+func (in *Pod) GetGroupVersionResource() schema.GroupVersionResource {
+	return schema.GroupVersionResource{
+		Group:    "podexec.example.com",
+		Version:  "v1",
+		Resource: "pods",
+	}
+}
+
+func (in *Pod) IsStorageVersion() bool {
+	return true
+}
+
 // PodSpec defines the desired state of Pod
 type PodSpec struct {
 }
 
 // PodStatus defines the observed state of Pod
 type PodStatus struct {
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type PodList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+
+	Items []Pod `json:"items"`
+}
+
+var _ resource.ObjectWithArbitrarySubResource = &Pod{}
+
+func (in *Pod) GetArbitrarySubResources() []resource.ArbitrarySubResource {
+	return []resource.ArbitrarySubResource{
+		&PodExec{},
+	}
 }
