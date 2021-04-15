@@ -29,6 +29,7 @@ func main() {
 		// writes burger resources as static files under the "data" folder in the working directory.
 		WithResourceAndHandler(&filepathv1.Burger{}, filepath.NewJSONFilepathStorageProvider(&filepathv1.Burger{}, "data")).
 		WithLocalDebugExtension().
+		WithoutEtcd().
 		Execute()
 	if err != nil {
 		klog.Fatal(err)
