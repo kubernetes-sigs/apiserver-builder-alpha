@@ -1,4 +1,4 @@
-apiVersion: filepath.example.com/v1
+apiVersion: filepath.k8s.io/v1
 kind: Burger
 metadata:
   name: burger-example
