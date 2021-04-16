@@ -150,11 +150,13 @@ func (in *%s) GetArbitrarySubResources() []resource.ArbitrarySubResource {
 				klog.Fatalf("Failed writing file %v: %v", typeFile, err)
 			}
 		}
-		newRegister := fmt.Sprintf(`&%s{},`, strings.Title(kindName)+strings.Title(subresourceName))
-		if err := appendMixin(typeFile, scaffoldSubresource, newRegister); err != nil {
-			klog.Fatal(err)
+		if targetSubresourceType != string(subresourceTypeScale) {
+			newRegister := fmt.Sprintf(`&%s{},`, strings.Title(kindName)+strings.Title(subresourceName))
+			if err := appendMixin(typeFile, scaffoldSubresource, newRegister); err != nil {
+				klog.Fatal(err)
+			}
+			format(typeFile)
 		}
-		format(typeFile)
 	}()
 }
 
