@@ -22,6 +22,7 @@ spec:
       containers:
       - name: apiserver
         image: example.io/non-etcd
+        imagePullPolicy: IfNotPresent
         volumeMounts:
         - name: apiserver-certs
           mountPath: /apiserver.local.config/certificates
