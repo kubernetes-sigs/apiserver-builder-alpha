@@ -67,8 +67,12 @@ jobs:
         uses: actions/setup-go@v2.1.3
         with:
           go-version: 1.15
-      - run: |
-          go get sigs.k8s.io/controller-tools/cmd/controller-gen
+      - name: Install controller-tools
+        env:
+          GO111MODULE: on
+        run: |
+          go mod init sigs.k8s.io/workspace
+          go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.5.0
           go install sigs.k8s.io/controller-tools/cmd/controller-gen
       - uses: actions/checkout@v2.3.1
         with:
@@ -102,8 +106,11 @@ jobs:
         run: |
           go build -o ${GOPATH}/bin/apiserver-boot ./cmd/apiserver-boot/main.go
       - name: Install controller-tools
+        env:
+          GO111MODULE: on
         run: |
-          go get sigs.k8s.io/controller-tools/cmd/controller-gen
+          go mod init sigs.k8s.io/workspace
+          go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.5.0
           go install sigs.k8s.io/controller-tools/cmd/controller-gen
       - name: Building and running container images
         working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/example/basic
@@ -171,8 +178,11 @@ jobs:
           mkdir -p bin
           go build -o ${GOPATH}/bin/apiserver-boot ./cmd/apiserver-boot/main.go
       - name: Install controller-tools
+        env:
+          GO111MODULE: on
         run: |
-          go get sigs.k8s.io/controller-tools/cmd/controller-gen
+          go mod init sigs.k8s.io/workspace
+          go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.5.0
           go install sigs.k8s.io/controller-tools/cmd/controller-gen
       - name: Building and running container images
         working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/example/kine
