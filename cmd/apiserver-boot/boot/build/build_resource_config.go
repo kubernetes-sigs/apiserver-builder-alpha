@@ -392,6 +392,7 @@ spec:
     targetPort: 443
   selector:
     api: {{ .Name }}
+    apiserver: "true"
 `
 
 type resourceConfigControllerYamlArgs struct {
