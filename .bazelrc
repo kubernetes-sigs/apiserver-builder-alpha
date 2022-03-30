@@ -1,6 +1,0 @@
-build --stamp
-run --stamp
-
-# populate env used for stamping builds etc
-build --workspace_status_command=./scripts/print-workspace-status.sh
-run --workspace_status_command=./scripts/print-workspace-status.sh
