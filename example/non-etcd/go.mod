@@ -1,6 +1,6 @@
 module sigs.k8s.io/apiserver-builder-alpha/example/non-etcd
 
-go 1.15
+go 1.17
 
 require (
 	github.com/go-logr/logr v0.2.1 // indirect
