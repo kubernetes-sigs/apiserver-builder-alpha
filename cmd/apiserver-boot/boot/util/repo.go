@@ -47,9 +47,9 @@ func LoadRepoFromGoMod() error {
 }
 
 func LoadRepoFromGoPathOrGoMod() error {
-	if err := LoadRepoFromGoPath(); err != nil {
+	if err := LoadRepoFromGoMod(); err != nil {
 		// reading from go mod
-		return LoadRepoFromGoMod()
+		return LoadRepoFromGoPath()
 	}
 	return nil
 }

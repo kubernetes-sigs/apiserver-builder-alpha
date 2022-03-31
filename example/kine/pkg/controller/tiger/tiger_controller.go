@@ -44,10 +44,10 @@ type ReconcileTiger struct {
 // a Deployment as an example
 // +kubebuilder:rbac:groups=mysql.example.com,resources=tigers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=mysql.example.com,resources=tigers/status,verbs=get;update;patch
-func (r *ReconcileTiger) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileTiger) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	// Fetch the Tiger instance
 	instance := &mysqlv1.Tiger{}
-	err := r.Get(context.TODO(), request.NamespacedName, instance)
+	err := r.Get(ctx, request.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Object not found, return.  Created objects are automatically garbage collected.

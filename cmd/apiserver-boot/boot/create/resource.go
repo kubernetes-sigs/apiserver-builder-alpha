@@ -19,17 +19,19 @@ package create
 import (
 	"bufio"
 	"fmt"
+	"github.com/spf13/afero"
 	"os"
 	"path/filepath"
+	"sigs.k8s.io/kubebuilder/v3/pkg/machinery"
 	"strings"
 
 	"github.com/markbates/inflect"
 	"github.com/spf13/cobra"
 	"k8s.io/klog"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
-	"sigs.k8s.io/kubebuilder/pkg/model/config"
-	"sigs.k8s.io/kubebuilder/pkg/model/resource"
-	"sigs.k8s.io/kubebuilder/pkg/plugin/v3/scaffolds"
+	config "sigs.k8s.io/kubebuilder/v3/pkg/config/v3"
+	"sigs.k8s.io/kubebuilder/v3/pkg/model/resource"
+	"sigs.k8s.io/kubebuilder/v3/pkg/plugins/golang/v3/scaffolds"
 )
 
 var kindName string
@@ -173,28 +175,29 @@ func createResource(boilerplate string) {
 
 	if !skipGenerateController {
 		// write controller-runtime scaffolding templates
-		r := &resource.Resource{
-			Namespaced:  !nonNamespacedKind,
-			Group:       groupName,
-			Version:     versionName,
-			Kind:        kindName,
-			Plural:      resourceName,
-			Package:     filepath.Join(util.GetRepo(), "pkg", "apis", groupName, versionName),
-			ImportAlias: resourceName,
-		}
-		scaffolder := scaffolds.NewAPIScaffolder(
-			&config.Config{
-				MultiGroup: true,
-				Domain:     util.Domain,
-				Repo:       util.GetRepo(),
-				Version:    config.Version3Alpha,
+		r := resource.Resource{
+			GVK: resource.GVK{
+				Group:   groupName,
+				Version: versionName,
+				Kind:    kindName,
 			},
-			boilerplate, // TODO
+			API: &resource.API{
+				Namespaced: !nonNamespacedKind,
+			},
+			Plural:     resourceName,
+			Path:       filepath.Join(util.GetRepo(), "pkg", "apis", groupName, versionName),
+			Controller: true,
+		}
+		cfg := config.New()
+		cfg.SetDomain(util.Domain)
+		cfg.SetRepository(util.GetRepo())
+		cfg.SetMultiGroup()
+		scaffolder := scaffolds.NewAPIScaffolder(
+			cfg,
 			r,
 			false,
-			true,
-			nil,
 		)
+		scaffolder.InjectFS(machinery.Filesystem{FS: afero.NewOsFs()})
 		err := scaffolder.Scaffold()
 		if err != nil {
 			klog.Warningf("failed generating controller basic packages: %v", err)

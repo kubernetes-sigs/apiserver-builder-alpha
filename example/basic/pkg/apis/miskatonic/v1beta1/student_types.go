@@ -37,8 +37,8 @@ type Student struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   StudentSpec   `json:"spec,omitempty"`
-	Status StudentStatus `json:"status,omitempty"`
+	Spec StudentSpec `json:"spec,omitempty"`
+	GPA  StudentGPA  `json:"gpa,omitempty"`
 }
 
 // StudentSpec defines the desired state of Student
@@ -47,9 +47,9 @@ type StudentSpec struct {
 }
 
 // StudentStatus defines the observed state of Student
-type StudentStatus struct {
-	// GPA is the GPA of the student.
-	GPA float64 `json:"GPA,omitempty"`
+type StudentGPA struct {
+	// Score is the score of the student.
+	Score float64 `json:"score,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -104,18 +104,20 @@ func (in *StudentList) GetListMeta() *metav1.ListMeta {
 	return &in.ListMeta
 }
 
-var _ resource.ObjectWithStatusSubResource = &Student{}
+var _ resource.ObjectWithArbitrarySubResource = &Student{}
 
-func (in *Student) GetStatus() resource.StatusSubResource {
-	return in.Status
+func (in *Student) GetArbitrarySubResources() []resource.ArbitrarySubResource {
+	return []resource.ArbitrarySubResource{
+		&StudentGPA{},
+	}
 }
 
-func (in StudentStatus) SubResourceName() string {
-	return "status"
+func (in StudentGPA) SubResourceName() string {
+	return "gpa"
 }
 
-var _ resource.StatusSubResource = &StudentStatus{}
+var _ resource.ArbitrarySubResource = &StudentGPA{}
 
-func (in StudentStatus) CopyTo(parent resource.ObjectWithStatusSubResource) {
-	parent.(*Student).Status = in
+func (in *StudentGPA) New() runtime.Object {
+	return &Student{}
 }
