@@ -17,14 +17,16 @@ limitations under the License.
 package init_repo
 
 import (
+	"github.com/spf13/afero"
 	"os"
 	"path/filepath"
+	"sigs.k8s.io/kubebuilder/v3/pkg/machinery"
 
 	"github.com/spf13/cobra"
 	"k8s.io/klog"
 	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
-	"sigs.k8s.io/kubebuilder/pkg/model/config"
-	"sigs.k8s.io/kubebuilder/pkg/plugin/v2/scaffolds"
+	config "sigs.k8s.io/kubebuilder/v3/pkg/config/v3"
+	"sigs.k8s.io/kubebuilder/v3/pkg/plugins/golang/v3/scaffolds"
 )
 
 var repoCmd = &cobra.Command{
@@ -114,16 +116,17 @@ func createBazelWorkspace() {
 }
 
 func createControllerManager() {
+	cfg := config.New()
+	cfg.SetMultiGroup()
+	cfg.SetRepository(util.GetRepo())
+	cfg.SetDomain(util.Domain)
 	scaffolder := scaffolds.NewInitScaffolder(
-		&config.Config{
-			MultiGroup: true,
-			Domain:     util.Domain,
-			Repo:       util.GetRepo(),
-			Version:    config.Version3Alpha,
-		},
+		cfg,
 		"",
 		"",
 	)
+
+	scaffolder.InjectFS(machinery.Filesystem{FS: afero.NewOsFs()})
 	if err := scaffolder.Scaffold(); err != nil {
 		klog.Fatal(err)
 	}

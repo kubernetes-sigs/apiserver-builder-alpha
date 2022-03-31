@@ -36,7 +36,7 @@ install: build
 	@echo "GOOS: $(GOOS)"
 	@echo "GOARCH: $(GOARCH)"
 	@echo "ARCH: $(ARCH)"
-	go install ./cmd/apiserver-boot/main.go
+	go install ./cmd/apiserver-boot
 
 .PHONY: clean
 clean:
