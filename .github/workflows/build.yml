@@ -114,6 +114,8 @@ jobs:
           kubectl get university university-example -o jsonpath="{.spec.facultySize}" | grep 1
           kubectl replace --raw="/apis/miskatonic.k8s.io/v1beta1/namespaces/default/universities/university-example/scale" -f sample/university_scale.json  # scale subresource
           kubectl get university university-example -o jsonpath="{.spec.facultySize}" | grep 2
+
+          apiserver-boot show resource festivals
   kine-example-container:
     runs-on: ubuntu-latest
     name: Testing Kine Example Container Build
