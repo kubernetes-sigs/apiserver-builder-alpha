@@ -34,6 +34,7 @@ skeleton:
 	apiserver-boot create subresource --group storage --version v1 --kind Snapshot --subresource scale --type scale
 	apiserver-boot create subresource --group storage --version v1 --kind Snapshot --subresource foo --type arbitrary
 	apiserver-boot create subresource --group storage --version v1 --kind Snapshot --subresource bar --type connector
+	go mod tidy
 	make generate
 
 # Build docs

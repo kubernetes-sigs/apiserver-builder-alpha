@@ -296,7 +296,7 @@ type goModTemplateArguments struct {
 var goModTemplate = `
 module {{.Repo}}
 
-go 1.15
+go 1.17
 
 require (
 	github.com/go-logr/logr v0.2.1 // indirect
