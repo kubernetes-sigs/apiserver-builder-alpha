@@ -40,6 +40,7 @@ func main() {
 			mysqlDatabase,
 		)). // namespaced resource
 		WithLocalDebugExtension().
+		WithoutEtcd().
 		Execute()
 	if err != nil {
 		klog.Fatal(err)
