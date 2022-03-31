@@ -43,10 +43,10 @@ type ReconcileFestival struct {
 // a Deployment as an example
 // +kubebuilder:rbac:groups=kingsport.k8s.io,resources=festivals,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kingsport.k8s.io,resources=festivals/status,verbs=get;update;patch
-func (r *ReconcileFestival) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileFestival) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	// Fetch the Festival instance
 	instance := &kingsportv1.Festival{}
-	err := r.Get(context.TODO(), request.NamespacedName, instance)
+	err := r.Get(ctx, request.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Object not found, return.  Created objects are automatically garbage collected.
@@ -59,7 +59,7 @@ func (r *ReconcileFestival) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	instance.Spec.Invited = 1
 
-	if err := r.Update(context.TODO(), instance); err != nil {
+	if err := r.Update(ctx, instance); err != nil {
 		return reconcile.Result{}, err
 	}
 

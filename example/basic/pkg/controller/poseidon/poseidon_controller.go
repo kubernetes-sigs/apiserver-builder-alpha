@@ -28,10 +28,10 @@ type ReconcilePoseidon struct {
 // a Deployment as an example
 // +kubebuilder:rbac:groups=olympus.k8s.io,resources=poseidons,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=olympus.k8s.io,resources=poseidons/status,verbs=get;update;patch
-func (r *ReconcilePoseidon) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcilePoseidon) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	// Fetch the Poseidon instance
 	instance := &olympusv1beta1.Poseidon{}
-	err := r.Get(context.TODO(), request.NamespacedName, instance)
+	err := r.Get(ctx, request.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Object not found, return.  Created objects are automatically garbage collected.
