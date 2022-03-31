@@ -80,10 +80,10 @@ spec:
         resources:
           requests:
             cpu: 100m
-            memory: 20Mi
+            memory: 200Mi
           limits:
             cpu: 100m
-            memory: 30Mi
+            memory: 300Mi
       volumes:
       - name: apiserver-certs
         secret:

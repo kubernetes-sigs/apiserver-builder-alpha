@@ -39,11 +39,11 @@ spec:
         - "--audit-log-maxbackup=0"
         resources:
           requests:
-            cpu: 100m
-            memory: 20Mi
+            cpu: 200m
+            memory: 200Mi
           limits:
-            cpu: 100m
-            memory: 30Mi
+            cpu: 200m
+            memory: 300Mi
       volumes:
       - name: apiserver-certs
         secret:
@@ -77,3 +77,4 @@ spec:
     targetPort: 443
   selector:
     api: basic-example
+    apiserver: "true"

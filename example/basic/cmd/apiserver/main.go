@@ -34,6 +34,7 @@ func main() {
 		WithResource(&miskatonicv1beta1.University{}). // resource with arbitrary subresource
 		WithResource(&olympusv1beta1.Poseidon{}).      // resource with custom storage indexers
 		WithLocalDebugExtension().
+		DisableAuthorization().
 		WithOptionsFns(func(options *builder.ServerOptions) *builder.ServerOptions {
 			options.RecommendedOptions.CoreAPI = nil
 			options.RecommendedOptions.Admission = nil

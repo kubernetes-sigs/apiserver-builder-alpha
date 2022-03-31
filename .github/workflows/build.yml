@@ -106,8 +106,11 @@ jobs:
           sleep 120 # Hold for 2 min
 
           kubectl get pod
+          kubectl get ep
+          kubectl get apiservice v1.kingsport.k8s.io -o yaml
           kubectl get pod -o name | grep basic-example-apiserver | xargs -I {} kubectl describe {}
           kubectl get pod -o name | grep basic-example-apiserver | xargs -I {} kubectl logs {} -c apiserver
+          kubectl get --raw="/apis/kingsport.k8s.io/v1"
 
           kubectl create -f sample/festival.yaml
           sleep 5 # Hold for 1min
