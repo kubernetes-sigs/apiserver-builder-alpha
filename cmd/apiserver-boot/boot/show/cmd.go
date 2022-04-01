@@ -1,6 +1,14 @@
 package show
 
-import "github.com/spf13/cobra"
+import (
+	"os"
+
+	"github.com/spf13/cobra"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
+)
+
+var streams = genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}
+var clientFactory *genericclioptions.ConfigFlags
 
 var showCmd = &cobra.Command{
 	Use:   "show",
@@ -16,6 +24,7 @@ apiserver-boot show resource foo
 func AddShow(cmd *cobra.Command) {
 	cmd.AddCommand(showCmd)
 	AddShowResource(showCmd)
+	AddApiserver(showCmd)
 }
 
 func RunShow(cmd *cobra.Command, args []string) {
