@@ -5,7 +5,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -19,7 +18,6 @@ import (
 	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/klog/v2"
 	apiregistrationv1 "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1"
 	"k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset"
 	"sigs.k8s.io/apiserver-builder-alpha/pkg/utils"
@@ -33,9 +31,7 @@ var showResourceCmd = &cobra.Command{
 	Run:     RunShowResource,
 }
 
-var clientFactory genericclioptions.RESTClientGetter
 var apiVersion string
-var streams = genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}
 
 func AddShowResource(cmd *cobra.Command) {
 	cmd.AddCommand(showResourceCmd)
@@ -48,7 +44,7 @@ func AddShowResource(cmd *cobra.Command) {
 		"The apiVersion of the showing resource.")
 }
 
-func Validate(args []string) error {
+func ValidateShowResource(args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("should at least provide one resource name")
 	}
@@ -56,23 +52,24 @@ func Validate(args []string) error {
 }
 
 func RunShowResource(cmd *cobra.Command, args []string) {
-	if err := Validate(args); err != nil {
+	if err := ValidateShowResource(args); err != nil {
 		fmt.Fprintf(streams.ErrOut, "failed command validation: %v", err)
+		return
 	}
 
 	kubeClientConfig, err := clientFactory.ToRESTConfig()
 	if err != nil {
-		klog.Error("")
+		fmt.Fprintf(streams.ErrOut, "Failed building kube client config: %v", err)
 		return
 	}
 	kubeClient, err := kubernetes.NewForConfig(kubeClientConfig)
 	if err != nil {
-		klog.Error("")
+		fmt.Fprintf(streams.ErrOut, "Failed building kube client: %v", err)
 		return
 	}
 	kubeAggregatorClient, err := clientset.NewForConfig(kubeClientConfig)
 	if err != nil {
-		klog.Error("")
+		fmt.Fprintf(streams.ErrOut, "Failed building kube-aggregator client: %v", err)
 		return
 	}
 
@@ -80,19 +77,18 @@ func RunShowResource(cmd *cobra.Command, args []string) {
 	if len(apiVersion) > 0 {
 		apiResourceList, err := kubeClient.Discovery().ServerResourcesForGroupVersion(apiVersion)
 		if err != nil {
-			klog.Fatal("")
+			fmt.Fprintf(streams.ErrOut, "Failed api-discovery for %q: %v", apiVersion, err)
+			return
 		}
 		apiResources = apiResourceList.APIResources
 	} else {
 		apiResourceLists, err := kubeClient.Discovery().ServerPreferredResources()
 		if err != nil {
-			klog.Fatal("")
+			fmt.Fprintf(streams.ErrOut, "Failed api-discovery: %v", err)
+			return
 		}
 		for _, apiResourceList := range apiResourceLists {
-			gv, err := schema.ParseGroupVersion(apiResourceList.GroupVersion)
-			if err != nil {
-				klog.Error(err)
-			}
+			gv, _ := schema.ParseGroupVersion(apiResourceList.GroupVersion)
 			for _, apiResource := range apiResourceList.APIResources {
 				apiResource := apiResource
 				apiResource.Group = gv.Group
@@ -179,12 +175,12 @@ func printPod(kubeClient kubernetes.Interface, pod *corev1.Pod, prefixWriter uti
 	}
 	certData, ok := secret.Data[certFile]
 	if !ok {
-		klog.Errorf(`no key "tls.crt" found in the secret %v`, secretName)
+		fmt.Fprintf(streams.ErrOut, "failed getting secret data %v[%v]: %v", secretName, certFile, err)
 		return
 	}
 	notAfter, err := parseCertificateExpiry(certData)
 	if err != nil {
-		klog.Errorf(`failed parsing certificate in the secret %v`, secretName)
+		fmt.Fprintf(streams.ErrOut, "failed parsing certificate %v: %v", certFile, err)
 		return
 	}
 	prefixWriter.Write(utils.LEVEL_2, "Certificate:\n")
