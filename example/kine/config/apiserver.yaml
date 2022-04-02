@@ -71,7 +71,7 @@ spec:
         command:
         - "./apiserver"
         args:
-        - "--etcd-servers=http://non-exist-etcd-addr:2379"
+        - "--etcd-servers=unix://kine.sock"
         - "--tls-cert-file=/apiserver.local.config/certificates/tls.crt"
         - "--tls-private-key-file=/apiserver.local.config/certificates/tls.key"
         - "--audit-log-path=-"
