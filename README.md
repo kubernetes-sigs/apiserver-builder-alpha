@@ -15,8 +15,15 @@ cannot achieved by CR\[D\]:
 - Extends long-running subresources/endpoints like websocket for your own resources
 - Integrates your apiserver with whatever other external systems
 
-
 ![DEMO](./docs/static_includes/demo.gif)
+
+#### Installation
+
+```bash
+go install sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot@v1.23.0
+```
+
+or manual download from [release pages](https://github.com/kubernetes-sigs/apiserver-builder-alpha/releases).
 
 ## Motivation
 
@@ -53,20 +60,6 @@ same capabilities when building from scratch.
 ## Guides
 
 **Note:** The guides are presented roughly in the order of recommended progression.
-
-#### Installation guide
-
-##### Install by Go Get
-
-```bash
-go install sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot@v1.23.0
-```
-
-##### Manual Download
-
-Download the latest release and install on your PATH.
-
-[installation guide](docs/installing.md)
 
 #### Building APIs concept guide
 
