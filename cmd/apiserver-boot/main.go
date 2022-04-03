@@ -19,12 +19,12 @@ package main
 import (
 	"github.com/spf13/cobra"
 	"k8s.io/klog/v2"
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/boot/build"
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/boot/create"
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/boot/init_repo"
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/boot/run"
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/boot/show"
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/boot/version"
+	"sigs.k8s.io/apiserver-builder-alpha/v2/pkg/boot/build"
+	"sigs.k8s.io/apiserver-builder-alpha/v2/pkg/boot/create"
+	"sigs.k8s.io/apiserver-builder-alpha/v2/pkg/boot/init_repo"
+	"sigs.k8s.io/apiserver-builder-alpha/v2/pkg/boot/run"
+	"sigs.k8s.io/apiserver-builder-alpha/v2/pkg/boot/show"
+	"sigs.k8s.io/apiserver-builder-alpha/v2/pkg/boot/version"
 )
 
 func main() {
