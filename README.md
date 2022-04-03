@@ -15,6 +15,9 @@ cannot achieved by CR\[D\]:
 - Extends long-running subresources/endpoints like websocket for your own resources
 - Integrates your apiserver with whatever other external systems
 
+
+![DEMO](./docs/static_includes/demo.gif)
+
 ## Motivation
 
 *Addon apiservers* are a Kubernetes extension point allowing fully featured Kubernetes
