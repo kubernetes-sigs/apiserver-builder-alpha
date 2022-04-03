@@ -102,10 +102,10 @@ jobs:
           kind load docker-image ${IMAGE} --name chart-testing
 
           kubectl create -f config/
-          kubectl wait --for=condition=Available apiservice/v1.kingsport.k8s.io
+          kubectl wait --for=condition=Available --timeout=180s apiservice/v1.kingsport.k8s.io
           kubectl create -f sample/festival.yaml
 
-          sleep 5 # Hold for 1min
+          sleep 20 # Hold for a while
 
           kubectl get festival festival-example -o jsonpath="{.spec.invited}" | grep 1 # successfully processed by controller
 
@@ -156,12 +156,11 @@ jobs:
           kind load docker-image ${IMAGE} --name chart-testing
 
           kubectl create -f config/
-          sleep 120
-          kubectl get pod
-          kubectl get apiservice v1.mysql.example.com
-          kubectl get pod -o name | grep kine-example-apiserver | xargs -I {} kubectl logs {}
-          kubectl wait --for=condition=Available apiservice/v1.mysql.example.com
+          kubectl wait --for=condition=Available --timeout=180s apiservice/v1.mysql.example.com
           kubectl create -f sample/tiger.yaml
 
-          #sleep 5 # Hold for 1min
-          #kubectl get fs festival-example -o jsonpath="{.spec.invited}" | grep 1 # successfully processed by controller
+          apiserver-boot show resource tigers
+
+          sleep 20 # Hold for a while
+
+          kubectl get tiger tiger-example  -o jsonpath="{.status.hungry}" | grep "true" # successfully processed by controller

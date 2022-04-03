@@ -1630,6 +1630,8 @@ sigs.k8s.io/apiserver-runtime v1.0.5-0.20220403091933-dabeaf168756 h1:dE/QQrgqTw
 sigs.k8s.io/apiserver-runtime v1.0.5-0.20220403091933-dabeaf168756/go.mod h1:cmahVEn9R791yUnSiFMFdwTqi2dOe5WQRNwcY6jb7l0=
 sigs.k8s.io/apiserver-runtime v1.1.0 h1:0U0EgW9b5wuU0K1NS1u8n2OjmXyC72P6PnKxoZOsr3c=
 sigs.k8s.io/apiserver-runtime v1.1.0/go.mod h1:cmahVEn9R791yUnSiFMFdwTqi2dOe5WQRNwcY6jb7l0=
+sigs.k8s.io/apiserver-runtime v1.1.1-0.20220403102543-0dc9a4df929e h1:3CILrFBCJD0g3YNUEA8mIsODYZdJit2JEvI/S+UN6e4=
+sigs.k8s.io/apiserver-runtime v1.1.1-0.20220403102543-0dc9a4df929e/go.mod h1:cmahVEn9R791yUnSiFMFdwTqi2dOe5WQRNwcY6jb7l0=
 sigs.k8s.io/cli-utils v0.16.0/go.mod h1:9Jqm9K2W6ShhCxsEuaz6HSRKKOXigPUx3ZfypGgxBLY=
 sigs.k8s.io/controller-runtime v0.4.0/go.mod h1:ApC79lpY3PHW9xj/w9pj+lYkLgwAAUZwfXkME1Lajns=
 sigs.k8s.io/controller-runtime v0.11.1 h1:7YIHT2QnHJArj/dk9aUkYhfqfK5cIxPOX5gPECfdZLU=

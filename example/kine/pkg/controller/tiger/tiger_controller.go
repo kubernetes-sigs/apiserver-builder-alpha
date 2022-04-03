@@ -58,6 +58,11 @@ func (r *ReconcileTiger) Reconcile(ctx context.Context, request reconcile.Reques
 		return reconcile.Result{}, err
 	}
 
+	instance.Status.Hungry = true
+	if err := r.Status().Update(ctx, instance); err != nil {
+		return reconcile.Result{}, err
+	}
+
 	return reconcile.Result{}, nil
 }
 
