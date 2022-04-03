@@ -17,10 +17,10 @@ limitations under the License.
 package version
 
 import (
-	"k8s.io/klog"
 	"runtime"
 
 	"github.com/spf13/cobra"
+	"k8s.io/klog/v2"
 )
 
 var (

@@ -18,10 +18,11 @@ package build
 
 import (
 	"io/ioutil"
-	"k8s.io/klog"
 	"path"
 	"path/filepath"
 	"regexp"
+
+	"k8s.io/klog/v2"
 )
 
 var versionedAPIs []string

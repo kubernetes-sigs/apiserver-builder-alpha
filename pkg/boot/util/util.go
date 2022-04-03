@@ -29,7 +29,7 @@ import (
 
 	"github.com/markbates/inflect"
 	"k8s.io/apiserver/pkg/server"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 var Domain string

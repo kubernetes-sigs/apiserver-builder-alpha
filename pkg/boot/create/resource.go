@@ -19,17 +19,17 @@ package create
 import (
 	"bufio"
 	"fmt"
-	"github.com/spf13/afero"
 	"os"
 	"path/filepath"
-	"sigs.k8s.io/kubebuilder/v3/pkg/machinery"
 	"strings"
 
 	"github.com/markbates/inflect"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 	"sigs.k8s.io/apiserver-builder-alpha/pkg/boot/util"
 	config "sigs.k8s.io/kubebuilder/v3/pkg/config/v3"
+	"sigs.k8s.io/kubebuilder/v3/pkg/machinery"
 	"sigs.k8s.io/kubebuilder/v3/pkg/model/resource"
 	"sigs.k8s.io/kubebuilder/v3/pkg/plugins/golang/v3/scaffolds"
 )

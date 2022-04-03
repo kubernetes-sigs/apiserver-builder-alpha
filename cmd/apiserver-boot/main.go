@@ -18,7 +18,7 @@ package main
 
 import (
 	"github.com/spf13/cobra"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 	"sigs.k8s.io/apiserver-builder-alpha/pkg/boot/build"
 	"sigs.k8s.io/apiserver-builder-alpha/pkg/boot/create"
 	"sigs.k8s.io/apiserver-builder-alpha/pkg/boot/init_repo"

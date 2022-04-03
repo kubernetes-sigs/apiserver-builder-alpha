@@ -17,7 +17,7 @@ limitations under the License.
 package main
 
 import (
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 	"sigs.k8s.io/apiserver-runtime/pkg/builder"
 	"sigs.k8s.io/apiserver-runtime/pkg/experimental/storage/filepath"
 
