@@ -11,7 +11,7 @@ spec:
   group: mysql.example.com
   groupPriorityMinimum: 2000
   service:
-    name: kine-example
+    name:  kine-example-apiserver
     namespace: default
   versionPriority: 10
   caBundle: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURoVENDQW0yZ0F3SUJBZ0lKQVAwdlZzbitWUjlQTUEwR0NTcUdTSWIzRFFFQkN3VUFNSFl4Q3pBSkJnTlYKQkFZVEFuVnVNUXN3Q1FZRFZRUUlEQUp6ZERFS01BZ0dBMVVFQnd3QmJERUtNQWdHQTFVRUNnd0JiekVMTUFrRwpBMVVFQ3d3Q2IzVXhOVEF6QmdOVkJBTU1MR3RwYm1VdFpYaGhiWEJzWlMxaGNHbHpaWEoyWlhJdFkyVnlkR2xtCmFXTmhkR1V0WVhWMGFHOXlhWFI1TUI0WERUSXlNRE16TVRBNU1qYzBNMW9YRFRJek1ETXpNVEE1TWpjME0xb3cKZGpFTE1Ba0dBMVVFQmhNQ2RXNHhDekFKQmdOVkJBZ01Bbk4wTVFvd0NBWURWUVFIREFGc01Rb3dDQVlEVlFRSwpEQUZ2TVFzd0NRWURWUVFMREFKdmRURTFNRE1HQTFVRUF3d3NhMmx1WlMxbGVHRnRjR3hsTFdGd2FYTmxjblpsCmNpMWpaWEowYVdacFkyRjBaUzFoZFhSb2IzSnBkSGt3Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXcKZ2dFS0FvSUJBUURnbHVrdHNVN0htYmEzMzRxM0xZdHFSZEYyTllHNkl6ZHk2ZzdRZ3gvdkJEUjE1eFJDVi8xVApQZzZldG9kRWNab1lvOXBacWtybGFqSElUbitJLzhieWtzTVFZVHpHUllDcmpDUjEvYlFoQlJPOW9TVXVBMytOCjErTUJaT2EyR1cxcW9IZC9GZExmNXhPdlZmSVVPVTNzMG52ajgwVG9xcytpTXBvSFZFRllyUGVESk1qR2pLOFYKK0Y4ZFRlMDNYVHNwNzF0N2dhTXQ2WWs3bFQ3SHVoMlBWcGxEKzg0QUJFOEE0M3NrWnVNTUZKTGtyYlFHQnBrRQpYOVpVNEt4NFpOQlI0aEh0VHRjS0c1Y1ZWbU9JbW5kTis0TDhqcEVsVjhCY05QWFpYMlpzZlUrVXdRZUgxamVECk9EMnlWZ21vUTE0R001eUJxMVA0Mlp0ZHJuTWNXMFJuQWdNQkFBR2pGakFVTUJJR0ExVWRFd0VCL3dRSU1BWUIKQWY4Q0FRRXdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBQjRpaEJzS21RaXZodE5zMGJOQXVYTCtDV3kvN2x0LwpkVXd3b0hnTnlhdmlVSnViL01UbFlRZXBqUm9OZmptbTJWK1ZsQUNaRG12RDBPNlhONi9lYzdXcGYzZ1l1QjdJCnNpNTVvejNNRWZwKytwV25pQkREV2czSktWc3B6S3RLOTY3bTFiR29zNVNvVSsxd2h6bzFCQ091Rzdab3Z3UmsKNngybExpaHJDVXAyUUhvL2FSZm5JNU80QVdzTzVzL0FWQU0xRTZEbk0xU2h4SXBXQURGMVk2TmdyT0xJeU9DVApXdEVVMFpNNTlsQUhwUU04TnhUdVFSdVRROENiNDVXL25hOXlDTUw3N1VhQkN6WklMMmlxOGQ2MDBZK2NWOTlECkgxRVlzSHNRV1p2QzNGWm5XejVFN2tucGlCbHBPME94TEE4VGNFUVdwSmo0WWlZbzZOSlhhS2M9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K"
@@ -55,13 +55,13 @@ spec:
         imagePullPolicy: IfNotPresent
         env:
         - name: MYSQL_HOST
-          value: "127.0.0.1"
+          value: "mysql"
         - name: MYSQL_PORT
           value: "3306"
         - name: MYSQL_USERNAME
-          value: "test"
+          value: "root"
         - name: MYSQL_PASSWORD
-          value: "test"
+          value: "test-password"
         - name: MYSQL_DATABASE
           value: "test"
         volumeMounts:
@@ -71,12 +71,13 @@ spec:
         command:
         - "./apiserver"
         args:
-        - "--etcd-servers=http://non-exist-etcd-addr:2379"
+        - "--etcd-servers=unix://kine.sock"
         - "--tls-cert-file=/apiserver.local.config/certificates/tls.crt"
         - "--tls-private-key-file=/apiserver.local.config/certificates/tls.key"
         - "--audit-log-path=-"
         - "--audit-log-maxage=0"
         - "--audit-log-maxbackup=0"
+        - "--feature-gates=APIPriorityAndFairness=false"
         resources:
           requests:
             cpu: 100m

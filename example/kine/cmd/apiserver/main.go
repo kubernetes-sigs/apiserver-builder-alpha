@@ -17,12 +17,13 @@ limitations under the License.
 package main
 
 import (
-	"k8s.io/klog/v2"
 	"os"
+	"strconv"
+
+	"k8s.io/klog/v2"
 	mysqlv1 "sigs.k8s.io/apiserver-builder-alpha/example/kine/pkg/apis/mysql/v1"
 	"sigs.k8s.io/apiserver-runtime/pkg/builder"
 	"sigs.k8s.io/apiserver-runtime/pkg/experimental/storage/mysql"
-	"strconv"
 )
 
 func main() {
@@ -39,6 +40,7 @@ func main() {
 			mysqlPasswd,
 			mysqlDatabase,
 		)). // namespaced resource
+		WithoutEtcd().
 		WithLocalDebugExtension().
 		Execute()
 	if err != nil {

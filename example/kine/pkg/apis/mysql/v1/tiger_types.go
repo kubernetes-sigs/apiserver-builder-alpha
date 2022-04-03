@@ -43,6 +43,7 @@ type TigerSpec struct {
 
 // TigerStatus defines the observed state of Tiger
 type TigerStatus struct {
+	Hungry bool `json:"hungry"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -92,12 +93,12 @@ func (t *Tiger) IsStorageVersion() bool {
 var _ resource.ObjectWithStatusSubResource = &Tiger{}
 var _ resource.StatusSubResource = &TigerStatus{}
 
-func (in TigerStatus) SubResourceName() string {
-	return "status"
-}
-
 func (t *Tiger) GetStatus() (statusSubResource resource.StatusSubResource) {
 	return t.Status
+}
+
+func (in TigerStatus) SubResourceName() string {
+	return "status"
 }
 
 func (in TigerStatus) CopyTo(parent resource.ObjectWithStatusSubResource) {
