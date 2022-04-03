@@ -1,4 +1,3 @@
-
 /*
 Copyright 2022.
 
@@ -22,4 +21,3 @@ limitations under the License.
 // +domain=sample.kubernetes.io
 
 package apis
-
