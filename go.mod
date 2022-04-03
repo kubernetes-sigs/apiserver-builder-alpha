@@ -15,7 +15,6 @@ require (
 	k8s.io/apiserver v0.23.5
 	k8s.io/cli-runtime v0.23.5
 	k8s.io/client-go v0.23.5
-	k8s.io/klog v1.0.0
 	k8s.io/klog/v2 v2.30.0
 	k8s.io/kube-aggregator v0.23.5
 	sigs.k8s.io/kubebuilder/v3 v3.3.0

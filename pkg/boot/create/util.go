@@ -27,10 +27,8 @@ import (
 	"github.com/markbates/inflect"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-
 	utilvalidation "k8s.io/apimachinery/pkg/util/validation"
-	"k8s.io/klog"
-
+	"k8s.io/klog/v2"
 	"sigs.k8s.io/apiserver-builder-alpha/pkg/boot/util"
 )
 

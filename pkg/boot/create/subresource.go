@@ -25,9 +25,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-
 	"k8s.io/apimachinery/pkg/util/sets"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 	"sigs.k8s.io/apiserver-builder-alpha/pkg/boot/util"
 )
 

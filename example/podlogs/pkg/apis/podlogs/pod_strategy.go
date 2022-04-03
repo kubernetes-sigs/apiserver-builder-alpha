@@ -21,7 +21,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 // Validate checks that an instance of Pod is well formed

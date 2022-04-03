@@ -17,7 +17,7 @@ limitations under the License.
 package main
 
 import (
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 	"sigs.k8s.io/apiserver-runtime/pkg/builder"
 
 	innsmouthv1 "sigs.k8s.io/apiserver-builder-alpha/example/basic/pkg/apis/innsmouth/v1"

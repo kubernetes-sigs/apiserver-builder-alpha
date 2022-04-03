@@ -20,7 +20,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"k8s.io/klog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -28,8 +27,8 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/klog/v2"
 	"sigs.k8s.io/apiserver-builder-alpha/pkg/boot/build"
 	"sigs.k8s.io/apiserver-builder-alpha/pkg/boot/util"
 )

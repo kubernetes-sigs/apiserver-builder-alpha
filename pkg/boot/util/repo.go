@@ -9,7 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 	"golang.org/x/mod/modfile"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 var repo string

@@ -17,17 +17,16 @@ limitations under the License.
 package build
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
-	"k8s.io/klog"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
-	"bytes"
-
 	"github.com/spf13/cobra"
+	"k8s.io/klog/v2"
 )
 
 var docsCmd = &cobra.Command{
