@@ -56,7 +56,7 @@ same capabilities when building from scratch.
 ##### Install by Go Get
 
 ```bash
-go install sigs.k8s.io/apiserver-builder-alpha/v2/cmd/apiserver-boot@v2.0.0
+go install sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot@v1.23.0
 ```
 
 ##### Manual Download
