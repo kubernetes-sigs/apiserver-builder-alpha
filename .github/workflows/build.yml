@@ -27,14 +27,13 @@ jobs:
       - name: Testing on new project
         env:
           GOBIN: ${{ github.workspace }}/go/bin
+        working-directory: ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/
         run: |
-          mkdir -p test
-          cp ${{ github.workspace }}/go/src/sigs.k8s.io/apiserver-builder-alpha/Makefile.test test/
-          cd test
-          touch boilerplate.go.txt
-
           export PATH=${PATH}:${GOBIN}
+          export TESTDIR=$(mktemp -d)
           make test -f Makefile.test
+          diff -rq --exclude=bin ./test/golden $TESTDIR
+
   basic-example-build:
     runs-on: ubuntu-latest
     name: Testing Basic Example

@@ -1,0 +1,4 @@
+
+version: "1"
+domain: sample.kubernetes.io
+repo: example.io

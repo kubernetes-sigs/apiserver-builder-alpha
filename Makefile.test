@@ -14,12 +14,14 @@
 
 .PHONY: all test build generate docs cmds clean cleangenerated cleandocs skeleton
 
+TESTDIR?=$(shell mktemp -d)
+
 all: test
 
 NON_INTERACTIVE_FLAG=--skip-resource=false --skip-controller=false --with-status-subresource=true
 
 test:
-	cd $(shell mktemp -d) && \
+	cd ${TESTDIR} && \
 	pwd && \
 	apiserver-boot init repo --domain sample.kubernetes.io --module-name=example.io && \
 	apiserver-boot create group version resource --group storage --version v1 --kind VolumeClaim $(NON_INTERACTIVE_FLAG) && \
