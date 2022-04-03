@@ -46,3 +46,12 @@ clean:
 build: clean ## Create release artefacts for darwin:amd64, linux:amd64 and windows:amd64. Requires etcd, glide, hg.
 	mkdir -p bin
 	go build -o bin/apiserver-boot ./cmd/apiserver-boot/main.go
+
+release-binary:
+	mkdir -p bin
+	GOOS=linux go build -o bin/apiserver-boot ./cmd/apiserver-boot
+	tar czvf apiserver-boot-linux.tar.gz bin/apiserver-boot
+	GOOS=darwin go build -o bin/apiserver-boot ./cmd/apiserver-boot
+	tar czvf apiserver-boot-darwin.tar.gz bin/apiserver-boot
+	GOOS=windows go build -o bin/apiserver-boot ./cmd/apiserver-boot
+	tar czvf apiserver-boot-windows.tar.gz bin/apiserver-boot
