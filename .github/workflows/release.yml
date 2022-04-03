@@ -29,7 +29,10 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
       - name: binary
-        run:  make release-binary
+        run:  |
+          GOOS=linux make release-binary
+          GOOS=darwin make release-binary
+          GOOS=windows make release-binary
       - name: publish release
         uses: ncipollo/release-action@v1
         with:

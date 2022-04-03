@@ -28,7 +28,7 @@ import (
 	"github.com/markbates/inflect"
 	"github.com/spf13/cobra"
 	"k8s.io/klog"
-	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/boot/util"
 	config "sigs.k8s.io/kubebuilder/v3/pkg/config/v3"
 	"sigs.k8s.io/kubebuilder/v3/pkg/model/resource"
 	"sigs.k8s.io/kubebuilder/v3/pkg/plugins/golang/v3/scaffolds"

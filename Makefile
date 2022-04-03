@@ -15,6 +15,8 @@
 NAME=apiserver-builder-alpha
 VENDOR=kubernetes-sigs
 VERSION=$(shell git describe --always --tags HEAD)
+COMMIT=$(shell git rev-parse --short HEAD)
+KUBE_VERSION?=v0.23.5
 DESCRIPTION=apiserver-builder implements libraries and tools to quickly and easily build Kubernetes apiservers to support custom resource types.
 MAINTAINER=The Kubernetes Authors
 URL=https://github.com/$(VENDOR)/$(NAME)
@@ -36,7 +38,7 @@ install: build
 	@echo "GOOS: $(GOOS)"
 	@echo "GOARCH: $(GOARCH)"
 	@echo "ARCH: $(ARCH)"
-	go install ./v2/cmd/apiserver-boot
+	go install ./cmd/apiserver-boot
 
 .PHONY: clean
 clean:
@@ -45,13 +47,18 @@ clean:
 .PHONY: build
 build: clean ## Create release artefacts for darwin:amd64, linux:amd64 and windows:amd64. Requires etcd, glide, hg.
 	mkdir -p bin
-	go build -o bin/apiserver-boot ./v2/cmd/apiserver-boot
+	go build -o bin/apiserver-boot ./cmd/apiserver-boot
 
 release-binary:
 	mkdir -p bin
-	GOOS=linux go build -o bin/apiserver-boot ./cmd/apiserver-boot
-	tar czvf apiserver-boot-linux.tar.gz bin/apiserver-boot
-	GOOS=darwin go build -o bin/apiserver-boot ./cmd/apiserver-boot
-	tar czvf apiserver-boot-darwin.tar.gz bin/apiserver-boot
-	GOOS=windows go build -o bin/apiserver-boot ./cmd/apiserver-boot
-	tar czvf apiserver-boot-windows.tar.gz bin/apiserver-boot
+	go build \
+		-ldflags=" \
+			-X 'sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/version.goos=${GOOS}' \
+			-X 'sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/version.goarch=${GOARCH}' \
+			-X 'sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/version.kubernetesVendorVersion=${KUBE_VERSION}' \
+			-X 'sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/version.apiserverBuilderVersion=${VERSION}' \
+			-X 'sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/version.gitCommit=${COMMIT}' \
+			" \
+ 		-o bin/apiserver-boot ./cmd/apiserver-boot
+	tar czvf apiserver-boot-${GOOS}-${GOARCH}.tar.gz bin/apiserver-boot
+

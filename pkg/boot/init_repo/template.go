@@ -8,7 +8,7 @@ var (
 	//go:embed templates/apiserver.tpl
 	apiserverTemplate string
 	//go:embed templates/api.doc.tpl
-	apisDocTemplate    string
+	apisDocTemplate string
 	//go:embed templates/package.doc.tpl
 	packageDocTemplate string
 )
