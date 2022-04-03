@@ -1,4 +1,4 @@
-module sigs.k8s.io/apiserver-builder-alpha/v2
+module sigs.k8s.io/apiserver-builder-alpha
 
 go 1.17
 

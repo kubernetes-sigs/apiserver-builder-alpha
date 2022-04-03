@@ -79,7 +79,7 @@ jobs:
         env:
           GOPATH: ${{ github.workspace }}/go
         run: |
-          go build -o ${GOPATH}/bin/apiserver-boot ./cmd/apiserver-boot/main.go
+          make install
       - name: Install controller-tools
         env:
           GO111MODULE: on
@@ -133,7 +133,7 @@ jobs:
           GOPATH: ${{ github.workspace }}/go
         run: |
           mkdir -p bin
-          go build -o ${GOPATH}/bin/apiserver-boot ./cmd/apiserver-boot/main.go
+          make install
       - name: Install controller-tools
         env:
           GO111MODULE: on
