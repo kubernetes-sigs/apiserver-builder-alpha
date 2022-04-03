@@ -17,7 +17,7 @@ cannot achieved by CR\[D\]:
 
 ![DEMO](./docs/static_includes/demo.gif)
 
-#### Installation
+## Installation
 
 ```bash
 go install sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot@v1.23.0
