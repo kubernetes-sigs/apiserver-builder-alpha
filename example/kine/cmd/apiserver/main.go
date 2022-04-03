@@ -40,6 +40,7 @@ func main() {
 			mysqlPasswd,
 			mysqlDatabase,
 		)). // namespaced resource
+		WithoutEtcd().
 		WithLocalDebugExtension().
 		Execute()
 	if err != nil {
