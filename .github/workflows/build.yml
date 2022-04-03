@@ -23,7 +23,7 @@ jobs:
         env:
           GOPATH: ${{ github.workspace }}/go
         run: |
-          go build -o ${GOPATH}/bin/apiserver-boot ./cmd/apiserver-boot/main.go
+          make install
       - name: Testing on new project
         env:
           GOBIN: ${{ github.workspace }}/go/bin

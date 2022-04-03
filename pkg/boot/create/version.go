@@ -24,7 +24,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"k8s.io/klog"
-	"sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/util"
+	"sigs.k8s.io/apiserver-builder-alpha/pkg/boot/util"
 )
 
 var versionName string
