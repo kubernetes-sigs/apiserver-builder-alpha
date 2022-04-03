@@ -30,7 +30,7 @@ default: install
 
 .PHONY: test
 test:
-	go test ./v2/...
+	go test ./cmd/... ./pkg/...
 
 .PHONY: install
 install: build
@@ -38,7 +38,7 @@ install: build
 	@echo "GOOS: $(GOOS)"
 	@echo "GOARCH: $(GOARCH)"
 	@echo "ARCH: $(ARCH)"
-	go install ./v2/cmd/apiserver-boot
+	go install ./cmd/apiserver-boot
 
 .PHONY: clean
 clean:
@@ -47,7 +47,7 @@ clean:
 .PHONY: build
 build: clean ## Create release artefacts for darwin:amd64, linux:amd64 and windows:amd64. Requires etcd, glide, hg.
 	mkdir -p bin
-	go build -o bin/apiserver-boot ./v2/cmd/apiserver-boot
+	go build -o bin/apiserver-boot ./cmd/apiserver-boot
 
 release-binary:
 	mkdir -p bin
@@ -59,6 +59,6 @@ release-binary:
 			-X 'sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/version.apiserverBuilderVersion=${VERSION}' \
 			-X 'sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/version.gitCommit=${COMMIT}' \
 			" \
- 		-o bin/apiserver-boot ./v2/cmd/apiserver-boot
+ 		-o bin/apiserver-boot ./cmd/apiserver-boot
 	tar czvf apiserver-boot-${GOOS}-${GOARCH}.tar.gz bin/apiserver-boot
 
