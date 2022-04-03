@@ -14,7 +14,7 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/utils"
+	"sigs.k8s.io/apiserver-builder-alpha/v2/pkg/utils"
 )
 
 var showApiserverCmd = &cobra.Command{

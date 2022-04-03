@@ -27,7 +27,7 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/klog/v2"
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/boot/util"
+	"sigs.k8s.io/apiserver-builder-alpha/v2/pkg/boot/util"
 )
 
 var subresourceName string

@@ -20,7 +20,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	apiregistrationv1 "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1"
 	"k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset"
-	"sigs.k8s.io/apiserver-builder-alpha/pkg/utils"
+	"sigs.k8s.io/apiserver-builder-alpha/v2/pkg/utils"
 )
 
 var showResourceCmd = &cobra.Command{
