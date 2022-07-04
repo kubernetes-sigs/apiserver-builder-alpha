@@ -17,8 +17,9 @@ limitations under the License.
 package main
 
 import (
+	"log"
+
 	"github.com/spf13/cobra"
-	"k8s.io/klog/v2"
 	"sigs.k8s.io/apiserver-builder-alpha/pkg/boot/build"
 	"sigs.k8s.io/apiserver-builder-alpha/pkg/boot/create"
 	"sigs.k8s.io/apiserver-builder-alpha/pkg/boot/init_repo"
@@ -37,7 +38,7 @@ func main() {
 	show.AddShow(cmd)
 
 	if err := cmd.Execute(); err != nil {
-		klog.Fatal(err)
+		log.Fatal(err)
 	}
 }
 
