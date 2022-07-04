@@ -23,6 +23,7 @@ URL=https://github.com/$(VENDOR)/$(NAME)
 LICENSE=Apache-2.0
 GOOS?=$(shell go env GOOS)
 GOARCH?=$(shell go env GOARCH)
+BuildDate=$(shell date "+%Y-%m-%dT%H-%M-%SZ")
 GOPATH?=$(shell go env GOPATH)
 
 .PHONY: default
@@ -58,6 +59,7 @@ release-binary:
 			-X 'sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/version.kubernetesVendorVersion=${KUBE_VERSION}' \
 			-X 'sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/version.apiserverBuilderVersion=${VERSION}' \
 			-X 'sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/version.gitCommit=${COMMIT}' \
+			-X 'sigs.k8s.io/apiserver-builder-alpha/pkg/boot/version.buildDate=${BuildDate}' \
 			" \
  		-o bin/apiserver-boot ./cmd/apiserver-boot
 	tar czvf apiserver-boot-${GOOS}-${GOARCH}.tar.gz bin/apiserver-boot
