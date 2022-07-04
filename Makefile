@@ -44,21 +44,21 @@ install: build
 clean:
 	rm -rf *.deb *.rpm *.tar.gz ./release bin/*
 
+LD_FLAGS=-ldflags " \
+	-X 'sigs.k8s.io/apiserver-builder-alpha/pkg/boot/version.goos=${GOOS}' \
+	-X 'sigs.k8s.io/apiserver-builder-alpha/pkg/boot/version.goarch=${GOARCH}' \
+	-X 'sigs.k8s.io/apiserver-builder-alpha/pkg/boot/version.kubernetesVendorVersion=${KUBE_VERSION}' \
+	-X 'sigs.k8s.io/apiserver-builder-alpha/pkg/boot/version.apiserverBuilderVersion=${VERSION}' \
+	-X 'sigs.k8s.io/apiserver-builder-alpha/pkg/boot/version.gitCommit=${COMMIT}' \
+	"
+
 .PHONY: build
 build: clean ## Create release artefacts for darwin:amd64, linux:amd64 and windows:amd64. Requires etcd, glide, hg.
 	mkdir -p bin
-	go build -o bin/apiserver-boot ./cmd/apiserver-boot
+	go build $(LD_FLAGS) -o bin/apiserver-boot ./cmd/apiserver-boot
 
 release-binary:
 	mkdir -p bin
-	go build \
-		-ldflags=" \
-			-X 'sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/version.goos=${GOOS}' \
-			-X 'sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/version.goarch=${GOARCH}' \
-			-X 'sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/version.kubernetesVendorVersion=${KUBE_VERSION}' \
-			-X 'sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/version.apiserverBuilderVersion=${VERSION}' \
-			-X 'sigs.k8s.io/apiserver-builder-alpha/cmd/apiserver-boot/boot/version.gitCommit=${COMMIT}' \
-			" \
- 		-o bin/apiserver-boot ./cmd/apiserver-boot
+	go build $(LD_FLAGS) -o bin/apiserver-boot ./cmd/apiserver-boot
 	tar czvf apiserver-boot-${GOOS}-${GOARCH}.tar.gz bin/apiserver-boot
 
