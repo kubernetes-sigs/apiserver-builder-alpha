@@ -344,7 +344,7 @@ spec:
         command:
         - "./apiserver"
         args:
-        - "--etcd-servers=http://etcd-svc:2379"
+        - "--etcd-servers=http://etcd-svc.{{.Namespace}}.svc:2379"
         - "--tls-cert-file=/apiserver.local.config/certificates/tls.crt"
         - "--tls-private-key-file=/apiserver.local.config/certificates/tls.key"
         - "--audit-log-path=-"
