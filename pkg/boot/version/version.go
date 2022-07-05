@@ -18,12 +18,10 @@ package version
 
 import (
 	"fmt"
-	"k8s.io/klog"
 	"log"
 	"runtime"
 
 	"github.com/spf13/cobra"
-	"k8s.io/klog/v2"
 )
 
 var (
