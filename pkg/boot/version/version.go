@@ -17,6 +17,9 @@ limitations under the License.
 package version
 
 import (
+	"fmt"
+	"k8s.io/klog"
+	"log"
 	"runtime"
 
 	"github.com/spf13/cobra"
@@ -42,19 +45,16 @@ type Version struct {
 	GoArch                  string `json:"goArch"`
 }
 
-func GetVersion() Version {
-	return Version{
+// GetVersion returns the version
+func GetVersion() string {
+	return fmt.Sprintf("Version: %#v", Version{
 		apiserverBuilderVersion,
 		kubernetesVendorVersion,
 		gitCommit,
 		buildDate,
 		goos,
 		goarch,
-	}
-}
-
-func (v Version) Print() {
-	klog.Infof("Version: %#v", v)
+	})
 }
 
 var versionCmd = &cobra.Command{
@@ -70,5 +70,6 @@ func AddVersion(cmd *cobra.Command) {
 }
 
 func RunVersion(cmd *cobra.Command, args []string) {
-	GetVersion().Print()
+	version := GetVersion()
+	log.Printf(version)
 }
