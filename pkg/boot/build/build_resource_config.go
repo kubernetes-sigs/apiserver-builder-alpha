@@ -22,6 +22,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
+	"k8s.io/klog"
 	"net"
 	"os"
 	"path"
@@ -94,6 +95,16 @@ func RunBuildResourceConfig(cmd *cobra.Command, args []string) {
 	if len(Image) == 0 {
 		klog.Fatalf("Must specify --image")
 	}
+
+	version, err := util.DoCmdWithInfo("openssl version | awk '{print $2}'")
+	if err != nil {
+		klog.Fatalf(err.Error())
+	}
+
+	if flag := util.CompareVersion(version, "1.1.0"); flag == -1 {
+		klog.Fatalf("openssl version is inappropriate,openssl version >= 1.1.0")
+	}
+
 	util.GetDomain()
 
 	if _, err := os.Stat("pkg"); err != nil {

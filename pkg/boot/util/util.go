@@ -17,6 +17,7 @@ limitations under the License.
 package util
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io/ioutil"
@@ -24,6 +25,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -125,6 +127,49 @@ func GetDomain() string {
 	}
 	Domain = string(l[1])
 	return Domain
+}
+
+func DoCmdWithInfo(s string) (string, error) {
+	cmd := exec.Command("/bin/bash", "-c", s)
+
+	var out bytes.Buffer
+	cmd.Stdout = &out
+
+	err := cmd.Run()
+	if err != nil {
+		klog.Fatalf("command failed %v", err)
+	}
+	return out.String(), err
+}
+
+func CompareVersion(version1 string, version2 string) int {
+	var res int
+	ver1Strs := strings.Split(version1, ".")
+	ver2Strs := strings.Split(version2, ".")
+	ver1Len := len(ver1Strs)
+	ver2Len := len(ver2Strs)
+	verLen := ver1Len
+	if len(ver1Strs) < len(ver2Strs) {
+		verLen = ver2Len
+	}
+	for i := 0; i < verLen; i++ {
+		var ver1Int, ver2Int int
+		if i < ver1Len {
+			ver1Int, _ = strconv.Atoi(ver1Strs[i])
+		}
+		if i < ver2Len {
+			ver2Int, _ = strconv.Atoi(ver2Strs[i])
+		}
+		if ver1Int < ver2Int {
+			res = -1
+			break
+		}
+		if ver1Int > ver2Int {
+			res = 1
+			break
+		}
+	}
+	return res
 }
 
 func create(path string) {
