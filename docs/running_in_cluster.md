@@ -11,7 +11,7 @@ see the [auth concept page](concepts/auth.md).
 Running the following command will automatically invoke each of the commands
 covered in the [long version](#long-version)
 
-`apiserver-boot build config --name <servicename> --namespace <namespace to run in> --image <image to run>`
+`apiserver-boot run in-cluster --name <servicename> --namespace <namespace to run in> --image <image to run>`
 
 ## Long version
 
