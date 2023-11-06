@@ -198,8 +198,17 @@ func GoBuild(cmd *cobra.Command, args []string) {
 
 	if buildController() {
 		// Build the controller manager
+		gocache := os.Getenv("GOCACHE")
+		localAppData := os.Getenv("%LocalAppData%")
 		path := filepath.Join("cmd", "manager", "main.go")
 		c := exec.Command("go", "build", "-o", filepath.Join(outputdir, "controller-manager"), path)
+		// add GOCACHE and LocalAppData environment variable
+		if len(localAppData) > 0 {
+			c.Env = append(c.Env, fmt.Sprintf("GOCACHE=%s", gocache))
+		}
+		if len(localAppData) > 0 {
+			c.Env = append(c.Env, fmt.Sprintf("LocalAppData=%s", localAppData))
+		}
 		if len(os.Getenv("CGO_ENABLED")) == 0 {
 			c.Env = append(os.Environ(), "CGO_ENABLED=0")
 		}
